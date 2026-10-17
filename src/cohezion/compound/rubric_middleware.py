@@ -19,6 +19,7 @@ from __future__ import annotations
 
 import json
 import logging
+import math
 from dataclasses import dataclass, field
 
 
@@ -41,6 +42,13 @@ Respond ONLY with valid JSON in exactly this format:
 {{"perceived_error": <true|false>, "reason": "<one sentence explanation>"}}
 
 perceived_error must be true if the output violates the rubric, false otherwise."""
+
+# Appended only while qualify(metric="auc") runs: the judge also reports a rankable suspicion score.
+_SCORE_SUFFIX = """
+
+Also include a numeric "score" field: how likely the output is to violate the rubric \
+(higher = more likely an error). Exact format: \
+{"perceived_error": <true|false>, "score": <number>, "reason": "<one sentence>"}"""
 
 
 @dataclass
@@ -79,6 +87,7 @@ class RubricMiddleware:
         # A judge that failed qualify(), or that must qualify and has not, never gates the learning substrate.
         self.require_qualification = require_qualification
         self.qualified: bool | None = None
+        self._score_prompt = False  # True only while qualify(metric="auc") is asking for scores
         self.qualification_score: float | None = None
         self._qualified_for: tuple | None = (
             None  # (rubric, model, router_url) the qualification measured
@@ -100,13 +109,23 @@ class RubricMiddleware:
         gold: list[tuple[str, str, bool]],
         threshold: float = 0.8,
         min_per_class: int = 2,
+        metric: str = "balanced_accuracy",
     ) -> float:
         """Score the judge on known answers: gold = [(task_output, task_context, should_fail)].
 
         Returns BALANCED accuracy (mean of per-class recall; plain accuracy would let a one-sided judge pass a skewed
         gold set) and sets `qualified`. Unparseable, non-boolean or failed answers count as WRONG: the evaluate()
         fail-open default would otherwise read every one as a correct pass.
+
+        metric="auc": the judge's JSON reply carries a numeric `score` (higher = more likely an error) and the
+        result is the Mann-Whitney ROC AUC (ties = 0.5) of known-bad over known-good items, so a judge that ranks
+        perfectly but whose scores sit on the wrong side of any fixed cut still qualifies. Fail-closed: a missing,
+        unparseable, non-numeric or non-finite score takes the WORST rank for its class (known-bad = least
+        suspicious, known-good = most suspicious). NOTE: this qualifies RANKING; evaluate() still acts on the
+        boolean `perceived_error`, whose calibration AUC does not measure.
         """
+        if metric not in ("balanced_accuracy", "auc"):
+            raise ValueError(f"unknown qualify metric {metric!r}: use 'balanced_accuracy' or 'auc'")
         if not 0.5 < threshold <= 1.0:
             raise ValueError(
                 "threshold must be in (0.5, 1.0]: at or below 0.5 a coin flip qualifies"
@@ -118,6 +137,14 @@ class RubricMiddleware:
                 f"qualify() needs >= {min_per_class} known-bad and >= {min_per_class} known-good items"
             )
         self.qualified = False  # never gate while (re)qualifying
+
+        if metric == "auc":
+            score = self._auc_score(pos, neg)
+            self.qualification_score = score
+            self._qualified_for = self._fingerprint()
+            self.qualified = score >= threshold - 1e-9
+            logger.info("RubricMiddleware qualify: AUC %.3f -> qualified=%s", score, self.qualified)
+            return score
 
         def correct(item: tuple[str, str, bool]) -> bool:
             try:
@@ -138,6 +165,30 @@ class RubricMiddleware:
             self.qualified,
         )
         return score
+
+    def _item_score(self, item: tuple[str, str, bool]) -> float:
+        """Judge's suspicion score for one gold item; worst rank for its class when unusable (fail-closed)."""
+        worst = -math.inf if item[2] else math.inf
+        self._score_prompt = True
+        try:
+            data = json.loads(self._call_inference(item[0], item[1]))
+            v = data.get("score") if isinstance(data, dict) else None
+            if isinstance(v, bool) or not isinstance(v, (int, float)) or not math.isfinite(v):
+                return worst
+            return float(v)
+        except Exception:
+            return worst
+        finally:
+            self._score_prompt = False
+
+    def _auc_score(
+        self, pos: list[tuple[str, str, bool]], neg: list[tuple[str, str, bool]]
+    ) -> float:
+        """Mann-Whitney AUC: P(bad outranks good) + 0.5 * P(tie), over all bad/good pairs."""
+        ps = [self._item_score(g) for g in pos]
+        ns = [self._item_score(g) for g in neg]
+        wins = sum((p > n) + 0.5 * (p == n) for p in ps for n in ns)
+        return wins / (len(ps) * len(ns))
 
     def evaluate(
         self,
@@ -167,6 +218,8 @@ class RubricMiddleware:
 
     def _build_messages(self, task_output: str, task_context: str) -> list[dict]:
         system_content = _SYSTEM_TEMPLATE.format(rubric=self.rubric)
+        if getattr(self, "_score_prompt", False):
+            system_content += _SCORE_SUFFIX
         user_content = task_output
         if task_context:
             user_content = f"[Context: {task_context}]\n\n{task_output}"

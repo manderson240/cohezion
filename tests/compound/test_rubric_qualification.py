@@ -158,3 +158,138 @@ def test_rq8_changing_the_judge_after_qualifying_invalidates_it():
     hand.qualified = True  # set by hand, never measured
     with _judge(lambda o: True):
         assert hand.evaluate("bad output").passed is True
+
+
+# --- RQ6: rank-based AUC qualification (GEMS desk round qd, 2026-10-17) -------------------------------------------
+# An Opus judge ranked its gold set perfectly (AUC 1.00) but its scores sat below a fixed cut, so balanced accuracy
+# was 0.50 and it was wrongly disqualified. metric="auc" qualifies the RANKING.
+
+
+def _scored(score_of, flag=lambda o: False):
+    """Patch inference with a judge replying {"perceived_error": flag, "score": score_of(output)}.
+
+    score_of may return a number, None (key omitted) or any raw value (e.g. a string)."""
+
+    def fake(self, task_output, task_context):
+        s = score_of(task_output)
+        body = {"perceived_error": flag(task_output), "reason": "r"}
+        if s is not None:
+            body["score"] = s
+        return json.dumps(body)
+
+    return patch.object(RubricMiddleware, "_call_inference", fake)
+
+
+def _rank(o):
+    """Perfect ordering, but every score is far below a 0.5 cut: bad i 0.30..0.33, good i 0.01..0.04."""
+    i = int(o.split()[1])
+    return 0.30 + 0.01 * i if o.startswith("bad") else 0.01 + 0.01 * i
+
+
+def test_rq6_offset_but_perfect_ranking_fails_balanced_accuracy_and_passes_auc():
+    rm = RubricMiddleware(rubric="x")
+    with _scored(_rank):  # perceived_error always False: the fixed cut never fires
+        assert rm.qualify(GOLD) == 0.5
+        assert rm.qualified is False
+    with _scored(_rank):
+        assert rm.qualify(GOLD, metric="auc") == 1.0
+    assert rm.qualified is True and rm.is_qualified() is True
+
+
+def test_rq6_reversed_ranking_fails_auc():
+    rm = RubricMiddleware(rubric="x")
+    with _scored(lambda o: 1.0 - _rank(o)):
+        assert rm.qualify(GOLD, metric="auc") == 0.0
+    assert rm.qualified is False
+
+
+def test_rq6_constant_scores_are_all_ties_and_fail():
+    rm = RubricMiddleware(rubric="x")
+    with _scored(lambda o: 0.7):
+        assert rm.qualify(GOLD, metric="auc") == 0.5
+    assert rm.qualified is False
+
+
+@pytest.mark.parametrize("bad_value", [None, "0.9", True, "nan", [1], float("nan")])
+def test_rq6_unusable_score_on_known_bad_lowers_auc_never_raises_it(bad_value):
+    rm = RubricMiddleware(rubric="x")
+    # Known-bad "bad 0" gets an unusable score: it must rank BELOW every known-good item (worst), costing 4 of 16 pairs.
+    with _scored(lambda o: bad_value if o == "bad 0" else _rank(o)):
+        assert rm.qualify(GOLD, metric="auc") == pytest.approx(12 / 16)
+    assert rm.qualified is False  # 0.75 < 0.8
+
+
+def test_rq6_infinite_score_is_unusable_not_a_free_win():
+    rm = RubricMiddleware(rubric="x")
+    # json.dumps emits Infinity for float("inf"); a known-bad item must not buy top rank with it.
+    with _scored(lambda o: float("inf") if o == "bad 0" else _rank(o)):
+        assert rm.qualify(GOLD, metric="auc") == pytest.approx(12 / 16)
+
+
+def test_rq6_unusable_score_on_known_good_lowers_auc_never_raises_it():
+    rm = RubricMiddleware(rubric="x")
+    # Known-good "good 0" with no score ranks ABOVE every known-bad item (most suspicious): 4 of 16 pairs lost.
+    with _scored(lambda o: None if o == "good 0" else _rank(o)):
+        assert rm.qualify(GOLD, metric="auc") == pytest.approx(12 / 16)
+
+
+def test_rq6_raising_or_garbage_reply_is_worst_rank():
+    rm = RubricMiddleware(rubric="x")
+
+    def fake(self, o, c):
+        if o == "bad 1":
+            raise RuntimeError("down")
+        if o == "bad 2":
+            return "not json"
+        return json.dumps({"perceived_error": False, "score": _rank(o)})
+
+    with patch.object(RubricMiddleware, "_call_inference", fake):
+        assert rm.qualify(GOLD, metric="auc") == pytest.approx(8 / 16)
+
+
+def test_rq6_ties_between_classes_count_half():
+    rm = RubricMiddleware(rubric="x")
+    # bad 0 ties good 0 at 0.5 (half a win); good 0 also outranks bad 1-3 (3 losses); all other pairs are wins
+    with _scored(lambda o: 0.5 if o in ("bad 0", "good 0") else _rank(o)):
+        assert rm.qualify(GOLD, metric="auc") == pytest.approx(12.5 / 16)
+
+
+def test_rq6_auc_threshold_boundary_and_fingerprint_semantics():
+    rm = RubricMiddleware(rubric="x")
+    with _scored(_rank):
+        rm.qualify(GOLD, threshold=1.0, metric="auc")
+    assert rm.is_qualified() is True
+    rm.rubric = "changed"  # the measurement was of another judge
+    assert rm.is_qualified() is False
+
+
+def test_rq6_auc_mode_asks_the_judge_for_a_score_and_default_mode_does_not():
+    rm = RubricMiddleware(rubric="x")
+    assert "score" not in rm._build_messages("o", "")[0]["content"]
+    seen = []
+
+    def fake(self, o, c):
+        seen.append(self._build_messages(o, c)[0]["content"])
+        return json.dumps({"perceived_error": False, "score": _rank(o)})
+
+    with patch.object(RubricMiddleware, "_call_inference", fake):
+        rm.qualify(GOLD, metric="auc")
+    assert seen and all('"score"' in s for s in seen)
+    assert "score" not in rm._build_messages("o", "")[0]["content"]  # flag restored
+
+
+def test_rq6_unknown_metric_and_class_floor_still_enforced():
+    rm = RubricMiddleware(rubric="x")
+    with pytest.raises(ValueError):
+        rm.qualify(GOLD, metric="f1")
+    with pytest.raises(ValueError):
+        rm.qualify(GOLD[:5], metric="auc")  # one-class set cannot qualify
+    with pytest.raises(ValueError):
+        rm.qualify(GOLD, threshold=0.5, metric="auc")
+
+
+def test_rq6_default_mode_is_unchanged_by_scores_in_the_reply():
+    rm = RubricMiddleware(rubric="x")
+    # a perfect-RANKING judge whose boolean verdicts are right: default mode ignores `score` entirely
+    with _scored(lambda o: 0.0, flag=lambda o: o.startswith("bad")):
+        assert rm.qualify(GOLD) == 1.0
