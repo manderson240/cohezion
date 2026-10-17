@@ -278,8 +278,23 @@ def wait_for_kernel_completion(api: KaggleApi, kernel_slug: str, max_wait_mins: 
             last_status = status
 
         if "COMPLETE" in str(status).upper():
-            # Get latest version number
-            return 0  # 0 or None submits the latest active version
+            try:
+                parts = kernel_slug.split("/")
+                if len(parts) == 2:
+                    with api.build_kaggle_client() as kaggle:
+                        from kagglesdk.kernels.types.kernels_api_service import ApiGetKernelRequest
+
+                        req = ApiGetKernelRequest()
+                        req.user_name = parts[0]
+                        req.kernel_slug = parts[1]
+                        res_k = kaggle.kernels.kernels_api_client.get_kernel(req)
+                        ver = int(res_k.metadata.current_version_number)
+                        if ver > 0:
+                            print(f"✓ Detected completed kernel_version={ver} for '{kernel_slug}'.")
+                            return ver
+            except Exception as e:
+                print(f"⚠️ Could not resolve version in wait: {e}")
+            return 0
         elif "ERROR" in str(status).upper() or "CANCEL" in str(status).upper():
             raise RuntimeError(f"Kernel '{kernel_slug}' failed with status: {status}")
 
@@ -308,19 +323,22 @@ def submit_notebook(
         print(f"🚀 Pushing kernel from '{push_dir}' to Kaggle via api.kernels_push...")
         push_res = api.kernels_push(str(push_dir))
         print(f"✓ Kernel pushed successfully: {push_res}")
-        new_ver = getattr(push_res, "versionNumber", None)
-        if new_ver is not None and not kernel_version:
+        new_ver = getattr(push_res, "versionNumber", None) or getattr(push_res, "version_number", None)
+        if new_ver is not None and int(new_ver) > 0 and not kernel_version:
             kernel_version = int(new_ver)
             print(f"✓ Target kernel_version set to {kernel_version} from push response.")
         time.sleep(10)
         wait = True
 
     if wait:
-        wait_for_kernel_completion(api, kernel)
+        completed_ver = wait_for_kernel_completion(api, kernel)
+        if completed_ver > 0:
+            kernel_version = completed_ver
+            print(f"✓ Dynamically updated target kernel_version to {kernel_version} from completion.")
 
     print(f"Dispatching Code Submission for '{competition}':")
     print(f"  Kernel:         {kernel}")
-    print(f"  Kernel Version: {kernel_version if kernel_version is not None else 'Latest'}")
+    print(f"  Kernel Version: {kernel_version if (kernel_version is not None and int(kernel_version) > 0) else 'Latest'}")
     print(f"  Output File:    {file_name}")
     print(f"  Message:        {message}")
 
@@ -331,7 +349,7 @@ def submit_notebook(
         "kernel": kernel,
     }
     try:
-        if kernel_version is not None:
+        if kernel_version is not None and int(kernel_version) > 0:
             kwargs["kernel_version"] = int(kernel_version)
         else:
             # Dynamically resolve latest kernel version number from Kaggle API

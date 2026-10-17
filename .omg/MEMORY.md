@@ -4,7 +4,7 @@
 
 ## Core Topic Memory
 - [SurrealDB Port 8001](.omg/memory/surrealdb-port8001.md) | `surreal: learning` (647 records) | direct HTTP fallback enabled
-- [Kaggle Active Tracks](.omg/memory/kaggle-active-tracks.md) | `competitions`: ARC-AGI-2, ARC-AGI-3, RSNA Knee, CASMI26, NFL BDB 2027, Gemma-4 Dev Agent
+- [Kaggle Active Tracks](.omg/memory/kaggle-active-tracks.md) | `competitions`: ARC-AGI-2, ARC-AGI-3, RSNA Knee, CASMI26, Name That LLM, Gemma-4 Dev Agent
 - [Strix Halo Fleet Discipline](.omg/memory/strix-halo-fleet-discipline.md) | `hardware`: 128GB UMA, 25GB RAM floor, 50GB GTT ceiling, FleetLock
 - [AutoHarness Policy](.omg/memory/autoharness-policy.md) | `verification`: AST verifier, 0ms LLM bypass, continuous clearance margins $h(x)$, efference copy residual gating
 - [Proprioceptive Cybernetics](.omg/memory/proprioceptive-cybernetics.md) | `cybernetics`: Somatosensory mechanoreceptors, muscle spindles, GTO tension inhibition, crossing-time rate reflex ($t_{\text{cross}}$)

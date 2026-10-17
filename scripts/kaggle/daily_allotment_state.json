@@ -22,8 +22,8 @@
     "enveda-CASMI26-molecule-id-mass-spectra": {
       "used_today": 3,
       "latest_ref": "57307937",
-      "latest_score": "0.406",
-      "status": "SUBMISSIONSTATUS.PENDING"
+      "latest_score": "0.407",
+      "status": "SUBMISSIONSTATUS.COMPLETE"
     },
     "name-that-llm": {
       "used_today": 5,
@@ -34,8 +34,8 @@
     "gemma-4-developer-agent": {
       "used_today": 1,
       "latest_ref": "57287771",
-      "latest_score": "0.13",
-      "status": "SUBMISSIONSTATUS.PENDING"
+      "latest_score": "0.10",
+      "status": "SUBMISSIONSTATUS.COMPLETE"
     }
   }
 }

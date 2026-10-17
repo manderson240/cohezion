@@ -9,24 +9,25 @@ coherence: 0.50
 
 ## Active Tracks Portfolio (Strictly Maintained)
 1. **ARC Prize 2026 ($700K)**:
-   - Tracks: ARC-AGI-2 (`arc-prize-2026`), ARC-AGI-3, Paper Track (`flume-arc-prize-2026-paper.ipynb`).
-   - SOTA Approaches: Poincaré conformal MCTS, D4 dihedral transformation invariance, AutoHarness AST solvers.
-   - Latest: ARC-AGI-2 baseline 0.3148 (+0.0120 SOTA improvement), ARC-AGI-3 v37 Poincaré MCTS patch.
+   - Tracks: ARC-AGI-2 (`arc-prize-2026-arc-agi-2`), ARC-AGI-3 (`arc-prize-2026-arc-agi-3`), Paper Track (`flume-arc-prize-2026-paper.ipynb`).
+   - SOTA Approaches: Poincaré conformal MCTS, D4 dihedral group non-duplication, Cayley budget entropy deadlock watchdog.
+   - Latest Scored: ARC-AGI-2 28.19% (Ref #57288127); ARC-AGI-3 v42 online entropy variance gating.
 2. **RSNA Knee Abnormality Detection ($77K)** (`rsna-knee-abnormality-detection`):
-   - Metric: Multi-label weighted log-loss / AUC.
-   - SOTA Approaches: R7 Raptor blend, Nelder-Mead copula calibration, adversarial OOF validation ($\text{ROC-AUC} = 0.5461$).
-   - Current Score: 0.9480 baseline / 0.957 Raptor blend.
-3. **Enveda CASMI26 ($50K)** (`casmi-2026-challenge-biomolecule-identification`):
-   - Metric: Formula cleavage matching and adduct latent marginalization.
-   - Current Score: LB 0.328 (Top 18%, Rank 137/744).
-   - Latest: v27 deep expansion pipeline (`patch_casmi26_v27_deep_expansion.py`).
-4. **NFL Big Data Bowl 2027 ($100K)** (`nfl-big-data-bowl-2027`):
-   - Metric: Pre-snap prospect motion, Voronoi passing lanes, defensive closing velocity.
-   - SOTA Approaches: LightGBM + XGBoost + CatBoost blended prospect scout cards (`generate_prospect_scout_cards.py`).
-   - Current Score: 0.7620 baseline.
+   - Metric: Multi-label weighted log-loss.
+   - SOTA Approaches: Raptor-384 + Raptor-224 + R7 ConvNeXt blend, Calibrated Trimmed Median Consensus Ensemble.
+   - Current Score: 0.956 peak (v38), v40 Trimmed Median Consensus running on Kaggle GPU.
+3. **Enveda CASMI26 ($50K)** (`enveda-CASMI26-molecule-id-mass-spectra`):
+   - Metric: Top-25 MRR biomolecule identification.
+   - Current Score: 0.407 (Ref #57307937, v28), 0.417 peak (v26).
+   - In-Flight: Slot 4 v29 Parsimonious Chemical Graph Reranker (Ref #57317713).
+4. **Name That LLM ($50K)** (`name-that-llm`):
+   - Metric: Multi-class log-loss across 7 LLM model classes.
+   - SOTA Approaches: 5-stream stylometric feature pipeline, two-stage Hierarchical Bayesian Decomposition with Dirichlet-Multinomial shrinkage, L2 feature scaling.
+   - Current Score: 0.330; pre-verified SOTA v7 kernel executed in 1m47s primed for UTC reset.
 5. **Gemma-4 Developer Agent Competition**:
    - Focus: Autonomous agent code generation and repository synthesis using Gemma-4 models.
-   - SOTA Approaches: Sub-agent code analyzer, sampling configurations, and compiled paper PDF.
+   - SOTA Approaches: Near-greedy deterministic sampling ($T=0.10$), sub-agent code analyzer, and AutoHarness manifest verification.
+   - Current Score: 0.15 peak (v12); sampling calibrated to $T=0.10$ in submission.zip.
 
 ## Invariant Rules & Submission Discipline
 - Never report on or submit to expired/closed competitions (e.g. Biohub, Kaggriculture).

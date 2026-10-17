@@ -1,6 +1,6 @@
 {
   "title": "Recursive Experiential Learning Audit across Active Competitions (SOTA Synchronized)",
-  "timestamp": "2026-10-17T14:29:51.342109+00:00",
+  "timestamp": "2026-10-17T15:42:05.214577+00:00",
   "audit_data": [
     {
       "competition": "RSNA Knee Abnormality",
@@ -83,8 +83,8 @@
         {
           "ref": 57307937,
           "date": "2026-10-17 10:39:47.883000",
-          "status": "SubmissionStatus.PENDING",
-          "public_score": "",
+          "status": "SubmissionStatus.COMPLETE",
+          "public_score": "0.407",
           "description": "Cohezion CASMI26 SOTA v28: All-Adduct Surrogacy Calibration ([M+H]+, [M+Na]+, [M-H]- Neutral Loss Matching)"
         },
         {
@@ -266,8 +266,8 @@
         {
           "ref": 57287771,
           "date": "2026-10-17 00:05:50.920000",
-          "status": "SubmissionStatus.PENDING",
-          "public_score": "",
+          "status": "SubmissionStatus.COMPLETE",
+          "public_score": "0.10",
           "description": "Cohezion Gemma-4 SOTA: 31B Stable QAT + 2048 Token Context Safety + Paced Edit (No Vision Embedder Crash)"
         },
         {
