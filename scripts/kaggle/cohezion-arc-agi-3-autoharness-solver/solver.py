@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import collections
 import heapq
+import math
 import time
 from dataclasses import dataclass, field
 from typing import Any, Tuple, List, Dict, Set, Optional
@@ -119,7 +120,27 @@ class CayleyBudgetManager:
         self.visited_hashes: Set[int] = set()
         self.state_revisit_counts: Dict[int, int] = collections.defaultdict(int)
         self.recent_action_window: collections.deque[int] = collections.deque(maxlen=16)
+        self.entropy_history: collections.deque[float] = collections.deque(maxlen=16)
         self.orbit_size: int = 0
+
+    def record_entropy(self, grid: List[List[int]]) -> None:
+        """Computes grid color Shannon entropy to monitor trajectory dynamics."""
+        flat = [val for row in grid for val in row]
+        if not flat:
+            return
+        total = float(len(flat))
+        counts = collections.Counter(flat)
+        ent = -sum((cnt / total) * math.log2(cnt / total) for cnt in counts.values())
+        self.entropy_history.append(ent)
+
+    def is_trajectory_deadlocked(self) -> bool:
+        """Autoregressively detects stagnation in entropy exploration (< 1e-5 variance across 8 steps)."""
+        if len(self.entropy_history) < 8:
+            return False
+        recent = list(self.entropy_history)[-8:]
+        mean_ent = sum(recent) / 8.0
+        var_ent = sum((x - mean_ent) ** 2 for x in recent) / 8.0
+        return var_ent < 1e-5
 
     def record_state(self, state_hash: int, action: Optional[int] = None) -> None:
         """Record visited state and action in Cayley orbit."""
@@ -484,8 +505,11 @@ class ARCAGI3InteractiveSolver:
         grid_change = self._compute_grid_delta(current_grid)
         self.last_grid = current_grid
 
-        # Closed-loop replanning: Invalidate stale plan on environmental transitions
-        if grid_change > 0.05 and self.current_plan:
+        # Record entropy trajectory for online deadlock preemption
+        self.budget_manager.record_entropy(current_grid)
+
+        # Closed-loop replanning: Invalidate stale plan on environmental transitions or entropy deadlock
+        if (grid_change > 0.05 or self.budget_manager.is_trajectory_deadlocked()) and self.current_plan:
             self.current_plan = []
 
         affordances = self.affordance_search.find_affordances(
