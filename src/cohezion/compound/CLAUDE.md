@@ -93,7 +93,7 @@ uv run pytest tests/compound/test_loopception.py -q  # LC1-LC3
   measured it); unusable score in evaluate() passes (fail-open). Fingerprint = (rubric, model, router, metric, cut).
 - OPEN: RubricMiddleware has no production constructor yet (dormant; Kanban 14da592755ce). Wire it with
   `require_qualification=True` and gold from SkillRefiner golden_fixture rows.
-- **Verification**: `uv run pytest tests/compound/test_rubric_qualification.py -q` → 38 passed; 6/6 mutants killed
+- **Verification**: `uv run pytest tests/compound/test_rubric_qualification.py -q` → 39 passed; 6/6 mutants killed
   (plain accuracy, bool() coercion, no fingerprint, no threshold check, no min-per-class, gate removed); RQ6: 13/13 AUC
   mutants killed (const 1.0, flipped fail-closed, zero fallback, flipped >, ties 0/1, bool/inf accepted, never-auc, no score prompt, flag leak, always-qualify, unknown metric).
 

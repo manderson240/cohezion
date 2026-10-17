@@ -170,7 +170,7 @@ def _scored(score_of, flag=lambda o: False):
 
     score_of may return a number, None (key omitted) or any raw value (e.g. a string)."""
 
-    def fake(self, task_output, task_context):
+    def fake(self, task_output, task_context, want_score=False):
         s = score_of(task_output)
         body = {"perceived_error": flag(task_output), "reason": "r"}
         if s is not None:
@@ -236,7 +236,7 @@ def test_rq6_unusable_score_on_known_good_lowers_auc_never_raises_it():
 def test_rq6_raising_or_garbage_reply_is_worst_rank():
     rm = RubricMiddleware(rubric="x")
 
-    def fake(self, o, c):
+    def fake(self, o, c, want_score=False):
         if o == "bad 1":
             raise RuntimeError("down")
         if o == "bad 2":
@@ -268,14 +268,13 @@ def test_rq6_auc_mode_asks_the_judge_for_a_score_and_default_mode_does_not():
     assert "score" not in rm._build_messages("o", "")[0]["content"]
     seen = []
 
-    def fake(self, o, c):
-        seen.append(self._build_messages(o, c)[0]["content"])
+    def fake(self, o, c, want_score=False):
+        seen.append(self._build_messages(o, c, want_score)[0]["content"])
         return json.dumps({"perceived_error": False, "score": _rank(o)})
 
     with patch.object(RubricMiddleware, "_call_inference", fake):
         rm.qualify(GOLD, metric="auc")
     assert seen and all('"score"' in s for s in seen)
-    assert "score" not in rm._build_messages("o", "")[0]["content"]  # flag restored
 
 
 def test_rq6_unknown_metric_and_class_floor_still_enforced():
@@ -336,10 +335,12 @@ def test_rq7_unusable_score_in_evaluate_never_rejects():
         json.dumps({"perceived_error": True}),
         json.dumps({"score": "9"}),
     ):
-        with patch.object(RubricMiddleware, "_call_inference", lambda self, o, c, r=bad_reply: r):
+        with patch.object(
+            RubricMiddleware, "_call_inference", lambda self, o, c, want_score=False, r=bad_reply: r
+        ):
             assert rm.evaluate("bad 0").passed is True
 
-    def boom(self, o, c):
+    def boom(self, o, c, want_score=False):
         raise RuntimeError("down")
 
     with patch.object(RubricMiddleware, "_call_inference", boom):
@@ -374,8 +375,10 @@ def test_rq7_evaluate_asks_for_a_score_only_when_auc_qualified():
     rm = RubricMiddleware(rubric="x")
     seen = []
 
-    def fake(self, o, c):
-        seen.append('"score"' in self._build_messages(o, c)[0]["content"])
+    def fake(self, o, c, want_score=False):
+        seen.append(
+            want_score and '"score"' in self._build_messages(o, c, want_score)[0]["content"]
+        )
         return json.dumps({"perceived_error": o.startswith("bad"), "score": _rank(o)})
 
     with patch.object(RubricMiddleware, "_call_inference", fake):
@@ -383,8 +386,40 @@ def test_rq7_evaluate_asks_for_a_score_only_when_auc_qualified():
         seen.clear()
         rm.evaluate("good 0")
         assert seen == [True]
-        assert '"score"' not in rm._build_messages("o", "")[0]["content"]  # flag restored
         rm.qualify(GOLD)  # balanced accuracy: historic prompt in evaluate
         seen.clear()
         rm.evaluate("good 0")
         assert seen == [False]
+
+
+def test_rq8_concurrent_evaluates_both_request_the_score_prompt():
+    """A shared instance flag let one call's cleanup strip the score request from another call in flight."""
+    import threading
+
+    from cohezion.compound.rubric_middleware import _SCORE_SUFFIX
+
+    rm = RubricMiddleware(rubric="x")
+    with _scored(_rank):
+        rm.qualify(GOLD, metric="auc")
+    first_in, release = threading.Event(), threading.Event()
+    prompts: dict[str, str] = {}
+
+    def fake(self, o, c, want_score=False):
+        if o == "good 0":
+            first_in.set()
+            assert release.wait(5)
+        prompts[o] = self._build_messages(o, c, want_score)[0]["content"]
+        return json.dumps({"perceived_error": False, "score": _rank(o)})
+
+    out: dict[str, bool] = {}
+    with patch.object(RubricMiddleware, "_call_inference", fake):
+        t = threading.Thread(target=lambda: out.__setitem__("good", rm.evaluate("good 0").passed))
+        t.start()
+        assert first_in.wait(5)
+        out["bad"] = rm.evaluate(
+            "bad 0"
+        ).passed  # completes (and cleans up) while "good 0" is mid-call
+        release.set()
+        t.join(5)
+    assert _SCORE_SUFFIX in prompts["good 0"] and _SCORE_SUFFIX in prompts["bad 0"]
+    assert out == {"good": True, "bad": False}

@@ -87,7 +87,6 @@ class RubricMiddleware:
         # A judge that failed qualify(), or that must qualify and has not, never gates the learning substrate.
         self.require_qualification = require_qualification
         self.qualified: bool | None = None
-        self._score_prompt = False  # True only while qualify(metric="auc") is asking for scores
         self.qualification_score: float | None = None
         self._metric = "balanced_accuracy"  # metric of the last qualify(); evaluate() follows it
         self._score_cut: float | None = None  # learned decision cut (auc qualification only)
@@ -172,17 +171,14 @@ class RubricMiddleware:
     def _item_score(self, item: tuple[str, str, bool]) -> float:
         """Judge's suspicion score for one gold item; worst rank for its class when unusable (fail-closed)."""
         worst = -math.inf if item[2] else math.inf
-        self._score_prompt = True
         try:
-            data = json.loads(self._call_inference(item[0], item[1]))
+            data = json.loads(self._call_inference(item[0], item[1], want_score=True))
             v = data.get("score") if isinstance(data, dict) else None
             if isinstance(v, bool) or not isinstance(v, (int, float)) or not math.isfinite(v):
                 return worst
             return float(v)
         except Exception:
             return worst
-        finally:
-            self._score_prompt = False
 
     def _auc_score(
         self, pos: list[tuple[str, str, bool]], neg: list[tuple[str, str, bool]]
@@ -236,9 +232,8 @@ class RubricMiddleware:
         Asymmetry by design: qualify() is fail-closed (an unusable gold score takes the worst rank), but here an
         unusable score or failed call PASSES -- evaluate() never rejects on noise, keeping its fail-open contract.
         """
-        self._score_prompt = True
         try:
-            raw = self._call_inference(task_output, task_context)
+            raw = self._call_inference(task_output, task_context, want_score=True)
             data = json.loads(raw)
             v = data.get("score") if isinstance(data, dict) else None
             if isinstance(v, bool) or not isinstance(v, (int, float)) or not math.isfinite(v):
@@ -249,14 +244,14 @@ class RubricMiddleware:
         except Exception as exc:
             logger.debug("RubricMiddleware: score evaluation failed (fail-open): %s", exc)
             return RubricVerdict(passed=True, reason="", raw_response="")
-        finally:
-            self._score_prompt = False
 
     # ── internal ──────────────────────────────────────────────────────────
 
-    def _build_messages(self, task_output: str, task_context: str) -> list[dict]:
+    def _build_messages(
+        self, task_output: str, task_context: str, want_score: bool = False
+    ) -> list[dict]:
         system_content = _SYSTEM_TEMPLATE.format(rubric=self.rubric)
-        if getattr(self, "_score_prompt", False):
+        if want_score:  # explicit argument, not instance state: concurrent calls must not share it
             system_content += _SCORE_SUFFIX
         user_content = task_output
         if task_context:
@@ -266,9 +261,9 @@ class RubricMiddleware:
             {"role": "user", "content": user_content},
         ]
 
-    def _call_inference(self, task_output: str, task_context: str) -> str:
+    def _call_inference(self, task_output: str, task_context: str, want_score: bool = False) -> str:
         body: dict = {
-            "messages": self._build_messages(task_output, task_context),
+            "messages": self._build_messages(task_output, task_context, want_score),
             "response_format": {"type": "json_object"},
             "max_tokens": 256,
             "temperature": 0.0,
