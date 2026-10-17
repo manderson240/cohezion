@@ -2137,3 +2137,20 @@ L543: Autonomous Closed-Loop Engineering and Invariant Synthesis across the 6 Ac
     - Persists experiential audit logs to SurrealDB (`learning` and `submission_reflection` tables) and Obsidian Vault (`~/vaults/cohezion-vault/01-Learnings/`).
     - Enforced strict 6 active competitions reporting filter per Core AGI Mandate.
 *12D State Vector*: `[12D State: Space=ClosedLoop-KernelPush-FullAllotment, Time=October 2026, Physics=DynamicVersionResolution-PoincareGeodesic-GoExploreArchive-TemperatureScaling, Brane=Cohezion-RecursiveSelfImprovement-SOTA]`
+
+---
+
+## Learning 544: FastFlowLM NPU Model Verification & Demand-Driven Dynamic Hotswapping (2026-10-17)
+L544: Verification and operationalization of AMD XDNA 2 NPU models and demand-driven model hotswapping on the Framework Desktop:
+(1) AMD XDNA 2 NPU SRAM Model Capability & Catalog:
+    - Verified live execution of `deepseek-r1-0528-8b-FLM` (5.6 GB) on the NPU with full `<think>` reasoning traces and mathematical induction proofs generated in ~97s at 0 UMA RAM footprint.
+    - Verified `qwen3.5-4b-FLM` (5.0 GB) for high-speed deterministic code generation and instruction tasks.
+    - Catalogued multimodal `qwen3vl-it-4b-FLM` (3.9 GB) for vision/ARC grid affordance analysis and `gemma4-it-e2b-FLM` (6.0 GB).
+(2) Demand-Driven Hotswapping Architecture (`src/cohezion/inference/hotswap.py`):
+    - Closed-loop residency management: `ensure_resident(model_id)` reads `/proc/meminfo` headroom, checks against catalog size + bounded KV cache, executes LRU eviction via `/api/v1/unload` with `force: true`, and issues `POST /api/v1/load`.
+    - Added resilient post-load verification polling with `verify_retries` and `verify_delay_s`, resolving transient `/api/v1/health` lag while model weights compile to NPU SRAM.
+    - Exported backward-compatible and intuitive aliases `demand_swap` and `hotswap_model`.
+(3) Operator Tooling & Verification:
+    - Authored `scripts/npu_hotswap.py` CLI supporting `list`, `active`, `swap`, and `query` operations through port `13305` (`admission_proxy` -> `lemond`).
+    - Verified 100% test pass across `tests/inference/test_hotswap.py` (13 tests) and `tests/unit/test_import_smoke.py` (164 modules).
+*12D State Vector*: `[12D State: Space=LocalSilicon-XDNA2-FastFlowLM-Hotswap, Time=October 2026, Physics=DemandDrivenEviction-ReasoningSRAM-ZeroUMA-AdmissionProxyPort13305, Brane=Cohezion-HardwareOrchestration-RecursiveCapability]`
