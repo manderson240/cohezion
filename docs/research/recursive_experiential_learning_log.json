@@ -1,6 +1,6 @@
 {
   "title": "Recursive Experiential Learning Audit across Active Competitions (SOTA Synchronized)",
-  "timestamp": "2026-10-17T15:42:05.214577+00:00",
+  "timestamp": "2026-10-17T18:48:29.800609+00:00",
   "audit_data": [
     {
       "competition": "RSNA Knee Abnormality",
@@ -81,6 +81,13 @@
       },
       "recent_history": [
         {
+          "ref": 57317713,
+          "date": "2026-10-17 16:14:02.363000",
+          "status": "SubmissionStatus.PENDING",
+          "public_score": "",
+          "description": "Cohezion CASMI26 SOTA v29: Parsimonious Chemical Graph Fragmentation Reranker (PC_JOIN_N 100, PC_POP_UNION 300, lambda_frag=0.22)"
+        },
+        {
           "ref": 57307937,
           "date": "2026-10-17 10:39:47.883000",
           "status": "SubmissionStatus.COMPLETE",
@@ -114,13 +121,6 @@
           "status": "SubmissionStatus.COMPLETE",
           "public_score": "0.417",
           "description": "Cohezion CASMI26 SOTA v27: Deep PubChem Candidate Expansion (PC_JOIN_N 75, PC_POP_UNION 250) + Calibrated Parsimony (FRAG_LAM 0.18)"
-        },
-        {
-          "ref": 57247277,
-          "date": "2026-10-16 00:01:04.380000",
-          "status": "SubmissionStatus.COMPLETE",
-          "public_score": "0.418",
-          "description": "Cohezion CASMI26 SOTA v26: Dual FPNet Ensemble + Full-Candidate Parsimony (PC_JOIN_N=50, PC_POP_UNION=200, lambda_frag=0.15) (Daily Quota Reset)"
         }
       ]
     },

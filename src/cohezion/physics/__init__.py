@@ -201,3 +201,27 @@ with contextlib.suppress(Exception):
         OperatorSplittingScheme as OperatorSplittingScheme,
     )
 
+# LLM-to-Flow Distillation (arXiv:2610.17246)
+with contextlib.suppress(Exception):
+    from cohezion.physics.lfd_distiller import (
+        AdaptiveCurriculumManager as AdaptiveCurriculumManager,
+    )
+    from cohezion.physics.lfd_distiller import (
+        DistillationMetrics as DistillationMetrics,
+    )
+    from cohezion.physics.lfd_distiller import (
+        FlowDPOLossEngine as FlowDPOLossEngine,
+    )
+    from cohezion.physics.lfd_distiller import (
+        LLMToFlowDistillationEngine as LLMToFlowDistillationEngine,
+    )
+    from cohezion.physics.lfd_distiller import (
+        PermutationInvariantJudge as PermutationInvariantJudge,
+    )
+    from cohezion.physics.lfd_distiller import (
+        PreferencePair as PreferencePair,
+    )
+    from cohezion.physics.lfd_distiller import (
+        SubGoal as SubGoal,
+    )
+

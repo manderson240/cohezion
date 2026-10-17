@@ -2236,3 +2236,25 @@ L544: Verification and operationalization of AMD XDNA 2 NPU models and demand-dr
     - Authored `scripts/npu_hotswap.py` CLI supporting `list`, `active`, `swap`, and `query` operations through port `13305` (`admission_proxy` -> `lemond`).
     - Verified 100% test pass across `tests/inference/test_hotswap.py` (13 tests) and `tests/unit/test_import_smoke.py` (164 modules).
 *12D State Vector*: `[12D State: Space=LocalSilicon-XDNA2-FastFlowLM-Hotswap, Time=October 2026, Physics=DemandDrivenEviction-ReasoningSRAM-ZeroUMA-AdmissionProxyPort13305, Brane=Cohezion-HardwareOrchestration-RecursiveCapability]`
+
+---
+
+## Learning 545: LLM-to-Flow Distillation (LFD) — Natural Language Goal Distillation, Permutation-Invariant Preference Filtration & Continuous Flow DPO (2026-10-17)
+L545: Research, formal abstraction, and application of arXiv:2610.17246 ("LLM-to-Flow Distillation: Teaching Natural Language Goals to Scientific Generators" by De Santi, Di Gennaro, Gnazzo, Tang, Chatterjee, Yang, Ceylan, Bronstein, Krause, Oct 2026):
+(1) First-Principles Theoretical Foundations:
+    - Scientific generators (continuous flow matching, diffusion, Riemannian geodesic ODEs) encode physical validity priors over continuous manifolds but lack natural-language goal-steering mechanisms.
+    - Standard LLMs possess vast semantic and scientific world-knowledge but hallucinate geometry when generating continuous manifolds directly.
+    - Explicit scalar reward modeling R(x) suffers from severe surrogate collapse and Goodhart's law in scientific regimes where ground-truth evaluators are sparse or non-existent.
+    - LLM-to-Flow Distillation (LFD) solves this trilemma: a frozen LLM acts as an adaptive curriculum teacher proposing intermediate reachable sub-goals g_t when the target goal G has zero generator support, generates ordinal preference pairs via dual-pass permutation testing, and distills implicit rewards into continuous flow/ODE vector fields using Bradley-Terry Direct Preference Optimization (DPO).
+(2) Permutation Invariance & Abstention Discipline:
+    - Eliminates prompt position bias and hallucination noise by evaluating candidate pairs symmetrically under both presentations (a, b) and (b, a).
+    - Pairs failing reciprocal consistency or falling below margin threshold epsilon are cleanly relegated to the abstention set \varnothing, ensuring only verified high-confidence ordinal preferences form the distillation dataset D_t.
+(3) Continuous Flow DPO Formulation:
+    - Minimizes the continuous DPO objective:
+      $$\min_\theta -\mathbb{E}_{(x_w, x_l) \sim \mathcal{D}_t} \left[ \log \sigma \left( \beta \log \frac{p_\theta(x_w)}{p_{\text{ref}}(x_w)} - \beta \log \frac{p_\theta(x_l)}{p_{\text{ref}}(x_l)} \right) \right]$$
+    - Proven mathematically equivalent to minimizing KL divergence against the implicit Boltzmann distribution $p_t^\star(x) \propto p_{\text{ref}}(x) \exp(f_{g_t}(x)/\beta)$ without ever training or querying a noisy scalar reward surrogate.
+(4) Architectural Implementation in Cohezion:
+    - Production implementation in `src/cohezion/physics/lfd_distiller.py`: `AdaptiveCurriculumManager`, `PermutationInvariantJudge`, `FlowDPOLossEngine`, and `LLMToFlowDistillationEngine`.
+    - Directly bridges to `PoincareNeuralODE` and `GeodesicFlowODE` for continuous trajectory steering, CASMI26 molecular graph candidate space refinement, and ARC-AGI-3 affordance flow guidance.
+    - 100% verified with deterministic unit tests in `tests/physics/test_lfd_distiller.py`.
+*12D State Vector*: `[12D State: Space=LLM-to-Flow-Distillation-ContinuousFlowDPO, Time=October 2026, Physics=PermutationInvariance-AdaptiveCurriculum-ImplicitBoltzmann-PoincareGeodesic, Brane=Cohezion-ScientificGenerators-FirstPrinciples-Compound]`
