@@ -10,21 +10,28 @@ Validates:
 
 from __future__ import annotations
 
+import importlib.util
 import sys
 from pathlib import Path
 
 
-_SCRIPTS_CI_DIR = Path(__file__).resolve().parents[2] / "scripts" / "ci"
-if str(_SCRIPTS_CI_DIR) not in sys.path:
-    sys.path.insert(0, str(_SCRIPTS_CI_DIR))
+# Load scripts/ci/producer_consumer_audit.py BY FILE PATH under a unique module name.
+# A second, unrelated scripts/producer_consumer_audit.py exists; when another test puts
+# scripts/ on sys.path first, `from producer_consumer_audit import ...` resolves to that
+# one (no AUDIT_PAIRS) and the whole-suite collection errors (CI "Test Results" check),
+# while this file passes in isolation.
+_AUDIT_PATH = Path(__file__).resolve().parents[2] / "scripts" / "ci" / "producer_consumer_audit.py"
+_spec = importlib.util.spec_from_file_location("_ci_producer_consumer_audit", _AUDIT_PATH)
+assert _spec is not None and _spec.loader is not None
+_audit = importlib.util.module_from_spec(_spec)
+sys.modules[_spec.name] = _audit  # dataclasses resolve their module via sys.modules
+_spec.loader.exec_module(_audit)
 
-from producer_consumer_audit import (
-    AUDIT_PAIRS,
-    AuditPair,
-    execute_audit,
-    format_markdown_report,
-    run_self_test,
-)
+AUDIT_PAIRS = _audit.AUDIT_PAIRS
+AuditPair = _audit.AuditPair
+execute_audit = _audit.execute_audit
+format_markdown_report = _audit.format_markdown_report
+run_self_test = _audit.run_self_test
 
 
 def test_producer_consumer_audit_self_test() -> None:
