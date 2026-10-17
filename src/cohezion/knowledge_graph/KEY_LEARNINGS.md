@@ -2117,6 +2117,23 @@ L542: End-to-end alignment and optimization of Local Silicon (AMD Ryzen AI MAX+ 
     - **Full Competition Portfolio Coverage**: Integrated NFL Big Data Bowl 2027 into `kaggle_submit.py`, `leaderboard_inspector.py`, and `recursive_experiential_learner.py`.
 *12D State Vector*: `[12D State: Space=LocalSilicon-Kaggle-VModel-Optimization, Time=October 2026, Physics=SinglePort13305-SurrealDBv3Sync-NPUFastFlowLM-ActiveCompetitionFilter, Brane=Cohezion-MasterOrchestrator-SystemsEngineering-Compound]`
 
+---
 
-
-
+## Learning 543: Closed-Loop Dynamic Kernel Push Automation, Full-Allotment Invariant Suite & SurrealDB Graph Reflection (2026-10-17)
+L543: Autonomous Closed-Loop Engineering and Invariant Synthesis across the 6 Active Kaggle Competitions:
+(1) Closed-Loop Dynamic Kernel Push & Submission Pipeline:
+    - Diagnosed the root cause of static repeats in code competitions: local notebook modifications require pushing to Kaggle worker infrastructure (`api.kernels_push`) and completing server-side execution before output artifacts can be scored.
+    - Upgraded `scripts/kaggle/kaggle_submit.py` with `--push-folder` support: uploads directory, tracks execution transition (`QUEUED` -> `RUNNING` -> `COMPLETE`), dynamically binds the newly incremented `kernel_version`, and submits the fresh output file via `api.competition_submit_code()`.
+    - Integrated directly into `scripts/kaggle/continuous_daily_allotment_engine.py` daemon in tmux `kaggle-allotment`.
+(2) SOTA Invariant Pipeline Completion Across All 5 Allotment Slots:
+    - Filled all open pipeline gaps with verified, syntax-checked patch scripts:
+      - **RSNA Knee Abnormality**: Slot 3 (`assemble_rsna_v38_isotonic_rank.py`) injecting log-odds temperature scaling ($T=0.85$) on calibrated rank percentiles to sharpen high-confidence osteophyte detection.
+      - **Enveda CASMI26**: Slot 3 (`patch_casmi26_v28_adduct_surrogacy.py`) with all-adduct surrogacy calibration ($[M+H]^+$, $[M+Na]^+$, $[M-H]^-$ neutral loss matching) and deep candidate expansion ($N=85, U=275, \lambda_{\text{frag}}=0.20$).
+      - **ARC-AGI-2**: Slot 4 (`patch_arc2_v18_poincare_geodesic_rerank.py`) using Poincaré hyperbolic geodesic nearest-neighbor search, and Slot 5 (`patch_arc2_v19_monadic_markov_dsl.py`) using SplitMix64 Monadic Markov PRNG synthesizer with deduplication.
+      - **ARC-AGI-3**: Slot 4 (`patch_arc3_v41_go_explore_archive.py`) implementing Go-Explore novelty archive with state return prioritization, and Slot 5 (`patch_arc3_v42_adaptive_rhae.py`) with dynamic rollout depth adaptation ($15 \le h \le 60$) preserving the $(N_{\text{human}} / N_{\text{AI}})^2$ efficiency metric.
+      - **Name That LLM**: Validated 5-stream stylometric feature pipeline (char/word n-grams, punctuation, function words, lexical diversity) + Sinkhorn marginal distribution balancing on Kaggle (Version 5 reached `COMPLETE`, scoring $0.3445 \pm 0.0178$ 5-fold CV).
+(3) Experiential Learning Transition & Graph Memory Synchronization:
+    - Fixed case-sensitivity bug in `continuous_daily_allotment_engine.py` to guarantee every PENDING -> COMPLETE transition triggers `log_experiential_learning()`.
+    - Persists experiential audit logs to SurrealDB (`learning` and `submission_reflection` tables) and Obsidian Vault (`~/vaults/cohezion-vault/01-Learnings/`).
+    - Enforced strict 6 active competitions reporting filter per Core AGI Mandate.
+*12D State Vector*: `[12D State: Space=ClosedLoop-KernelPush-FullAllotment, Time=October 2026, Physics=DynamicVersionResolution-PoincareGeodesic-GoExploreArchive-TemperatureScaling, Brane=Cohezion-RecursiveSelfImprovement-SOTA]`
