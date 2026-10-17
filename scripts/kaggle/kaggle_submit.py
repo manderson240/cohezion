@@ -296,8 +296,25 @@ def submit_notebook(
     message: str,
     kernel_version: int | None = None,
     wait: bool = False,
+    push_folder: str | None = None,
 ) -> dict[str, Any]:
     """Submits a notebook output to a code competition using exact SDK parameters."""
+    if push_folder:
+        push_dir = Path(push_folder).resolve()
+        if not push_dir.is_dir() or not (push_dir / "kernel-metadata.json").exists():
+            raise FileNotFoundError(
+                f"push_folder '{push_folder}' must be a directory containing kernel-metadata.json"
+            )
+        print(f"🚀 Pushing kernel from '{push_dir}' to Kaggle via api.kernels_push...")
+        push_res = api.kernels_push(str(push_dir))
+        print(f"✓ Kernel pushed successfully: {push_res}")
+        new_ver = getattr(push_res, "versionNumber", None)
+        if new_ver is not None and not kernel_version:
+            kernel_version = int(new_ver)
+            print(f"✓ Target kernel_version set to {kernel_version} from push response.")
+        time.sleep(10)
+        wait = True
+
     if wait:
         wait_for_kernel_completion(api, kernel)
 
@@ -504,6 +521,11 @@ def main() -> None:
     nb_p.add_argument(
         "-w", "--wait", action="store_true", help="Wait for kernel completion before submit"
     )
+    nb_p.add_argument(
+        "--push-folder",
+        default=None,
+        help="Local directory containing notebook and kernel-metadata.json to push via api.kernels_push",
+    )
 
     # File subparser
     f_p = subparsers.add_parser(
@@ -569,6 +591,7 @@ def main() -> None:
             message=args.message,
             kernel_version=args.version,
             wait=args.wait,
+            push_folder=getattr(args, "push_folder", None),
         )
     elif args.mode == "file":
         submit_file(

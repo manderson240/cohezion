@@ -444,6 +444,9 @@ def dispatch_slot_submission(
         ]
         if code_path:
             cmd.extend(["--code-path", code_path])
+            nb_dir = Path(code_path).parent
+            if (nb_dir / "kernel-metadata.json").exists():
+                cmd.extend(["--push-folder", str(nb_dir)])
     else:
         filepath = comp_cfg["filepath"]
         cmd = [

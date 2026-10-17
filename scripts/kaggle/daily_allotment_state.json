@@ -3,15 +3,15 @@
   "competitions": {
     "rsna-knee-abnormality-detection": {
       "used_today": 1,
-      "latest_ref": "57283540",
+      "latest_ref": "57288388",
       "latest_score": "0.955",
-      "status": "SUBMISSIONSTATUS.COMPLETE"
+      "status": "SUBMISSIONSTATUS.PENDING"
     },
     "arc-prize-2026-arc-agi-2": {
       "used_today": 1,
-      "latest_ref": "57247164",
+      "latest_ref": "57288127",
       "latest_score": "28.89",
-      "status": "SUBMISSIONSTATUS.COMPLETE"
+      "status": "SUBMISSIONSTATUS.PENDING"
     },
     "arc-prize-2026-arc-agi-3": {
       "used_today": 1,
@@ -20,14 +20,14 @@
       "status": "SUBMISSIONSTATUS.COMPLETE"
     },
     "enveda-CASMI26-molecule-id-mass-spectra": {
-      "used_today": 0,
-      "latest_ref": "57283589",
-      "latest_score": null,
+      "used_today": 1,
+      "latest_ref": "57289662",
+      "latest_score": "0.417",
       "status": "SUBMISSIONSTATUS.PENDING"
     },
     "name-that-llm": {
-      "used_today": 2,
-      "latest_ref": "57287516",
+      "used_today": 5,
+      "latest_ref": "57288961",
       "latest_score": "0.330",
       "status": "SUBMISSIONSTATUS.COMPLETE"
     },
