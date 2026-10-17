@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.28.0] - 2026-10-17
+
+### Added
+- `RubricMiddleware.qualify(gold, metric="auc")` in `src/cohezion/compound/rubric_middleware.py`: rank-based qualification. The judge replies with a numeric `score` (higher = more likely an error) and the result is the Mann-Whitney ROC AUC (ties = 0.5) of known-bad over known-good items. Missing, unparseable, non-numeric or non-finite scores take the worst rank for their class (fail-closed). Default `metric="balanced_accuracy"` is unchanged. An AUC-qualified judge gates on `score >= cut`, where the cut is the Youden-optimal threshold learned on the gold scores (ties toward the higher cut), not on its own boolean `perceived_error`; the metric and cut are part of the qualification fingerprint. `evaluate()` never rejects on an unusable score (qualify is fail-closed, evaluate is fail-open). Motivation (GEMS desk, 2026-10-17): a judge ranking its gold set perfectly (AUC 1.00) was disqualified at balanced accuracy 0.50 because its scores sat below a fixed cut; across 9 jobs the fixed-cut gate passed 3/9 versus 7/9 for a rank gate. Tests: `tests/compound/test_rubric_qualification.py` (RQ6).
+- `RubricMiddleware.qualify()` salted-calibration gate (RQ1-RQ2): a judge that fails or has not been qualified for the current (rubric, model, router) never gates MGPO learning.
+
+### Fixed
+- `tests/scripts/test_producer_consumer_audit.py` now loads `scripts/ci/producer_consumer_audit.py` by file path. A second `scripts/producer_consumer_audit.py` shadowed it through `sys.path` in whole-suite runs, so collection failed with `ImportError: cannot import name 'AUDIT_PAIRS'` and the CI "Test Results" check went red (the file passed in isolation).
+- `scripts/hooks/pre-commit.py` scopes its ignored-file guard to the staged paths.
+
 ## [1.27.1] - 2026-09-27
 
 ### Performance — Lazy package facades (dynamic modularity audit R1/R2)
