@@ -31,18 +31,7 @@ def main() -> None:
     cell_idx = len(nb["cells"]) - 1
     cell_source = "".join(nb["cells"][cell_idx]["source"])
 
-    old_weights = """W_RAPTOR, W_OURS = 0.5, 0.5
-# Per-pathology noise-insulated calibrated weights (First Principles / SOTA v35 Equilibrium Edition):
-# Calibrated balance between Raptor-384, Raptor-224 (A224=0.38), and R7 ConvNeXt-small:
-# Preserves R7 structural diversity while suppressing rank noise on low-probability findings.
-W_RAPTOR_C = {
-    'Medial OA': 0.72,
-    'Lateral OA': 0.58,
-    'PF OA': 0.50,
-    'ACL': 0.68,
-    'Lateral Meniscus': 0.62,
-    'Effusion': 0.60,
-}"""
+    import re
 
     new_weights = """W_RAPTOR, W_OURS = 0.5, 0.5
 # Per-pathology noise-insulated calibrated weights (First Principles / SOTA v36 Pure Optimum Edition):
@@ -53,14 +42,16 @@ W_RAPTOR_C = {
     'PF OA': 0.50,
     'ACL': 0.68,
     'Lateral Meniscus': 0.62,
+    'Effusion': 0.50,
 }"""
 
-    if old_weights not in cell_source:
-        raise ValueError("Could not find v35 blend weights in blending cell!")
-
-    cell_source = cell_source.replace(old_weights, new_weights)
-    cell_source = cell_source.replace("v35 Equilibrium Calibrated Tri-Model", "v36 Pure Optimum Calibrated Tri-Model")
-    cell_source = cell_source.replace("A224 = 0.38", "A224 = 0.40")
+    cell_source = re.sub(
+        r"W_RAPTOR,\s*W_OURS\s*=\s*[0-9.]+,\s*[0-9.]+\n(?:#[^\n]*\n)*W_RAPTOR_C\s*=\s*\{[^}]+\}",
+        new_weights,
+        cell_source,
+    )
+    cell_source = re.sub(r"A224\s*=\s*[0-9.]+", "A224 = 0.40", cell_source)
+    cell_source = re.sub(r"\[v[0-9]+[^\]]*\]", "[v36 Pure Optimum Calibrated Tri-Model]", cell_source)
 
     nb["cells"][cell_idx]["source"] = [l + "\n" for l in cell_source.splitlines()]
 

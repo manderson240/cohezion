@@ -58,16 +58,15 @@ W_RAPTOR_C = {
     'Effusion': 0.55,
 }"""
 
-    if old_weights in cell_source:
-        cell_source = cell_source.replace(old_weights, new_weights)
-    else:
-        # Generic replacement if already modified
-        pass
+    import re
 
-    cell_source = cell_source.replace(
-        "v36 Pure Optimum Calibrated Tri-Model", "v37 JSN Covariance Tri-Model"
+    cell_source = re.sub(
+        r"W_RAPTOR,\s*W_OURS\s*=\s*[0-9.]+,\s*[0-9.]+\n(?:#[^\n]*\n)*W_RAPTOR_C\s*=\s*\{[^}]+\}",
+        new_weights,
+        cell_source,
     )
-    cell_source = cell_source.replace("A224 = 0.40", "A224 = 0.42")
+    cell_source = re.sub(r"A224\s*=\s*[0-9.]+", "A224 = 0.42", cell_source)
+    cell_source = re.sub(r"\[v[0-9]+[^\]]*\]", "[v37 JSN Covariance Tri-Model]", cell_source)
 
     nb["cells"][cell_idx]["source"] = [l + "\n" for l in cell_source.splitlines()]
 

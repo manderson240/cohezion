@@ -1,6 +1,6 @@
 {
   "title": "Recursive Experiential Learning Audit across Active Competitions (SOTA Synchronized)",
-  "timestamp": "2026-10-17T00:09:27.792503+00:00",
+  "timestamp": "2026-10-17T00:17:18.728022+00:00",
   "audit_data": [
     {
       "competition": "RSNA Knee Abnormality",
@@ -22,8 +22,8 @@
         {
           "ref": 57283540,
           "date": "2026-10-16 21:14:03.233000",
-          "status": "SubmissionStatus.PENDING",
-          "public_score": "",
+          "status": "SubmissionStatus.COMPLETE",
+          "public_score": "0.955",
           "description": "Cohezion RSNA Knee SOTA v38: Isotonic Quantile Rank Alignment with Temperature T=0.85 Scaling"
         },
         {
@@ -142,6 +142,13 @@
       },
       "recent_history": [
         {
+          "ref": 57288127,
+          "date": "2026-10-17 00:11:25.323000",
+          "status": "SubmissionStatus.PENDING",
+          "public_score": "",
+          "description": "Cohezion ARC-AGI-2 SOTA v15: Quad-L4 SOTA Monotonic LoRA Attempt-2 DSL Injection"
+        },
+        {
           "ref": 57247164,
           "date": "2026-10-16 00:00:31.660000",
           "status": "SubmissionStatus.COMPLETE",
@@ -175,13 +182,6 @@
           "status": "SubmissionStatus.COMPLETE",
           "public_score": "27.64",
           "description": "Cohezion ARC-AGI-2: Quad-L4 SOTA Monotonic LoRA Attempt-2 DSL Injection (Daily Quota Reset)"
-        },
-        {
-          "ref": 57043659,
-          "date": "2026-10-10 13:36:43.793000",
-          "status": "SubmissionStatus.COMPLETE",
-          "public_score": "29.31",
-          "description": "Cohezion ARC-AGI-2: Quad-L4 SOTA Monotonic DSL Attempt-2 Injection"
         }
       ]
     },
@@ -205,8 +205,8 @@
         {
           "ref": 57287157,
           "date": "2026-10-17 00:01:18.867000",
-          "status": "SubmissionStatus.PENDING",
-          "public_score": "",
+          "status": "SubmissionStatus.COMPLETE",
+          "public_score": "0.01",
           "description": "Cohezion ARC-AGI-3 SOTA v38: Poincar\u00e9 Hyperbolic MCTS Affordance Oracle + Monadic Soft-Affordance + Double-Precision"
         },
         {
@@ -325,10 +325,17 @@
       },
       "recent_history": [
         {
-          "ref": 57287516,
-          "date": "2026-10-17 00:03:33.807000",
+          "ref": 57288236,
+          "date": "2026-10-17 00:13:42.650000",
           "status": "SubmissionStatus.PENDING",
           "public_score": "",
+          "description": "Cohezion Name That LLM v3: 5-Stream Stylometric Invariants (Shape + Function-Word + Dense) + Sinkhorn Marginal Balancing"
+        },
+        {
+          "ref": 57287516,
+          "date": "2026-10-17 00:03:33.807000",
+          "status": "SubmissionStatus.COMPLETE",
+          "public_score": "0.330",
           "description": "Cohezion Name That LLM SOTA v1: Multi-Scale N-Gram + Stylometric + Sinkhorn Marginal Balancing"
         },
         {
@@ -358,13 +365,6 @@
           "status": "SubmissionStatus.COMPLETE",
           "public_score": "0.330",
           "description": "Cohezion Name That LLM v3: 5-Stream Stylometric Invariants (Shape + Function-Word + Dense) + Sinkhorn Marginal Balancing"
-        },
-        {
-          "ref": 57273396,
-          "date": "2026-10-16 15:06:47.943000",
-          "status": "SubmissionStatus.COMPLETE",
-          "public_score": "0.318",
-          "description": "Cohezion Name That LLM SOTA v1: Multi-Scale N-Gram + Stylometric + Sinkhorn Marginal Balancing"
         }
       ]
     }
