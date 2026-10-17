@@ -16,15 +16,21 @@ Atomic Zero-Freeze Local Model Hot-Swapping, Dynamic Modularity, and OOM Safegua
 1. **Perform an Atomic Hot-Swap**:
    > **Note (2026-10-06 Mandate)**: Local Tier 1 hot-swapping is restricted to NPU (`-FLM`) and CPU ($\le 4\text{GB}$). Heavy models (30B+) must be routed to Tier 2 (Ollama Cloud / Headless Claude).
    ```python
-   from cohezion.inference.dynamic_hotswapper import DynamicModelHotSwapper
+   from cohezion.inference.hotswap import demand_swap, ensure_resident
    from cohezion.inference.aperture_guard import assert_safe_tier1
 
-   swapper = DynamicModelHotSwapper()
-   model_metadata = {"id": "qwen3.5-4b-FLM", "size": 3.8, "recipe": "flm"}
-   assert_safe_tier1(model_metadata["id"])
-   success, msg = await swapper.hotswap_model(model_metadata)
+   # High-level demand-driven resident swap
+   assert_safe_tier1("deepseek-r1-0528-8b-FLM")
+   success = await ensure_resident("deepseek-r1-0528-8b-FLM")
    if not success:
-       raise RuntimeError(f"Hot-swap rejected: {msg}")
+       raise RuntimeError("Hot-swap failed to verify residency")
+   ```
+
+   **Via CLI Command**:
+   ```bash
+   python3 scripts/npu_hotswap.py swap deepseek-r1-0528-8b-FLM
+   python3 scripts/npu_hotswap.py active
+   python3 scripts/npu_hotswap.py list
    ```
 
 2. **Verify Memory Settlement & Safety**:

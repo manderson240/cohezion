@@ -152,21 +152,21 @@ async def lemonade_list_models(downloaded_only: bool = False) -> dict[str, Any]:
 async def lemonade_load_model(
     model_name: str,
     ctx_size: int = 16384,
-    backend: str = "rocm",
+    backend: str = "flm",
     save_options: bool = True,
 ) -> dict[str, Any]:
     """Load a model into the local Lemonade server with safe bounded context.
 
     Enforces the ctx_size cap to avoid the unbounded KV-cache crash vector on heavy
-    models (N3 invariant). Use this before chat/vision/image tasks so the model
-    is warm and does not auto-load at ctx_size=-1.
+    models (N3 invariant). Default backend is 'flm' (FastFlowLM on XDNA 2 NPU SRAM)
+    or 'cpu' for memory-safe execution without UMA aperture crashes.
 
     Args:
-        model_name: Lemonade model ID (e.g. "Gemma-4-E4B-it-GGUF").
+        model_name: Lemonade model ID (e.g. "qwen3.5-4b-FLM", "deepseek-r1-0528-8b-FLM").
         ctx_size: Maximum context window. Default 16384. Must be <= 16384 (the N3
             OOM-safety cap); values above the cap are rejected with an actionable
             error rather than silently loaded. Values below 1024 are floored to 1024.
-        backend: Backend recipe: "rocm", "vulkan", "cpu", or "flm".
+        backend: Backend recipe: "flm" (NPU SRAM), "cpu", "rocm", or "vulkan".
         save_options: Persist recipe options so later loads use the same bounds.
     """
     if ctx_size > _CTX_SIZE_CAP:
@@ -193,7 +193,7 @@ async def lemonade_load_model(
 @app.tool()
 async def lemonade_chat(
     messages: list[dict[str, str]],
-    model: str = "Gemma-4-E4B-it-GGUF",
+    model: str = "qwen3.5-4b-FLM",
     max_tokens: int = 2048,
     temperature: float = 0.7,
     tools: list[dict[str, Any]] | None = None,
@@ -202,7 +202,7 @@ async def lemonade_chat(
 
     Args:
         messages: Conversation history, e.g. [{"role": "user", "content": "..."}].
-        model: Lemonade model ID to use.
+        model: Lemonade model ID to use (defaults to 'qwen3.5-4b-FLM' on NPU).
         max_tokens: Maximum tokens to generate.
         temperature: Sampling temperature.
         tools: Optional OpenAI-style tool definitions for tool-calling models.

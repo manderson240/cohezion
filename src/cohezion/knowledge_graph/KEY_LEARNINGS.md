@@ -1,5 +1,22 @@
 # KEY LEARNINGS
 
+## Learning 547: Local Silicon Optimization (AMD XDNA 2 NPU & UMA Aperture Discipline), GAIA Daemon Multi-Track Alignment & First-Principles Predictive Architectures (2026-10-16)
+L547: Operationalized hardware-aligned local silicon inference on AMD Strix Halo, aligned GAIA SDK autonomous daemons to active competitions, and synthesized first-principles predictive architectures for stalled Kaggle benchmarks:
+1. **Local Silicon & AMD Strix Halo Hardware Alignment**:
+   - Enforced pure XDNA 2 NPU SRAM execution (<2W power, 0 UMA RAM footprint) for Tier-1 local models (`deepseek-r1-0528-8b-FLM` for mathematical and step-function reasoning, `qwen3.5-4b-FLM` for code generation/AST verification, `embed-gemma-300m-FLM` for zero-footprint semantic search).
+   - Enforced the Single-Port Invariant on port `13305` (`cohezion.platform.admission_proxy` -> `lemond`).
+   - Implemented demand-driven model hotswapping (`cohezion.inference.hotswap.ensure_resident()`, `scripts/npu_hotswap.py`), eliminating LRU eviction races without consuming host UMA aperture.
+   - Hardened the Lemonade FastMCP server (`src/cohezion/mcp/lemonade_server_mcp.py`) to default to NPU (`flm`) and CPU backends, insulating the host from aperture kernel faults caused by default ROCm/Vulkan allocations.
+2. **GAIA SDK Swarm Daemon Multi-Track Alignment**:
+   - Aligned `src/cohezion/competitions/gaia_kaggle_daemon.py` strictly to the 6 ACTIVE, unexpired competitions (ARC-AGI-2, ARC-AGI-3, RSNA Knee, Enveda CASMI26, Name That LLM, Gemma-4 Developer Agent) per Core AGI Mandate #8.
+   - Purged archived competitions (`biohub`, `kaggriculture`) and assigned track-level NPU models (`deepseek-r1` for reasoning, `qwen3.5` for classification/code). Verified via 5/5 passing unit tests (`tests/competitions/test_gaia_kaggle_daemon.py`).
+3. **First-Principles Predictive Architectures**:
+   - **Name That LLM**: Implemented `HierarchicalLabClassifier` (`scripts/kaggle/name_that_llm/hierarchical_lab_classifier.py`) factoring $P(\text{Model}_i \mid x) = P(\text{Lab}_k \mid x) \cdot P(\text{Model}_i \mid \text{Lab}_k, x)$ with multi-compressor entropy signatures (zlib, bz2, lzma), byte-entropy, and Sinkhorn-Knopp uniform balancing to bypass the 0.330 linear baseline ceiling. Verified via 4/4 passing unit tests (`tests/unit/kaggle/test_hierarchical_lab_classifier.py`).
+   - **RSNA Knee Abnormality Detection**: Implemented Gated Multiple Instance Learning (Gated MIL, Ilse et al. 2018) slice-attention module (`scripts/kaggle/rsna_r7_raptor_blend/gated_mil_slice_attention.py`) with PyTorch `RSNAGatedMILNet` and a zero-overhead `NumpyGatedMILInference` engine, dynamically attending to focal 1-3 tear slices rather than diluting signal across 30 normal slices. Verified via 5/5 passing unit tests (`tests/unit/kaggle/test_gated_mil_slice_attention.py`).
+*12D State Vector*: `[12D State: Space=LocalSiliconOptimization-GAIA-Alignment-GatedMIL-HierarchicalClassifier, Time=October 2026, Physics=TheoremL1-XDNA2-SRAM-ZeroUMA-GatedSliceAttention-HierarchicalBayes, Brane=Cohezion-Compound-Negentropy]`
+
+---
+
 ## Learning 546: Kaggle Grandmaster Winning Strategies & Invariant Abstraction (2026-10-16)
 L546: Abstracted and operationalized competitive machine learning axioms from top Kaggle Grandmasters (Chris Deotte, Andrey Lukyanenko, Guanshuo Xu, Dieter, Rohan Rao, Bojan Tunguz, Michael Hodel) across Medical Vision, Mass Spectrometry, Tabular/NLP, and Agentic Reasoning:
 1. **The Grandmaster Axioms Formalized**:

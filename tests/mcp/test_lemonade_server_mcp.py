@@ -100,7 +100,7 @@ async def test_lemonade_load_model_bounds_ctx_size(fake_client: dict[str, Any]) 
         assert result["status"] == "loaded"
         assert calls[0]["json"]["ctx_size"] == 8192
         assert calls[0]["json"]["save_options"] is True
-        assert calls[0]["json"]["llamacpp_backend"] == "rocm"
+        assert calls[0]["json"]["llamacpp_backend"] == "flm"
     finally:
         s._httpx_client = original
 

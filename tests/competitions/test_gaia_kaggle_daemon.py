@@ -30,11 +30,10 @@ def test_active_kaggle_tracks_filter() -> None:
     expected_slugs = {
         "arc-prize-2026-arc-agi-2",
         "arc-prize-2026-arc-agi-3",
-        "arc-prize-2026-paper-track",
         "rsna-knee-abnormality-detection",
-        "biohub-cell-tracking-during-development",
-        "kaggriculture-crop-yield-prediction",
-        "enveda-casmi-2026",
+        "enveda-CASMI26-molecule-id-mass-spectra",
+        "name-that-llm",
+        "gemma-4-developer-agent",
     }
     assert set(ACTIVE_KAGGLE_TRACKS.keys()) == expected_slugs
 
@@ -46,12 +45,12 @@ def test_active_kaggle_tracks_filter() -> None:
 
 def test_gaia_kaggle_agent_initialization() -> None:
     """Verify that GAIA agent initializes cleanly with assigned hardware and models."""
-    spec = ACTIVE_KAGGLE_TRACKS["biohub-cell-tracking-during-development"]
+    spec = ACTIVE_KAGGLE_TRACKS["name-that-llm"]
     agent = GaiaKaggleCompetitionAgent(spec)
 
-    assert agent.agent_id == "gaia_agent_biohub_cell_tracking_during_development"
-    assert agent.spec.assigned_model == "Qwen3-Coder-30B-A3B-Instruct-GGUF"
-    assert agent.spec.hardware_target == "Strix Halo iGPU (RDNA 3.5 / Vulkan)"
+    assert agent.agent_id == "gaia_agent_name_that_llm"
+    assert agent.spec.assigned_model == "qwen3.5-4b-FLM"
+    assert agent.spec.hardware_target == "AMD XDNA 2 NPU (FastFlowLM)"
     assert agent.cycle_count == 0
     assert agent.last_report is None
 
@@ -118,6 +117,6 @@ def test_swarm_daemon_portfolio_markdown() -> None:
 
     md = daemon.generate_portfolio_markdown(mock_reports)
     assert "# 🏆 GAIA SDK Autonomous Kaggle Competition Portfolio" in md
-    assert "Active Tracks**: `7`" in md
+    assert "Active Tracks**: `6`" in md
     for spec in ACTIVE_KAGGLE_TRACKS.values():
         assert spec.display_name in md
