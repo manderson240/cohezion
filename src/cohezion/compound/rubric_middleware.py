@@ -232,13 +232,16 @@ class RubricMiddleware:
         Asymmetry by design: qualify() is fail-closed (an unusable gold score takes the worst rank), but here an
         unusable score or failed call PASSES -- evaluate() never rejects on noise, keeping its fail-open contract.
         """
+        cut = self._score_cut
+        if cut is None:  # only reachable if the cut was cleared mid-flight: never gate without one
+            return RubricVerdict(passed=True, reason="", raw_response="")
         try:
             raw = self._call_inference(task_output, task_context, want_score=True)
             data = json.loads(raw)
             v = data.get("score") if isinstance(data, dict) else None
             if isinstance(v, bool) or not isinstance(v, (int, float)) or not math.isfinite(v):
                 return RubricVerdict(passed=True, reason="", raw_response=raw)
-            flagged = v >= self._score_cut
+            flagged = v >= cut
             reason = str(data.get("reason", "")) if isinstance(data, dict) else ""
             return RubricVerdict(passed=not flagged, reason=reason, raw_response=raw)
         except Exception as exc:
