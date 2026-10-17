@@ -48,7 +48,6 @@ COMPETITIONS = [
     ("ARC-Prize 2026: ARC-AGI-3", "arc-prize-2026-arc-agi-3"),
     ("Google Gemma 4 Dev Agent", "gemma-4-developer-agent"),
     ("Name That LLM", "name-that-llm"),
-    ("NFL Big Data Bowl 2027", "nfl-big-data-bowl-2027"),
 ]
 
 

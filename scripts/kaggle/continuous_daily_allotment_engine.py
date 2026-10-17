@@ -570,7 +570,7 @@ def run_cycle(api: KaggleApi, state: dict[str, Any]) -> bool:
         comp_state["latest_ref"] = latest_ref
 
         # Learn from completed submissions when status transitions from PENDING -> COMPLETE
-        if prev_status == "SubmissionStatus.PENDING" and latest_status != "SubmissionStatus.PENDING":
+        if prev_status and "PENDING" in prev_status and ("PENDING" not in (latest_status or "")):
             logger.info(
                 "[%s] Submission Ref #%s cleared with status %s! Triggering recursive experiential learning...",
                 comp_slug,

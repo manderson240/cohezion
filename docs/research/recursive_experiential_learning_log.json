@@ -1,6 +1,6 @@
 {
   "title": "Recursive Experiential Learning Audit across Active Competitions (SOTA Synchronized)",
-  "timestamp": "2026-10-17T00:59:26.315043+00:00",
+  "timestamp": "2026-10-17T01:12:16.697403+00:00",
   "audit_data": [
     {
       "competition": "RSNA Knee Abnormality",
@@ -81,6 +81,13 @@
       },
       "recent_history": [
         {
+          "ref": 57289662,
+          "date": "2026-10-17 00:59:50.160000",
+          "status": "SubmissionStatus.PENDING",
+          "public_score": "",
+          "description": "Cohezion CASMI26 SOTA v26: Dual FPNet Ensemble + Full-Candidate Parsimony (PC_JOIN_N=50, PC_POP_UNION=200, lambda_frag=0.15)"
+        },
+        {
           "ref": 57283589,
           "date": "2026-10-16 21:16:21.350000",
           "status": "SubmissionStatus.COMPLETE",
@@ -114,13 +121,6 @@
           "status": "SubmissionStatus.COMPLETE",
           "public_score": "0.419",
           "description": "Cohezion CASMI26 Podium v26: Dual FPNet Neural Ensemble + Full-Candidate Parsimony + All-Adduct Surrogacy (Daily Quota Reset)"
-        },
-        {
-          "ref": 57164320,
-          "date": "2026-10-14 02:41:54.760000",
-          "status": "SubmissionStatus.COMPLETE",
-          "public_score": "0.417",
-          "description": "Cohezion CASMI26 Podium v26: Dual FPNet Neural Ensemble + Full-Candidate Parsimony (FRAG_MODE all) + All-Adduct Surrogacy"
         }
       ]
     },
