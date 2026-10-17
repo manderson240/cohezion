@@ -37,6 +37,7 @@ from __future__ import annotations
 import json
 import logging
 import re
+import time
 import urllib.request
 from dataclasses import dataclass, field
 
@@ -235,6 +236,8 @@ def ensure_resident(
     min_free_gb: float = RAM_FLOOR_GB,
     protect: tuple[str, ...] = (),
     load_timeout: float = 300.0,
+    verify_retries: int = 1,
+    verify_delay_s: float = 0.5,
     ledger: object | None = None,
 ) -> SwapResult:
     """Make ``model_id`` resident, evicting least-recently-used models if needed.
@@ -353,6 +356,13 @@ def ensure_resident(
     # ledger — that is the explicit signal that it expects to operate through a degraded
     # /health. Without one, an unobservable load stays a failure (HS7).
     server_now = resident_models()
+    for _ in range(max(0, verify_retries - 1)):
+        if model_id in {m.get("model_name", "") for m in server_now}:
+            break
+        if verify_delay_s > 0:
+            time.sleep(verify_delay_s)
+        server_now = resident_models()
+
     if model_id in {m.get("model_name", "") for m in server_now}:
         if ledger is not None:
             ledger.record_load(model_id, weights)  # type: ignore[attr-defined]
@@ -371,3 +381,8 @@ def ensure_resident(
         f"loaded (ctx_size={ctx_size}) — residency UNVERIFIED: /health reported nothing",
         evicted=evicted,
     )
+
+
+# Backward-compatible and intuitive functional aliases
+demand_swap = ensure_resident
+hotswap_model = ensure_resident
