@@ -2258,3 +2258,22 @@ L545: Research, formal abstraction, and application of arXiv:2610.17246 ("LLM-to
     - Directly bridges to `PoincareNeuralODE` and `GeodesicFlowODE` for continuous trajectory steering, CASMI26 molecular graph candidate space refinement, and ARC-AGI-3 affordance flow guidance.
     - 100% verified with deterministic unit tests in `tests/physics/test_lfd_distiller.py`.
 *12D State Vector*: `[12D State: Space=LLM-to-Flow-Distillation-ContinuousFlowDPO, Time=October 2026, Physics=PermutationInvariance-AdaptiveCurriculum-ImplicitBoltzmann-PoincareGeodesic, Brane=Cohezion-ScientificGenerators-FirstPrinciples-Compound]`
+---
+
+## Learning 546: First-Principles Invariant Science & Cross-Track Leaderboard Optimization across the 6 Active Kaggle Tracks (2026-10-17)
+L546: Bleeding-edge first-principles research and formulation across the 6 active Kaggle competitions synthesized via GAIA SDK subagent swarms and local AMD XDNA 2 NPU models:
+(1) ARC-AGI-2 & ARC-AGI-3 (Geometric Equivariance & Monadic Markov Exploration):
+    - $D_4$ Dihedral Group Non-Duplication Theorem: For any grid pair $(X, Y)$, an inductive hypothesis must satisfy equivariance $\forall g \in D_4, h(g(X)) = g(h(X))$. Attempt 2 enforces strict non-duplication: $\widehat{Y}_2 \notin \text{Orbit}_{D_4}(\widehat{Y}_1)$, eliminating wasted attempts on trivial symmetries.
+    - SplitMix64 Zobrist Invariant: $O(1)$ incremental state hashing $Z(S') = Z(S) \oplus Z[r, c, k_{\text{old}}] \oplus Z[r, c, k_{\text{new}}]$ detects limit cycles in ARC-3 game affordances. When loop frequency $\ge 3$, fires an orthogonal escape pulse ($\Delta \ge 2$) to break potential wells without burning the RHAE step budget.
+    - Integrated with LLM-to-Flow Distillation (arXiv:2610.17246) for DPO-steered affordance trajectory generation.
+(2) Enveda CASMI26 (Neutral Loss Surrogacy & Graph Parsimony):
+    - Multi-adduct neutral loss matching ($[M+H]^+$, $[M+Na]^+$, $[M-H]^-$) penalizes non-physical cleavage of functional leaving groups ($\text{H}_2\text{O}, \text{NH}_3, \text{CO}, \text{CO}_2, \text{H}_2\text{S}$).
+    - Parsimonious Chemical Graph Fragmentation scales candidate graphs via `PC_JOIN_N` ($50 \to 120$), `PC_POP_UNION` ($200 \to 350$), and parsimony penalty $\lambda_{\text{frag}} \in [0.15, 0.25]$.
+(3) RSNA Knee Abnormality Detection (Biomechanical Covariance & Consensus Ensembling):
+    - Cross-planar biomechanical covariance across sagittal, coronal, and axial views focuses osteophyte and joint space narrowing (JSN) weights (Coronal Medial OA 0.76, Lateral OA 0.62).
+    - Bilateral Knee Symmetry Ratio $\rho_{\text{sym}} \in [0.85, 1.15]$ for degenerative conditions vs $\rho_{\text{sym}} \ll 0.5$ for acute ligamentous tears, with secondary effusion gating $P(\text{Effusion}) \ge 0.55 \cdot \max_k P_k$.
+    - Calibrated Trimmed Median Consensus Ensemble ($\alpha=0.25$) over ConvNeXt + Raptor-384 + Raptor-224 + R7 suppresses single-model false positive spikes with $[10^{-6}, 1 - 10^{-6}]$ boundary insulation.
+(4) Name That LLM & Google Gemma 4 Developer Agent:
+    - Name That LLM: 5-stream stylometric manifold (lexical n-grams, character n-grams, casing/punctuation topology, syntactic function words, dense readability) + Platt-calibrated dual ensemble (LinearSVC + HistGBM) + Sinkhorn-Knopp doubly-stochastic marginal distribution balancing ($c_j = 1/18$).
+    - Gemma 4 Developer Agent: AST mutation invariants ($\text{Exports}(T_{\text{orig}}) \subseteq \text{Exports}(T_{\text{patch}})$), AutoHarness action verifiers (prohibit `search_similar_code`, enforce paced edit $\le$ step 12), and $T=0.10$ low-entropy sampling.
+*12D State Vector*: `[12D State: Space=FirstPrinciples-KaggleSOTA-InvariantSuite, Time=October 2026, Physics=D4Equivariance-SplitMix64Zobrist-AllAdductNeutralLoss-SinkhornBalancing, Brane=Cohezion-SubagentSwarm-ContinuousImprovement]`

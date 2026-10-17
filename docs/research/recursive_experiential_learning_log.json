@@ -1,6 +1,6 @@
 {
   "title": "Recursive Experiential Learning Audit across Active Competitions (SOTA Synchronized)",
-  "timestamp": "2026-10-17T18:48:29.800609+00:00",
+  "timestamp": "2026-10-17T22:25:56.585328+00:00",
   "audit_data": [
     {
       "competition": "RSNA Knee Abnormality",
@@ -81,10 +81,17 @@
       },
       "recent_history": [
         {
-          "ref": 57317713,
-          "date": "2026-10-17 16:14:02.363000",
+          "ref": 57325541,
+          "date": "2026-10-17 20:52:49.607000",
           "status": "SubmissionStatus.PENDING",
           "public_score": "",
+          "description": "Cohezion CASMI26 SOTA v30: Extreme Candidate Space Parsimony Hybrid (PC_JOIN_N=120, PC_POP_UNION=350, lambda_frag=0.25)"
+        },
+        {
+          "ref": 57317713,
+          "date": "2026-10-17 16:14:02.363000",
+          "status": "SubmissionStatus.COMPLETE",
+          "public_score": "0.406",
           "description": "Cohezion CASMI26 SOTA v29: Parsimonious Chemical Graph Fragmentation Reranker (PC_JOIN_N 100, PC_POP_UNION 300, lambda_frag=0.22)"
         },
         {
@@ -114,13 +121,6 @@
           "status": "SubmissionStatus.COMPLETE",
           "public_score": "0.417",
           "description": "Cohezion CASMI26 SOTA v28: All-Adduct Surrogacy Calibration ([M+H]+, [M+Na]+, [M-H]- Neutral Loss Matching)"
-        },
-        {
-          "ref": 57274519,
-          "date": "2026-10-16 15:43:29.097000",
-          "status": "SubmissionStatus.COMPLETE",
-          "public_score": "0.417",
-          "description": "Cohezion CASMI26 SOTA v27: Deep PubChem Candidate Expansion (PC_JOIN_N 75, PC_POP_UNION 250) + Calibrated Parsimony (FRAG_LAM 0.18)"
         }
       ]
     },

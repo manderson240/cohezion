@@ -44,9 +44,21 @@ from dataclasses import dataclass, field
 
 logger = logging.getLogger(__name__)
 
-LEMONADE_BASE = "http://localhost:13305"
+LEMONADE_BASE = "http://127.0.0.1:13305"
 RAM_FLOOR_GB = 16.0  # harness N3 item 5: never consume the last 16 GB
 MAX_CTX = 16384  # N3 cap; callers may request less, never more
+
+# Hardware-verified footprints for AMD XDNA 2 NPU SRAM and small CPU fallback models
+KNOWN_NPU_SIZES: dict[str, float] = {
+    "deepseek-r1-0528-8b-FLM": 5.6,
+    "qwen3.5-4b-FLM": 5.0,
+    "qwen3vl-it-4b-FLM": 3.9,
+    "qwen3vl-flash-4b-FLM": 3.9,
+    "gemma4-it-e2b-FLM": 6.0,
+    "embed-gemma-300m-FLM": 0.6,
+    "llama3.2-1b-FLM": 1.3,
+    "Qwen3-0.6B-GGUF": 0.4,
+}
 
 
 @dataclass
@@ -129,14 +141,18 @@ def resident_models() -> list[dict]:
 
 
 def _catalog_sizes() -> dict[str, float]:
+    result = dict(KNOWN_NPU_SIZES)
     try:
         with urllib.request.urlopen(  # noqa: S310
-            f"{LEMONADE_BASE}/api/v1/models", timeout=10
+            f"{LEMONADE_BASE}/api/v1/models", timeout=25
         ) as r:
             data = json.loads(r.read()).get("data", [])
+            for m in data:
+                if isinstance(m.get("size"), (int, float)):
+                    result[m["id"]] = float(m["size"])
     except Exception:
-        return {}
-    return {m["id"]: float(m["size"]) for m in data if isinstance(m.get("size"), (int, float))}
+        pass
+    return result
 
 
 _PARAM_RE = re.compile(r"(?<![\d.])(\d+(?:\.\d+)?)\s*B(?![a-z])", re.IGNORECASE)
