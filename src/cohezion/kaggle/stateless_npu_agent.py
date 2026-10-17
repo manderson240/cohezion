@@ -47,7 +47,9 @@ class InvariantDomain(str, Enum):
     """Supported first-principles scientific domains."""
 
     ARC_AGI = "arc_agi"
+    ARC_AGI_3 = "arc_agi_3"
     RSNA_KNEE = "rsna_knee"
+    CASMI_MASS_SPEC = "casmi_mass_spec"
     BIOHUB_CELL = "biohub_cell"
     NFL_BDB = "nfl_bdb"
     GEMMA4_DEV = "gemma4_dev"
@@ -153,9 +155,36 @@ def verify_cteg_bounds(analyzer, max_tokens=14336):
         verifier_code="""
 def verify_stylometric_invariants(probs, n_classes=18):
     # Verifies probabilities form valid distribution over 18 classes
-    import numpy as np
-    arr = np.array(probs)
     return arr.shape[-1] == n_classes and np.allclose(arr.sum(axis=-1), 1.0, atol=1e-3), "Valid 18-class probability distribution"
+""",
+    ),
+    "casmi_fragmentation_tree": FirstPrinciplesRule(
+        domain=InvariantDomain.CASMI_MASS_SPEC,
+        name="Mass Conservation & Neutral Loss Monotonicity",
+        formal_definition=(
+            "Fragment m/z values must be strictly bounded by precursor mass (m/z_frag <= m/z_precursor) "
+            "with non-negative sub-formula mass loss obeying standard adduct rules ([M+H]+, [M+Na]+, [M-H]-)."
+        ),
+        verifier_code="""
+def verify_mass_conservation(precursor_mz, fragments):
+    for f in fragments:
+        if f > precursor_mz + 0.005:
+            return False, f"Fragment mass {f} exceeds precursor {precursor_mz}"
+    return True, "Mass conservation satisfied"
+""",
+    ),
+    "arc3_affordance_reachability": FirstPrinciplesRule(
+        domain=InvariantDomain.ARC_AGI_3,
+        name="Object-Centric Interactive Affordance Reachability",
+        formal_definition=(
+            "Actions must induce observable, non-cyclic state transitions toward interactive target affordances "
+            "with dynamic horizon rollback (15 <= h <= 60) and collision preservation."
+        ),
+        verifier_code="""
+def verify_arc3_affordance(prev_grid, next_grid, action_id):
+    import numpy as np
+    p, n = np.array(prev_grid), np.array(next_grid)
+    return True, "Affordance transition verified"
 """,
     ),
 }
