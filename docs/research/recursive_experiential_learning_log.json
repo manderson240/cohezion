@@ -1,6 +1,6 @@
 {
   "title": "Recursive Experiential Learning Audit across Active Competitions (SOTA Synchronized)",
-  "timestamp": "2026-10-17T01:12:16.697403+00:00",
+  "timestamp": "2026-10-17T10:20:39.090608+00:00",
   "audit_data": [
     {
       "competition": "RSNA Knee Abnormality",
@@ -20,10 +20,31 @@
       },
       "recent_history": [
         {
-          "ref": 57288388,
-          "date": "2026-10-17 00:17:43.417000",
+          "ref": 57307156,
+          "date": "2026-10-17 10:18:32.350000",
           "status": "SubmissionStatus.PENDING",
           "public_score": "",
+          "description": "Cohezion RSNA Knee SOTA v39: Anatomical Bilateral Symmetry + Secondary Effusion Invariant (P(Effusion) >= 0.85 * max_k)"
+        },
+        {
+          "ref": 57299679,
+          "date": "2026-10-17 06:45:44.837000",
+          "status": "SubmissionStatus.COMPLETE",
+          "public_score": "0.956",
+          "description": "Cohezion RSNA Knee SOTA v38: Isotonic Quantile Rank Alignment with Temperature T=0.85 Scaling"
+        },
+        {
+          "ref": 57293618,
+          "date": "2026-10-17 03:35:04.243000",
+          "status": "SubmissionStatus.COMPLETE",
+          "public_score": "0.956",
+          "description": "Cohezion RSNA Knee SOTA v37: Anatomical JSN Covariance + Bilateral Knee Symmetry Ratio + Pure Quantile Alignment"
+        },
+        {
+          "ref": 57288388,
+          "date": "2026-10-17 00:17:43.417000",
+          "status": "SubmissionStatus.COMPLETE",
+          "public_score": "0.955",
           "description": "Cohezion RSNA Knee SOTA v36: Pure Optimum Calibrated Tri-Model Blend (Raptor-384 + Raptor-224 A224=0.40 + R7) + Noise Insulated Weights"
         },
         {
@@ -39,27 +60,6 @@
           "status": "SubmissionStatus.COMPLETE",
           "public_score": "0.955",
           "description": "Cohezion RSNA Knee SOTA v37: Anatomical JSN Covariance + Bilateral Knee Symmetry Ratio + Pure Quantile Alignment"
-        },
-        {
-          "ref": 57247238,
-          "date": "2026-10-16 00:00:52.277000",
-          "status": "SubmissionStatus.COMPLETE",
-          "public_score": "0.955",
-          "description": "Cohezion RSNA Knee SOTA v36: Pure Optimum Calibrated Tri-Model Blend (Raptor-384 + Raptor-224 A224=0.40 + R7) + Noise Insulated Weights (Daily Quota Reset)"
-        },
-        {
-          "ref": 57215252,
-          "date": "2026-10-15 03:49:23.470000",
-          "status": "SubmissionStatus.COMPLETE",
-          "public_score": "0.955",
-          "description": "Cohezion RSNA Knee SOTA v35: Equilibrium Calibrated Tri-Model (A224=0.38 + Balanced R7 Weights) (Daily Quota Maximization)"
-        },
-        {
-          "ref": 57198355,
-          "date": "2026-10-15 00:00:42.077000",
-          "status": "SubmissionStatus.COMPLETE",
-          "public_score": "0.955",
-          "description": "Cohezion RSNA Knee SOTA v34: Noise-Insulated Tri-Model Blend (Raptor-384 + Raptor-224 + R7) + Calibrated Copula Weights (Daily Quota Reset)"
         }
       ]
     },
@@ -81,10 +81,17 @@
       },
       "recent_history": [
         {
+          "ref": 57296197,
+          "date": "2026-10-17 05:08:17.727000",
+          "status": "SubmissionStatus.COMPLETE",
+          "public_score": "0.406",
+          "description": "Cohezion CASMI26 SOTA v27: Deep PubChem Candidate Expansion (PC_JOIN_N 75, PC_POP_UNION 250) + Calibrated Parsimony (FRAG_LAM 0.18)"
+        },
+        {
           "ref": 57289662,
           "date": "2026-10-17 00:59:50.160000",
-          "status": "SubmissionStatus.PENDING",
-          "public_score": "",
+          "status": "SubmissionStatus.COMPLETE",
+          "public_score": "0.417",
           "description": "Cohezion CASMI26 SOTA v26: Dual FPNet Ensemble + Full-Candidate Parsimony (PC_JOIN_N=50, PC_POP_UNION=200, lambda_frag=0.15)"
         },
         {
@@ -114,13 +121,6 @@
           "status": "SubmissionStatus.COMPLETE",
           "public_score": "0.417",
           "description": "Cohezion CASMI26 SOTA v27: Deep PubChem Expansion (PC_JOIN_N 75, PC_POP_UNION 250) + Calibrated Parsimony (FRAG_LAM 0.18) (Daily Quota Maximization)"
-        },
-        {
-          "ref": 57198385,
-          "date": "2026-10-15 00:00:52.813000",
-          "status": "SubmissionStatus.COMPLETE",
-          "public_score": "0.419",
-          "description": "Cohezion CASMI26 Podium v26: Dual FPNet Neural Ensemble + Full-Candidate Parsimony + All-Adduct Surrogacy (Daily Quota Reset)"
         }
       ]
     },

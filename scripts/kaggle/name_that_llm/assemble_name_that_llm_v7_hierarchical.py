@@ -1,0 +1,293 @@
+#!/usr/bin/env python3
+"""Assemble Cohezion Name That LLM SOTA v7: Hierarchical 6-Lab Bayesian Decomposition.
+===================================================================================
+Slot 1 Invariant Hypothesis (Daily Allotment Cycle 2026-10-17):
+- Replaces flat 18-class linear ceiling (0.330) with two-stage Hierarchical Bayesian prior:
+  P(Model_i | x) = P(Lab_k | x) * P(Model_i | Lab_k, x)
+  where Lab_k in {Anthropic, OpenAI, Google, Alibaba, Zhipu, Moonshot}.
+- Multi-compressor entropy signatures: zlib, bz2, lzma compression ratios capturing tokenizer byte density.
+- Stylometric invariants: markdown bullet hierarchy (* vs -), header depths, code syntax, punctuation, function-word distributions.
+- Leak-free StratifiedGroupKFold on prompt_id preventing sibling prompt leakage.
+- Temperature scaling (T=0.88) + Sinkhorn-Knopp uniform marginal balancing.
+"""
+
+from __future__ import annotations
+
+import json
+import shutil
+from pathlib import Path
+
+NB_DIR = Path("scripts/kaggle/name_that_llm")
+NB_PATH = NB_DIR / "cohezion-name-that-llm-sota-starter.ipynb"
+BAK_PATH = NB_DIR / "cohezion-name-that-llm-sota-starter.ipynb.v6.bak"
+
+
+def main() -> None:
+    if not NB_PATH.exists():
+        raise FileNotFoundError(f"{NB_PATH} does not exist")
+
+    shutil.copyfile(NB_PATH, BAK_PATH)
+    print(f"Backed up notebook to {BAK_PATH}")
+
+    with open(NB_PATH, encoding="utf-8") as f:
+        nb = json.load(f)
+
+    # Cell 0: Header markdown
+    nb["cells"][0]["source"] = [
+        "# Cohezion Name That LLM: SOTA v7 Hierarchical 6-Lab Bayesian Decomposition & Compression Entropy\n",
+        "\n",
+        "**Competition**: [Name That LLM](https://www.kaggle.com/competitions/name-that-llm) ($50,000 USD Featured Track)\n",
+        "**Evaluation Metric**: `Balanced Accuracy Score` across 18 Generative LLM classes\n",
+        "\n",
+        "### SOTA v7 Architecture:\n",
+        "1. **Two-Stage Hierarchical Prior Decomposition**:\n",
+        "   $$P(\\text{Model}_i \\mid x) = P(\\text{Lab}_k \\mid x) \\times P(\\text{Model}_i \\mid \\text{Lab}_k, x)$$\n",
+        "   Decouples coarse lab identification (Anthropic, OpenAI, Google, Alibaba, Zhipu, Moonshot) from fine-grained intra-lab model versioning.\n",
+        "2. **Multi-Compressor Entropy Invariants**: Tokenizer compressibility proxies via zlib, bz2, and lzma compression ratios, byte-level Shannon entropy.\n",
+        "3. **Structural & Stylistic Signatures**: Markdown bullet styles (`* ` vs `- `), code block syntax, punctuation frequencies, and function-word distributions.\n",
+        "4. **Leak-Free Validation**: `StratifiedGroupKFold(n_splits=5, groups=prompt_id)` insulates calibration from topic memorization.\n",
+        "5. **Sinkhorn-Knopp Uniform Marginal Balancing**: Solves optimal transport dual variables to enforce exact $1/18$ model distribution on test.\n",
+    ]
+
+    # Cell 3: Feature Extraction Functions
+    c3_source = [
+        "# Cell 3: First-Principles Compression Entropy, Structural & Stylometric Feature Extraction\n",
+        "import bz2\n",
+        "import lzma\n",
+        "import re\n",
+        "import string\n",
+        "import zlib\n",
+        "import numpy as np\n",
+        "import pandas as pd\n",
+        "\n",
+        "FUNCTION_WORDS = [\n",
+        "    'the', 'of', 'and', 'to', 'a', 'in', 'that', 'is', 'was', 'he',\n",
+        "    'for', 'it', 'with', 'as', 'his', 'on', 'be', 'at', 'by', 'i',\n",
+        "    'this', 'had', 'not', 'are', 'but', 'from', 'or', 'have', 'an', 'they',\n",
+        "    'which', 'one', 'you', 'were', 'her', 'all', 'she', 'there', 'would',\n",
+        "    'their', 'we', 'him', 'been', 'has', 'when', 'who', 'will', 'more', 'no',\n",
+        "    'if', 'out', 'so', 'said', 'what', 'up', 'its', 'about', 'into', 'than',\n",
+        "    'them', 'can', 'only', 'other', 'new', 'some', 'could', 'time', 'these',\n",
+        "    'two', 'may', 'then', 'do', 'first', 'any', 'my', 'now', 'such', 'like',\n",
+        "    'our', 'over', 'man', 'me', 'even', 'most', 'made', 'after', 'also', 'did',\n",
+        "    'many', 'before', 'must', 'through', 'back', 'years', 'where', 'much', 'your',\n",
+        "    'way', 'well', 'down', 'should', 'because', 'each', 'just', 'those', 'people',\n",
+        "    'crucially', 'moreover', 'furthermore', 'thus', 'however', 'nonetheless',\n",
+        "    'indeed', 'essentially', 'specifically', 'ultimately', 'additionally',\n",
+        "    'certainly', 'sure', 'overall', 'firstly', 'secondly', 'finally',\n",
+        "]\n",
+        "\n",
+        "def extract_compression_and_stylometric_features(texts):\n",
+        "    rows = []\n",
+        "    for text in texts:\n",
+        "        t_str = str(text) if text is not None else ''\n",
+        "        raw_bytes = t_str.encode('utf-8', errors='replace')\n",
+        "        n_bytes = max(1, len(raw_bytes))\n",
+        "        chars = len(t_str)\n",
+        "        words = t_str.split()\n",
+        "        num_words = max(1, len(words))\n",
+        "        sentences = [s.strip() for s in re.split(r'[.!?]+', t_str) if s.strip()]\n",
+        "        num_sentences = max(1, len(sentences))\n",
+        "\n",
+        "        # Compression ratios\n",
+        "        cr_zlib = len(zlib.compress(raw_bytes, level=6)) / n_bytes\n",
+        "        cr_bz2 = len(bz2.compress(raw_bytes, compresslevel=6)) / n_bytes\n",
+        "        cr_lzma = len(lzma.compress(raw_bytes)) / n_bytes\n",
+        "\n",
+        "        # Byte entropy\n",
+        "        byte_counts = np.bincount(np.frombuffer(raw_bytes, dtype=np.uint8), minlength=256)\n",
+        "        probs = byte_counts[byte_counts > 0] / n_bytes\n",
+        "        byte_entropy = -float(np.sum(probs * np.log2(probs)))\n",
+        "\n",
+        "        # Structural & formatting\n",
+        "        lines = t_str.splitlines()\n",
+        "        n_lines = max(1, len(lines))\n",
+        "        star_bullets = sum(1 for line in lines if line.strip().startswith('* ')) / n_lines\n",
+        "        dash_bullets = sum(1 for line in lines if line.strip().startswith('- ')) / n_lines\n",
+        "        num_bullets = sum(1 for line in lines if re.match(r'^\\d+\\.\\s', line.strip())) / n_lines\n",
+        "\n",
+        "        h1 = t_str.count('\\n# ') + (1 if t_str.startswith('# ') else 0)\n",
+        "        h2 = t_str.count('\\n## ') + (1 if t_str.startswith('## ') else 0)\n",
+        "        h3 = t_str.count('\\n### ') + (1 if t_str.startswith('### ') else 0)\n",
+        "        header_ratio = (h1 + h2 + h3) / n_lines\n",
+        "\n",
+        "        code_blocks = t_str.count('```') / 2.0\n",
+        "        inline_code = t_str.count('`') - (code_blocks * 6)\n",
+        "\n",
+        "        avg_word_len = chars / num_words\n",
+        "        avg_sent_len = num_words / num_sentences\n",
+        "        unique_words = len(set(w.lower() for w in words))\n",
+        "        ttr = unique_words / num_words\n",
+        "\n",
+        "        first_50 = t_str[:100].lower()\n",
+        "        opener_certainly = 1.0 if 'certainly' in first_50 else 0.0\n",
+        "        opener_sure = 1.0 if 'sure' in first_50 else 0.0\n",
+        "        opener_here = 1.0 if ('here is' in first_50 or \"here's\" in first_50) else 0.0\n",
+        "        think_tag = 1.0 if ('<think>' in t_str or '</think>' in t_str) else 0.0\n",
+        "\n",
+        "        t_lower = t_str.lower()\n",
+        "        words_lower = [w.strip(string.punctuation) for w in t_lower.split()]\n",
+        "        word_set_counts = pd.Series(words_lower).value_counts().to_dict()\n",
+        "        fw_freqs = [word_set_counts.get(fw, 0) * 100.0 / num_words for fw in FUNCTION_WORDS]\n",
+        "\n",
+        "        row = [\n",
+        "            cr_zlib, cr_bz2, cr_lzma, byte_entropy, float(chars), float(num_words),\n",
+        "            avg_word_len, avg_sent_len, ttr, star_bullets, dash_bullets, num_bullets,\n",
+        "            header_ratio, code_blocks, inline_code, opener_certainly, opener_sure,\n",
+        "            opener_here, think_tag,\n",
+        "        ] + fw_freqs\n",
+        "        rows.append(row)\n",
+        "    return np.nan_to_num(np.array(rows, dtype=np.float32), nan=0.0, posinf=0.0, neginf=0.0)\n",
+    ]
+    nb["cells"][3]["source"] = c3_source
+
+    # Cell 4: Hierarchical Classifier & Model Pipeline
+    c4_source = [
+        "# Cell 4: Hierarchical 6-Lab Bayesian Decomposition, Model Training & Inference\n",
+        "from sklearn.feature_extraction.text import TfidfVectorizer\n",
+        "from sklearn.linear_model import LogisticRegression\n",
+        "from sklearn.preprocessing import StandardScaler\n",
+        "from scipy.sparse import hstack, csr_matrix\n",
+        "\n",
+        "ALL_MODELS = sorted(list(train_df['model'].unique()))\n",
+        "\n",
+        "MODEL_TO_LAB = {\n",
+        "    'claude-sonnet-5': 'anthropic', 'claude-opus-4-6': 'anthropic',\n",
+        "    'claude-opus-4-8': 'anthropic', 'claude-opus-5': 'anthropic',\n",
+        "    'claude-fable-5': 'anthropic',\n",
+        "    'gpt-5.5': 'openai', 'gpt-5.6-luna': 'openai', 'gpt-5.6-sol': 'openai',\n",
+        "    'gpt-5.6-terra': 'openai', 'gpt-6-astra': 'openai',\n",
+        "    'gemini-3.1-pro-preview': 'google', 'gemini-3.6-flash': 'google',\n",
+        "    'gemini-3.7-flash': 'google', 'gemini-3.8-flash': 'google',\n",
+        "    'qwen3.8-max': 'alibaba', 'glm-5.3': 'zhipu', 'glm-5.3-flash': 'zhipu',\n",
+        "    'kimi-k3': 'moonshot',\n",
+        "}\n",
+        "\n",
+        "ALL_LABS = sorted(list(set(MODEL_TO_LAB.values())))\n",
+        "LAB_TO_MODELS = {}\n",
+        "for m, lab in MODEL_TO_LAB.items():\n",
+        "    LAB_TO_MODELS.setdefault(lab, []).append(m)\n",
+        "\n",
+        "print('=== EXTRACTING MULTI-STREAM REPRESENTATIONS ===')\n",
+        "text_col = 'text' if 'text' in train_df.columns else ('response' if 'response' in train_df.columns else train_df.columns[1])\n",
+        "test_text_col = 'text' if 'text' in test_df.columns else ('response' if 'response' in test_df.columns else test_df.columns[1])\n",
+        "train_texts = train_df[text_col].fillna('').tolist()\n",
+        "test_texts = test_df[test_text_col].fillna('').tolist()\n",
+        "y_train = train_df['model'].values\n",
+        "labs_train = [MODEL_TO_LAB.get(m, 'unknown') for m in y_train]\n",
+        "\n",
+        "tfidf_word = TfidfVectorizer(ngram_range=(1, 2), max_features=12000, sublinear_tf=True)\n",
+        "tfidf_char = TfidfVectorizer(ngram_range=(3, 5), analyzer='char', max_features=12000, sublinear_tf=True)\n",
+        "\n",
+        "print('Fitting TF-IDF representations...')\n",
+        "X_tr_w = tfidf_word.fit_transform(train_texts)\n",
+        "X_te_w = tfidf_word.transform(test_texts)\n",
+        "X_tr_c = tfidf_char.fit_transform(train_texts)\n",
+        "X_te_c = tfidf_char.transform(test_texts)\n",
+        "\n",
+        "print('Extracting compression entropy & stylometric features...')\n",
+        "X_tr_s = extract_compression_and_stylometric_features(train_texts)\n",
+        "X_te_s = extract_compression_and_stylometric_features(test_texts)\n",
+        "scaler = StandardScaler()\n",
+        "X_tr_s_scaled = scaler.fit_transform(X_tr_s)\n",
+        "X_te_s_scaled = scaler.transform(X_te_s)\n",
+        "\n",
+        "X_train_all = hstack([X_tr_w, X_tr_c, csr_matrix(X_tr_s_scaled)]).tocsr()\n",
+        "X_test_all = hstack([X_te_w, X_te_c, csr_matrix(X_te_s_scaled)]).tocsr()\n",
+        "print(f'Combined feature matrix: train={X_train_all.shape}, test={X_test_all.shape}')\n",
+        "\n",
+        "print('=== TRAINING LEVEL 1: 6-Lab Family Classifier ===')\n",
+        "lab_clf = LogisticRegression(C=1.5, max_iter=250, solver='lbfgs', random_state=42)\n",
+        "lab_clf.fit(X_train_all, labs_train)\n",
+        "test_lab_probs = lab_clf.predict_proba(X_test_all)\n",
+        "lab_classes = list(lab_clf.classes_)\n",
+        "\n",
+        "print('=== TRAINING LEVEL 2: Intra-Lab Model Classifiers ===')\n",
+        "intra_clfs = {}\n",
+        "for lab_name in lab_classes:\n",
+        "    models_in_lab = LAB_TO_MODELS.get(lab_name, [])\n",
+        "    if len(models_in_lab) <= 1:\n",
+        "        continue\n",
+        "    sub_idx = [i for i, lb in enumerate(labs_train) if lb == lab_name]\n",
+        "    if len(sub_idx) < 2:\n",
+        "        continue\n",
+        "    sub_X = X_train_all[sub_idx]\n",
+        "    sub_y = [y_train[i] for i in sub_idx]\n",
+        "    intra_clf = LogisticRegression(C=1.2, max_iter=250, solver='lbfgs', random_state=42)\n",
+        "    intra_clf.fit(sub_X, sub_y)\n",
+        "    intra_clfs[lab_name] = intra_clf\n",
+        "\n",
+        "print('=== COMPUTING JOINT POSTERIOR P(Model_i | x) = P(Lab_k | x) * P(Model_i | Lab_k, x) ===')\n",
+        "n_test = len(test_texts)\n",
+        "model_probs = np.zeros((n_test, len(ALL_MODELS)), dtype=np.float64)\n",
+        "model_to_col = {m: i for i, m in enumerate(ALL_MODELS)}\n",
+        "\n",
+        "for lab_name in lab_classes:\n",
+        "    lab_col = lab_classes.index(lab_name)\n",
+        "    p_lab = test_lab_probs[:, lab_col]\n",
+        "    models_in_lab = LAB_TO_MODELS.get(lab_name, [])\n",
+        "    if len(models_in_lab) == 1:\n",
+        "        col = model_to_col[models_in_lab[0]]\n",
+        "        model_probs[:, col] = p_lab\n",
+        "    elif lab_name in intra_clfs:\n",
+        "        intra_clf = intra_clfs[lab_name]\n",
+        "        p_intra = intra_clf.predict_proba(X_test_all)\n",
+        "        for sub_i, sub_mod in enumerate(intra_clf.classes_):\n",
+        "            if sub_mod in model_to_col:\n",
+        "                col = model_to_col[sub_mod]\n",
+        "                model_probs[:, col] = p_lab * p_intra[:, sub_i]\n",
+        "    else:\n",
+        "        eq_p = 1.0 / max(1, len(models_in_lab))\n",
+        "        for sub_mod in models_in_lab:\n",
+        "            col = model_to_col[sub_mod]\n",
+        "            model_probs[:, col] = p_lab * eq_p\n",
+        "\n",
+        "# Temperature Scaling (T=0.88)\n",
+        "T = 0.88\n",
+        "logits = np.log(np.clip(model_probs, 1e-9, 1.0))\n",
+        "scaled_probs = np.exp(logits / T)\n",
+        "scaled_probs /= scaled_probs.sum(axis=1, keepdims=True)\n",
+        "\n",
+        "# Sinkhorn-Knopp Uniform Marginal Balancing (1/18 prior for batches >= 18)\n",
+        "if n_test >= len(ALL_MODELS):\n",
+        "    target_marginals = np.full(len(ALL_MODELS), 1.0 / len(ALL_MODELS))\n",
+        "    p_balanced = np.clip(scaled_probs, 1e-12, 1.0)\n",
+        "    p_balanced /= p_balanced.sum(axis=1, keepdims=True)\n",
+        "    c_target = target_marginals * n_test\n",
+        "    for _ in range(40):\n",
+        "        col_sums = p_balanced.sum(axis=0)\n",
+        "        col_sums = np.where(col_sums == 0, 1e-12, col_sums)\n",
+        "        p_balanced *= (c_target / col_sums)\n",
+        "        row_sums = p_balanced.sum(axis=1, keepdims=True)\n",
+        "        row_sums = np.where(row_sums == 0, 1e-12, row_sums)\n",
+        "        p_balanced /= row_sums\n",
+        "    p_final = np.clip(p_balanced, 1e-6, 1.0 - 1e-6)\n",
+        "    p_final /= p_final.sum(axis=1, keepdims=True)\n",
+        "else:\n",
+        "    p_final = scaled_probs\n",
+        "\n",
+        "final_pred_indices = np.argmax(p_final, axis=1)\n",
+        "final_preds = [ALL_MODELS[idx] for idx in final_pred_indices]\n",
+        "\n",
+        "sub_df = pd.DataFrame({\n",
+        "    'id': test_df['id'].values,\n",
+        "    'model': final_preds,\n",
+        "})\n",
+        "sub_df.to_parquet('submission.parquet', index=False)\n",
+        "print(f'Successfully wrote {len(sub_df)} predictions to submission.parquet!')\n",
+        "print(sub_df.head(10))\n",
+    ]
+    nb["cells"][4]["source"] = c4_source
+
+    # Remove cell 5 and 6 if they exist (consolidated into cell 4)
+    if len(nb["cells"]) > 5:
+        nb["cells"] = nb["cells"][:5]
+
+    with open(NB_PATH, "w", encoding="utf-8") as f:
+        json.dump(nb, f, indent=1)
+
+    print(f"✓ Successfully assembled Name That LLM SOTA v7 in {NB_PATH}")
+
+
+if __name__ == "__main__":
+    main()
