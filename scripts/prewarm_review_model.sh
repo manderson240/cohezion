@@ -23,7 +23,7 @@ set -euo pipefail
 
 MODEL="${1:-qwen3.5-4b-FLM}"
 CTX_SIZE="${2:-16384}"
-ROUTER="http://localhost:13305"
+ROUTER="http://127.0.0.1:13305"
 TIMEOUT=120  # seconds to wait for model to appear in /v1/models
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"

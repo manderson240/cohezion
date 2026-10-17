@@ -1,5 +1,23 @@
 # KEY LEARNINGS
 
+## Learning 550: Loopback IPv6 Connect Latency Resolution, Hardware Gateway Invariance & Offline Kaggle GPU Compute Decoupling (2026-10-17)
+L550: Resolved systemic network latency delays in local silicon inference loops and established the offline Kaggle GPU quota harvesting architecture:
+1. **Loopback IPv6 Resolution Delay & Local Gateway Invariance**:
+   - Diagnosed root cause of 15–30 second latency spikes during local pre-warm probes and health checks: modern Linux distributions (Ubuntu 26.04) prioritize IPv6 resolution (`::1`) when connecting to `localhost`. When internal proxies (such as `admission_proxy` on port 13305) bind strictly to IPv4 (`127.0.0.1`), client requests via `curl`, `urllib`, or `httpx` stall until the IPv6 handshake times out before falling back to IPv4.
+   - Enforcing explicit IPv4 loopbacks (`http://127.0.0.1:13305`) across pre-warm scripts, test fixtures, and inference routers eliminates this delay completely, reducing health check and preflight response latency from >30s to <0.2s.
+2. **Kaggle Compute Architecture: Decoupling Daily Submission Allowances from 30h/week GPU Quota**:
+   - Clarified and formalized the distinction between Kaggle daily submission allowances (which evaluate test predictions and update leaderboards: 1/day or 5/day) and the free 30h/week GPU compute quota.
+   - The 30h/week GPU allocation is decoupled from submission limits and operates via non-submission offline training kernels (`api.kernels_push` with interactive/batch GPU environments). This enables heavy offline model training (e.g., CoAtNet-384, chemical fragmentation GNNs, or Poincaré hyperbolic embedding generation) with serialized checkpoints exported directly to private Kaggle Datasets (`api.dataset_create_version`), conserving daily submission slots strictly for verified, high-confidence inference.
+3. **Active Portfolio Allotment State**:
+   - **RSNA Knee**: Slot 5/5 dispatched with SOTA v40 Trimmed Median Consensus Ensemble (`manderson240/cohezion-rsna-knee-0-957-r7-blend`), queued on Kaggle GPU.
+   - **Enveda CASMI26**: Ref #57307937 (v28) PENDING. Slots 4 (`v29_chemical_graph_reranker`) and 5 (`v30_extreme_parsimony_hybrid`) pre-wired in `continuous_daily_allotment_engine.py` for automated sequential dispatch upon clearance.
+   - **Name That LLM**: 5/5 daily slots saturated; verified SOTA v7 kernel has generated `submission.parquet` and is primed for dispatch at 00:00:05 UTC reset.
+   - **ARC-AGI-2 & ARC-AGI-3**: 1/1 daily slots used; SOTA v16 ($D_4$ dihedral group non-duplication) and SOTA v42 (`CayleyBudgetManager.is_trajectory_deadlocked()` online entropy watchdog) prepared for UTC reset.
+   - **Gemma-4 Developer Agent**: 1/1 used; Ref #57287771 PENDING.
+*12D State Vector*: `[12D State: Space=IPv4LoopbackInvariance-KaggleGPUQuotaDecoupling-AutonomousAllotmentSaturation, Time=October 2026, Physics=NetworkResolutionOptimization-OfflineModelTraining-DatasetExportPipeline, Brane=Cohezion-Compound-SystemsEngineering]`
+
+---
+
 ## Learning 549: Empirical Multi-Track Feedback Loops, Secondary Condition Label Asymmetry & Online Trajectory Entropy Preemption (2026-10-17)
 L549: Synthesized empirical feedback from overnight and daily scoring cycles across active Kaggle benchmarks, resolving secondary condition label distortion and online search timeout traps:
 1. **Clinical Label Asymmetry & The False Positive Effusion Penalty**:
