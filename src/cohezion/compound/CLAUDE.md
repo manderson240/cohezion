@@ -88,11 +88,12 @@ uv run pytest tests/compound/test_loopception.py -q  # LC1-LC3
   never-qualified judges. Default (False, never qualified) = historic behaviour.
 - RQ6: `qualify(gold, metric="auc")` qualifies RANKING instead: judge JSON carries a numeric `score` (higher = more
   suspicious); result is Mann-Whitney AUC (ties 0.5). Missing/unparseable/non-numeric/non-finite score = WORST rank for
-  its class (bad -> least suspicious, good -> most suspicious). Default metric unchanged. Caveat: evaluate() still acts on
-  the boolean `perceived_error`, which AUC does not calibrate.
+  its class (bad -> least suspicious, good -> most suspicious). Default metric unchanged. Qualify also learns the Youden-optimal
+  score cut (ties -> higher cut); an AUC-qualified evaluate() gates on `score >= cut`, NOT the judge's boolean (AUC never
+  measured it); unusable score in evaluate() passes (fail-open). Fingerprint = (rubric, model, router, metric, cut).
 - OPEN: RubricMiddleware has no production constructor yet (dormant; Kanban 14da592755ce). Wire it with
   `require_qualification=True` and gold from SkillRefiner golden_fixture rows.
-- **Verification**: `uv run pytest tests/compound/test_rubric_qualification.py -q` → 31 passed; 6/6 mutants killed
+- **Verification**: `uv run pytest tests/compound/test_rubric_qualification.py -q` → 38 passed; 6/6 mutants killed
   (plain accuracy, bool() coercion, no fingerprint, no threshold check, no min-per-class, gate removed); RQ6: 13/13 AUC
   mutants killed (const 1.0, flipped fail-closed, zero fallback, flipped >, ties 0/1, bool/inf accepted, never-auc, no score prompt, flag leak, always-qualify, unknown metric).
 

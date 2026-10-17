@@ -89,12 +89,14 @@ class RubricMiddleware:
         self.qualified: bool | None = None
         self._score_prompt = False  # True only while qualify(metric="auc") is asking for scores
         self.qualification_score: float | None = None
+        self._metric = "balanced_accuracy"  # metric of the last qualify(); evaluate() follows it
+        self._score_cut: float | None = None  # learned decision cut (auc qualification only)
         self._qualified_for: tuple | None = (
-            None  # (rubric, model, router_url) the qualification measured
+            None  # (rubric, model, router_url, metric, score_cut) the qualification measured
         )
 
     def _fingerprint(self) -> tuple:
-        return (self.rubric, self._model, self._router_url)
+        return (self.rubric, self._model, self._router_url, self._metric, self._score_cut)
 
     def is_qualified(self) -> bool | None:
         """True/False from qualify(); None if never qualified. A True that does not match the current judge
@@ -138,8 +140,9 @@ class RubricMiddleware:
             )
         self.qualified = False  # never gate while (re)qualifying
 
+        self._metric, self._score_cut = metric, None
         if metric == "auc":
-            score = self._auc_score(pos, neg)
+            score, self._score_cut = self._auc_score(pos, neg)
             self.qualification_score = score
             self._qualified_for = self._fingerprint()
             self.qualified = score >= threshold - 1e-9
@@ -183,12 +186,23 @@ class RubricMiddleware:
 
     def _auc_score(
         self, pos: list[tuple[str, str, bool]], neg: list[tuple[str, str, bool]]
-    ) -> float:
-        """Mann-Whitney AUC: P(bad outranks good) + 0.5 * P(tie), over all bad/good pairs."""
+    ) -> tuple[float, float]:
+        """(Mann-Whitney AUC, Youden cut) over the gold scores.
+
+        AUC = P(bad outranks good) + 0.5 * P(tie). The cut is t* = argmax_t TPR(t) - FPR(t) over the observed
+        usable scores (flag iff score >= t), ties broken toward the HIGHER cut (fewer false rejections): derived
+        from measured outcomes, never from the judge's own scale. No usable score at all -> inf (never rejects).
+        """
         ps = [self._item_score(g) for g in pos]
         ns = [self._item_score(g) for g in neg]
         wins = sum((p > n) + 0.5 * (p == n) for p in ps for n in ns)
-        return wins / (len(ps) * len(ns))
+        cuts = sorted({x for x in ps + ns if math.isfinite(x)})
+        best_cut, best_j = math.inf, -math.inf
+        for t in cuts:  # ascending: ">=" lets a later (higher) cut win ties
+            j = sum(p >= t for p in ps) / len(ps) - sum(n >= t for n in ns) / len(ns)
+            if j >= best_j:
+                best_cut, best_j = t, j
+        return wins / (len(ps) * len(ns)), best_cut
 
     def evaluate(
         self,
@@ -207,12 +221,36 @@ class RubricMiddleware:
                 reason="unqualified judge: verdict not used (fail-open)",
                 raw_response="",
             )
+        if q is True and self._metric == "auc" and self._score_cut is not None:
+            return self._evaluate_by_score(task_output, task_context)
         try:
             raw = self._call_inference(task_output, task_context)
             return self._parse_verdict(raw)
         except Exception as exc:
             logger.debug("RubricMiddleware: evaluation failed (fail-open): %s", exc)
             return RubricVerdict(passed=True, reason="", raw_response="")
+
+    def _evaluate_by_score(self, task_output: str, task_context: str) -> RubricVerdict:
+        """AUC-qualified judges gate on score >= learned cut, never on their own boolean (AUC never measured it).
+
+        Asymmetry by design: qualify() is fail-closed (an unusable gold score takes the worst rank), but here an
+        unusable score or failed call PASSES -- evaluate() never rejects on noise, keeping its fail-open contract.
+        """
+        self._score_prompt = True
+        try:
+            raw = self._call_inference(task_output, task_context)
+            data = json.loads(raw)
+            v = data.get("score") if isinstance(data, dict) else None
+            if isinstance(v, bool) or not isinstance(v, (int, float)) or not math.isfinite(v):
+                return RubricVerdict(passed=True, reason="", raw_response=raw)
+            flagged = v >= self._score_cut
+            reason = str(data.get("reason", "")) if isinstance(data, dict) else ""
+            return RubricVerdict(passed=not flagged, reason=reason, raw_response=raw)
+        except Exception as exc:
+            logger.debug("RubricMiddleware: score evaluation failed (fail-open): %s", exc)
+            return RubricVerdict(passed=True, reason="", raw_response="")
+        finally:
+            self._score_prompt = False
 
     # ── internal ──────────────────────────────────────────────────────────
 

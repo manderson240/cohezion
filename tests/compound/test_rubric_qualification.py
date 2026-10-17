@@ -293,3 +293,98 @@ def test_rq6_default_mode_is_unchanged_by_scores_in_the_reply():
     # a perfect-RANKING judge whose boolean verdicts are right: default mode ignores `score` entirely
     with _scored(lambda o: 0.0, flag=lambda o: o.startswith("bad")):
         assert rm.qualify(GOLD) == 1.0
+
+
+# --- RQ7: an AUC-qualified judge gates on a LEARNED SCORE CUT, never on its own boolean --------------------------
+# AUC never measured `perceived_error`; gating on it after an AUC pass rejected known-good output (adversarial review
+# of 553ed02a1). The cut is Youden-optimal on the gold scores (derived from measured outcomes, GEMS lesson 29).
+
+
+def test_rq7_always_flagging_judge_with_perfect_ranking_does_not_reject_good_output():
+    rm = RubricMiddleware(rubric="x")
+    with _scored(_rank, flag=lambda o: True):  # boolean says "error" for everything
+        assert rm.qualify(GOLD, metric="auc") == 1.0
+        assert rm.is_qualified() is True
+        assert rm.evaluate("good 0").passed is True
+        assert rm.evaluate("bad 0").passed is False
+
+
+def test_rq7_offset_scores_reject_bad_and_pass_good_via_the_learned_cut():
+    rm = RubricMiddleware(rubric="x")
+    with _scored(_rank):  # booleans always False, scores far below 0.5
+        rm.qualify(GOLD, metric="auc")
+        assert rm.evaluate("bad 2").passed is False
+        assert rm.evaluate("good 3").passed is True
+    assert rm._score_cut == pytest.approx(0.30)  # not a fixed 0.5
+
+
+def test_rq7_cut_ties_break_toward_the_higher_cut():
+    rm = RubricMiddleware(rubric="x")
+    scores = {"bad 0": 0.3, "bad 1": 0.9, "good 0": 0.1, "good 1": 0.6}
+    gold = [(k, "", k.startswith("bad")) for k in scores]
+    with _scored(lambda o: scores[o]):
+        rm.qualify(gold, metric="auc", threshold=0.6)
+    assert rm._score_cut == 0.9  # J(0.3) == J(0.9) == 0.5; fewer false rejections wins
+
+
+def test_rq7_unusable_score_in_evaluate_never_rejects():
+    rm = RubricMiddleware(rubric="x")
+    with _scored(_rank):
+        rm.qualify(GOLD, metric="auc")
+    for bad_reply in (
+        "not json",
+        json.dumps({"perceived_error": True}),
+        json.dumps({"score": "9"}),
+    ):
+        with patch.object(RubricMiddleware, "_call_inference", lambda self, o, c, r=bad_reply: r):
+            assert rm.evaluate("bad 0").passed is True
+
+    def boom(self, o, c):
+        raise RuntimeError("down")
+
+    with patch.object(RubricMiddleware, "_call_inference", boom):
+        assert rm.evaluate("bad 0").passed is True
+
+
+def test_rq7_fingerprint_includes_metric_and_cut():
+    rm = RubricMiddleware(rubric="x")
+    with _scored(_rank):
+        rm.qualify(GOLD, metric="auc")
+    assert rm.is_qualified() is True
+    rm._score_cut = 0.0  # tampered cut without re-qualifying
+    assert rm.is_qualified() is False
+    rm._score_cut = 0.30
+    assert rm.is_qualified() is True
+    rm._metric = "balanced_accuracy"
+    assert rm.is_qualified() is False
+    with _judge(lambda o: o.startswith("bad")):
+        rm.qualify(GOLD)  # re-qualify by balanced accuracy: boolean path, no cut
+    assert rm._score_cut is None and rm.is_qualified() is True
+
+
+def test_rq7_balanced_accuracy_qualification_still_gates_on_the_boolean():
+    rm = RubricMiddleware(rubric="x")
+    with _judge(lambda o: o.startswith("bad")):
+        rm.qualify(GOLD)
+        assert rm.evaluate("bad 1").passed is False
+        assert rm.evaluate("good 1").passed is True
+
+
+def test_rq7_evaluate_asks_for_a_score_only_when_auc_qualified():
+    rm = RubricMiddleware(rubric="x")
+    seen = []
+
+    def fake(self, o, c):
+        seen.append('"score"' in self._build_messages(o, c)[0]["content"])
+        return json.dumps({"perceived_error": o.startswith("bad"), "score": _rank(o)})
+
+    with patch.object(RubricMiddleware, "_call_inference", fake):
+        rm.qualify(GOLD, metric="auc")
+        seen.clear()
+        rm.evaluate("good 0")
+        assert seen == [True]
+        assert '"score"' not in rm._build_messages("o", "")[0]["content"]  # flag restored
+        rm.qualify(GOLD)  # balanced accuracy: historic prompt in evaluate
+        seen.clear()
+        rm.evaluate("good 0")
+        assert seen == [False]
