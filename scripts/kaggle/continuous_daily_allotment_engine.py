@@ -66,9 +66,9 @@ PORTFOLIO_CONFIG = {
                 "msg": "Cohezion RSNA Knee SOTA v42: JSN Covariance + Isotonic Quantile Rank Alignment (T=0.85) Grandmaster Fusion",
             },
             2: {
-                "name": "v37_jsn_covariance",
-                "patch_script": "scripts/kaggle/rsna_r7_raptor_blend/assemble_rsna_v37_jsn.py",
-                "msg": "Cohezion RSNA Knee SOTA v37: Anatomical JSN Covariance + Bilateral Knee Symmetry Ratio + Pure Quantile Alignment (0.956 Anchor)",
+                "name": "v43_multiview_ledoit_wolf",
+                "patch_script": "scripts/kaggle/rsna_r7_raptor_blend/assemble_rsna_v43_multiview_ledoit_wolf.py",
+                "msg": "Cohezion RSNA Knee SOTA v43: Multi-View Ledoit-Wolf Shrinkage Covariance Projection (Alpha=0.15, T=0.85)",
             },
             3: {
                 "name": "v38_isotonic_rank",
@@ -76,14 +76,14 @@ PORTFOLIO_CONFIG = {
                 "msg": "Cohezion RSNA Knee SOTA v38: Isotonic Quantile Rank Alignment with Temperature T=0.85 Scaling (0.956 Anchor)",
             },
             4: {
+                "name": "v37_jsn_covariance",
+                "patch_script": "scripts/kaggle/rsna_r7_raptor_blend/assemble_rsna_v37_jsn.py",
+                "msg": "Cohezion RSNA Knee SOTA v37: Anatomical JSN Covariance + Bilateral Knee Symmetry Ratio + Pure Quantile Alignment (0.956 Anchor)",
+            },
+            5: {
                 "name": "v36_pure_optimum",
                 "patch_script": "scripts/kaggle/rsna_r7_raptor_blend/assemble_rsna_v36_pure_optimum.py",
                 "msg": "Cohezion RSNA Knee SOTA v36: Pure Optimum Calibrated Tri-Model Blend (Raptor-384 + Raptor-224 A224=0.40 + R7) + Noise Insulated Weights",
-            },
-            5: {
-                "name": "v42_jsn_isotonic_fusion_r",
-                "patch_script": "scripts/kaggle/rsna_r7_raptor_blend/assemble_rsna_v42_jsn_isotonic_fusion.py",
-                "msg": "Cohezion RSNA Knee SOTA v42: JSN Covariance + Isotonic Quantile Rank Alignment (T=0.85) Grandmaster Fusion",
             },
         },
     },
@@ -95,9 +95,9 @@ PORTFOLIO_CONFIG = {
         "notebook": "scripts/kaggle/arc2_autoharness_lora_kernel/arc-agi-2-fork-lb33-89-20260903.ipynb",
         "slots": {
             1: {
-                "name": "v15_monotonic_lora_dsl",
-                "patch_script": None,
-                "msg": "Cohezion ARC-AGI-2 SOTA v15: Quad-L4 SOTA Monotonic LoRA Attempt-2 DSL Injection",
+                "name": "v20_zero_mutual_information",
+                "patch_script": "scripts/kaggle/arc2_autoharness_lora_kernel/patch_arc2_v20_zero_mutual_information.py",
+                "msg": "Cohezion ARC-AGI-2 SOTA v20: Zero-Mutual-Information Attempt-2 Protocol (D4 Dihedral & Symbolic DSL Union)",
             },
             2: {
                 "name": "v16_npu_d4_symmetry",
