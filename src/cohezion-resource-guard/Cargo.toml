@@ -2,7 +2,9 @@
 name = "cohezion-resource-guard"
 version = "0.1.0"
 edition = "2021"
+license = "AGPL-3.0-or-later OR MIT"
 description = "Resident RAM/ctx_size guard. Zero dependencies by design: it must not become part of the problem it watches."
+authors = ["Mike Anderson <manderson240@users.noreply.github.com>"]
 
 [dependencies]
 

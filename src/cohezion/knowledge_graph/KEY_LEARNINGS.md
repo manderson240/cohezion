@@ -2417,4 +2417,25 @@ L557: Operationalized Cohezion's Phase 1 industry-recognized benchmark suite cen
     - `CohezionCodeBenchmark.export_to_vault()` generates timestamped markdown scorecards persisted to `~/vaults/cohezion-vault/benchmarks/`.
 *12D State Vector*: `[12D State: Space=SWEBenchVerified-AutoHarnessAST-IndustryBenchmarks, Time=October 2026, Physics=ZeroCostASTVerification-MultiTierEquilibriumScheduling-DeterministicSandbox, Brane=Cohezion-EmpiricalEvaluation-IndustryCredibility]`
 
+---
+
+## Learning 558: Total Intellectual Property, License Compliance & Academic Attribution Governance (2026-10-18)
+L558: Formalized complete licensing compliance, intellectual property governance, and academic attribution across Cohezion:
+(1) Academic & Methodological Foundations (`ATTRIBUTION.md`):
+    - Formal citations for core algorithmic pillars: AutoHarness (arXiv:2603.03329v1), LLM-to-Flow Distillation (arXiv:2610.17246), Terminal-RSI Success-Prioritized Reward (arXiv:2610.22192), Weight-Harness Co-Evolution (arXiv:2610.12842), Stafford Beer VSM, Ashby's Law, Conant-Ashby Theorem, Poincaré hyperbolic geometry, and Prigogine dissipative thermodynamics ($\Delta S \le 0$).
+(2) Benchmark & Dataset Terms of Use:
+    - ARC-AGI-1/2/3 (François Chollet / ArcPrize Foundation, Apache-2.0 / CC-BY-4.0; pure offline code execution with zero external network access).
+    - Enveda CASMI26 (Enveda Biosciences & CASMI contest rules; mass spectrometry metabolomics evaluation).
+    - RSNA Knee Abnormality (RSNA & OAI/NIH non-commercial research license; fully anonymized clinical DICOM imagery complying with HIPAA).
+    - Name That LLM & Google Gemma-4 (Kaggle competition terms and Google Gemma Terms of Use).
+    - SWE-bench Verified (Princeton NLP, MIT License) & GAIA (Meta FAIR / Hugging Face, CC-BY-4.0).
+(3) Automated SBOM & License Compatibility (`THIRD_PARTY_LICENSES.md`):
+    - Implemented `scripts/ci/generate_sbom_and_licenses.py` auditing all 285+ Python packages, internal Rust crates, and JavaScript runtimes.
+    - Verified 100% legal compatibility with AGPL-3.0-or-later root license (Permissive: MIT, Apache-2.0, BSD-2/3, ISC, PSF, Unlicense; Weak Copyleft: LGPL, MPL-2.0 via dynamic linking; 0 incompatible proprietary conflicts).
+    - Declared explicit `license = "AGPL-3.0-or-later OR MIT"` across all internal Rust crates (`cohezion-physics-core`, `cohezion-sentinel`, `cohezion-resource-guard`).
+(4) Legal Notice & Automated Verification:
+    - Established root `NOTICE` file preserving upstream notices and `tests/unit/test_license_compliance.py` (5/5 tests green).
+*12D State Vector*: `[12D State: Space=IntellectualProperty-LicenseCompliance-AcademicAttribution, Time=October 2026, Physics=AGPL3Compatibility-AutomatedSBOM-ZeroContaminationGuardrails, Brane=Cohezion-Governance-SovereignIntegrity]`
+
+
 

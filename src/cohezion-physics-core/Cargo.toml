@@ -2,6 +2,9 @@
 name = "cohezion-physics-core"
 version = "0.1.0"
 edition = "2024"
+license = "AGPL-3.0-or-later OR MIT"
+description = "Native AVX-512 accelerated hyperbolic geometry and Poincare distance PyO3 extension for Cohezion."
+authors = ["Mike Anderson <manderson240@users.noreply.github.com>"]
 
 [lib]
 name = "cohezion_physics_core"

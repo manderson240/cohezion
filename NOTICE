@@ -1,0 +1,51 @@
+Cohezion AI Swarm Orchestration Framework
+Copyright (c) 2026 Mike Anderson and Cohezion Contributors.
+
+This product is licensed under the GNU Affero General Public License, Version 3.0 or later (AGPL-3.0-or-later).
+See LICENSE for details.
+
+================================================================================
+Upstream Software Notices & Acknowledgments
+================================================================================
+
+This product includes software developed by:
+- The Python Software Foundation (https://www.python.org/)
+- The Apache Software Foundation (http://www.apache.org/)
+- The Free Software Foundation (https://www.fsf.org/)
+- The Rust Project Developers (https://www.rust-lang.org/)
+- Advanced Micro Devices, Inc. (AMD ROCm and XDNA 2 architectures)
+- Princeton Natural Language Processing Group (SWE-bench)
+- ARC Prize Foundation and François Chollet (ARC-AGI benchmarks)
+- Meta Fundamental AI Research (FAIR) and Hugging Face (GAIA benchmark)
+- MLCommons Association (MLPerf)
+- SurrealDB Ltd. (SurrealDB data platform)
+- Ollama Authors (Ollama local inference runtime)
+- Bun Authors / Oven-sh (Bun JavaScript/TypeScript runtime)
+
+================================================================================
+Academic Research & Methodological Credits
+================================================================================
+
+Cohezion operationalizes algorithms, theorems, and methodologies from the
+following published scientific works:
+
+- AutoHarness: "Deterministic Code-as-Action Verifiers and Bytecode Policy Synthesis"
+  (arXiv:2603.03329v1).
+- LLM-to-Flow Distillation (LFD): "Teaching Natural Language Goals to Scientific Generators"
+  by De Santi, Di Gennaro, Gnazzo, Tang, Chatterjee, Yang, Ceylan, Bronstein, Krause (arXiv:2610.17246, 2026).
+- Terminal-RSI: "Success-Prioritized Reward (SPR) in Recursive Self-Improvement" (arXiv:2610.22192, 2026).
+- Weight-Harness Co-Evolution (Evo^2 / EvoTIDE): "Dual-Role Policy Decomposition" (arXiv:2610.12842, 2026).
+- Stafford Beer: The Viable System Model (VSM) from "Brain of the Firm" (1972) and
+  "The Heart of Enterprise" (1979).
+- W. Ross Ashby: The Law of Requisite Variety from "An Introduction to Cybernetics" (1956).
+- R.C. Conant & W.R. Ashby: "Every good regulator of a system must be a model of that system"
+  (International Journal of Systems Science, 1970).
+- Henri Poincaré: Hyperbolic Disc and Manifold Geometry (1882).
+- Roger Penrose & Stuart Hameroff: Orchestrated Objective Reduction (Orch-OR) & Twistor Theory (1996).
+- Ilya Prigogine: Dissipative Structures and Non-Equilibrium Thermodynamics (1977).
+- Claude E. Shannon: "A Mathematical Theory of Communication" (1948).
+- John von Neumann: Theory of Self-Reproducing Automata (1966).
+- Leslie Lamport: Logical Clocks, Paxos, and Distributed Systems Consensus (1978).
+- Barbara McClintock: Transposable Genetic Elements and Dynamic Regulation (1950).
+
+For full bibliography and dataset terms of use, see ATTRIBUTION.md.

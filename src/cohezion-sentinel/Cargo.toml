@@ -2,7 +2,9 @@
 name = "cohezion-sentinel"
 version = "0.1.0"
 edition = "2024"
+license = "AGPL-3.0-or-later OR MIT"
 description = "Ultra-lean 24/7 background sentinel daemon for Kaggle ascent & host governance. <2MB RSS."
+authors = ["Mike Anderson <manderson240@users.noreply.github.com>"]
 
 [dependencies]
 serde = { version = "1.0", features = ["derive"] }
