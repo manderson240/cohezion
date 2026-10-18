@@ -61,29 +61,29 @@ PORTFOLIO_CONFIG = {
         "notebook": "scripts/kaggle/rsna_r7_raptor_blend/cohezion-rsna-knee-0957-r7-blend.ipynb",
         "slots": {
             1: {
-                "name": "v40_trimmed_median_consensus",
-                "patch_script": "scripts/kaggle/rsna_r7_raptor_blend/assemble_rsna_v40_trimmed_median.py",
-                "msg": "Cohezion RSNA Knee SOTA v40: Calibrated Trimmed Median Consensus Ensemble (HIHO 0.5 Coherence + Kolmogorov Effusion)",
+                "name": "v42_jsn_isotonic_fusion",
+                "patch_script": "scripts/kaggle/rsna_r7_raptor_blend/assemble_rsna_v42_jsn_isotonic_fusion.py",
+                "msg": "Cohezion RSNA Knee SOTA v42: JSN Covariance + Isotonic Quantile Rank Alignment (T=0.85) Grandmaster Fusion",
             },
             2: {
-                "name": "v41_uncertainty_gated_copula",
-                "patch_script": "scripts/kaggle/rsna_r7_raptor_blend/assemble_rsna_v41_copula_uncertainty.py",
-                "msg": "Cohezion RSNA Knee SOTA v41: Uncertainty-Gated Copula Blending & Anatomical Cascade (T=0.85)",
+                "name": "v37_jsn_covariance",
+                "patch_script": "scripts/kaggle/rsna_r7_raptor_blend/assemble_rsna_v37_jsn.py",
+                "msg": "Cohezion RSNA Knee SOTA v37: Anatomical JSN Covariance + Bilateral Knee Symmetry Ratio + Pure Quantile Alignment (0.956 Anchor)",
             },
             3: {
                 "name": "v38_isotonic_rank",
                 "patch_script": "scripts/kaggle/rsna_r7_raptor_blend/assemble_rsna_v38_isotonic_rank.py",
-                "msg": "Cohezion RSNA Knee SOTA v38: Isotonic Quantile Rank Alignment with Temperature T=0.85 Scaling",
+                "msg": "Cohezion RSNA Knee SOTA v38: Isotonic Quantile Rank Alignment with Temperature T=0.85 Scaling (0.956 Anchor)",
             },
             4: {
-                "name": "v37_jsn_covariance",
-                "patch_script": "scripts/kaggle/rsna_r7_raptor_blend/assemble_rsna_v37_jsn.py",
-                "msg": "Cohezion RSNA Knee SOTA v37: Anatomical JSN Covariance + Bilateral Knee Symmetry Ratio + Pure Quantile Alignment",
-            },
-            5: {
                 "name": "v36_pure_optimum",
                 "patch_script": "scripts/kaggle/rsna_r7_raptor_blend/assemble_rsna_v36_pure_optimum.py",
                 "msg": "Cohezion RSNA Knee SOTA v36: Pure Optimum Calibrated Tri-Model Blend (Raptor-384 + Raptor-224 A224=0.40 + R7) + Noise Insulated Weights",
+            },
+            5: {
+                "name": "v42_jsn_isotonic_fusion_r",
+                "patch_script": "scripts/kaggle/rsna_r7_raptor_blend/assemble_rsna_v42_jsn_isotonic_fusion.py",
+                "msg": "Cohezion RSNA Knee SOTA v42: JSN Covariance + Isotonic Quantile Rank Alignment (T=0.85) Grandmaster Fusion",
             },
         },
     },
@@ -413,7 +413,12 @@ def dispatch_slot_submission(
             base_cp = cp.with_suffix(".canonical_base.ipynb")
         if base_cp.exists():
             shutil.copyfile(base_cp, cp)
-            logger.info("[%s] Restored notebook from canonical base %s before Slot %d dispatch.", comp_slug, base_cp.name, slot_num)
+            logger.info(
+                "[%s] Restored notebook from canonical base %s before Slot %d dispatch.",
+                comp_slug,
+                base_cp.name,
+                slot_num,
+            )
 
     patch_script = slot_info.get("patch_script")
     if patch_script and Path(patch_script).exists():
@@ -530,11 +535,12 @@ def record_pre_dispatch_reflection(
     try:
         import base64
         import urllib.request
+
         auth = base64.b64encode(b"root:root").decode()
         now_ts = int(datetime.datetime.now(datetime.UTC).timestamp())
         surql = f"""
         USE NS cohezion DB main;
-        UPSERT submission_reflection:`reflection_{comp_slug.replace('-', '_')}_{now_ts}` CONTENT {{
+        UPSERT submission_reflection:`reflection_{comp_slug.replace("-", "_")}_{now_ts}` CONTENT {{
             "competition": "{comp_slug}",
             "target_slot": {target_slot},
             "hypothesis_name": "{hypothesis_name}",
@@ -593,13 +599,14 @@ def run_cycle(api: KaggleApi, state: dict[str, Any]) -> bool:
 
     for comp_slug, comp_cfg in PORTFOLIO_CONFIG.items():
         comp_state = state["competitions"].setdefault(
-            comp_slug, {
+            comp_slug,
+            {
                 "used_today": 0,
                 "active_slot": 1,
                 "latest_ref": None,
                 "latest_score": None,
                 "status": "IDLE",
-            }
+            },
         )
 
         prev_status = comp_state.get("status")
