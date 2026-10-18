@@ -91,3 +91,11 @@ def test_internal_rust_crates_license_declaration():
         assert 'license = "AGPL-3.0-or-later OR MIT"' in content, (
             f"Crate {cargo_path} must declare AGPL-3.0-or-later OR MIT license"
         )
+
+
+def test_sbom_check_cli_gate():
+    """Verify that scripts/ci/generate_sbom_and_licenses.py --check passes without drift."""
+    from scripts.ci.generate_sbom_and_licenses import main as sbom_main
+
+    exit_code = sbom_main(["--check"])
+    assert exit_code == 0, "SBOM check CLI gate must exit with code 0 on compliant codebase"

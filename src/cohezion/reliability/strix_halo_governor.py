@@ -68,16 +68,20 @@ class StrixHaloGovernor:
 
     def verify_silicon_responsiveness(self, timeout_s: float = 10.0) -> bool:
         """Verify Lemonade router responsiveness on port 13305."""
-        req = urllib.request.Request(
-            f"{self.base_url}/v1/models", headers={"Content-Type": "application/json"}
-        )
-        t0 = time.perf_counter()
-        try:
-            with urllib.request.urlopen(req, timeout=timeout_s) as resp:
-                dt = time.perf_counter() - t0
-                return resp.status == 200 and dt < timeout_s
-        except Exception:
-            return False
+        endpoints = [f"{self.base_url}/api/v1/models", f"{self.base_url}/admission/status"]
+        for url in endpoints:
+            req = urllib.request.Request(
+                url, headers={"Content-Type": "application/json"}
+            )
+            t0 = time.perf_counter()
+            try:
+                with urllib.request.urlopen(req, timeout=timeout_s) as resp:
+                    dt = time.perf_counter() - t0
+                    if resp.status == 200 and dt < timeout_s:
+                        return True
+            except Exception:
+                continue
+        return False
 
 
 async def run_governor_cycle() -> None:

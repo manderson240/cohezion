@@ -1,4 +1,4 @@
-.PHONY: help format lint lint-check lint-ratchet type-check test all clean train evaluate benchmark demo validate compound-train training-history kernel-status kernel-cycle kernel-loop kernel-loop-dry kernel-report async-guard routing-guard resume dev-loop test-unit test-parallel test-quarantine
+.PHONY: help format lint lint-check lint-ratchet type-check test all clean train evaluate benchmark demo validate compound-train training-history kernel-status kernel-cycle kernel-loop kernel-loop-dry kernel-report async-guard routing-guard resume dev-loop test-unit test-parallel test-quarantine check-licenses generate-sbom
 
 help:  ## Show this help message
 	@echo "Available targets:"
@@ -24,6 +24,14 @@ semgrep:  ## Run Cohezion custom Semgrep rules (anti-patterns from harness)
 coherence-check:  ## Enforce 12D manifold integrity in data artifacts
 	uv run python src/cohezion/scripts/coherence_inspector.py
 	@echo "✓ Manifold integrity verified"
+
+check-licenses:  ## Verify SBOM and license compliance (fail closed on drift or unapproved licenses)
+	uv run python scripts/ci/generate_sbom_and_licenses.py --check
+	@echo "✓ License compliance verified (AGPL-3.0-or-later compatible)"
+
+generate-sbom:  ## Regenerate THIRD_PARTY_LICENSES.md SBOM manifest
+	uv run python scripts/ci/generate_sbom_and_licenses.py
+	@echo "✓ THIRD_PARTY_LICENSES.md updated"
 
 type-check:  ## Run mypy type checking (ratcheted: no NEW type errors vs scripts/ci/mypy_baseline.txt)
 	uv run python scripts/ci/mypy_ratchet.py

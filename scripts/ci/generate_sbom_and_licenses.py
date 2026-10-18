@@ -218,7 +218,17 @@ def generate_third_party_licenses_md(
     return "\n".join(lines)
 
 
-def main() -> int:
+def main(argv: list[str] | None = None) -> int:
+    import argparse
+
+    parser = argparse.ArgumentParser(description="Generate and verify SBOM and THIRD_PARTY_LICENSES.md")
+    parser.add_argument(
+        "--check",
+        action="store_true",
+        help="Check that THIRD_PARTY_LICENSES.md is up-to-date and compliant without modifying it",
+    )
+    args = parser.parse_args(argv)
+
     repo_root = Path(__file__).resolve().parents[2]
     logger.info("Scanning dependencies from %s", repo_root)
 
@@ -226,11 +236,26 @@ def main() -> int:
     rust_crates = audit_rust_crates(repo_root)
 
     content = generate_third_party_licenses_md(repo_root, py_records, lic_counts, rust_crates)
-
     target_file = repo_root / "THIRD_PARTY_LICENSES.md"
+
+    if args.check:
+        if not target_file.exists():
+            logger.error("FAIL: %s does not exist. Run without --check to generate it.", target_file)
+            return 1
+
+        existing = target_file.read_text(encoding="utf-8")
+        if existing.strip() != content.strip():
+            logger.error(
+                "FAIL: %s is out of sync with current installed dependencies. Run 'python scripts/ci/generate_sbom_and_licenses.py' to update.",
+                target_file,
+            )
+            return 1
+
+        logger.info("PASS: %s is up-to-date and 100%% compliant with AGPL-3.0-or-later.", target_file)
+        return 0
+
     target_file.write_text(content, encoding="utf-8")
     logger.info("Successfully wrote %d bytes to %s", len(content), target_file)
-
     return 0
 
 
