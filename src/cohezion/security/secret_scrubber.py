@@ -146,3 +146,21 @@ def auto_heal_scrub_file(file_path: Path) -> int:
     except Exception as e:
         logger.error("Failed to auto-heal %s: %s", file_path, e)
     return 0
+
+
+def scan_file_for_forbidden_credentials(file_path: Path) -> list[str]:
+    """Scan a file for forbidden credential file patterns or unredacted credentials."""
+    findings: list[str] = []
+    for forbidden in FORBIDDEN_CREDENTIAL_FILES:
+        if forbidden.search(file_path.name):
+            findings.append(f"Forbidden credential file name: '{file_path.name}'")
+    try:
+        if file_path.is_file() and file_path.stat().st_size < 5 * 1024 * 1024:
+            text = file_path.read_text(encoding="utf-8", errors="ignore")
+            for pattern, name in CREDENTIAL_PATTERNS:
+                if pattern.search(text):
+                    findings.append(f"Credential pattern matching '{name}'")
+    except Exception as e:
+        logger.debug("Could not inspect file %s: %s", file_path, e)
+    return findings
+

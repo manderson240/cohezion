@@ -320,8 +320,23 @@ def submit_notebook(
             raise FileNotFoundError(
                 f"push_folder '{push_folder}' must be a directory containing kernel-metadata.json"
             )
+
+
+        # Security Guardrail: Scan push_dir for exposed credentials or forbidden files
+        from cohezion.security.secret_scrubber import scan_file_for_forbidden_credentials
+
+        for f in push_dir.rglob("*"):
+            if f.is_file():
+                findings = scan_file_for_forbidden_credentials(f)
+                if findings:
+                    raise RuntimeError(
+                        f"SECURITY GUARDRAIL BLOCK: Exposed credentials or forbidden file detected in '{f.name}': {findings}"
+                    )
+
+
         print(f"🚀 Pushing kernel from '{push_dir}' to Kaggle via api.kernels_push...")
         push_res = api.kernels_push(str(push_dir))
+
         print(f"✓ Kernel pushed successfully: {push_res}")
         new_ver = getattr(push_res, "versionNumber", None) or getattr(push_res, "version_number", None)
         if new_ver is not None and int(new_ver) > 0 and not kernel_version:

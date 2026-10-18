@@ -32,6 +32,9 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional, Set
 from pydantic import BaseModel, Field
 
+from cohezion.security.prompt_guard import PromptGuard, ThreatLevel
+from cohezion.security.secret_scrubber import scrub_text
+
 logger = logging.getLogger("coordinate_bus")
 
 
@@ -67,12 +70,14 @@ class BusMessage(BaseModel):
     sender: str
     recipient: str
     type: MessageType
+    subject: Optional[str] = None
     payload: Dict[str, Any] = Field(default_factory=dict)
     dedup_key: str
     lease_expires_at: Optional[float] = None
     created_at: str = Field(
         default_factory=lambda: datetime.datetime.now(datetime.timezone.utc).isoformat()
     )
+
 
 
 class SubtaskSpec(BaseModel):
@@ -106,7 +111,7 @@ class TaskGraph(BaseModel):
 class LocalAgentBus:
     """Project-local atomic Agent Bus coordinating multi-agent queues & event journals."""
 
-    def __init__(self, root_dir: Optional[Path] = None):
+    def __init__(self, root_dir: Optional[Path] = None, security_guardrails: bool = True):
         self.root = (root_dir or Path.cwd()).resolve()
         self.bus_dir = self.root / ".agent-bus"
         self.inbox_dir = self.bus_dir / "inbox"
@@ -114,7 +119,10 @@ class LocalAgentBus:
         self.events_dir = self.bus_dir / "events"
         self.worktrees_dir = self.bus_dir / "worktrees"
         self.journal_file = self.events_dir / "runtime.jsonl"
+        self.security_guardrails = security_guardrails
+        self._prompt_guard = PromptGuard(strict_mode=True) if security_guardrails else None
         self._init_layout()
+
 
     def _init_layout(self) -> None:
         """Initializes directory structure and ensures gitignore safeguards."""
@@ -134,18 +142,73 @@ class LocalAgentBus:
 
     def log_event(self, event_type: str, details: Dict[str, Any]) -> None:
         """Appends a schema-v1 sanitized record to the runtime event journal."""
+        # Sanitize event details before writing to journal
+        sanitized_details = details
+        if self.security_guardrails:
+            sanitized_details = json.loads(scrub_text(json.dumps(details)))
+
         record = {
             "schema_version": "1.0",
             "timestamp": datetime.datetime.now(datetime.timezone.utc).isoformat(),
             "event_type": event_type,
-            "details": details,
+            "details": sanitized_details,
         }
         with open(self.journal_file, "a", encoding="utf-8") as f:
             f.write(json.dumps(record, sort_keys=True) + "\n")
 
     def publish_message(self, msg: BusMessage) -> Path:
-        """Atomically publishes a message to the recipient's new/ inbox."""
+        """Atomically publishes a message to the recipient's new/ inbox, enforcing security guardrails."""
         inbox = self._agent_inbox(msg.recipient)
+
+        # Apply Security & Safety Guardrails
+        if self.security_guardrails:
+            # 1. Zero-Credential Exposure: scrub credentials from subject and payload
+            scrubbed_subject = scrub_text(msg.subject) if msg.subject else None
+            scrubbed_payload: Dict[str, Any] = {}
+            for k, v in msg.payload.items():
+                if isinstance(v, str):
+                    scrubbed_payload[k] = scrub_text(v)
+                else:
+                    scrubbed_payload[k] = v
+            msg = msg.model_copy(update={"subject": scrubbed_subject, "payload": scrubbed_payload})
+
+            # 2. Prompt Injection Defense: check subject and string payload
+            if self._prompt_guard:
+                parts = [msg.subject] if msg.subject else []
+                parts.extend(str(v) for v in msg.payload.values() if isinstance(v, str))
+                content_to_check = "\n".join(parts)
+                analysis = self._prompt_guard.analyze(content_to_check)
+
+                if analysis.threat_level in (ThreatLevel.MALICIOUS, ThreatLevel.SUSPICIOUS):
+                    quarantine_file = inbox / "quarantine" / f"{msg.id}.json"
+
+                    reason_file = inbox / "quarantine" / f"{msg.id}.reason.txt"
+                    with open(quarantine_file, "w", encoding="utf-8") as f:
+                        f.write(msg.model_dump_json(indent=2))
+                    with open(reason_file, "w", encoding="utf-8") as f:
+                        f.write(
+                            f"ThreatLevel: {analysis.threat_level.value}\n"
+                            f"Patterns: {analysis.matched_patterns}\n"
+                            f"Recommendation: {analysis.recommendation}\n"
+                        )
+                    self.log_event(
+                        "INJECTION_BLOCKED",
+                        {
+                            "message_id": msg.id,
+                            "sender": msg.sender,
+                            "recipient": msg.recipient,
+                            "matched_patterns": analysis.matched_patterns,
+                            "threat_level": analysis.threat_level.value,
+                        },
+                    )
+                    logger.warning(
+                        "Blocked malicious prompt injection in message %s from %s (patterns: %s)",
+                        msg.id,
+                        msg.sender,
+                        analysis.matched_patterns,
+                    )
+                    return quarantine_file
+
         msg_file = inbox / "new" / f"{msg.id}.json"
         temp_file = inbox / "new" / f".tmp_{msg.id}.json"
 
