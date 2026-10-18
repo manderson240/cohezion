@@ -23,9 +23,9 @@
     },
     "enveda-CASMI26-molecule-id-mass-spectra": {
       "used_today": 1,
-      "latest_ref": "57325541",
+      "latest_ref": "57332890",
       "latest_score": "0.404",
-      "status": "SUBMISSIONSTATUS.COMPLETE"
+      "status": "SUBMISSIONSTATUS.PENDING"
     },
     "name-that-llm": {
       "used_today": 1,

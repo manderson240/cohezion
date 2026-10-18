@@ -534,4 +534,14 @@ with contextlib.suppress(Exception):
         StatelessWorker as StatelessWorker,
     )
 
+# Hyperbolic Goal-Loop System
+with contextlib.suppress(Exception):
+    from cohezion.compound.hyperbolic_goal_loop import (
+        GoalState as GoalState,
+        HyperbolicGoal as HyperbolicGoal,
+        HyperbolicGoalLoopRefactorEngine as HyperbolicGoalLoopRefactorEngine,
+        HyperbolicLoopController as HyperbolicLoopController,
+    )
+
+
 
