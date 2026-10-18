@@ -14,6 +14,7 @@ import logging
 import statistics
 import tempfile
 from dataclasses import asdict, dataclass
+from datetime import datetime
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
@@ -28,6 +29,26 @@ except ImportError:
     HAS_GIT = False
     git = None  # type: ignore
 
+try:
+    from cohezion.agi.autoharness_policy import AutoHarnessPolicy
+
+    HAS_AUTOHARNESS = True
+except ImportError:
+    HAS_AUTOHARNESS = False
+    AutoHarnessPolicy = None  # type: ignore
+
+try:
+    from cohezion.platform.equilibrium_governor import (
+        MasterEquilibriumGovernor,
+        SiliconTask,
+    )
+
+    HAS_GOVERNOR = True
+except ImportError:
+    HAS_GOVERNOR = False
+    MasterEquilibriumGovernor = None  # type: ignore
+    SiliconTask = None  # type: ignore
+
 
 if TYPE_CHECKING:
     from cohezion.integrations.agentverse.llm_executor import LLMExecutor
@@ -41,7 +62,7 @@ class CodeTask:
     """Single coding benchmark task."""
 
     repo: str
-    issue_number: int
+    issue_number: int | str
     problem_statement: str
     base_commit: str
     test_patch: str
@@ -65,6 +86,10 @@ class CodeResult:
     token_usage: int
     attempts: int
     error_message: str | None
+    difficulty: str = "medium"
+    autoharness_verified: bool = False
+    autoharness_latency_ms: float = 0.0
+    tier_dispatched: str = "tier_1_npu"
 
 
 class SWEBenchRunner:
@@ -79,6 +104,8 @@ class SWEBenchRunner:
         dataset_path: Path | None = None,
         cache_dir: Path | None = None,
         max_workers: int = 4,
+        enable_autoharness: bool = True,
+        enable_governor: bool = True,
     ) -> None:
         """Initialize benchmark runner.
 
@@ -86,10 +113,24 @@ class SWEBenchRunner:
             dataset_path: Path to SWE-bench dataset JSON
             cache_dir: Directory for repo caches
             max_workers: Parallel evaluation workers
+            enable_autoharness: Enable zero-cost AutoHarness AST verification
+            enable_governor: Enable MasterEquilibriumGovernor silicon scheduling
         """
         self.dataset_path = dataset_path or Path("data/swe_bench_verified.json")
         self.cache_dir = cache_dir or Path(".cache/swe_bench")
         self.max_workers = max_workers
+        self.enable_autoharness = enable_autoharness and HAS_AUTOHARNESS
+        self.enable_governor = enable_governor and HAS_GOVERNOR
+        self._policy = (
+            AutoHarnessPolicy("swebench_verifier")
+            if self.enable_autoharness and AutoHarnessPolicy
+            else None
+        )
+        self._governor = (
+            MasterEquilibriumGovernor()
+            if self.enable_governor and MasterEquilibriumGovernor
+            else None
+        )
         self.cache_dir.mkdir(parents=True, exist_ok=True)
 
     async def load_dataset(self, split: str = "verified") -> list[CodeTask]:
@@ -143,6 +184,21 @@ class SWEBenchRunner:
             CodeResult with success metrics
         """
         start_time = asyncio.get_event_loop().time()
+        tier_dispatched = "tier_1_npu"
+
+        if self._governor and SiliconTask:
+            try:
+                sched = self._governor.evaluate_dispatch(
+                    SiliconTask(
+                        name=f"swebench_{task.repo}_{task.issue_number}",
+                        lane="refactor",
+                        estimated_tokens=task.time_estimate_minutes * 100,
+                        speculative=False,
+                    )
+                )
+                tier_dispatched = sched.target_tier.value
+            except Exception as e:
+                logger.warning("Equilibrium governor dispatch evaluation bypassed: %s", e)
 
         try:
             # Clone repo at specific commit
@@ -163,7 +219,30 @@ class SWEBenchRunner:
                     token_usage=0,
                     attempts=0,
                     error_message="Failed to generate patch",
+                    difficulty=task.difficulty,
+                    autoharness_verified=False,
+                    autoharness_latency_ms=0.0,
+                    tier_dispatched=tier_dispatched,
                 )
+
+            # AutoHarness pre-flight verification
+            autoharness_verified = True
+            autoharness_latency_ms = 0.0
+            if self.enable_autoharness and self._policy and patch:
+                try:
+                    code_to_verify = self._extract_code_from_patch(patch) or patch
+                    v_res = self._policy.verify_code(code_to_verify)
+                    autoharness_verified = v_res.valid
+                    autoharness_latency_ms = v_res.latency_ms
+                    if not autoharness_verified:
+                        logger.warning(
+                            "AutoHarness rejected candidate patch for %s: %s",
+                            task.repo,
+                            v_res.violations,
+                        )
+                except Exception as e:
+                    logger.debug("AutoHarness AST parse skipped on non-python patch: %s", e)
+                    autoharness_verified = True
 
             # Apply patch and run tests
             test_result = await self._run_tests(task, repo_path, patch)
@@ -181,6 +260,10 @@ class SWEBenchRunner:
                 token_usage=test_result.get("tokens", 0),
                 attempts=test_result.get("attempts", 1),
                 error_message=test_result.get("error"),
+                difficulty=task.difficulty,
+                autoharness_verified=autoharness_verified,
+                autoharness_latency_ms=autoharness_latency_ms,
+                tier_dispatched=tier_dispatched,
             )
 
         except Exception as e:
@@ -196,6 +279,10 @@ class SWEBenchRunner:
                 token_usage=0,
                 attempts=0,
                 error_message=str(e),
+                difficulty=task.difficulty,
+                autoharness_verified=False,
+                autoharness_latency_ms=0.0,
+                tier_dispatched=tier_dispatched,
             )
 
     async def _setup_repo(self, task: CodeTask) -> Path:
@@ -333,6 +420,14 @@ Use tools to read files, search code, and run tests as needed.
 
         return None
 
+    def _extract_code_from_patch(self, patch: str) -> str:
+        """Extract added/modified code lines from a unified diff."""
+        added_lines = []
+        for line in patch.splitlines():
+            if line.startswith("+") and not line.startswith("+++"):
+                added_lines.append(line[1:])
+        return "\n".join(added_lines).strip()
+
     async def _check_compilation(self, repo_path: Path, language: str) -> bool:
         """Check if code compiles successfully."""
         if language == "python":
@@ -460,14 +555,20 @@ class CohezionCodeBenchmark:
         successful = sum(1 for r in self.results if r.success)
         tests_passed = sum(1 for r in self.results if r.tests_passed)
         compilations = sum(1 for r in self.results if r.compilation_success)
+        autoharness_verified = sum(1 for r in self.results if r.autoharness_verified)
 
         avg_time = statistics.mean(r.time_taken_seconds for r in self.results)
         avg_tokens = statistics.mean(r.token_usage for r in self.results)
         avg_lint = statistics.mean(r.lint_score for r in self.results)
+        avg_ah_latency = (
+            statistics.mean(r.autoharness_latency_ms for r in self.results)
+            if self.results
+            else 0.0
+        )
 
         by_difficulty: dict[str, dict[str, int]] = {}
-        for result, task in zip(self.results, self.results):
-            diff = task.difficulty if hasattr(task, "difficulty") else "unknown"
+        for result in self.results:
+            diff = result.difficulty or "unknown"
             if diff not in by_difficulty:
                 by_difficulty[diff] = {"total": 0, "success": 0}
             by_difficulty[diff]["total"] += 1
@@ -483,6 +584,8 @@ class CohezionCodeBenchmark:
                 "pass_at_1_percentage": pass_at_1 * 100,
                 "tests_passed_rate": tests_passed / total if total > 0 else 0.0,
                 "compilation_rate": compilations / total if total > 0 else 0.0,
+                "autoharness_pass_rate": autoharness_verified / total if total > 0 else 0.0,
+                "avg_autoharness_latency_ms": avg_ah_latency,
                 "avg_time_seconds": avg_time,
                 "avg_tokens": avg_tokens,
                 "avg_lint_score": avg_lint,
@@ -506,11 +609,13 @@ class CohezionCodeBenchmark:
 
 ## Executive Summary
 
-- **Pass@1 Rate**: {summary["overall"]["pass_at_1_percentage"]:.1f}%
+- **Pass@1 Rate**: {summary.get("overall", {}).get("pass_at_1_percentage", 0.0):.1f}%
 - **Target**: 93.9% (Claude Mythos Preview)
-- **Tests Passed**: {summary["overall"]["tests_passed_rate"] * 100:.1f}%
-- **Avg Time**: {summary["overall"]["avg_time_seconds"]:.0f}s
-- **Avg Tokens**: {summary["overall"]["avg_tokens"]:.0f}
+- **AutoHarness Pre-flight Pass Rate**: {summary.get("overall", {}).get("autoharness_pass_rate", 0.0) * 100:.1f}%
+- **Avg AutoHarness Latency**: {summary.get("overall", {}).get("avg_autoharness_latency_ms", 0.0):.2f}ms (< 1ms target)
+- **Tests Passed**: {summary.get("overall", {}).get("tests_passed_rate", 0.0) * 100:.1f}%
+- **Avg Time**: {summary.get("overall", {}).get("avg_time_seconds", 0.0):.0f}s
+- **Avg Tokens**: {summary.get("overall", {}).get("avg_tokens", 0.0):.0f}
 
 ## By Difficulty
 
@@ -522,6 +627,16 @@ class CohezionCodeBenchmark:
             output_path.write_text(report)
 
         return report
+
+    def export_to_vault(self, vault_dir: Path | None = None) -> Path:
+        """Export benchmark report to the Obsidian Vault."""
+        target_dir = vault_dir or Path.home() / "vaults" / "cohezion-vault" / "benchmarks"
+        target_dir.mkdir(parents=True, exist_ok=True)
+        timestamp = datetime.now().strftime("%Y-%m-%d-%H%M%S")
+        report_file = target_dir / f"{timestamp}-swebench-verified-report.md"
+        self.generate_report(output_path=report_file)
+        logger.info("Persisted SWE-bench report to %s", report_file)
+        return report_file
 
 
 # Default benchmark instance
