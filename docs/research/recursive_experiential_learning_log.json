@@ -1,6 +1,6 @@
 {
   "title": "Recursive Experiential Learning Audit across Active Competitions (SOTA Synchronized)",
-  "timestamp": "2026-10-17T22:44:03.346078+00:00",
+  "timestamp": "2026-10-18T00:00:07.122358+00:00",
   "audit_data": [
     {
       "competition": "RSNA Knee Abnormality",
@@ -19,6 +19,13 @@
         ]
       },
       "recent_history": [
+        {
+          "ref": 57328244,
+          "date": "2026-10-17 22:51:28.997000",
+          "status": "SubmissionStatus.PENDING",
+          "public_score": "",
+          "description": "Cohezion RSNA Knee SOTA v40: Calibrated Trimmed Median Consensus Ensemble"
+        },
         {
           "ref": 57307156,
           "date": "2026-10-17 10:18:32.350000",
@@ -53,13 +60,6 @@
           "status": "SubmissionStatus.COMPLETE",
           "public_score": "0.955",
           "description": "Cohezion RSNA Knee SOTA v38: Isotonic Quantile Rank Alignment with Temperature T=0.85 Scaling"
-        },
-        {
-          "ref": 57274461,
-          "date": "2026-10-16 15:40:53.973000",
-          "status": "SubmissionStatus.COMPLETE",
-          "public_score": "0.955",
-          "description": "Cohezion RSNA Knee SOTA v37: Anatomical JSN Covariance + Bilateral Knee Symmetry Ratio + Pure Quantile Alignment"
         }
       ]
     },
