@@ -28,7 +28,7 @@
       "status": "SUBMISSIONSTATUS.PENDING"
     },
     "name-that-llm": {
-      "used_today": 1,
+      "used_today": 2,
       "latest_ref": "57332106",
       "latest_score": "0.309",
       "status": "SUBMISSIONSTATUS.COMPLETE"

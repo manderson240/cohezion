@@ -1,6 +1,6 @@
 {
   "title": "Recursive Experiential Learning Audit across Active Competitions (SOTA Synchronized)",
-  "timestamp": "2026-10-18T01:18:01.690354+00:00",
+  "timestamp": "2026-10-18T01:32:46.493678+00:00",
   "audit_data": [
     {
       "competition": "RSNA Knee Abnormality",
@@ -325,6 +325,13 @@
       },
       "recent_history": [
         {
+          "ref": 57333291,
+          "date": "2026-10-18 01:29:08.377000",
+          "status": "SubmissionStatus.COMPLETE",
+          "public_score": "0.313",
+          "description": "Cohezion Name That LLM v6: Ensembled Temperature-Scaled Sinkhorn Distribution Alignment"
+        },
+        {
           "ref": 57332106,
           "date": "2026-10-18 00:46:16.797000",
           "status": "SubmissionStatus.COMPLETE",
@@ -358,13 +365,6 @@
           "status": "SubmissionStatus.COMPLETE",
           "public_score": "0.330",
           "description": "Cohezion Name That LLM v3: 5-Stream Stylometric Invariants (Shape + Function-Word + Dense) + Sinkhorn Marginal Balancing"
-        },
-        {
-          "ref": 57287516,
-          "date": "2026-10-17 00:03:33.807000",
-          "status": "SubmissionStatus.COMPLETE",
-          "public_score": "0.330",
-          "description": "Cohezion Name That LLM SOTA v1: Multi-Scale N-Gram + Stylometric + Sinkhorn Marginal Balancing"
         }
       ]
     }

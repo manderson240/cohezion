@@ -242,7 +242,7 @@ class HyperbolicGoalLoopRefactorEngine:
         }
         raw_bytes = json.dumps(payload).encode("utf-8")
         try:
-            self.shm_buffer.write_product(
+            self.shm_buffer.publish(
                 product_id=f"goal_loop_{goal.goal_id}",
                 data=raw_bytes,
                 metadata={"type": "hyperbolic_goal_loop", "state": goal.state.value},

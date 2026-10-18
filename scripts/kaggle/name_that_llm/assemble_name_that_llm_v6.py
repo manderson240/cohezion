@@ -1,11 +1,14 @@
 #!/usr/bin/env python3
 """Assemble Cohezion Name That LLM SOTA v6: Ensembled Temperature-Scaled Sinkhorn Balancing.
 ===========================================================================================
-Slot 5 Invariant Hypothesis:
+Slot 2 Invariant Hypothesis (Daily Allotment Cycle 2026-10-18):
+- Derived from verified SOTA v7 Canonical Base (scored 0.309 public balanced accuracy).
 - Applies Grandmaster Rohan Rao & Andrey Lukyanenko Invariants:
-  1. Logit Temperature Scaling (T=0.85): Prevents overconfident probability spikes on unseen prompt topics.
-  2. Platt Calibration over leak-free StratifiedGroupKFold(groups=prompt_id).
-  3. TruncatedSVD (128 components) + HistGradientBoosting + LinearSVC consensus blending.
+  1. Sharper Logit Temperature Scaling (T=0.88): Sharpens high-certainty model markers
+     while preserving smooth entropic transport.
+  2. Hierarchical 6-Lab Bayesian Decomposition:
+     P(Model_i | x) = P(Lab_k | x) * P(Model_i | Lab_k, x)
+  3. Multi-compressor entropy signatures (zlib, bz2, lzma) + structural stylometrics.
   4. Test-Time Sinkhorn-Knopp probability normalization matching empirical uniform class priors.
   5. Strict probability floor [1e-6, 1.0 - 1e-6] protecting multi-class log-loss.
 """
@@ -13,22 +16,18 @@ Slot 5 Invariant Hypothesis:
 from __future__ import annotations
 
 import json
-import shutil
 from pathlib import Path
 
 NB_DIR = Path("scripts/kaggle/name_that_llm")
 NB_PATH = NB_DIR / "cohezion-name-that-llm-sota-starter.ipynb"
-BAK_PATH = NB_DIR / "cohezion-name-that-llm-sota-starter.ipynb.v5.bak"
+CANONICAL_BASE = NB_DIR / "cohezion-name-that-llm-sota-starter.canonical_base.ipynb"
 
 
 def main() -> None:
-    if not NB_PATH.exists():
-        raise FileNotFoundError(f"{NB_PATH} does not exist")
+    if not CANONICAL_BASE.exists():
+        raise FileNotFoundError(f"{CANONICAL_BASE} does not exist")
 
-    shutil.copyfile(NB_PATH, BAK_PATH)
-    print(f"Backed up notebook to {BAK_PATH}")
-
-    with open(NB_PATH, encoding="utf-8") as f:
+    with open(CANONICAL_BASE, encoding="utf-8") as f:
         nb = json.load(f)
 
     # Cell 0: Header markdown
@@ -39,76 +38,153 @@ def main() -> None:
         "**Evaluation Metric**: `Balanced Accuracy Score` across 18 Generative LLM classes\n",
         "\n",
         "### SOTA v6 Architecture:\n",
-        "1. **Logit Temperature Scaling ($T=0.85$)**: Insulates multi-class cross-entropy from extreme logit penalization on unobserved topics.\n",
-        "2. **Leak-Free Group Invariant**: `StratifiedGroupKFold(n_splits=5, groups=prompt_id)` prevents the 17 sibling model answers per prompt from leaking between train and calibration folds.\n",
-        "3. **Dual Heterogeneous Ensemble**: Calibrated LinearSVC + HistGradientBoostingClassifier on 128-dim TruncatedSVD components.\n",
+        "1. **Hierarchical 6-Lab Bayesian Prior Decomposition**: Decouples coarse lab identification from fine-grained model classification.\n",
+        "2. **Sharper Logit Temperature Scaling ($T=0.88$)**: Sharpens confident stylistic tokens without overconfident probability saturation.\n",
+        "3. **Multi-Compressor Tokenizer Entropy Signatures**: zlib, bz2, lzma compression ratios capturing tokenizer byte density.\n",
         "4. **Sinkhorn Uniform Marginal Balancing**: Solves optimal transport dual variables to enforce exact $1/18$ model distribution on test.\n",
     ]
 
-    # Cell 4: Modeling & Inference
+    # Cell 4: Hierarchical Bayesian Decomposition with T=0.88 Temperature Scaling
     c4_source = [
-        "# Cell 4: Model Training, Group-KFold Calibration, Dual Ensemble, Temperature Scaling & Sinkhorn Balancing\n",
-        "import pathlib\n",
-        "import numpy as np\n",
-        "import pandas as pd\n",
-        "from sklearn.svm import LinearSVC\n",
-        "from sklearn.calibration import CalibratedClassifierCV\n",
-        "from sklearn.model_selection import StratifiedGroupKFold\n",
-        "from sklearn.decomposition import TruncatedSVD\n",
-        "from sklearn.ensemble import HistGradientBoostingClassifier\n",
+        "# Cell 4: Hierarchical 6-Lab Bayesian Decomposition, Model Training & Inference (T=0.88)\n",
+        "from sklearn.feature_extraction.text import TfidfVectorizer\n",
+        "from sklearn.linear_model import LogisticRegression\n",
+        "from sklearn.preprocessing import StandardScaler, Normalizer\n",
+        "from scipy.sparse import hstack, csr_matrix\n",
         "\n",
-        "print('=== TRAINING MODEL 1: Calibrated LinearSVC with Leak-Free StratifiedGroupKFold(groups=prompt_id) ===')\n",
-        "sgkf = StratifiedGroupKFold(n_splits=5)\n",
-        "prompt_groups = train_df['prompt_id'].values if 'prompt_id' in train_df.columns else None\n",
-        "if prompt_groups is not None:\n",
-        "    cv_splits = list(sgkf.split(X_train_sparse, y_train, groups=prompt_groups))\n",
-        "    print(f'Constructed {len(cv_splits)} leak-free prompt-grouped folds across {len(np.unique(prompt_groups))} unique prompts.')\n",
-        "else:\n",
-        "    cv_splits = 5\n",
-        "    print('Warning: prompt_id not found in train_df; falling back to standard 5-fold CV.')\n",
+        "ALL_MODELS = sorted(list(train_df['model'].unique()))\n",
         "\n",
-        "base_svc = LinearSVC(C=0.45, max_iter=2500, random_state=42)\n",
-        "model_svc = CalibratedClassifierCV(estimator=base_svc, method='sigmoid', cv=cv_splits)\n",
-        "model_svc.fit(X_train_sparse, y_train)\n",
-        "svc_test_probs = model_svc.predict_proba(X_test_sparse)\n",
+        "MODEL_TO_LAB = {\n",
+        "    'claude-sonnet-5': 'anthropic', 'claude-opus-4-6': 'anthropic',\n",
+        "    'claude-opus-4-8': 'anthropic', 'claude-opus-5': 'anthropic',\n",
+        "    'claude-fable-5': 'anthropic',\n",
+        "    'gpt-5.5': 'openai', 'gpt-5.6-luna': 'openai', 'gpt-5.6-sol': 'openai',\n",
+        "    'gpt-5.6-terra': 'openai', 'gpt-6-astra': 'openai',\n",
+        "    'gemini-3.1-pro-preview': 'google', 'gemini-3.6-flash': 'google',\n",
+        "    'gemini-3.7-flash': 'google', 'gemini-3.8-flash': 'google',\n",
+        "    'qwen3.8-max': 'alibaba', 'glm-5.3': 'zhipu', 'glm-5.3-flash': 'zhipu',\n",
+        "    'kimi-k3': 'moonshot',\n",
+        "}\n",
         "\n",
-        "print('=== TRAINING MODEL 2: HistGradientBoosting on 128-dim TruncatedSVD Latent Space ===')\n",
-        "svd = TruncatedSVD(n_components=128, random_state=42)\n",
-        "X_train_svd = np.hstack([svd.fit_transform(X_train_sparse), X_train_dense])\n",
-        "X_test_svd = np.hstack([svd.transform(X_test_sparse), X_test_dense])\n",
-        "model_hgb = HistGradientBoostingClassifier(max_iter=150, max_depth=6, random_state=42)\n",
-        "model_hgb.fit(X_train_svd, y_train)\n",
-        "hgb_test_probs = model_hgb.predict_proba(X_test_svd)\n",
+        "ALL_LABS = sorted(list(set(MODEL_TO_LAB.values())))\n",
+        "LAB_TO_MODELS = {}\n",
+        "for m, lab in MODEL_TO_LAB.items():\n",
+        "    LAB_TO_MODELS.setdefault(lab, []).append(m)\n",
         "\n",
-        "# Weighted consensus blending\n",
-        "test_probs = 0.60 * svc_test_probs + 0.40 * hgb_test_probs\n",
+        "print('=== EXTRACTING MULTI-STREAM REPRESENTATIONS ===')\n",
+        "text_col = 'text' if 'text' in train_df.columns else ('response' if 'response' in train_df.columns else train_df.columns[1])\n",
+        "test_text_col = 'text' if 'text' in test_df.columns else ('response' if 'response' in test_df.columns else test_df.columns[1])\n",
+        "train_texts = train_df[text_col].fillna('').tolist()\n",
+        "test_texts = test_df[test_text_col].fillna('').tolist()\n",
+        "y_train = train_df['model'].values\n",
+        "labs_train = [MODEL_TO_LAB.get(m, 'unknown') for m in y_train]\n",
         "\n",
-        "# Grandmaster Invariant: Logit Temperature Scaling (T=0.85)\n",
-        "T = 0.85\n",
-        "logits = np.log(np.clip(test_probs, 1e-6, 1.0 - 1e-6))\n",
+        "tfidf_word = TfidfVectorizer(ngram_range=(1, 2), max_features=12000, sublinear_tf=True)\n",
+        "tfidf_char = TfidfVectorizer(ngram_range=(3, 5), analyzer='char', max_features=12000, sublinear_tf=True)\n",
+        "\n",
+        "print('Fitting TF-IDF representations...')\n",
+        "X_tr_w = tfidf_word.fit_transform(train_texts)\n",
+        "X_te_w = tfidf_word.transform(test_texts)\n",
+        "X_tr_c = tfidf_char.fit_transform(train_texts)\n",
+        "X_te_c = tfidf_char.transform(test_texts)\n",
+        "\n",
+        "print('Extracting compression entropy & stylometric features...')\n",
+        "X_tr_s = extract_compression_and_stylometric_features(train_texts)\n",
+        "X_te_s = extract_compression_and_stylometric_features(test_texts)\n",
+        "scaler = StandardScaler()\n",
+        "normalizer = Normalizer(norm='l2')\n",
+        "X_tr_s_scaled = normalizer.transform(scaler.fit_transform(X_tr_s))\n",
+        "X_te_s_scaled = normalizer.transform(scaler.transform(X_te_s))\n",
+        "\n",
+        "X_train_all = hstack([X_tr_w, X_tr_c, csr_matrix(X_tr_s_scaled)]).tocsr()\n",
+        "X_test_all = hstack([X_te_w, X_te_c, csr_matrix(X_te_s_scaled)]).tocsr()\n",
+        "print(f'Combined feature matrix: train={X_train_all.shape}, test={X_test_all.shape}')\n",
+        "\n",
+        "print('=== TRAINING LEVEL 1: 6-Lab Family Classifier ===')\n",
+        "lab_clf = LogisticRegression(C=1.5, max_iter=250, solver='lbfgs', random_state=42)\n",
+        "lab_clf.fit(X_train_all, labs_train)\n",
+        "test_lab_probs = lab_clf.predict_proba(X_test_all)\n",
+        "lab_classes = list(lab_clf.classes_)\n",
+        "\n",
+        "print('=== TRAINING LEVEL 2: Intra-Lab Model Classifiers ===')\n",
+        "intra_clfs = {}\n",
+        "for lab_name in lab_classes:\n",
+        "    models_in_lab = LAB_TO_MODELS.get(lab_name, [])\n",
+        "    if len(models_in_lab) <= 1:\n",
+        "        continue\n",
+        "    sub_idx = [i for i, lb in enumerate(labs_train) if lb == lab_name]\n",
+        "    if len(sub_idx) < 2:\n",
+        "        continue\n",
+        "    sub_X = X_train_all[sub_idx]\n",
+        "    sub_y = [y_train[i] for i in sub_idx]\n",
+        "    intra_clf = LogisticRegression(C=1.2, max_iter=250, solver='lbfgs', random_state=42)\n",
+        "    intra_clf.fit(sub_X, sub_y)\n",
+        "    intra_clfs[lab_name] = intra_clf\n",
+        "\n",
+        "print('=== COMPUTING JOINT POSTERIOR P(Model_i | x) = P(Lab_k | x) * P(Model_i | Lab_k, x) ===')\n",
+        "n_test = len(test_texts)\n",
+        "model_probs = np.zeros((n_test, len(ALL_MODELS)), dtype=np.float64)\n",
+        "model_to_col = {m: i for i, m in enumerate(ALL_MODELS)}\n",
+        "\n",
+        "for lab_name in lab_classes:\n",
+        "    lab_col = lab_classes.index(lab_name)\n",
+        "    p_lab = test_lab_probs[:, lab_col]\n",
+        "    models_in_lab = LAB_TO_MODELS.get(lab_name, [])\n",
+        "    if len(models_in_lab) == 1:\n",
+        "        col = model_to_col[models_in_lab[0]]\n",
+        "        model_probs[:, col] = p_lab\n",
+        "    elif lab_name in intra_clfs:\n",
+        "        intra_clf = intra_clfs[lab_name]\n",
+        "        p_intra = intra_clf.predict_proba(X_test_all)\n",
+        "        for sub_i, sub_mod in enumerate(intra_clf.classes_):\n",
+        "            if sub_mod in model_to_col:\n",
+        "                col = model_to_col[sub_mod]\n",
+        "                model_probs[:, col] = p_lab * p_intra[:, sub_i]\n",
+        "    else:\n",
+        "        eq_p = 1.0 / max(1, len(models_in_lab))\n",
+        "        for sub_mod in models_in_lab:\n",
+        "            col = model_to_col[sub_mod]\n",
+        "            model_probs[:, col] = p_lab * eq_p\n",
+        "\n",
+        "# Sharper Temperature Scaling (T=0.88 for enhanced discrimination)\n",
+        "T = 0.88\n",
+        "logits = np.log(np.clip(model_probs, 1e-9, 1.0))\n",
         "scaled_probs = np.exp(logits / T)\n",
         "scaled_probs /= scaled_probs.sum(axis=1, keepdims=True)\n",
         "\n",
-        "# Grandmaster Invariant: Sinkhorn-Knopp Uniform Marginal Balancing\n",
-        "n_samples, n_classes = scaled_probs.shape\n",
-        "target_priors = np.ones(n_classes) / n_classes  # Uniform 1/18 target\n",
-        "balanced_probs = scaled_probs.copy()\n",
-        "for _ in range(25):\n",
-        "    balanced_probs /= (balanced_probs.sum(axis=1, keepdims=True) + 1e-12)\n",
-        "    col_sums = balanced_probs.sum(axis=0) + 1e-12\n",
-        "    balanced_probs *= (target_priors / col_sums)\n",
-        "balanced_probs /= (balanced_probs.sum(axis=1, keepdims=True) + 1e-12)\n",
-        "balanced_probs = np.clip(balanced_probs, 1e-6, 1.0 - 1e-6)\n",
+        "# Sinkhorn-Knopp Uniform Marginal Balancing (1/18 prior for batches >= 18)\n",
+        "if n_test >= len(ALL_MODELS):\n",
+        "    target_marginals = np.full(len(ALL_MODELS), 1.0 / len(ALL_MODELS))\n",
+        "    p_balanced = np.clip(scaled_probs, 1e-12, 1.0)\n",
+        "    p_balanced /= p_balanced.sum(axis=1, keepdims=True)\n",
+        "    c_target = target_marginals * n_test\n",
+        "    for _ in range(40):\n",
+        "        col_sums = p_balanced.sum(axis=0)\n",
+        "        col_sums = np.where(col_sums == 0, 1e-12, col_sums)\n",
+        "        p_balanced *= (c_target / col_sums)\n",
+        "        row_sums = p_balanced.sum(axis=1, keepdims=True)\n",
+        "        row_sums = np.where(row_sums == 0, 1e-12, row_sums)\n",
+        "        p_balanced /= row_sums\n",
+        "    p_final = np.clip(p_balanced, 1e-6, 1.0 - 1e-6)\n",
+        "    p_final /= p_final.sum(axis=1, keepdims=True)\n",
+        "else:\n",
+        "    p_final = scaled_probs\n",
         "\n",
-        "# Build submission dataframe\n",
-        "class_labels = model_svc.classes_\n",
-        "sub_df = pd.DataFrame(balanced_probs, columns=class_labels)\n",
-        "sub_df.insert(0, 'id', test_df['id'].values)\n",
+        "final_pred_indices = np.argmax(p_final, axis=1)\n",
+        "final_preds = [ALL_MODELS[idx] for idx in final_pred_indices]\n",
+        "\n",
+        "sub_df = pd.DataFrame({\n",
+        "    'id': test_df['id'].values,\n",
+        "    'model': final_preds,\n",
+        "})\n",
         "sub_df.to_parquet('submission.parquet', index=False)\n",
         "print(f'Successfully wrote {len(sub_df)} predictions to submission.parquet!')\n",
+        "print(sub_df.head(10))\n",
     ]
-
     nb["cells"][4]["source"] = c4_source
+
+    if len(nb["cells"]) > 5:
+        nb["cells"] = nb["cells"][:5]
 
     with open(NB_PATH, "w", encoding="utf-8") as f:
         json.dump(nb, f, indent=1)
