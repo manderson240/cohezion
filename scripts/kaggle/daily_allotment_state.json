@@ -3,9 +3,9 @@
   "competitions": {
     "rsna-knee-abnormality-detection": {
       "used_today": 1,
-      "latest_ref": "57328244",
+      "latest_ref": "57333863",
       "latest_score": "0.948",
-      "status": "SUBMISSIONSTATUS.COMPLETE"
+      "status": "SUBMISSIONSTATUS.PENDING"
     },
     "arc-prize-2026-arc-agi-2": {
       "used_today": 1,
@@ -29,8 +29,8 @@
     },
     "name-that-llm": {
       "used_today": 5,
-      "latest_ref": "57333531",
-      "latest_score": "0.274",
+      "latest_ref": "57333964",
+      "latest_score": "0.309",
       "status": "SUBMISSIONSTATUS.COMPLETE"
     },
     "gemma-4-developer-agent": {

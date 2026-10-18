@@ -332,6 +332,46 @@ def get_cohezion_data_products() -> dict[str, DataProduct]:
             mcp_tool_name="lfd_distill_trajectory",
             max_latency_ms=500,
         ),
+        "mbse-assume-guarantee-contract": DataProduct(
+            product_id="mbse-assume-guarantee-contract",
+            name="Assume-Guarantee MBSE Contract",
+            description="Assume-guarantee contract specifications, refinement proofs, and compositional compatibility metrics",
+            owner_domain="systems_engineering",
+            schema=DataProductSchema(
+                fields={
+                    "contract_id": "str",
+                    "assumptions": "list[str]",
+                    "guarantees": "list[str]",
+                    "refinement_verified": "bool",
+                }
+            ),
+            quality_tier=DataQualityTier.GOLD,
+            status=DataProductStatus.ACTIVE,
+            required_autonomy=AutonomyTier.HIHO,
+            mcp_tool_name="mbse_verify_contract",
+            max_latency_ms=50,
+        ),
+        "hyper-relational-kg-statement": DataProduct(
+            product_id="hyper-relational-kg-statement",
+            name="Hyper-Relational KG Epistemic Statement",
+            description="Hyper-relational knowledge statements with Bayesian confidence, cryptographic IV&V tokens, and SHACL conformance status",
+            owner_domain="knowledge_graph",
+            schema=DataProductSchema(
+                fields={
+                    "statement_id": "str",
+                    "head_id": "str",
+                    "relation": "str",
+                    "tail_id": "str",
+                    "confidence": "float",
+                    "shacl_conforming": "bool",
+                }
+            ),
+            quality_tier=DataQualityTier.GOLD,
+            status=DataProductStatus.ACTIVE,
+            required_autonomy=AutonomyTier.HIHO,
+            mcp_tool_name="hre_kg_query",
+            max_latency_ms=100,
+        ),
     }
 
 

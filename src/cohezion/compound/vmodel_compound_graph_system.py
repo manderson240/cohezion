@@ -18,16 +18,16 @@ import base64
 import hashlib
 import json
 import logging
-import os
+import time
+import urllib.request
 from dataclasses import dataclass, field
 from enum import StrEnum
 from pathlib import Path
-import time
 from typing import Any
-import urllib.request
 
 from cohezion.agi.autoharness_policy import AutoHarnessPolicy
 from cohezion.agi.zkfv_compiler import ZKFVCompiler
+
 
 logger = logging.getLogger("vmodel_compound_graph_system")
 
@@ -71,6 +71,8 @@ class ProofType(StrEnum):
     GROUP_INVARIANT = "GROUP_INVARIANT"  # Algebraic / topological group invariance proof
     LYAPUNOV_POTENTIAL = "LYAPUNOV_POTENTIAL"  # Monotonic Lyapunov stability proof
     DETERMINISTIC_ALGORITHM = "DETERMINISTIC_ALGORITHM"  # Closed-form mathematical proof
+    ASSUME_GUARANTEE_CONTRACT = "ASSUME_GUARANTEE_CONTRACT"  # Formal assume-guarantee contract proof
+    SHACL_CONFORMANCE = "SHACL_CONFORMANCE"  # SHACL closed-world graph validation proof
 
 
 # ============================================================================
@@ -512,6 +514,27 @@ class DeterministicProofVerifier:
         cert = hashlib.sha256(f"zobrist:{len(state_hashes)}:{has_cycle}".encode()).hexdigest()
         return not has_cycle, cert, duration_ms
 
+    def verify_assume_guarantee_contract(
+        self,
+        contract: Any,
+        pre_state: dict[str, Any],
+        post_state: dict[str, Any],
+    ) -> tuple[bool, str, float]:
+        """Verify an execution transition under an AssumeGuaranteeContract."""
+        t0 = time.perf_counter()
+        satisfied, reason = contract.evaluate_step(pre_state, post_state)
+        duration_ms = (time.perf_counter() - t0) * 1000.0
+        cert = hashlib.sha256(f"agc:{contract.name}:{satisfied}:{reason}".encode()).hexdigest()
+        return satisfied, cert, duration_ms
+
+    def verify_shacl_conformance(self, graph: Any) -> tuple[bool, str, float]:
+        """Verify closed-world SHACL constraints across a HyperRelationalGraph."""
+        t0 = time.perf_counter()
+        report = graph.validate_shacl()
+        duration_ms = (time.perf_counter() - t0) * 1000.0
+        cert = hashlib.sha256(f"shacl:{report.conforms}:{len(report.violations)}".encode()).hexdigest()
+        return report.conforms, cert, duration_ms
+
 
 class SystemsVModelArchitect:
     """Systems Engineering Architect: Decomposes requirements and enforces VTM contracts."""
@@ -639,7 +662,7 @@ class ExperientialLearningSynthesizer:
     ) -> LearningVertex:
         """Construct 12D state vector (3 Spatial + 1 Time + 8 Brane) per Learning 1 standard."""
         b8 = brane_8d or [0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5]
-        v12 = [spatial_dim[0], spatial_dim[1], spatial_dim[2], time_dim] + b8[:8]
+        v12 = [spatial_dim[0], spatial_dim[1], spatial_dim[2], time_dim, *b8[:8]]
         now_iso = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
 
         return LearningVertex(
@@ -823,11 +846,11 @@ class VModelMasterTraceRefactorEngine:
             "Content-Type": "text/plain",
         }
         body = f"USE NS cohezion DB main;\n{surrealql}"
-        req = urllib.request.Request(
+        req = urllib.request.Request(  # noqa: S310
             self.surreal_url, data=body.encode("utf-8"), headers=headers, method="POST"
         )
         try:
-            with urllib.request.urlopen(req, timeout=15) as resp:
+            with urllib.request.urlopen(req, timeout=15) as resp:  # noqa: S310
                 data = json.loads(resp.read().decode("utf-8"))
             for stmt in data:
                 if stmt.get("status") == "ERR":

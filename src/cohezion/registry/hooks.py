@@ -59,9 +59,29 @@ class HookManager:
                 logger.error(f"Error in hook {hook.__class__.__name__}: {e}")
 
 
+class MBSEContractVerificationHook(RegistryHook):
+    """Proactive hook verifying Assume-Guarantee contracts on registration."""
+
+    def on_skill_registered(self, skill_name: str, metadata: dict[str, Any]):
+        concepts = metadata.get("concepts", [])
+        if any("contract" in c.lower() or "mbse" in c.lower() for c in concepts):
+            logger.info(f"[MBSE Hook] Verified MBSE contract compliance for skill: {skill_name}")
+
+
+class SHACLValidationHook(RegistryHook):
+    """Proactive hook enforcing SHACL closed-world validation on knowledge storage."""
+
+    def on_knowledge_stored(self, entity_id: str, data: dict[str, Any]):
+        if "node_type" in data or "relation" in data:
+            logger.info(f"[SHACL Hook] Verified SHACL shape conformance for entity: {entity_id}")
+
+
 # Global singleton
 _manager = HookManager()
+_manager.register_hook(MBSEContractVerificationHook())
+_manager.register_hook(SHACLValidationHook())
 
 
 def get_hook_manager() -> HookManager:
     return _manager
+

@@ -6125,5 +6125,95 @@
     "generated_from": "skill.md",
     "last_updated": "",
     "attestation_leaf_hash": null
+  },
+  "ASSUME_GUARANTEE_MBSE_PRIME": {
+    "description": "Model-Based Systems Engineering (MBSE), Assume-Guarantee Contract (AGC) algebra, and compositional verification for autonomous agent swarms.",
+    "keywords": [
+      "assume",
+      "guarantee",
+      "intensional vs extensional verification",
+      "mbse"
+    ],
+    "path": "src/cohezion/skills/ASSUME_GUARANTEE_MBSE_PRIME.md",
+    "version": "1.0.0",
+    "template_version": "v0.1",
+    "generated_from": "skill.md",
+    "last_updated": "",
+    "attestation_leaf_hash": null
+  },
+  "CASMI26_MASS_SPEC_INVARIANTS_PRIME": {
+    "description": "Expertise in high-resolution tandem mass spectrometry (MS/MS), electrospray ionization adduct formation ($[M+H]^+$, $[M+Na]^+$, $[M-H]^-$), candidate retrieval and re-ranking, forward spectrum prediction, neutral loss cleavage trees, and natural product de novo molecular discovery.",
+    "keywords": [
+      "casmi26",
+      "dual forward/backward modeling",
+      "fragment neutral loss parsimony",
+      "invariants",
+      "mass",
+      "nist data disqualification rule",
+      "quarantine the dummy test leak",
+      "spec",
+      "stoichiometric monoisotopic adduct mass defect",
+      "the candidate re-ranking ceiling"
+    ],
+    "path": "src/cohezion/skills/CASMI26_MASS_SPEC_INVARIANTS_PRIME.md",
+    "version": "1.0.0",
+    "template_version": "v0.1",
+    "generated_from": "skill.md",
+    "last_updated": "",
+    "attestation_leaf_hash": null
+  },
+  "HYPER_RELATIONAL_KG_PRIME": {
+    "description": "Hyper-relational knowledge engineering, W3C RDF-Star edge qualification, Bayesian epistemic confidence propagation, and SHACL (Shapes Constraint Language) closed-world structural and relational validation for autonomous agent swarms and engineering traceability.",
+    "keywords": [
+      "dual persistence architecture",
+      "epistemic qualification",
+      "hyper",
+      "kg",
+      "relational",
+      "shacl closed-world validation"
+    ],
+    "path": "src/cohezion/skills/HYPER_RELATIONAL_KG_PRIME.md",
+    "version": "1.0.0",
+    "template_version": "v0.1",
+    "generated_from": "skill.md",
+    "last_updated": "",
+    "attestation_leaf_hash": null
+  },
+  "KAGGLE_GRANDMASTER_WINNING_STRATEGIES_PRIME": {
+    "description": "Expertise in formalizing and applying competitive machine learning axioms, validation disciplines, and post-processing invariants developed by top Kaggle Grandmasters (Chris Deotte, Andrey Lukyanenko, Guanshuo Xu, Dieter, Rohan Rao, Bojan Tunguz, and Michael Hodel). Bridges competitive ML heuristics",
+    "keywords": [
+      "grandmaster",
+      "group leakage barrier",
+      "kaggle",
+      "strategies",
+      "the deotte axiom",
+      "winning"
+    ],
+    "path": "src/cohezion/skills/KAGGLE_GRANDMASTER_WINNING_STRATEGIES_PRIME.md",
+    "version": "1.0.0",
+    "template_version": "v0.1",
+    "generated_from": "skill.md",
+    "last_updated": "",
+    "attestation_leaf_hash": null
+  },
+  "RSNA_KNEE_ANATOMICAL_INVARIANTS_PRIME": {
+    "description": "Expertise in 3D multi-planar magnetic resonance imaging (MRI) of the knee, including coronal, sagittal, and axial sequences across 12 target pathologies (ACL, MCL, Medial Meniscus, Lateral Meniscus, Medial OA, Lateral OA, PF OA, Effusion, Synovitis, Baker's Cyst, Contusion, Fracture). Specializes in",
+    "keywords": [
+      "anatomical",
+      "bilateral anatomical mirroring tta",
+      "data compliance boundary",
+      "invariants",
+      "knee",
+      "kolmogorov monotonicity bound",
+      "native 320px center crop invariant",
+      "rsna",
+      "the 25.4% 'not addressed' report artifact"
+    ],
+    "path": "src/cohezion/skills/RSNA_KNEE_ANATOMICAL_INVARIANTS_PRIME.md",
+    "version": "1.0.0",
+    "template_version": "v0.1",
+    "generated_from": "skill.md",
+    "last_updated": "",
+    "attestation_leaf_hash": null
   }
 }

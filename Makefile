@@ -90,7 +90,7 @@ coverage:  ## Branch+line coverage with a 60% line floor (inference scope)
 test-smoke:  ## Run quick smoke tests (minimal subset)
 	uv run pytest tests/unit --import-mode=append -q --tb=line -p no:warnings 2>/dev/null || echo "⚠ Smoke tests failed"
 
-all: format lint type-check test agent-guard mcp-guard kg-guard data-mesh-guard health-guard async-guard routing-guard a2a-guard bmad-guard  ## Run all checks, tests, and guards
+all: format lint type-check test agent-guard mcp-guard kg-guard data-mesh-guard health-guard async-guard routing-guard a2a-guard bmad-guard mbse-guard  ## Run all checks, tests, and guards
 
 agent-guard: ## Synchronize specialist agent definitions across all platform directories
 	uv run python src/cohezion/swarm/scripts/agent_guard.py
@@ -141,6 +141,11 @@ skill-guard: ## Validate all skills have proper metadata and FLUME compatibility
 bmad-guard: ## Enforce BMAD multi-session coordination and artifact integrity
 	uv run python src/cohezion/governance/scripts/bmad_guard.py
 	@echo "✓ BMAD Guard: Phase locks, symlinks, catalog integrity verified"
+
+mbse-guard: ## Verify Assume-Guarantee MBSE contracts and SHACL KG integrity
+	uv run pytest tests/unit/test_assume_guarantee_mbse.py tests/unit/test_hyper_relational_kg.py -q
+	@echo "✓ MBSE Guard: Contracts & SHACL shapes verified"
+
 telemetry-dashboard: ## Show compound loop telemetry dashboard
 	@uv run python src/cohezion/scripts/telemetry_dashboard.py
 
