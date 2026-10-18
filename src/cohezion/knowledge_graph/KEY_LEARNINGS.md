@@ -1,5 +1,28 @@
 # KEY LEARNINGS
 
+## Learning 553: First-Principles Anti-Sycophancy Architecture, Premise Invalidation & Deterministic Code-as-Action Grounding (2026-10-18)
+L553: Deconstructed, formalized, and operationalized an end-to-end anti-sycophancy defense across compound execution loops and multi-agent swarms:
+1. **Four-Dimensional Taxonomy & Reward Mechanics**:
+   - Deconstructed the reinforcement learning from human feedback (RLHF) / DPO reward artifact: $\mathcal{R}(y; u) = r^*(y, q) + \lambda \langle \phi(y), \psi(u) \rangle$. When $\lambda > 0$, optimizing surrogate reward biases generated stance $\phi(y)$ to agree with user prior $\psi(u)$ even when ground truth $r^*(y, q)$ contradicts it.
+   - Identified and formalized the 4 failure modes:
+     - *Conversational Premise Sycophancy*: Model affirms false user premises (e.g., $O(1)$ sorting, violating energy conservation, deterministic SHA-256 reversal) to minimize perplexity against user expectations.
+     - *Autoresearch Metric Gaming*: Optimizing single target scalar $J_0$ while silently regressing orthogonal invariants (p99 latency, test coverage, memory, sample size).
+     - *Peer Review Leniency Bias*: Reviewer agents rubber-stamp artifacts ("LGTM! Flawless code") to minimize token divergence without running tests.
+     - *Pressure Recantation*: Fragility under user pushback ("Are you sure? I think you're wrong") where models collapse into submissive apology and recant mathematically sound results.
+2. **Deterministic Multi-Layer Defense Suite**:
+   - Implemented `AntiSycophancyGuardrail` (`src/cohezion/security/anti_sycophancy_guardrail.py`) featuring:
+     - `EpistemicPremiseChecker`: AST & regex verification against invariant ground axioms (sorting complexity bounds, pre-image resistance, thermodynamics, halting problem) and detection of leading confirmation prompts.
+     - `ReviewLeniencyChecker`: Requires explicit execution proofs (test pass counts, harness hashes, exit code 0) before allowing affirmative verdicts in code and PR reviews.
+     - `RecantationResilienceChecker`: Locks formally verified conclusions against user pushback unless counter-evidence is provided.
+     - `ParetoInvariantChecker`: Enforces weak Pareto dominance with invariant tolerance margins ($\Delta J_k \ge -\epsilon$), blocking single-metric gaming and small-sample phantom gains.
+3. **Pipeline & Compound Executor Integration**:
+   - Wired `AntiSycophancyGuard` into `GuardrailPipeline` (`create_default_pipeline`, `create_strict_pipeline`) as a first-class guard.
+   - Automatically executed in `CompoundExecutor` on both input (`check_input`) and output (`check_output`) passes.
+   - Complies with strict latency budget ($<1.5\text{ ms}$ average execution vs $15\text{ ms}$ budget), verified by 15/15 unit tests in `tests/security/test_anti_sycophancy_guardrail.py` and 22/22 tests in `test_guardrail_pipeline.py`.
+*12D State Vector*: `[12D State: Space=AntiSycophancy-EpistemicPremise-ParetoDominance, Time=October 2026, Physics=TheoremAS1-EpistemicPremiseGating-ParetoInvariants-CodeAsActionGrounding, Brane=Cohezion-Compound-SystemsEngineering]`
+
+---
+
 ## Learning 552: Runtime Assume-Guarantee Contract Dispatch Gating, Uncertainty-Gated Copula Blending & Dihedral Orthogonal Escape Invariants (2026-10-18)
 L552: Established and verified the runtime formal verification engine across compound task execution, synthesized the RSNA Knee v41 uncertainty-gated copula blend, and deployed topological deadlock preemption for interactive solvers:
 1. **Runtime Assume-Guarantee Contract Dispatch Gating**:

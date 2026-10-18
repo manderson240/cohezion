@@ -5,6 +5,7 @@ from typing import Any
 
 from cohezion.compound.exp_persistence.vault import get_vault_logger
 from cohezion.security.guardrail_adapters import (
+    AntiSycophancyGuard,
     ConstitutionalGuard,
     OutputFilterGuard,
     PromptInjectionGuard,
@@ -64,9 +65,10 @@ def create_default_pipeline(strict_mode: bool = False) -> GuardrailPipeline:
     Execution order:
         1. ConstitutionalShield (alignment)
         2. PromptGuard (injection detection)
-        3. ResourceGuard (capacity check)
-        4. RateLimitGuard (quota check)
-        5. OutputFilterGuard (response safety)
+        3. AntiSycophancyGuard (epistemic verification & anti-sycophancy)
+        4. ResourceGuard (capacity check)
+        5. RateLimitGuard (quota check)
+        6. OutputFilterGuard (response safety)
 
     Args:
         strict_mode: If True, block on any exception (fail-closed).
@@ -78,6 +80,7 @@ def create_default_pipeline(strict_mode: bool = False) -> GuardrailPipeline:
     guards = [
         ("constitutional", ConstitutionalGuard()),
         ("prompt_injection", PromptInjectionGuard()),
+        ("anti_sycophancy", AntiSycophancyGuard(strict_mode=strict_mode)),
         ("resource", ResourceGuard()),
         ("rate_limit", RateLimitGuard()),
         ("output_filter", OutputFilterGuard()),

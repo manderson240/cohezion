@@ -253,10 +253,11 @@ class TestGuardrailFactory:
     def test_create_default_pipeline(self):
         """Default pipeline should include all guards."""
         pipeline = create_default_pipeline()
-        assert len(pipeline.guardrails) == 5
+        assert len(pipeline.guardrails) == 6
         guard_names = [name for name, _ in pipeline.guardrails]
         assert "constitutional" in guard_names
         assert "prompt_injection" in guard_names
+        assert "anti_sycophancy" in guard_names
         assert "resource" in guard_names
         assert "rate_limit" in guard_names
         assert "output_filter" in guard_names

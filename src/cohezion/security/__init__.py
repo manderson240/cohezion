@@ -14,10 +14,27 @@ with contextlib.suppress(Exception):
     from cohezion.security.guardrail_pipeline import GuardrailResult as GuardrailResult
 
 
+with contextlib.suppress(Exception):
+    from cohezion.security.anti_sycophancy_guardrail import (
+        AntiSycophancyGuardrail as AntiSycophancyGuardrail,
+        SycophancyType as SycophancyType,
+        ParetoMetrics as ParetoMetrics,
+    )
+
+with contextlib.suppress(Exception):
+    from cohezion.security.guardrail_adapters import (
+        AntiSycophancyGuard as AntiSycophancyGuard,
+    )
+
+
 __all__ = [
+    "AntiSycophancyGuard",
+    "AntiSycophancyGuardrail",
     "GuardrailAction",
     "GuardrailPipeline",
     "GuardrailResult",
+    "ParetoMetrics",
+    "SycophancyType",
     "create_default_pipeline",
 ]
 

@@ -258,3 +258,20 @@ class OutputFilterGuard:
             reason="Output is safe",
             guard_name="output_filter",
         )
+
+
+class AntiSycophancyGuard:
+    """Adapter for anti-sycophancy verification.
+
+    Detects conversational premise bias, uncritical peer review rubber-stamping,
+    pressure recantation collapse, and Pareto metric gaming.
+    """
+
+    def __init__(self, strict_mode: bool = True):
+        from cohezion.security.anti_sycophancy_guardrail import AntiSycophancyGuardrail
+
+        self._guard = AntiSycophancyGuardrail(strict_mode=strict_mode)
+
+    async def check(self, text: str, context: dict[str, Any]) -> GuardrailResult:
+        """Check text against sycophantic patterns."""
+        return await self._guard.check(text, context)
