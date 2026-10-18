@@ -66,9 +66,9 @@ PORTFOLIO_CONFIG = {
                 "msg": "Cohezion RSNA Knee SOTA v40: Calibrated Trimmed Median Consensus Ensemble (HIHO 0.5 Coherence + Kolmogorov Effusion)",
             },
             2: {
-                "name": "v39_anatomical_invariant",
-                "patch_script": "scripts/kaggle/rsna_r7_raptor_blend/assemble_rsna_v39_kolmogorov.py",
-                "msg": "Cohezion RSNA Knee SOTA v39: Anatomical Bilateral Symmetry + Secondary Effusion Invariant (P(Effusion) >= 0.85 * max_k)",
+                "name": "v41_uncertainty_gated_copula",
+                "patch_script": "scripts/kaggle/rsna_r7_raptor_blend/assemble_rsna_v41_copula_uncertainty.py",
+                "msg": "Cohezion RSNA Knee SOTA v41: Uncertainty-Gated Copula Blending & Anatomical Cascade (T=0.85)",
             },
             3: {
                 "name": "v38_isotonic_rank",
@@ -555,7 +555,7 @@ def record_pre_dispatch_reflection(
             },
             method="POST",
         )
-        with urllib.request.urlopen(req, timeout=3.0) as resp:
+        with urllib.request.urlopen(req, timeout=3.0):  # noqa: S310
             pass
         logger.info("[%s] ✓ Recorded pre-dispatch reflection into SurrealDB", comp_slug)
     except Exception as e:
@@ -653,10 +653,7 @@ def run_cycle(api: KaggleApi, state: dict[str, Any]) -> bool:
             continue
 
         # Ready to dispatch the next slot!
-        if max_daily == 1:
-            target_slot = comp_state.get("active_slot", 1)
-        else:
-            target_slot = used_count + 1
+        target_slot = comp_state.get("active_slot", 1) if max_daily == 1 else used_count + 1
         logger.info(
             "[%s] >>> READY TO DISPATCH SLOT %d/%d (Hypothesis: %s) <<<",
             comp_slug,
