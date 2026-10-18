@@ -123,6 +123,23 @@ with contextlib.suppress(Exception):
     from cohezion.platform.skill_tracker_charter import reset_skill_tracker as reset_skill_tracker
 
 
+with contextlib.suppress(Exception):
+    from cohezion.platform.equilibrium_governor import (
+        EquilibriumTelemetry as EquilibriumTelemetry,
+    )
+    from cohezion.platform.equilibrium_governor import (
+        MasterEquilibriumGovernor as MasterEquilibriumGovernor,
+    )
+    from cohezion.platform.equilibrium_governor import (
+        SiliconTask as SiliconTask,
+    )
+    from cohezion.platform.equilibrium_governor import (
+        get_equilibrium_governor as get_equilibrium_governor,
+    )
+    from cohezion.platform.equilibrium_governor import (
+        reset_equilibrium_governor as reset_equilibrium_governor,
+    )
+
 # Wiring-sweep 2026-06-22: mcp_server.py was a genuine import-graph orphan.
 with contextlib.suppress(Exception):
     from cohezion.platform.mcp_server import ObsidianVaultMCP as ObsidianVaultMCP
@@ -194,6 +211,7 @@ __all__ = [
     "DailyHealthDigest",
     "DependencyMetrics",
     "EDLConsensus",
+    "EquilibriumTelemetry",
     "ExpertDomainRouter",
     "ExpertStream",
     "HealthCheckResult",
@@ -202,6 +220,7 @@ __all__ = [
     "IDEIntegrationAdapter",
     "Journey",
     "JourneyLogger",
+    "MasterEquilibriumGovernor",
     "ModelUsageEvent",
     "OOMRiskError",
     "ObservableActionProposer",
@@ -214,6 +233,7 @@ __all__ = [
     "SafetyViolation",
     "SessionRecord",
     "SessionTracker",
+    "SiliconTask",
     "SkillUsageEvent",
     "StreamRecommendation",
     "TestMetrics",
@@ -227,6 +247,7 @@ __all__ = [
     "get_coherence_tracker",
     "get_daily_health_digest",
     "get_edl_router",
+    "get_equilibrium_governor",
     "get_journey_logger",
     "get_observable_proposer",
     "get_skill_analytics",
@@ -236,6 +257,7 @@ __all__ = [
     "reset_coherence_tracker",
     "reset_daily_health_digest",
     "reset_edl_router",
+    "reset_equilibrium_governor",
     "reset_journey_logger",
     "reset_observable_proposer",
     "reset_skill_analytics",
