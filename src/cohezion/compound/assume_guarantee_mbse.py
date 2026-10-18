@@ -10,10 +10,11 @@ Implements formal contract-based design and compositional verification for agent
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
-import inspect
 import logging
-from typing import Any, Callable, Dict, List, Optional, Set, Tuple
+from collections.abc import Callable
+from dataclasses import dataclass, field
+from typing import Any
+
 
 logger = logging.getLogger("assume_guarantee_mbse")
 
@@ -23,9 +24,9 @@ class ContractPredicate:
     """A deterministic predicate over a state dictionary."""
     name: str
     description: str
-    predicate: Callable[[Dict[str, Any]], bool]
+    predicate: Callable[[dict[str, Any]], bool]
 
-    def evaluate(self, state: Dict[str, Any]) -> bool:
+    def evaluate(self, state: dict[str, Any]) -> bool:
         try:
             return bool(self.predicate(state))
         except Exception as exc:
@@ -37,23 +38,23 @@ class ContractPredicate:
 class AssumeGuaranteeContract:
     """Formal Assume-Guarantee Contract C = <A, G>."""
     name: str
-    assumptions: List[ContractPredicate] = field(default_factory=list)
-    guarantees: List[ContractPredicate] = field(default_factory=list)
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    assumptions: list[ContractPredicate] = field(default_factory=list)
+    guarantees: list[ContractPredicate] = field(default_factory=list)
+    metadata: dict[str, Any] = field(default_factory=dict)
 
-    def check_assumptions(self, state: Dict[str, Any]) -> Tuple[bool, List[str]]:
+    def check_assumptions(self, state: dict[str, Any]) -> tuple[bool, list[str]]:
         """Verify whether the environment state satisfies all contract assumptions."""
         failures = [p.name for p in self.assumptions if not p.evaluate(state)]
         return len(failures) == 0, failures
 
-    def check_guarantees(self, state: Dict[str, Any]) -> Tuple[bool, List[str]]:
+    def check_guarantees(self, state: dict[str, Any]) -> tuple[bool, list[str]]:
         """Verify whether the agent/subsystem state satisfies all contract guarantees."""
         failures = [p.name for p in self.guarantees if not p.evaluate(state)]
         return len(failures) == 0, failures
 
-    def evaluate_step(self, pre_state: Dict[str, Any], post_state: Dict[str, Any]) -> Tuple[bool, str]:
+    def evaluate_step(self, pre_state: dict[str, Any], post_state: dict[str, Any]) -> tuple[bool, str]:
         """Evaluate a state transition under the contract.
-        
+
         Rule: If assumptions hold on pre_state, guarantees MUST hold on post_state.
         If assumptions fail, the contract is vacuously satisfied (environment assumption broken).
         """
@@ -67,9 +68,9 @@ class AssumeGuaranteeContract:
 
         return True, "Contract satisfied: guarantees upheld under assumptions"
 
-    def refines(self, abstract_spec: AssumeGuaranteeContract, test_samples: Optional[List[Dict[str, Any]]] = None) -> Tuple[bool, Optional[str]]:
+    def refines(self, abstract_spec: AssumeGuaranteeContract, test_samples: list[dict[str, Any]] | None = None) -> tuple[bool, str | None]:
         """Check if self refines abstract_spec (self <= abstract_spec).
-        
+
         Refinement Condition:
         1. Weaker or equal assumptions: abstract_spec.A => self.A
            (Every sample satisfying abstract_spec.A must also satisfy self.A).
@@ -77,13 +78,9 @@ class AssumeGuaranteeContract:
            (Every sample satisfying self.G must also satisfy abstract_spec.G).
         """
         if not test_samples:
-            # Static check by predicate name containment if no state space provided
-            self_a_names = {p.name for p in self.assumptions}
-            spec_a_names = {p.name for p in abstract_spec.assumptions}
+            # Static check: implementation must guarantee at least what spec guarantees
             self_g_names = {p.name for p in self.guarantees}
             spec_g_names = {p.name for p in abstract_spec.guarantees}
-
-            # Implementation should guarantee at least what spec guarantees
             if not spec_g_names.issubset(self_g_names):
                 missing = spec_g_names - self_g_names
                 return False, f"Implementation lacks required guarantees: {missing}"
@@ -115,10 +112,10 @@ class ContractCompositionEngine:
     def check_compatibility(
         agent1_contract: AssumeGuaranteeContract,
         agent2_contract: AssumeGuaranteeContract,
-        interaction_state: Dict[str, Any]
-    ) -> Tuple[bool, List[str]]:
+        interaction_state: dict[str, Any]
+    ) -> tuple[bool, list[str]]:
         """Verify whether agent1 and agent2 can safely compose.
-        
+
         Compatibility requires:
         - Output guarantees of Agent 1 satisfy the input assumptions of Agent 2 on shared interfaces.
         """
@@ -138,16 +135,16 @@ class ContractCompositionEngine:
     ) -> AssumeGuaranteeContract:
         """Compute parallel composition C_comp = C_a (x) C_b."""
         # Composite assumptions: union of assumptions
-        seen_a: Set[str] = set()
-        comp_a: List[ContractPredicate] = []
+        seen_a: set[str] = set()
+        comp_a: list[ContractPredicate] = []
         for p in contract_a.assumptions + contract_b.assumptions:
             if p.name not in seen_a:
                 seen_a.add(p.name)
                 comp_a.append(p)
 
         # Composite guarantees: union of guarantees
-        seen_g: Set[str] = set()
-        comp_g: List[ContractPredicate] = []
+        seen_g: set[str] = set()
+        comp_g: list[ContractPredicate] = []
         for p in contract_a.guarantees + contract_b.guarantees:
             if p.name not in seen_g:
                 seen_g.add(p.name)
@@ -159,3 +156,77 @@ class ContractCompositionEngine:
             guarantees=comp_g,
             metadata={"composition": [contract_a.name, contract_b.name]}
         )
+
+
+class ContractRegistry:
+    """Thread-safe in-memory registry for Assume-Guarantee contracts."""
+
+    _contracts: dict[str, AssumeGuaranteeContract] = {}
+
+    @classmethod
+    def register(cls, target_name: str, contract: AssumeGuaranteeContract) -> None:
+        """Register a formal contract for a skill, agent, or operation type."""
+        cls._contracts[target_name] = contract
+        logger.debug("Registered contract '%s' for target '%s'", contract.name, target_name)
+
+    @classmethod
+    def get(cls, target_name: str) -> AssumeGuaranteeContract | None:
+        """Retrieve the registered contract for a target, if any."""
+        return cls._contracts.get(target_name)
+
+    @classmethod
+    def has(cls, target_name: str) -> bool:
+        """Check if a contract exists for the target."""
+        return target_name in cls._contracts
+
+    @classmethod
+    def clear(cls) -> None:
+        """Clear all registered contracts."""
+        cls._contracts.clear()
+
+    @classmethod
+    def all_contracts(cls) -> dict[str, AssumeGuaranteeContract]:
+        """Return a copy of all registered contracts."""
+        return dict(cls._contracts)
+
+
+def make_standard_task_contract(name: str) -> AssumeGuaranteeContract:
+    """Creates a standard baseline Assume-Guarantee contract for compound tasks.
+
+    Assumptions:
+    - valid_task_description: Non-empty string with at least 3 characters.
+    - valid_operation_type: Defined operation type.
+
+    Guarantees:
+    - non_empty_output: Output is non-empty string.
+    - non_degraded_execution: Execution metrics do not indicate degradation.
+    """
+    return AssumeGuaranteeContract(
+        name=name,
+        assumptions=[
+            ContractPredicate(
+                name="valid_task_description",
+                description="Task description must be a non-empty string with len >= 3",
+                predicate=lambda state: isinstance(state.get("task_description"), str)
+                and len(state.get("task_description", "").strip()) >= 3,
+            ),
+            ContractPredicate(
+                name="valid_operation_type",
+                description="Operation type must be defined",
+                predicate=lambda state: bool(state.get("operation_type")),
+            ),
+        ],
+        guarantees=[
+            ContractPredicate(
+                name="non_empty_output",
+                description="Execution output must be non-empty",
+                predicate=lambda state: bool(str(state.get("output", "")).strip()),
+            ),
+            ContractPredicate(
+                name="non_degraded_execution",
+                description="Execution must not be marked degraded",
+                predicate=lambda state: not state.get("metrics", {}).get("degraded", False),
+            ),
+        ],
+    )
+

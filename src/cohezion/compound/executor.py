@@ -197,6 +197,7 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
         enable_cycle_persistence: bool = False,
         memory_service: Any | None = None,
         enable_memory: bool = False,
+        enable_mbse_contracts: bool = True,
     ):
         """Initialize compound executor.
 
@@ -296,6 +297,7 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
         self._enable_guardrails = enable_guardrails
         self._skill_refiner = skill_refiner
         self._enable_skill_refinement = enable_skill_refinement
+        self._enable_mbse_contracts = enable_mbse_contracts
         self._metrics_collector = metrics_collector
         self._journey_tracker = journey_tracker
         self._journey_persistence = journey_persistence
@@ -1101,6 +1103,40 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
         if _recommended is not None:
             _tier_hints["recommended_tier"] = _recommended
 
+        # Step 3.7: MBSE Assume-Guarantee Contract Preconditions (<1ms formal check)
+        _active_contract = None
+        _mbse_metrics: dict[str, Any] = {}
+        if self._enable_mbse_contracts:
+            try:
+                from cohezion.compound.assume_guarantee_mbse import (
+                    ContractRegistry,
+                    make_standard_task_contract,
+                )
+
+                _active_contract = ContractRegistry.get(skill_name) or ContractRegistry.get(operation_type)
+                if _active_contract is None:
+                    _active_contract = make_standard_task_contract(f"{skill_name}:{operation_type}")
+
+                _pre_state = {
+                    "task_description": task_description,
+                    "skill_name": skill_name,
+                    "operation_type": operation_type,
+                    "project": project,
+                    "human_request": human_request,
+                }
+                _assumptions_ok, _failed_a = _active_contract.check_assumptions(_pre_state)
+                _mbse_metrics["mbse_contract_name"] = _active_contract.name
+                _mbse_metrics["mbse_assumptions_passed"] = _assumptions_ok
+                if not _assumptions_ok:
+                    _mbse_metrics["mbse_assumption_failures"] = _failed_a
+                    logger.warning(
+                        "[%s] MBSE Contract assumption failures: %s",
+                        _active_contract.name,
+                        _failed_a,
+                    )
+            except Exception as exc:
+                logger.debug("MBSE contract pre-check failed (non-blocking): %s", exc)
+
         try:
             # O9 binding: enter the cascade at the FUSED recommendation (difficulty + health + REROUTE,
             # max-capability) when present, else the raw difficulty prediction. Signature-aware,
@@ -1131,6 +1167,32 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
         # Merge W3/W4 tier hints — execute_fn may return a new dict so we must merge after the call.
         if _tier_hints:
             metrics.update(_tier_hints)
+        if _mbse_metrics:
+            metrics.update(_mbse_metrics)
+
+        # Step 3.8: MBSE Assume-Guarantee Contract Postconditions (<1ms formal check)
+        if self._enable_mbse_contracts and _active_contract is not None:
+            try:
+                _post_state = {
+                    "output": output,
+                    "metrics": metrics,
+                    "duration_seconds": time.time() - start_seconds,
+                    "success": success,
+                }
+                _guarantees_ok, _failed_g = _active_contract.check_guarantees(_post_state)
+                metrics["mbse_guarantees_passed"] = _guarantees_ok
+                if not _guarantees_ok:
+                    metrics["mbse_guarantee_failures"] = _failed_g
+                    metrics["mbse_contract_violated"] = True
+                    logger.warning(
+                        "[%s] MBSE Contract guarantee violation: %s",
+                        _active_contract.name,
+                        _failed_g,
+                    )
+                else:
+                    metrics["mbse_contract_verified"] = True
+            except Exception as exc:
+                logger.debug("MBSE contract post-check failed (non-blocking): %s", exc)
 
         # Capture token metrics after execution (if token_client available)
         if self.token_client:
@@ -1808,14 +1870,12 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
                         _actual_quality = float(
                             metrics.get("quality_score", metrics.get("coherence", 0.5))
                         )
-                        try:
+                        with contextlib.suppress(Exception):  # never block on calibration
                             _wm.observe(
                                 task_description,
                                 self._jepa_gate.last_coherence,
                                 _actual_quality,
                             )
-                        except Exception:  # never block on calibration
-                            pass
                 alerts = self._degradation_detector.check_degradation(degradation_metrics)
                 if alerts:
                     metrics["degradation_alerts"] = len(alerts)

@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import importlib.util
 from pathlib import Path
+
 import pytest
 
 
@@ -89,7 +90,7 @@ def test_autoharness_action_verifier_pruning(solver_mod) -> None:
     assert "wall" in reason_up.lower()
 
     # Moving LEFT hits wall at (1, 0)
-    valid_left, reason_left = verifier.verify_action(grid, agent_pos, solver_mod.ACTION_LEFT)
+    valid_left, _ = verifier.verify_action(grid, agent_pos, solver_mod.ACTION_LEFT)
     assert not valid_left, "Moving LEFT into wall must be pruned"
 
     # Moving RIGHT is free space (1, 2)
@@ -119,3 +120,38 @@ def test_local_affordance_search_plan(solver_mod) -> None:
     assert best.pos == (1, 3)
     assert len(best.plan) == 2, f"Shortest path from (1,1) to (1,3) should be 2 steps, got {len(best.plan)}"
     assert best.plan == [solver_mod.ACTION_RIGHT, solver_mod.ACTION_RIGHT]
+
+
+def test_arc3_orthogonal_escape_pulse(solver_mod) -> None:
+    """Verifies that anti-parallel 2-cycles trigger an orthogonal impulse to break deadlocks."""
+    solver = solver_mod.ARCAGI3InteractiveSolver()
+    # 5x5 grid with open space
+    grid = [
+        [1, 1, 1, 1, 1],
+        [1, 0, 0, 0, 1],
+        [1, 0, 0, 0, 1],
+        [1, 0, 0, 0, 1],
+        [1, 1, 1, 1, 1],
+    ]
+    solver.reset(grid, agent_pos=(2, 2))
+    # Simulate oscillating between UP and DOWN
+    solver.recent_moves = [solver_mod.ACTION_UP, solver_mod.ACTION_DOWN]
+
+    # Next action must NOT be UP or DOWN; must be orthogonal (LEFT or RIGHT)
+    act = solver.select_action(grid, agent_pos=(2, 2))
+    assert act in (solver_mod.ACTION_LEFT, solver_mod.ACTION_RIGHT), (
+        f"Expected orthogonal escape action (LEFT or RIGHT), got {act}"
+    )
+
+
+def test_arc3_d4_group_equivariance_exact_solver(solver_mod) -> None:
+    """Verifies demonstration-guided D4 dihedral group exact solving."""
+    train_pairs = [
+        {"input": [[1, 2], [3, 4]], "output": [[3, 1], [4, 2]]},  # rot270
+        {"input": [[5, 6], [7, 8]], "output": [[7, 5], [8, 6]]},  # rot270
+    ]
+    test_in = [[9, 0], [1, 2]]
+    predicted = solver_mod.solve_d4_equivariance(train_pairs, test_in)
+    assert predicted is not None
+    assert predicted == [[1, 9], [2, 0]]
+

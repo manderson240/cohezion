@@ -10,11 +10,54 @@ Incorporates:
 from __future__ import annotations
 
 import collections
-import heapq
 import math
-import time
 from dataclasses import dataclass, field
-from typing import Any, Tuple, List, Dict, Set, Optional
+from typing import Any
+
+import numpy as np
+
+
+# ---------------------------------------------------------------------------
+# 0. Dihedral D4 Group Equivariance Transformations
+# ---------------------------------------------------------------------------
+
+def d4_transforms(arr: np.ndarray) -> list[np.ndarray]:
+    """Generates all 8 unique transformations in the D4 dihedral symmetry group."""
+    return [
+        arr,                               # rot0 (identity)
+        np.rot90(arr, 1),                  # rot90
+        np.rot90(arr, 2),                  # rot180
+        np.rot90(arr, 3),                  # rot270
+        np.fliplr(arr),                    # horizontal reflection
+        np.flipud(arr),                    # vertical reflection
+        arr.T,                             # main diagonal transpose
+        np.fliplr(np.flipud(arr.T)),       # anti-diagonal transpose
+    ]
+
+
+def solve_d4_equivariance(
+    train_pairs: list[dict[str, Any]], test_in: list[list[int]]
+) -> list[list[int]] | None:
+    """Finds if a single D4 operation exactly maps input -> output across all train demonstrations."""
+    if not train_pairs:
+        return None
+
+    test_arr = np.array(test_in, dtype=int)
+    for op_idx in range(8):
+        match_all = True
+        for pair in train_pairs:
+            inp = np.array(pair.get("input", []), dtype=int)
+            out = np.array(pair.get("output", []), dtype=int)
+            if inp.size == 0 or out.size == 0:
+                match_all = False
+                break
+            transformed = d4_transforms(inp)[op_idx]
+            if transformed.shape != out.shape or not np.array_equal(transformed, out):
+                match_all = False
+                break
+        if match_all:
+            return d4_transforms(test_arr)[op_idx].tolist()
+    return None
 
 
 # ---------------------------------------------------------------------------
@@ -48,7 +91,7 @@ class ZobristHasher:
         self.max_vals = max_vals
 
         # Grid cell Zobrist table: [row][col][val]
-        self.table: List[List[List[int]]] = [
+        self.table: list[list[list[int]]] = [
             [[0] * max_vals for _ in range(max_w)] for _ in range(max_h)
         ]
         curr = seed
@@ -59,7 +102,7 @@ class ZobristHasher:
                     self.table[r][c][v] = curr
 
         # Agent position and orientation keys: [row][col][orientation]
-        self.agent_keys: List[List[List[int]]] = [
+        self.agent_keys: list[list[list[int]]] = [
             [[0] * 4 for _ in range(max_w)] for _ in range(max_h)
         ]
         for r in range(max_h):
@@ -69,17 +112,17 @@ class ZobristHasher:
                     self.agent_keys[r][c][ori] = curr
 
         # Inventory item keys (0..31)
-        self.inventory_keys: List[int] = []
+        self.inventory_keys: list[int] = []
         for _ in range(32):
             curr = splitmix64(curr)
             self.inventory_keys.append(curr)
 
     def hash_grid(
         self,
-        grid: List[List[int]],
-        agent_pos: Optional[Tuple[int, int]] = None,
+        grid: list[list[int]],
+        agent_pos: tuple[int, int] | None = None,
         agent_dir: int = 0,
-        inventory: Optional[List[int]] = None,
+        inventory: list[int] | None = None,
     ) -> int:
         """Compute full 64-bit Zobrist hash of the state."""
         h = 0
@@ -117,13 +160,13 @@ class CayleyBudgetManager:
     def __init__(self, min_budget: int = 35, max_budget: int = 120) -> None:
         self.min_budget = min_budget
         self.max_budget = max_budget
-        self.visited_hashes: Set[int] = set()
-        self.state_revisit_counts: Dict[int, int] = collections.defaultdict(int)
+        self.visited_hashes: set[int] = set()
+        self.state_revisit_counts: dict[int, int] = collections.defaultdict(int)
         self.recent_action_window: collections.deque[int] = collections.deque(maxlen=16)
         self.entropy_history: collections.deque[float] = collections.deque(maxlen=16)
         self.orbit_size: int = 0
 
-    def record_entropy(self, grid: List[List[int]]) -> None:
+    def record_entropy(self, grid: list[list[int]]) -> None:
         """Computes grid color Shannon entropy to monitor trajectory dynamics."""
         flat = [val for row in grid for val in row]
         if not flat:
@@ -142,7 +185,7 @@ class CayleyBudgetManager:
         var_ent = sum((x - mean_ent) ** 2 for x in recent) / 8.0
         return var_ent < 1e-5
 
-    def record_state(self, state_hash: int, action: Optional[int] = None) -> None:
+    def record_state(self, state_hash: int, action: int | None = None) -> None:
         """Record visited state and action in Cayley orbit."""
         self.state_revisit_counts[state_hash] += 1
         if state_hash not in self.visited_hashes:
@@ -219,10 +262,10 @@ MOVES = {
 class Affordance:
     """Interactive affordance detected in the environment."""
     entity_type: str  # "pushable", "door", "switch", "consumable", "goal"
-    pos: Tuple[int, int]
-    target_pos: Optional[Tuple[int, int]] = None
+    pos: tuple[int, int]
+    target_pos: tuple[int, int] | None = None
     distance: int = 0
-    plan: List[int] = field(default_factory=list)
+    plan: list[int] = field(default_factory=list)
 
 
 class LocalAffordanceSearch:
@@ -233,12 +276,12 @@ class LocalAffordanceSearch:
 
     def __init__(
         self,
-        hazard_colors: Optional[Set[int]] = None,
-        solid_colors: Optional[Set[int]] = None,
-        pushable_colors: Optional[Set[int]] = None,
-        door_colors: Optional[Set[int]] = None,
-        consumable_colors: Optional[Set[int]] = None,
-        goal_colors: Optional[Set[int]] = None,
+        hazard_colors: set[int] | None = None,
+        solid_colors: set[int] | None = None,
+        pushable_colors: set[int] | None = None,
+        door_colors: set[int] | None = None,
+        consumable_colors: set[int] | None = None,
+        goal_colors: set[int] | None = None,
     ) -> None:
         self.hazard_colors = hazard_colors or {8}      # e.g., teal/lava/spikes
         self.solid_colors = solid_colors or {5}        # e.g., gray wall
@@ -247,7 +290,7 @@ class LocalAffordanceSearch:
         self.consumable_colors = consumable_colors or {4} # e.g., yellow key/gem
         self.goal_colors = goal_colors or {6}          # e.g., magenta exit
 
-    def is_corner_deadlock(self, r: int, c: int, rows: int, cols: int, grid: List[List[int]]) -> bool:
+    def is_corner_deadlock(self, r: int, c: int, rows: int, cols: int, grid: list[list[int]]) -> bool:
         """Check if grid cell (r, c) is an irreversible non-goal corner deadlock for Sokoban blocks."""
         if grid[r][c] in self.goal_colors:
             return False
@@ -264,10 +307,10 @@ class LocalAffordanceSearch:
 
     def find_affordances(
         self,
-        grid: List[List[int]],
-        agent_pos: Tuple[int, int],
+        grid: list[list[int]],
+        agent_pos: tuple[int, int],
         has_key: bool = False,
-    ) -> List[Affordance]:
+    ) -> list[Affordance]:
         """BFS flood-fill from agent position to locate all reachable interactive targets."""
         rows = len(grid)
         cols = len(grid[0]) if rows > 0 else 0
@@ -277,7 +320,7 @@ class LocalAffordanceSearch:
         ar, ac = agent_pos
         queue = collections.deque([(ar, ac, [])])
         visited = {agent_pos}
-        affordances: List[Affordance] = []
+        affordances: list[Affordance] = []
 
         while queue:
             cr, cc, path = queue.popleft()
@@ -290,7 +333,7 @@ class LocalAffordanceSearch:
                     continue
 
                 val = grid[nr][nc]
-                new_path = path + [act]
+                new_path = [*path, act]
 
                 # 1. Hazard tile: cannot enter directly
                 if val in self.hazard_colors:
@@ -300,19 +343,22 @@ class LocalAffordanceSearch:
                 if val in self.pushable_colors:
                     visited.add((nr, nc))
                     dest_r, dest_c = nr + dr, nc + dc
-                    if 0 <= dest_r < rows and 0 <= dest_c < cols:
-                        dest_val = grid[dest_r][dest_c]
-                        if dest_val not in self.solid_colors and dest_val not in self.pushable_colors:
-                            if not self.is_corner_deadlock(dest_r, dest_c, rows, cols, grid):
-                                affordances.append(
-                                    Affordance(
-                                        entity_type="pushable",
-                                        pos=(nr, nc),
-                                        target_pos=(dest_r, dest_c),
-                                        distance=len(new_path),
-                                        plan=new_path,
-                                    )
-                                )
+                    if (
+                        0 <= dest_r < rows
+                        and 0 <= dest_c < cols
+                        and grid[dest_r][dest_c] not in self.solid_colors
+                        and grid[dest_r][dest_c] not in self.pushable_colors
+                        and not self.is_corner_deadlock(dest_r, dest_c, rows, cols, grid)
+                    ):
+                        affordances.append(
+                            Affordance(
+                                entity_type="pushable",
+                                pos=(nr, nc),
+                                target_pos=(dest_r, dest_c),
+                                distance=len(new_path),
+                                plan=new_path,
+                            )
+                        )
                     continue
 
                 # 3. Locked door affordance
@@ -324,7 +370,7 @@ class LocalAffordanceSearch:
                                 entity_type="door",
                                 pos=(nr, nc),
                                 distance=len(new_path),
-                                plan=new_path + [ACTION_INTERACT],
+                                plan=[*new_path, ACTION_INTERACT],
                             )
                         )
                     continue
@@ -378,9 +424,9 @@ class AutoHarnessBytecodeVerifier:
 
     def __init__(
         self,
-        hazard_colors: Optional[Set[int]] = None,
-        solid_colors: Optional[Set[int]] = None,
-        pushable_colors: Optional[Set[int]] = None,
+        hazard_colors: set[int] | None = None,
+        solid_colors: set[int] | None = None,
+        pushable_colors: set[int] | None = None,
     ) -> None:
         self.hazard_colors = hazard_colors or {8}
         self.solid_colors = solid_colors or {5}
@@ -388,13 +434,13 @@ class AutoHarnessBytecodeVerifier:
 
     def verify_action(
         self,
-        grid: List[List[int]],
-        agent_pos: Tuple[int, int],
+        grid: list[list[int]],
+        agent_pos: tuple[int, int],
         action: int,
         has_invulnerability: bool = False,
-    ) -> Tuple[bool, str]:
+    ) -> tuple[bool, str]:
         """Validate candidate action in <0.05 ms before dispatching."""
-        if action == ACTION_WAIT or action == ACTION_INTERACT:
+        if action in (ACTION_WAIT, ACTION_INTERACT):
             return True, "valid_idle_action"
 
         if action not in MOVES:
@@ -429,7 +475,7 @@ class AutoHarnessBytecodeVerifier:
 
         return True, "safe"
 
-    def _is_corner_deadlock(self, grid: List[List[int]], r: int, c: int) -> bool:
+    def _is_corner_deadlock(self, grid: list[list[int]], r: int, c: int) -> bool:
         """Check if destination tile is an unrecoverable corner (2 orthogonal solid walls)."""
         rows = len(grid)
         cols = len(grid[0])
@@ -459,14 +505,15 @@ class ARCAGI3InteractiveSolver:
         self.affordance_search = LocalAffordanceSearch()
         self.verifier = AutoHarnessBytecodeVerifier()
 
-        self.current_plan: List[int] = []
-        self.last_grid: Optional[List[List[int]]] = None
+        self.current_plan: list[int] = []
+        self.last_grid: list[list[int]] | None = None
         self.total_steps: int = 0
         self.current_step_budget: int = 120
-        self.agent_pos: Tuple[int, int] = (0, 0)
+        self.agent_pos: tuple[int, int] = (0, 0)
         self.has_key: bool = False
+        self.recent_moves: list[int] = []
 
-    def reset(self, initial_grid: List[List[int]], agent_pos: Tuple[int, int] = (1, 1)) -> None:
+    def reset(self, initial_grid: list[list[int]], agent_pos: tuple[int, int] = (1, 1)) -> None:
         """Reset solver state for a new episode."""
         self.agent_pos = agent_pos
         self.last_grid = initial_grid
@@ -474,12 +521,21 @@ class ARCAGI3InteractiveSolver:
         self.total_steps = 0
         self.has_key = False
         self.keys_collected = 0
-        self.inventory: List[int] = []
+        self.inventory: list[int] = []
+        self.recent_moves = []
         initial_hash = self.hasher.hash_grid(initial_grid, agent_pos, inventory=self.inventory)
         self.budget_manager.record_state(initial_hash)
         self.current_step_budget = self.budget_manager.compute_budget(initial_hash, 1.0, 1)
 
-    def select_action(self, current_grid: List[List[int]], agent_pos: Tuple[int, int]) -> int:
+    def _commit_action(self, act: int) -> int:
+        """Commit an action, updating step counter and recent move history."""
+        self.total_steps += 1
+        self.recent_moves.append(act)
+        if len(self.recent_moves) > 8:
+            self.recent_moves.pop(0)
+        return act
+
+    def select_action(self, current_grid: list[list[int]], agent_pos: tuple[int, int]) -> int:
         """Select next optimal action deterministically without GPU or external LLM inference."""
         self.agent_pos = agent_pos
 
@@ -524,8 +580,7 @@ class ARCAGI3InteractiveSolver:
             candidate = self.current_plan.pop(0)
             valid, _ = self.verifier.verify_action(current_grid, agent_pos, candidate)
             if valid:
-                self.total_steps += 1
-                return candidate
+                return self._commit_action(candidate)
 
         if affordances:
             best_affordance = affordances[0]
@@ -534,8 +589,7 @@ class ARCAGI3InteractiveSolver:
                 candidate = self.current_plan.pop(0)
                 valid, _ = self.verifier.verify_action(current_grid, agent_pos, candidate)
                 if valid:
-                    self.total_steps += 1
-                    return candidate
+                    return self._commit_action(candidate)
 
         safe_moves = []
         for act in [ACTION_RIGHT, ACTION_DOWN, ACTION_LEFT, ACTION_UP]:
@@ -548,15 +602,33 @@ class ARCAGI3InteractiveSolver:
                 safe_moves.append((revisits, act))
 
         if safe_moves:
+            # Orthogonal Escape Invariant: Break 2-cycles / anti-parallel oscillations
+            if len(self.recent_moves) >= 2:
+                last_act = self.recent_moves[-1]
+                prev_act = self.recent_moves[-2]
+                anti_parallel = {
+                    ACTION_UP: ACTION_DOWN,
+                    ACTION_DOWN: ACTION_UP,
+                    ACTION_LEFT: ACTION_RIGHT,
+                    ACTION_RIGHT: ACTION_LEFT,
+                }
+                if anti_parallel.get(last_act) == prev_act:
+                    ortho_acts = (
+                        {ACTION_LEFT, ACTION_RIGHT}
+                        if last_act in (ACTION_UP, ACTION_DOWN)
+                        else {ACTION_UP, ACTION_DOWN}
+                    )
+                    ortho_candidates = [m for m in safe_moves if m[1] in ortho_acts]
+                    if ortho_candidates:
+                        safe_moves = ortho_candidates
+
             safe_moves.sort(key=lambda x: x[0])
             chosen_act = safe_moves[0][1]
-            self.total_steps += 1
-            return chosen_act
+            return self._commit_action(chosen_act)
 
-        self.total_steps += 1
-        return ACTION_WAIT
+        return self._commit_action(ACTION_WAIT)
 
-    def _compute_grid_delta(self, grid: List[List[int]]) -> float:
+    def _compute_grid_delta(self, grid: list[list[int]]) -> float:
         if self.last_grid is None:
             return 1.0
         rows = min(len(grid), len(self.last_grid))

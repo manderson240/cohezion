@@ -3,7 +3,6 @@
 Tests contract evaluation, refinement checking, composition, and counterexample generation.
 """
 
-import pytest
 from cohezion.compound.assume_guarantee_mbse import (
     AssumeGuaranteeContract,
     ContractCompositionEngine,
@@ -126,3 +125,45 @@ class TestAssumeGuaranteeMBSE:
         composite = ContractCompositionEngine.compose(c1, c2, "extractor_poincare_pipeline")
         assert len(composite.guarantees) == 2
         assert "extractor_agent" in composite.metadata["composition"]
+
+    def test_contract_registry_and_standard_contract(self):
+        from cohezion.compound.assume_guarantee_mbse import (
+            ContractRegistry,
+            make_standard_task_contract,
+        )
+
+        ContractRegistry.clear()
+        contract = make_standard_task_contract("test_skill_contract")
+        ContractRegistry.register("test_skill", contract)
+
+        assert ContractRegistry.has("test_skill") is True
+        retrieved = ContractRegistry.get("test_skill")
+        assert retrieved is not None
+        assert retrieved.name == "test_skill_contract"
+
+        # Check assumptions on valid input
+        valid_pre = {"task_description": "Analyze DICOM series", "operation_type": "analyze"}
+        assumptions_ok, failed_a = retrieved.check_assumptions(valid_pre)
+        assert assumptions_ok is True
+        assert len(failed_a) == 0
+
+        # Check assumptions on invalid input
+        invalid_pre = {"task_description": "a", "operation_type": ""}
+        assumptions_fail, failed_a = retrieved.check_assumptions(invalid_pre)
+        assert assumptions_fail is False
+        assert "valid_task_description" in failed_a
+        assert "valid_operation_type" in failed_a
+
+        # Check guarantees on valid output
+        valid_post = {"output": "Extracted 32 slices successfully", "metrics": {"degraded": False}}
+        guarantees_ok, failed_g = retrieved.check_guarantees(valid_post)
+        assert guarantees_ok is True
+        assert len(failed_g) == 0
+
+        # Check guarantees on degraded output
+        degraded_post = {"output": "", "metrics": {"degraded": True}}
+        guarantees_fail, failed_g = retrieved.check_guarantees(degraded_post)
+        assert guarantees_fail is False
+        assert "non_empty_output" in failed_g
+        assert "non_degraded_execution" in failed_g
+

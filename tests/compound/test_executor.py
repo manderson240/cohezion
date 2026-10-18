@@ -173,3 +173,58 @@ class TestCompoundExecutorIntegration:
 
         assert isinstance(result, ExecutionResult)
         assert result.duration_seconds > 0
+
+    def test_mbse_contract_gating_verified(self):
+        """[P0] Should verify Assume-Guarantee contract preconditions and postconditions."""
+        mock_mcp = MagicMock()
+        executor = CompoundExecutor(mcp_client=mock_mcp, enable_mbse_contracts=True)
+        executor.logger = MagicMock()
+        executor.logger.get_experience_guidance.return_value = {}
+
+        result = executor.execute_task(
+            task_description="Synthesize invariant code harness",
+            skill_name="autoharness-policy",
+            operation_type="generate",
+            execute_fn=lambda *_: ("class HarnessVerifier: pass", {"tokens": 50}),
+        )
+
+        assert result.success is True
+        assert result.metrics.get("mbse_assumptions_passed") is True
+        assert result.metrics.get("mbse_guarantees_passed") is True
+        assert result.metrics.get("mbse_contract_verified") is True
+
+    def test_mbse_contract_gating_violation(self):
+        """[P0] Should flag contract violation when postcondition guarantee fails."""
+        from cohezion.compound.assume_guarantee_mbse import (
+            AssumeGuaranteeContract,
+            ContractPredicate,
+            ContractRegistry,
+        )
+
+        strict_contract = AssumeGuaranteeContract(
+            name="strict_output_contract",
+            assumptions=[
+                ContractPredicate("valid_task", "Valid task", lambda s: bool(s.get("task_description"))),
+            ],
+            guarantees=[
+                ContractPredicate("contains_harness", "Output must mention HARNESS", lambda s: "HARNESS" in s.get("output", "")),
+            ],
+        )
+        ContractRegistry.register("strict-skill", strict_contract)
+
+        mock_mcp = MagicMock()
+        executor = CompoundExecutor(mcp_client=mock_mcp, enable_mbse_contracts=True)
+        executor.logger = MagicMock()
+        executor.logger.get_experience_guidance.return_value = {}
+
+        result = executor.execute_task(
+            task_description="Execute without harness keyword",
+            skill_name="strict-skill",
+            operation_type="generate",
+            execute_fn=lambda *_: ("some arbitrary text", {}),
+        )
+
+        assert result.metrics.get("mbse_contract_violated") is True
+        assert "contains_harness" in result.metrics.get("mbse_guarantee_failures", [])
+        ContractRegistry.clear()
+
