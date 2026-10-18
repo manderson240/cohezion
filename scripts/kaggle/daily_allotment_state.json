@@ -8,16 +8,16 @@
       "status": "SUBMISSIONSTATUS.PENDING"
     },
     "arc-prize-2026-arc-agi-2": {
-      "used_today": 2,
+      "used_today": 1,
       "active_slot": 2,
-      "latest_ref": "57288127",
+      "latest_ref": "57331907",
       "latest_score": "28.19",
-      "status": "SUBMISSIONSTATUS.COMPLETE"
+      "status": "SUBMISSIONSTATUS.PENDING"
     },
     "arc-prize-2026-arc-agi-3": {
-      "used_today": 2,
+      "used_today": 1,
       "active_slot": 2,
-      "latest_ref": "57287157",
+      "latest_ref": "57332009",
       "latest_score": "0.01",
       "status": "SUBMISSIONSTATUS.COMPLETE"
     },
@@ -28,17 +28,17 @@
       "status": "SUBMISSIONSTATUS.PENDING"
     },
     "name-that-llm": {
-      "used_today": 0,
-      "latest_ref": "57288961",
-      "latest_score": "0.330",
+      "used_today": 1,
+      "latest_ref": "57332106",
+      "latest_score": "0.309",
       "status": "SUBMISSIONSTATUS.COMPLETE"
     },
     "gemma-4-developer-agent": {
-      "used_today": 0,
+      "used_today": 1,
       "active_slot": 2,
-      "latest_ref": "57287771",
+      "latest_ref": "57332169",
       "latest_score": "0.10",
-      "status": "SUBMISSIONSTATUS.COMPLETE"
+      "status": "SUBMISSIONSTATUS.PENDING"
     }
   }
 }

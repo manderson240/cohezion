@@ -1,6 +1,6 @@
 {
   "title": "Recursive Experiential Learning Audit across Active Competitions (SOTA Synchronized)",
-  "timestamp": "2026-10-18T00:41:35.150867+00:00",
+  "timestamp": "2026-10-18T00:54:35.646155+00:00",
   "audit_data": [
     {
       "competition": "RSNA Knee Abnormality",
@@ -83,8 +83,8 @@
         {
           "ref": 57325541,
           "date": "2026-10-17 20:52:49.607000",
-          "status": "SubmissionStatus.PENDING",
-          "public_score": "",
+          "status": "SubmissionStatus.COMPLETE",
+          "public_score": "0.404",
           "description": "Cohezion CASMI26 SOTA v30: Extreme Candidate Space Parsimony Hybrid (PC_JOIN_N=120, PC_POP_UNION=350, lambda_frag=0.25)"
         },
         {
@@ -203,6 +203,13 @@
       },
       "recent_history": [
         {
+          "ref": 57332009,
+          "date": "2026-10-18 00:42:45.417000",
+          "status": "SubmissionStatus.COMPLETE",
+          "public_score": "0.01",
+          "description": "Cohezion ARC-AGI-3 SOTA v39: Harness^2 Recursive Invariants + Cycle Watchdog <= 4 + Base Horizon 35"
+        },
+        {
           "ref": 57287157,
           "date": "2026-10-17 00:01:18.867000",
           "status": "SubmissionStatus.COMPLETE",
@@ -236,13 +243,6 @@
           "status": "SubmissionStatus.COMPLETE",
           "public_score": "0.15",
           "description": "Cohezion ARC-AGI-3 SOTA v34: Hierarchical Obstacle-Aware BFS Macro Planner + Affordance Sequencing (Daily Quota Reset)"
-        },
-        {
-          "ref": 57088668,
-          "date": "2026-10-12 00:03:18.657000",
-          "status": "SubmissionStatus.COMPLETE",
-          "public_score": "0.21",
-          "description": "Cohezion ARC-AGI-3 SOTA v33: Monadic Markov Engine + 64-bit Zobrist Anti-Cycle (Daily Quota Reset)"
         }
       ]
     },
@@ -263,6 +263,13 @@
         ]
       },
       "recent_history": [
+        {
+          "ref": 57332169,
+          "date": "2026-10-18 00:48:30.040000",
+          "status": "SubmissionStatus.PENDING",
+          "public_score": "",
+          "description": "Cohezion Gemma-4 SOTA: 31B Stable QAT + Extended 4096 Token Context + AST Syntax Verifier"
+        },
         {
           "ref": 57287771,
           "date": "2026-10-17 00:05:50.920000",
@@ -297,13 +304,6 @@
           "status": "SubmissionStatus.COMPLETE",
           "public_score": "",
           "description": "Cohezion Gemma-4 SOTA: 12B Fast-Inference Container + 240s Pytest Timeout + Paced Edit"
-        },
-        {
-          "ref": 57093005,
-          "date": "2026-10-12 02:48:29.973000",
-          "status": "SubmissionStatus.COMPLETE",
-          "public_score": "",
-          "description": "Cohezion Gemma-4 SOTA: 12B Fast-Inference Container + 240s Pytest Timeout + Paced Edit"
         }
       ]
     },
@@ -324,6 +324,13 @@
         ]
       },
       "recent_history": [
+        {
+          "ref": 57332106,
+          "date": "2026-10-18 00:46:16.797000",
+          "status": "SubmissionStatus.COMPLETE",
+          "public_score": "0.309",
+          "description": "Cohezion Name That LLM SOTA v7: Hierarchical 6-Lab Bayesian Decomposition + L2 Scaled Compression Entropy + T=1.15 Sinkhorn Marginal Balancing"
+        },
         {
           "ref": 57288961,
           "date": "2026-10-17 00:35:39.207000",
@@ -358,13 +365,6 @@
           "status": "SubmissionStatus.COMPLETE",
           "public_score": "0.330",
           "description": "Cohezion Name That LLM SOTA v1: Multi-Scale N-Gram + Stylometric + Sinkhorn Marginal Balancing"
-        },
-        {
-          "ref": 57274946,
-          "date": "2026-10-16 15:59:04.800000",
-          "status": "SubmissionStatus.COMPLETE",
-          "public_score": "0.330",
-          "description": "Cohezion Name That LLM v6: Ensembled Temperature-Scaled Sinkhorn Distribution Alignment"
         }
       ]
     }
