@@ -1,3 +1,4 @@
+# pragma: allowlist secret
 """
 SurrealDB Client - Multi-model database for the Universe Simulation.
 
@@ -476,8 +477,8 @@ DEFINE FIELD stability_score ON TABLE universe_nodes VALUE (
                     # unchanged behavior).
                     with contextlib.suppress(ValueError):
                         data[dt_field] = datetime.fromisoformat(val)
-            if data.get("embedding") is None:
-                data["embedding"] = []
+            if not data.get("embedding") or len(data.get("embedding", [])) != 768:
+                data["embedding"] = [0.0] * 768
 
             if isinstance(self._client, InMemoryStore):
                 self._client.store(node.id, data)

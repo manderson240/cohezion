@@ -129,11 +129,21 @@ class SessionCostTracker:
             # Current Claude models. Without these every one of them fell through
             # to the 0.015 default ($15/MTok) — a 3x to 15x overestimate that fed
             # cost-aware routing and made cloud look unaffordable.
-            "claude-opus-5-5": 0.005,
-            "claude-sonnet-5-5": 0.003,
-            "claude-haiku-5-5": 0.001,
+            "claude-opus-5": 0.005,
+            "claude-opus-4-8": 0.005,
+            "claude-opus-4-7": 0.005,
+            "claude-opus-4-6": 0.005,
+            "claude-opus-4-5": 0.005,
+            "claude-sonnet-5": 0.002,
+            "claude-sonnet-4-6": 0.003,
+            "claude-sonnet-4-5": 0.003,
+            "claude-haiku-4-5": 0.001,
             "claude-fable-5": 0.010,
             "claude-mythos-5": 0.010,
+            # Retired Claude 3 models preserved for historical records
+            "claude-3-opus": 0.015,
+            "claude-3-sonnet": 0.003,
+            "claude-3-haiku": 0.00025,
         }
 
         # Per-1K OUTPUT rates. Output costs 5x input on every current Claude
@@ -143,11 +153,20 @@ class SessionCostTracker:
         # behaviour. Cache multipliers stay input-relative, which is correct --
         # caching applies to input.
         self.model_output_costs: dict[str, float] = {
-            "claude-opus-5-5": 0.025,
-            "claude-sonnet-5-5": 0.015,
-            "claude-haiku-5-5": 0.005,
+            "claude-opus-5": 0.025,
+            "claude-opus-4-8": 0.025,
+            "claude-opus-4-7": 0.025,
+            "claude-opus-4-6": 0.025,
+            "claude-opus-4-5": 0.025,
+            "claude-sonnet-5": 0.010,
+            "claude-sonnet-4-6": 0.015,
+            "claude-sonnet-4-5": 0.015,
+            "claude-haiku-4-5": 0.005,
             "claude-fable-5": 0.050,
             "claude-mythos-5": 0.050,
+            "claude-3-opus": 0.075,
+            "claude-3-sonnet": 0.015,
+            "claude-3-haiku": 0.00125,
         }
 
         # In-memory tracking (hot path)

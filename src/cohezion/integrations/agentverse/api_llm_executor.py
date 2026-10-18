@@ -75,9 +75,15 @@ class APILLMExecutor:
             "gpt-3.5-turbo": {"input": 0.50, "output": 1.50},
         },
         "anthropic": {
-            "claude-opus-5-5": {"input": 5.00, "output": 25.00},
-            "claude-sonnet-5-5": {"input": 3.00, "output": 15.00},
-            "claude-haiku-5-5": {"input": 1.00, "output": 5.00},
+            "claude-opus-5": {"input": 5.00, "output": 25.00},
+            "claude-opus-4-8": {"input": 5.00, "output": 25.00},
+            "claude-opus-4-7": {"input": 5.00, "output": 25.00},
+            "claude-opus-4-6": {"input": 5.00, "output": 25.00},
+            "claude-opus-4-5": {"input": 5.00, "output": 25.00},
+            "claude-sonnet-5": {"input": 2.00, "output": 10.00},
+            "claude-sonnet-4-6": {"input": 3.00, "output": 15.00},
+            "claude-sonnet-4-5": {"input": 3.00, "output": 15.00},
+            "claude-haiku-4-5": {"input": 1.00, "output": 5.00},
             "claude-fable-5": {"input": 10.00, "output": 50.00},
             "claude-mythos-5": {"input": 10.00, "output": 50.00},
         },
@@ -97,7 +103,7 @@ class APILLMExecutor:
             if self.provider == "openai":
                 self.model = "gpt-4o-mini"  # Cost-effective
             elif self.provider == "anthropic":
-                self.model = "claude-sonnet-5-5"
+                self.model = "claude-sonnet-4-6"
             else:
                 raise ValueError(f"Unknown provider: {provider}")
         else:

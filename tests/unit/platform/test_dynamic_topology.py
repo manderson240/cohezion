@@ -14,7 +14,7 @@ def test_dynamic_topology_defaults():
     assert topology.topology_version == "2.0.0"
     assert topology.npu.enabled is True
     assert "13305" in topology.npu.endpoint
-    assert topology.npu.default_model == "llama3.2-1b-FLM"
+    assert topology.npu.default_model == "qwen3.5-4b-FLM"
     assert topology.cpu.default_context_size == 8192
     assert topology.cpu.max_concurrent_models == 2
     assert topology.cloud.rationing_active is True
