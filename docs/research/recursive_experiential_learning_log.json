@@ -1,6 +1,6 @@
 {
   "title": "Recursive Experiential Learning Audit across Active Competitions (SOTA Synchronized)",
-  "timestamp": "2026-10-18T01:32:46.493678+00:00",
+  "timestamp": "2026-10-18T01:52:48.497015+00:00",
   "audit_data": [
     {
       "competition": "RSNA Knee Abnormality",
@@ -20,10 +20,17 @@
       },
       "recent_history": [
         {
-          "ref": 57328244,
-          "date": "2026-10-17 22:51:28.997000",
+          "ref": 57333863,
+          "date": "2026-10-18 01:50:41.070000",
           "status": "SubmissionStatus.PENDING",
           "public_score": "",
+          "description": "Cohezion RSNA Knee SOTA v40: Calibrated Trimmed Median Consensus Ensemble (HIHO 0.5 Coherence + Kolmogorov Effusion)"
+        },
+        {
+          "ref": 57328244,
+          "date": "2026-10-17 22:51:28.997000",
+          "status": "SubmissionStatus.COMPLETE",
+          "public_score": "0.948",
           "description": "Cohezion RSNA Knee SOTA v40: Calibrated Trimmed Median Consensus Ensemble"
         },
         {
@@ -53,13 +60,6 @@
           "status": "SubmissionStatus.COMPLETE",
           "public_score": "0.955",
           "description": "Cohezion RSNA Knee SOTA v36: Pure Optimum Calibrated Tri-Model Blend (Raptor-384 + Raptor-224 A224=0.40 + R7) + Noise Insulated Weights"
-        },
-        {
-          "ref": 57283540,
-          "date": "2026-10-16 21:14:03.233000",
-          "status": "SubmissionStatus.COMPLETE",
-          "public_score": "0.955",
-          "description": "Cohezion RSNA Knee SOTA v38: Isotonic Quantile Rank Alignment with Temperature T=0.85 Scaling"
         }
       ]
     },
@@ -325,6 +325,20 @@
       },
       "recent_history": [
         {
+          "ref": 57333531,
+          "date": "2026-10-18 01:39:20.267000",
+          "status": "SubmissionStatus.COMPLETE",
+          "public_score": "0.274",
+          "description": "Cohezion Name That LLM v4: 5-Stream Stylometric (LinearSVC + HistGBM Ensemble) + Sinkhorn Marginal Balancing"
+        },
+        {
+          "ref": 57333407,
+          "date": "2026-10-18 01:34:21.443000",
+          "status": "SubmissionStatus.COMPLETE",
+          "public_score": "0.307",
+          "description": "Cohezion Name That LLM v5: Leak-Free StratifiedGroupKFold on prompt_id + Dual Model Ensemble + Sinkhorn Uniform Marginal Balancing"
+        },
+        {
           "ref": 57333291,
           "date": "2026-10-18 01:29:08.377000",
           "status": "SubmissionStatus.COMPLETE",
@@ -351,20 +365,6 @@
           "status": "SubmissionStatus.COMPLETE",
           "public_score": "0.330",
           "description": "Cohezion Name That LLM v5: Leak-Free StratifiedGroupKFold on prompt_id + Dual Model Ensemble + Sinkhorn Uniform Marginal Balancing"
-        },
-        {
-          "ref": 57288527,
-          "date": "2026-10-17 00:21:52.840000",
-          "status": "SubmissionStatus.COMPLETE",
-          "public_score": "0.330",
-          "description": "Cohezion Name That LLM v4: 5-Stream Stylometric (LinearSVC + HistGBM Ensemble) + Sinkhorn Marginal Balancing"
-        },
-        {
-          "ref": 57288236,
-          "date": "2026-10-17 00:13:42.650000",
-          "status": "SubmissionStatus.COMPLETE",
-          "public_score": "0.330",
-          "description": "Cohezion Name That LLM v3: 5-Stream Stylometric Invariants (Shape + Function-Word + Dense) + Sinkhorn Marginal Balancing"
         }
       ]
     }
