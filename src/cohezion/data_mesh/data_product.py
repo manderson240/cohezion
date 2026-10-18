@@ -256,6 +256,82 @@ def get_cohezion_data_products() -> dict[str, DataProduct]:
             required_autonomy=AutonomyTier.SO3_4,
             mcp_tool_name=None,
         ),
+        "agent-bus-evidence": DataProduct(
+            product_id="agent-bus-evidence",
+            name="Agent Bus Verification Evidence",
+            description="Subagent verification evidence, test proofs, and metrics from LocalAgentBus",
+            owner_domain="swarm",
+            schema=DataProductSchema(
+                fields={
+                    "message_id": "str",
+                    "agent": "str",
+                    "evidence": "dict",
+                    "timestamp": "float",
+                }
+            ),
+            quality_tier=DataQualityTier.GOLD,
+            status=DataProductStatus.ACTIVE,
+            required_autonomy=AutonomyTier.HIHO,
+            mcp_tool_name="coordinate_bus_claim",
+            max_latency_ms=100,
+        ),
+        "kaggle-submission": DataProduct(
+            product_id="kaggle-submission",
+            name="Kaggle Submission & Score Telemetry",
+            description="Verified competition submissions, invariant hypotheses, and public/private score feedback",
+            owner_domain="kaggle",
+            schema=DataProductSchema(
+                fields={
+                    "competition": "str",
+                    "slot": "int",
+                    "hypothesis": "str",
+                    "ref": "int",
+                    "status": "str",
+                    "score": "float",
+                }
+            ),
+            quality_tier=DataQualityTier.GOLD,
+            status=DataProductStatus.ACTIVE,
+            required_autonomy=AutonomyTier.HIHO,
+            mcp_tool_name="kaggle_submit_status",
+            max_latency_ms=2000,
+        ),
+        "autoharness-policy": DataProduct(
+            product_id="autoharness-policy",
+            name="AutoHarness Verifier Policy",
+            description="Verified deterministic code-as-action verifiers and bytecode policies (arXiv:2603.03329v1)",
+            owner_domain="agi",
+            schema=DataProductSchema(
+                fields={
+                    "policy_id": "str",
+                    "verifier_bytecode": "str",
+                    "dead_end_hash": "str",
+                }
+            ),
+            quality_tier=DataQualityTier.GOLD,
+            status=DataProductStatus.ACTIVE,
+            required_autonomy=AutonomyTier.HIHO,
+            mcp_tool_name="autoharness_verify",
+            max_latency_ms=50,
+        ),
+        "flow-distillation-trajectory": DataProduct(
+            product_id="flow-distillation-trajectory",
+            name="Flow Distillation Geodesic Trajectory",
+            description="Continuous Riemannian geodesic flow matching trajectories and velocity fields (arXiv:2610.17246)",
+            owner_domain="physics",
+            schema=DataProductSchema(
+                fields={
+                    "model_id": "str",
+                    "trajectory_id": "str",
+                    "velocity_field": "list[float]",
+                }
+            ),
+            quality_tier=DataQualityTier.GOLD,
+            status=DataProductStatus.ACTIVE,
+            required_autonomy=AutonomyTier.HIHO,
+            mcp_tool_name="lfd_distill_trajectory",
+            max_latency_ms=500,
+        ),
     }
 
 

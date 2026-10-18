@@ -169,3 +169,17 @@ except Exception as exc:
         type(exc).__name__,
         exc,
     )
+
+with contextlib.suppress(Exception):
+    from cohezion.data_mesh.shm_mesh import (
+        SharedMemoryDataProductBuffer as SharedMemoryDataProductBuffer,
+    )
+    from cohezion.data_mesh.shm_mesh import (
+        ShmProductDescriptor as ShmProductDescriptor,
+    )
+
+    __all__ += [
+        "SharedMemoryDataProductBuffer",
+        "ShmProductDescriptor",
+    ]
+
