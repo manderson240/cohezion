@@ -1,6 +1,6 @@
 {
   "title": "Recursive Experiential Learning Audit across Active Competitions (SOTA Synchronized)",
-  "timestamp": "2026-10-18T00:00:07.122358+00:00",
+  "timestamp": "2026-10-18T00:41:35.150867+00:00",
   "audit_data": [
     {
       "competition": "RSNA Knee Abnormality",
@@ -142,6 +142,13 @@
       },
       "recent_history": [
         {
+          "ref": 57331907,
+          "date": "2026-10-18 00:39:28.807000",
+          "status": "SubmissionStatus.PENDING",
+          "public_score": "",
+          "description": "Cohezion ARC-AGI-2 SOTA v16: NPU-Verified D4 Dihedral Equivariance Invariant (Attempt-2 Non-Duplication)"
+        },
+        {
           "ref": 57288127,
           "date": "2026-10-17 00:11:25.323000",
           "status": "SubmissionStatus.COMPLETE",
@@ -175,13 +182,6 @@
           "status": "SubmissionStatus.COMPLETE",
           "public_score": "29.31",
           "description": "Cohezion ARC-AGI-2 SOTA v15: Quad-L4 SOTA Monotonic LoRA Attempt-2 DSL Injection"
-        },
-        {
-          "ref": 57058497,
-          "date": "2026-10-11 01:34:20.760000",
-          "status": "SubmissionStatus.COMPLETE",
-          "public_score": "27.64",
-          "description": "Cohezion ARC-AGI-2: Quad-L4 SOTA Monotonic LoRA Attempt-2 DSL Injection (Daily Quota Reset)"
         }
       ]
     },
