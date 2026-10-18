@@ -67,11 +67,13 @@ def test_stylometric_entropy_extractor() -> None:
 
 def test_sinkhorn_marginal_balancer() -> None:
     # 3 samples, 2 classes
-    raw_probs = np.array([
-        [0.90, 0.10],
-        [0.80, 0.20],
-        [0.70, 0.30],
-    ])
+    raw_probs = np.array(
+        [
+            [0.90, 0.10],
+            [0.80, 0.20],
+            [0.70, 0.30],
+        ]
+    )
     # Target uniform class priors
     target_priors = np.array([0.5, 0.5])
     balanced = SinkhornMarginalBalancer.balance(raw_probs, target_priors, max_iter=20)
@@ -97,7 +99,7 @@ def test_zobrist_cycle_watchdog() -> None:
 
     assert not watchdog.record_and_check_cycle(state)  # 1st time: count 1 <= 2
     assert not watchdog.record_and_check_cycle(state)  # 2nd time: count 2 <= 2
-    assert watchdog.record_and_check_cycle(state)      # 3rd time: count 3 > 2 (cycle detected!)
+    assert watchdog.record_and_check_cycle(state)  # 3rd time: count 3 > 2 (cycle detected!)
 
 
 def test_duck_context_eviction_harness() -> None:
@@ -111,3 +113,63 @@ def test_duck_context_eviction_harness() -> None:
     assert len(evicted) == 3
     assert "CURRENT ACTIVE PATCH" in evicted[-1]["content"]
     assert "ACTIVE TEST TRACEBACK" in evicted[-1]["content"]
+
+
+def test_copula_rank_blender() -> None:
+    from cohezion.kaggle.grandmaster_invariant_engine import CopulaRankBlender
+
+    p1 = np.array([0.10, 0.40, 0.80, 0.95])
+    p2 = np.array([0.05, 0.30, 0.70, 0.90])
+    blended = CopulaRankBlender.blend([p1, p2], weights=[0.5, 0.5])
+
+    assert len(blended) == 4
+    # Monotonicity preserved
+    assert blended[0] < blended[1] < blended[2] < blended[3]
+    # Bound-insulation
+    assert np.all(blended >= 1e-6)
+    assert np.all(blended <= 1.0 - 1e-6)
+
+
+def test_tautomer_inchikey_canonicalizer() -> None:
+    from cohezion.kaggle.grandmaster_invariant_engine import TautomerInChIKeyCanonicalizer
+
+    # Ethanol SMILES
+    key14 = TautomerInChIKeyCanonicalizer.canonicalize_inchikey14("CCO")
+    assert len(key14) == 14
+
+
+def test_anti_cyclic_action_gator() -> None:
+    from cohezion.kaggle.grandmaster_invariant_engine import AntiCyclicActionGator
+
+    gator = AntiCyclicActionGator(action_dim=4)
+    # Action sequence: 0, 1, 0 -> proposed 1 creates a 2-cycle loop
+    assert gator.select_action(0) == 0
+    assert gator.select_action(1) == 1
+    assert gator.select_action(0) == 0
+    # Next proposed is 1 -> trap detected! Orthogonal escape pulse triggers
+    perturbed = gator.select_action(1)
+    assert perturbed != 1  # Successfully escaped the 0 -> 1 -> 0 -> 1 cycle!
+
+
+def test_ast_patch_preflight_verifier() -> None:
+    from cohezion.kaggle.grandmaster_invariant_engine import ASTPatchPreflightVerifier
+
+    valid_code = "def add(a: int, b: int) -> int:\n    return a + b\n"
+    ok, msg = ASTPatchPreflightVerifier.verify_syntax(valid_code)
+    assert ok is True
+
+    invalid_code = "def bad_syntax(:\n    return\n"
+    ok, msg = ASTPatchPreflightVerifier.verify_syntax(invalid_code)
+    assert ok is False
+    assert "SyntaxError" in msg
+
+
+def test_orthogonal_top2_attempt_generator() -> None:
+    from cohezion.kaggle.grandmaster_invariant_engine import OrthogonalTop2AttemptGenerator
+
+    a1 = np.array([[1, 2], [3, 4]])
+    a2_duplicate = np.array([[1, 2], [3, 4]])
+
+    out1, out2 = OrthogonalTop2AttemptGenerator.generate(a1, a2_duplicate)
+    # Guaranteed non-redundancy: Attempt 2 must not equal Attempt 1
+    assert not np.array_equal(out1, out2)
