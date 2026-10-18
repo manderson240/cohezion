@@ -120,6 +120,42 @@ class HarnessDefinition:
             "hash": self.calculate_hash(),
         }
 
+    def mount_to_directory(self, target_dir: Path | str) -> dict[HarnessComponentType, Path]:
+        """Mounts the K=8 components to disk in the Google Research Harness^2 format."""
+        target_path = Path(target_dir)
+        target_path.mkdir(parents=True, exist_ok=True)
+        mounted = {}
+        for comp, content in self.components.items():
+            comp_path = target_path / comp.value
+            if comp.value.endswith((".txt", ".md", ".py")):
+                comp_path.parent.mkdir(parents=True, exist_ok=True)
+                comp_path.write_text(content, encoding="utf-8")
+            else:
+                # Directory components: skills, tools, scripts, subagents
+                comp_path.mkdir(parents=True, exist_ok=True)
+                (comp_path / "README.md").write_text(content, encoding="utf-8")
+            mounted[comp] = comp_path
+        return mounted
+
+    @classmethod
+    def load_from_directory(cls, harness_id: str, source_dir: Path | str) -> HarnessDefinition:
+        """Loads a K=8 component harness definition from a mounted directory."""
+        source_path = Path(source_dir)
+        components = {}
+        for comp in HarnessComponentType:
+            comp_path = source_path / comp.value
+            if comp_path.is_file():
+                components[comp] = comp_path.read_text(encoding="utf-8")
+            elif comp_path.is_dir():
+                readme_path = comp_path / "README.md"
+                if readme_path.is_file():
+                    components[comp] = readme_path.read_text(encoding="utf-8")
+                else:
+                    texts = [p.read_text(encoding="utf-8") for p in sorted(comp_path.glob("*.md"))]
+                    if texts:
+                        components[comp] = "\n\n".join(texts)
+        return cls(harness_id=harness_id, components=components)
+
     @classmethod
     def from_dict(cls, data: dict[str, Any]) -> HarnessDefinition:
         components = {
@@ -650,3 +686,127 @@ class Harness2Engine:
             self.store.save_experience(exp)
 
         return successor_harness, successor_exec, exp, evaluated_edits
+
+    def run_recursive_harnessing(
+        self,
+        task_id: str,
+        task_query: str,
+        base_harness: HarnessDefinition,
+        reference_exec: ExecutionRecord,
+        probe_runner_fn: Any,
+        budget_k: int = 1,
+        mode: str = "sequential",
+    ) -> tuple[HarnessDefinition, ExecutionRecord, list[HarnessExperience], list[ComponentEdit]]:
+        """Executes multi-round recursive agent harnessing (Google Research Harness^2).
+
+        Parameters
+        ----------
+        task_id : str
+            Unique task identifier.
+        task_query : str
+            The open-world task instruction.
+        base_harness : HarnessDefinition
+            Initial execution harness H_0.
+        reference_exec : ExecutionRecord
+            Observed baseline execution trajectory e_0.
+        probe_runner_fn : Callable[[HarnessDefinition], ExecutionRecord]
+            Evaluation probe runner.
+        budget_k : int
+            Recursion depth (sequential) or width (parallel). Default is 1.
+        mode : str
+            "sequential" for depth-k chained PPC rounds;
+            "parallel" for width-k orthogonal candidate exploration.
+
+        Returns
+        -------
+        tuple[HarnessDefinition, ExecutionRecord, list[HarnessExperience], list[ComponentEdit]]
+            Refined harness H*, final execution record, extracted experiences, and evaluated edits.
+        """
+        all_experiences: list[HarnessExperience] = []
+        all_edits: list[ComponentEdit] = []
+
+        if budget_k <= 1 or mode == "sequential":
+            # Sequential recursion: depth-k successive PPC refinements
+            current_harness = base_harness
+            current_exec = reference_exec
+
+            for round_idx in range(max(1, budget_k)):
+                round_task_id = f"{task_id}_r{round_idx + 1}"
+                (
+                    succ_harness,
+                    succ_exec,
+                    exp,
+                    edits,
+                ) = self.run_contrastive_improvement_step(
+                    task_id=round_task_id,
+                    task_query=task_query,
+                    base_harness=current_harness,
+                    reference_exec=current_exec,
+                    probe_runner_fn=probe_runner_fn,
+                )
+                current_harness = succ_harness
+                current_exec = succ_exec
+                if exp:
+                    all_experiences.append(exp)
+                all_edits.extend(edits)
+
+            return current_harness, current_exec, all_experiences, all_edits
+
+        # Parallel recursion: width-k exploration
+        applicable_exps = self.store.list_experiences()
+        candidate_harnesses: list[HarnessDefinition] = []
+        candidate_edits_pool: list[ComponentEdit] = []
+
+        for branch_idx in range(budget_k):
+            # Propose candidates with perturbed random seeds or distinct subset of experiences
+            inv_c, dom_c, edits = self.proposer.propose_candidates(
+                base_harness=base_harness,
+                reference_exec=reference_exec,
+                task_query=f"{task_query} [Branch {branch_idx + 1}]",
+                applicable_experiences=applicable_exps,
+            )
+            candidate_harnesses.extend([inv_c, dom_c])
+            candidate_edits_pool.extend(edits)
+
+        # Probe all candidates in parallel
+        probed_records = [probe_runner_fn(cand) for cand in candidate_harnesses]
+
+        # Contrast each with reference and compose best components
+        composed_components = dict(base_harness.components)
+        verified_edits: list[ComponentEdit] = []
+
+        for cand_harness, cand_rec in zip(candidate_harnesses, probed_records):
+            contrast = self.prober.extract_contrasts(reference_exec, cand_rec)
+            if contrast.get("improved", False) and not contrast.get("regressed", False):
+                for comp, content in cand_harness.components.items():
+                    if content != base_harness.get_content(comp):
+                        composed_components[comp] = content
+                        verified_edits.append(
+                            ComponentEdit(
+                                component=comp,
+                                candidate_scope="PARALLEL",
+                                change_summary=f"Parallel branch {cand_harness.harness_id} verified improvement",
+                                diff_content=content[:100],
+                                observed_difference="Mitigated errors across parallel probe",
+                                verdict=HarnessVerdict.HELPED,
+                            )
+                        )
+
+        final_harness = HarnessDefinition(
+            harness_id=f"{base_harness.harness_id}_parallel_k{budget_k}",
+            components=composed_components,
+            metadata={"mode": "parallel", "width_k": budget_k},
+        )
+        final_exec = probe_runner_fn(final_harness)
+
+        _, exp = self.reflector.reflect(
+            task_id=task_id,
+            base_harness=base_harness,
+            candidate_edits=verified_edits,
+            final_deliverable=final_exec.deliverable,
+        )
+        if exp:
+            self.store.save_experience(exp)
+            all_experiences.append(exp)
+
+        return final_harness, final_exec, all_experiences, verified_edits
