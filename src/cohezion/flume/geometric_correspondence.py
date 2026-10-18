@@ -42,6 +42,11 @@ class GeometricCorrespondenceEngine:
     def compute_poincare_distance(self, u: tuple[float, ...], v: tuple[float, ...]) -> float:
         """Compute hyperbolic distance on the Poincaré ball model with full dimensionality."""
         dim = min(len(u), len(v))
+        from cohezion.polyglot.rust_bridge import fast_poincare_distance, is_rust_accelerated
+
+        if is_rust_accelerated() and len(u) == len(v):
+            return fast_poincare_distance(u, v)
+
         norm_u_sq = sum(x * x for x in u[:dim])
         norm_v_sq = sum(x * x for x in v[:dim])
         diff_sq = sum((x - y) ** 2 for x, y in zip(u[:dim], v[:dim]))

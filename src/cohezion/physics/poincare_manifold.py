@@ -52,6 +52,11 @@ class PoincareManifoldND:
         if u.dim != v.dim:
             raise ValueError(f"Dimensional mismatch: u is {u.dim}D, v is {v.dim}D")
 
+        from cohezion.polyglot.rust_bridge import fast_poincare_distance, is_rust_accelerated
+
+        if is_rust_accelerated():
+            return fast_poincare_distance(u.coords, v.coords)
+
         u_sq = sum(c * c for c in u.coords)
         v_sq = sum(c * c for c in v.coords)
 
@@ -70,8 +75,8 @@ class PoincareManifoldND:
     def pairwise_distance_matrix(cls, points: Sequence[PoincarePoint]) -> list[list[float]]:
         """Compute all-pairs hyperbolic distance matrix.
 
-        Uses PyTorch batched tensor ops when available for vectorized acceleration
-        across SIMD / ROCm / Vulkan, with exact pure-Python analytical fallback.
+        Uses Rust PyO3 Rayon parallel execution when available, with PyTorch/NumPy
+        and analytical Python fallbacks.
         """
         n = len(points)
         if n == 0:
@@ -83,6 +88,15 @@ class PoincareManifoldND:
         for p in points:
             if p.dim != dim:
                 raise ValueError(f"Dimensional mismatch: expected {dim}D, got {p.dim}D")
+
+        from cohezion.polyglot.rust_bridge import (
+            fast_poincare_pairwise_distances,
+            is_rust_accelerated,
+        )
+
+        if is_rust_accelerated():
+            pts_coords = [p.coords for p in points]
+            return fast_poincare_pairwise_distances(pts_coords)
 
         try:
             import torch

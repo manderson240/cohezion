@@ -17,6 +17,8 @@ from cohezion.polyglot.rust_bridge import (
     fast_kahn_topological_sort,
     fast_poincare_conformal_factor,
     fast_poincare_distance,
+    fast_poincare_mobius_add,
+    fast_poincare_pairwise_distances,
     fast_zobrist_hash_grid,
     is_rust_accelerated,
 )
@@ -35,6 +37,8 @@ __all__ = [
     "fast_kahn_topological_sort",
     "fast_poincare_conformal_factor",
     "fast_poincare_distance",
+    "fast_poincare_mobius_add",
+    "fast_poincare_pairwise_distances",
     "fast_zobrist_hash_grid",
     "is_rust_accelerated",
 ]

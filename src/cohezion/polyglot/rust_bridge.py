@@ -140,3 +140,43 @@ def fast_zobrist_hash_grid(grid: list[list[int]]) -> int:
 
     raw = repr(grid).encode("utf-8")
     return int(hashlib.sha256(raw).hexdigest()[:16], 16)
+
+
+def fast_poincare_pairwise_distances(points: Sequence[Sequence[float]]) -> list[list[float]]:
+    """Compute all-pairs hyperbolic distance matrix using Rayon parallel execution."""
+    if _RUST_MODULE is not None:
+        try:
+            pts_list = [list(p) for p in points]
+            return [list(row) for row in _RUST_MODULE.fast_poincare_pairwise_distances(pts_list)]
+        except Exception:
+            pass
+
+    # Fallback
+    n = len(points)
+    mat = [[0.0] * n for _ in range(n)]
+    for i in range(n):
+        for j in range(i + 1, n):
+            d = fast_poincare_distance(points[i], points[j])
+            mat[i][j] = d
+            mat[j][i] = d
+    return mat
+
+
+def fast_poincare_mobius_add(u: Sequence[float], v: Sequence[float]) -> list[float]:
+    """Compute Mobius addition u (+) v in the Poincaré ball."""
+    if _RUST_MODULE is not None:
+        try:
+            return list(_RUST_MODULE.fast_poincare_mobius_add(list(u), list(v)))
+        except Exception:
+            pass
+
+    # Fallback
+    u_sq = sum(x * x for x in u)
+    v_sq = sum(x * x for x in v)
+    u_dot_v = sum(x * y for x, y in zip(u, v, strict=True))
+    denom = 1.0 + 2.0 * u_dot_v + u_sq * v_sq
+    if denom <= 0.0:
+        denom = 1e-7
+
+    return [((1.0 + 2.0 * u_dot_v + v_sq) * x + (1.0 - u_sq) * y) / denom for x, y in zip(u, v, strict=True)]
+
