@@ -123,8 +123,19 @@ class KaggleDispatchGuard:
         else:
             code_cells.append(raw)
 
-        # Validate syntax across code cells
-        full_script = "\n\n".join(code_cells)
+        # Validate syntax across code cells (sanitizing IPython magics like !, %)
+        parsable_cells = []
+        for c in code_cells:
+            cell_lines = []
+            for line in c.splitlines():
+                s = line.strip()
+                if s.startswith("!") or s.startswith("%"):
+                    cell_lines.append(f"# [magic] {line}")
+                else:
+                    cell_lines.append(line)
+            parsable_cells.append("\n".join(cell_lines))
+
+        full_script = "\n\n".join(parsable_cells)
         try:
             ast.parse(full_script)
             ast_valid = len(ast_errors) == 0
@@ -246,7 +257,18 @@ class KaggleDispatchGuard:
                 return None
 
             # Verify amended code parses cleanly
-            full_code = "\n\n".join(amended_cells)
+            parsable_amended = []
+            for c in amended_cells:
+                cell_lines = []
+                for line in c.splitlines():
+                    s = line.strip()
+                    if s.startswith("!") or s.startswith("%"):
+                        cell_lines.append(f"# [magic] {line}")
+                    else:
+                        cell_lines.append(line)
+                parsable_amended.append("\n".join(cell_lines))
+
+            full_code = "\n\n".join(parsable_amended)
             ast.parse(full_code)
 
             if artifact.is_notebook:
