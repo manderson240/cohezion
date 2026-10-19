@@ -107,10 +107,7 @@ class TestGAIARunner:
         class MockAgent:
             async def run_task(self, task: GAIATask) -> dict:
                 # Resolve Level 1 and 2, fail Level 3
-                if task.level in (1, 2):
-                    ans = task.ground_truth
-                else:
-                    ans = "wrong_answer"
+                ans = task.ground_truth if task.level in (1, 2) else "wrong_answer"
                 return {
                     "answer": ans,
                     "tool_calls": [],

@@ -10,14 +10,14 @@ Implements:
 from __future__ import annotations
 
 import asyncio
-from dataclasses import dataclass, field
-from datetime import datetime
 import json
 import logging
 import math
-from pathlib import Path
 import re
 import time
+from dataclasses import dataclass, field
+from datetime import datetime
+from pathlib import Path
 from typing import Any
 
 from cohezion.agi.autoharness_policy import AutoHarnessPolicy, VerificationResult
@@ -29,6 +29,7 @@ logger = logging.getLogger(__name__)
 # ==============================================================================
 # 1. GAIA Task & Result Dataclasses
 # ==============================================================================
+
 
 @dataclass
 class GAIATask:
@@ -80,6 +81,7 @@ class GAIABenchmarkResult:
 # ==============================================================================
 # 2. Deterministic GAIA Normalizer
 # ==============================================================================
+
 
 class GAIANormalizer:
     """Deterministic normalizer for GAIA benchmark answer verification.
@@ -184,9 +186,8 @@ class GAIANormalizer:
         # 2. Date comparison (ISO-8601)
         c_date = cls._parse_date(c_str)
         g_date = cls._parse_date(g_str)
-        if c_date and g_date:
-            if c_date == g_date:
-                return True
+        if c_date and g_date and c_date == g_date:
+            return True
 
         # 3. Set/List comparison (order-invariant comma-separated)
         if "," in c_str or "," in g_str:
@@ -196,10 +197,7 @@ class GAIANormalizer:
                 return True
 
         # 4. Text comparison (normalized whitespace/punctuation/casing)
-        if cls.normalize_text(c_str) == cls.normalize_text(g_str):
-            return True
-
-        return False
+        return cls.normalize_text(c_str) == cls.normalize_text(g_str)
 
 
 # ==============================================================================
@@ -264,6 +262,7 @@ CANONICAL_GAIA_TASKS: list[GAIATask] = [
 # ==============================================================================
 # 4. GAIARunner with AutoHarness Pre-Flight Verification
 # ==============================================================================
+
 
 class GAIARunner:
     """Benchmark runner for GAIA agent evaluations with AutoHarness verification."""
@@ -404,9 +403,7 @@ class GAIARunner:
             token_efficiency=token_eff,
         )
 
-    def export_to_vault(
-        self, result: GAIABenchmarkResult, vault_path: Path | None = None
-    ) -> Path:
+    def export_to_vault(self, result: GAIABenchmarkResult, vault_path: Path | None = None) -> Path:
         """Export structured markdown scorecard to Cohezion Obsidian Vault."""
         timestamp_slug = datetime.now().strftime("%Y%m%d_%H%M%S")
         if vault_path is None:
@@ -455,7 +452,11 @@ class GAIARunner:
         for r in result.task_results:
             status_symbol = "✅ Pass" if r.resolved else "❌ Fail"
             gt_disp = (r.ground_truth[:30] + "..") if len(r.ground_truth) > 30 else r.ground_truth
-            cand_disp = (r.candidate_answer[:30] + "..") if len(r.candidate_answer) > 30 else r.candidate_answer
+            cand_disp = (
+                (r.candidate_answer[:30] + "..")
+                if len(r.candidate_answer) > 30
+                else r.candidate_answer
+            )
             lines.append(
                 f"| `{r.task_id}` | L{r.level} | `{gt_disp}` | `{cand_disp}` | {status_symbol} | {r.latency_s:.3f} | {r.total_tokens} |"
             )
@@ -469,6 +470,7 @@ class GAIARunner:
 # ==============================================================================
 # 5. Legacy OSWorld / TerminalBench Runner (Backward Compatibility)
 # ==============================================================================
+
 
 @dataclass
 class AgenticTask:
