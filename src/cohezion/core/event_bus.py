@@ -70,6 +70,11 @@ class EventType(Enum):
     KAGGLE_BENCHMARK_RECORDED = auto()
     KAGGLE_AGENT_EXAM_EVALUATED = auto()
 
+    # System telemetry, journals, and workspaces
+    RESOURCE_TELEMETRY = auto()
+    SYSTEM_JOURNAL_ALERT = auto()
+    WORKSPACE_STATE = auto()
+
 
 @dataclass(frozen=True, slots=True)
 class Event:
@@ -131,6 +136,51 @@ class Event:
             payload={"tier": tier, **kwargs},
         )
 
+    @classmethod
+    def resource_telemetry(
+        cls,
+        source: str,
+        cpu_pct: float,
+        avail_mem_gib: float,
+        swap_used_gib: float,
+        gtt_used_gib: float,
+        psi_pressure: float,
+        **kwargs,
+    ) -> Event:
+        return cls(
+            type=EventType.RESOURCE_TELEMETRY,
+            source=source,
+            payload={
+                "cpu_pct": cpu_pct,
+                "avail_mem_gib": avail_mem_gib,
+                "swap_used_gib": swap_used_gib,
+                "gtt_used_gib": gtt_used_gib,
+                "psi_pressure": psi_pressure,
+                **kwargs,
+            },
+        )
+
+    @classmethod
+    def journal_alert(
+        cls, source: str, facility: str, priority: str, message: str, **kwargs
+    ) -> Event:
+        return cls(
+            type=EventType.SYSTEM_JOURNAL_ALERT,
+            source=source,
+            payload={"facility": facility, "priority": priority, "message": message, **kwargs},
+            priority=1,
+        )
+
+    @classmethod
+    def workspace_state(
+        cls, source: str, worktrees: list[dict[str, Any]], active_path: str, **kwargs
+    ) -> Event:
+        return cls(
+            type=EventType.WORKSPACE_STATE,
+            source=source,
+            payload={"worktrees": worktrees, "active_path": active_path, **kwargs},
+        )
+
     # --- reconcile 2026-08-26: methods preserved from the branch (worktree-virtual-soaring-shamir) ---
     @classmethod
     def model_lifecycle(
@@ -185,27 +235,49 @@ class Event:
         return cls(
             type=EventType.KAGGLE_SUBMISSION_GRADED,
             source="kaggle-sentinel",
-            payload={"competition": competition, "ref": ref, "score": score, "status": status, **kwargs},
+            payload={
+                "competition": competition,
+                "ref": ref,
+                "score": score,
+                "status": status,
+                **kwargs,
+            },
         )
 
     @classmethod
-    def kaggle_resource_synced(cls, resource_type: str, handle: str, local_path: str, **kwargs) -> Event:
+    def kaggle_resource_synced(
+        cls, resource_type: str, handle: str, local_path: str, **kwargs
+    ) -> Event:
         return cls(
             type=EventType.KAGGLE_RESOURCE_SYNCED,
             source="kaggle-hub",
-            payload={"resource_type": resource_type, "handle": handle, "local_path": local_path, **kwargs},
+            payload={
+                "resource_type": resource_type,
+                "handle": handle,
+                "local_path": local_path,
+                **kwargs,
+            },
         )
 
     @classmethod
-    def kaggle_benchmark_recorded(cls, task_name: str, metric_value: float, run_id: str, **kwargs) -> Event:
+    def kaggle_benchmark_recorded(
+        cls, task_name: str, metric_value: float, run_id: str, **kwargs
+    ) -> Event:
         return cls(
             type=EventType.KAGGLE_BENCHMARK_RECORDED,
             source="kaggle-benchmarks",
-            payload={"task_name": task_name, "metric_value": metric_value, "run_id": run_id, **kwargs},
+            payload={
+                "task_name": task_name,
+                "metric_value": metric_value,
+                "run_id": run_id,
+                **kwargs,
+            },
         )
 
     @classmethod
-    def kaggle_agent_exam_evaluated(cls, exam_id: str, score: float, details: dict[str, Any] | None = None, **kwargs) -> Event:
+    def kaggle_agent_exam_evaluated(
+        cls, exam_id: str, score: float, details: dict[str, Any] | None = None, **kwargs
+    ) -> Event:
         return cls(
             type=EventType.KAGGLE_AGENT_EXAM_EVALUATED,
             source="kaggle-agent-exam",
