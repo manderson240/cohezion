@@ -49,6 +49,9 @@ WORKSPACE = Path(
     "/home/mike-anderson/.gemini/antigravity-cli/worktrees/cohezion/ollama_lemonade_kaggle_push"
 )
 sys.path.insert(0, str(WORKSPACE / "src"))
+from cohezion.kaggle.preflight_validator import PreflightValidator  # noqa: E402
+
+
 STATE_FILE = WORKSPACE / "scripts" / "kaggle" / "daily_allotment_state.json"
 
 # Invariant specifications for Slots 1..5 for each competition
@@ -708,6 +711,18 @@ def run_cycle(api: KaggleApi, state: dict[str, Any]) -> bool:
             )
             log_experiential_learning(comp_slug, subs[0])
             record_pre_dispatch_reflection(comp_slug, target_slot, subs[0], comp_cfg)
+
+        # Enforce automated Pre-Flight OOF Validation Gate
+        preflight_validator = PreflightValidator(workspace_root=WORKSPACE)
+        preflight_res = preflight_validator.validate_slot(comp_slug, target_slot, comp_cfg)
+        if not preflight_res.passed:
+            logger.warning(
+                "[%s] Slot %d FAILED pre-flight OOF validation gate: %s. Skipping dispatch to protect daily quota.",
+                comp_slug,
+                target_slot,
+                preflight_res.reason,
+            )
+            continue
 
         success = dispatch_slot_submission(api, comp_slug, target_slot, comp_cfg)
         if success:
