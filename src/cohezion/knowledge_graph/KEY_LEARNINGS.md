@@ -1,5 +1,13 @@
 # KEY LEARNINGS
 
+## Learning 572: Kaggle Stylometric & PersonalityBench Feature Leverage (2026-10-19)
+L572: Leveraged Artificial Analysis AA-PersonalityBench (21 communication characteristics + 8 personality indexes) into zero-overhead tabular feature extractors for active Kaggle competitions.
+Domain Expertise: Competitive NLP feature engineering, model attribution stylometrics, and developer agent gating.
+Key Invariant: Every generative LLM family possesses an immutable behavioral and stylometric DNA measurable via 21 surface text metrics and 8 psychological personality indexes (Expressiveness, Organization, Informativeness, Transparency, Warmth, Conviction, Imagination, Slop). In `Name That LLM`, concatenating individual vectors with pairwise differentials ($\mathbf{x}_{\text{pair}} = [\mathbf{x}_A, \mathbf{x}_B, \mathbf{x}_A - \mathbf{x}_B] \in \mathbb{R}^{87}$) provides discriminative tabular features that accelerate GBDT models with 0ms GPU latency. In `Gemma-4 Developer Agent`, automated pre-flight filtering ($\text{Slop} \le 25.0, \text{Organization} \ge 50.0, \text{Transparency} \ge 50.0$) eliminates conversational boilerplate that breaks evaluation parsers.
+*12D State Vector*: `[12D State: Space=Kaggle-NameThatLLM-Gemma4-Stylometrics, Time=October 2026, Physics=TheoremP2-PersonalityBenchKaggleLeverage-PairwiseDifferentialGBDT, Brane=Cohezion-Competitive-ML]`
+
+---
+
 ## Learning 571: Canonical 5-Pillar Engineering Artifact Standardization (2026-10-19)
 L571: Standardized all 45 system artifacts under a canonical 5-pillar template (Metadata, Executive Summary, Architecture Schematic, Technical Invariant Specs, Empirical Verification & Traceability).
 Domain Expertise: Knowledge architecture, documentation governance, automated readability and efficacy auditing.
