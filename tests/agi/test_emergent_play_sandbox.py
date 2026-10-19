@@ -10,10 +10,13 @@ import pytest
 from cohezion.agi.emergent_play_sandbox import (
     AffordanceType,
     ARC3PlaygroundAdapter,
+    BubblewrapSandboxSpec,
     DualMemoryManager,
     EmergentPlayEngine,
+    EmpiricalPlayBenchmarkScorecard,
     EndogenousChallenge,
     EpisodicMemoryEntry,
+    HourlySessionResetManager,
     PlayCriterion,
     SemanticAffordance,
 )
@@ -186,3 +189,68 @@ def test_arc3_childhood_pre_play(temp_workspace: Path):
     assert summary["unique_states_explored"] > 1
     assert summary["affordances_mapped"] is True
     assert engine.memory.has_affordance("GRID_BLOCK_PUSHABLE") is True
+
+
+
+def test_hourly_session_reset_and_rehydration(temp_workspace: Path):
+    """Test hourly session resets with episodic compaction and semantic rehydration (Appendix A.4)."""
+    memory = DualMemoryManager(temp_workspace)
+    aff = SemanticAffordance(
+        affordance_id="ROCK_IMPACT_CLEAVAGE",
+        affordance_type=AffordanceType.PROP_FRACTURE,
+        predicate_rule="Impact >= 10.0 -> Cube generation",
+        preconditions={"speed": 10.0},
+        outcomes={"spawned": 3},
+        discovered_session="session_000",
+    )
+    memory.register_affordance(aff)
+
+    # Log 3 episodic entries
+    for i in range(3):
+        entry = EpisodicMemoryEntry(
+            step=i,
+            session_id="session_000",
+            action=f"ACTION_{i}",
+            params={"val": i},
+            observation={"success": True},
+            symbolic_pretense=f"Metaphor {i}",
+        )
+        memory.log_episode(entry)
+
+    reset_mgr = HourlySessionResetManager(memory, soul_text="Eko is an autotelic explorer.")
+    assert "You will be reset in 5 minutes" in reset_mgr.trigger_pre_reset_warning()
+
+    state = reset_mgr.advance_session()
+    assert state["session_index"] == 1
+    assert state["new_session_id"] == "session_001"
+    prompt = state["rehydrated_system_prompt"]
+    assert "Eko is an autotelic explorer." in prompt
+    assert "ROCK_IMPACT_CLEAVAGE" in prompt
+    assert "Metaphor 0" in prompt
+    assert state["episodic_entries_count"] == 3
+
+
+def test_bubblewrap_sandbox_spec(temp_workspace: Path):
+    """Test bubblewrap security sandbox containment specification (Appendix A.5)."""
+    from cohezion.agi.emergent_play_sandbox import BubblewrapSandboxSpec
+
+    spec = BubblewrapSandboxSpec(workspace_dir=temp_workspace)
+    args = spec.build_bwrap_args()
+    assert "bwrap" in args
+    assert "--unshare-all" in args
+    assert "/workspace" in args
+    assert "--chdir" in args
+
+
+def test_empirical_play_benchmark_scorecard():
+    """Test quantitative evaluation metrics between 30h play and 0h naive baseline (Sec 5.1)."""
+    from cohezion.agi.emergent_play_sandbox import EmpiricalPlayBenchmarkScorecard
+
+    ref_30h = EmpiricalPlayBenchmarkScorecard.reference_30h_mean()
+    ref_0h = EmpiricalPlayBenchmarkScorecard.reference_0h_mean()
+
+    lift = ref_30h.evaluate_relative_lift(ref_0h)
+    assert lift["many_5_towers_lift"] == pytest.approx(250.0, abs=1.0)
+    assert lift["objects_on_spire_lift"] == pytest.approx(233.33, abs=1.0)
+    assert lift["tallest_tower_lift"] == pytest.approx(53.33, abs=1.0)
+    assert lift["throw_success_delta"] == 1.0

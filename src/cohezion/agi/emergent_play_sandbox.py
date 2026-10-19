@@ -389,3 +389,154 @@ class ARC3PlaygroundAdapter:
             "affordances_mapped": affordance_mapped,
             "semantic_records": len(self.play_engine.memory.semantic_affordances),
         }
+
+
+
+@dataclass
+class BubblewrapSandboxSpec:
+    """Security sandbox specification isolating agent runs (arXiv:2610.07130 Appendix A.5).
+
+    Prevents world source leakage, cross-agent directory collision, and meta-inferential
+    recognition of experimental subject status.
+    """
+
+    workspace_dir: Path
+    world_api_url: str = "http://world"
+    ro_binds: List[str] = field(default_factory=lambda: ["/bin", "/usr", "/lib", "/lib64", "/etc"])
+    unshare_all: bool = True
+    isolate_pid: bool = True
+    isolate_net: bool = True
+
+    def build_bwrap_args(self) -> List[str]:
+        """Synthesize deterministic bubblewrap arguments."""
+        args = ["bwrap"]
+        for ro in self.ro_binds:
+            args.extend(["--ro-bind", ro, ro])
+        args.extend(["--bind", str(self.workspace_dir), "/workspace"])
+        args.extend(["--dir", "/tmp", "--proc", "/proc", "--dev", "/dev"])
+        if self.unshare_all:
+            args.append("--unshare-all")
+        if not self.isolate_net:
+            args.append("--share-net")
+        args.extend(["--chdir", "/workspace"])
+        return args
+
+
+class HourlySessionResetManager:
+    """Orchestrates hourly session resets with memory rehydration (arXiv:2610.07130 Appendix A.4).
+
+    Prevents context degradation, compaction stagnation, and idling loops.
+    Sends the 5-minute pre-reset warning, wipes transient conversation history,
+    and re-hydrates the new session prompt with SOUL.md, full SEMANTIC_MEMORY.md,
+    and compact single-line episodic summaries.
+    """
+
+    PRE_RESET_WARNING = "You will be reset in 5 minutes. Update your workspace memory files now."
+    CONTINUATION_PROMPT = "Please don't stop. Just continue doing whatever you want to do."
+
+    def __init__(self, memory_manager: DualMemoryManager, soul_text: Optional[str] = None):
+        self.memory = memory_manager
+        self.soul_text = soul_text or (
+            "You are a being living in your world. Your name is Eko. "
+            "You are naturally curious, easily bored, and eager to explore and learn."
+        )
+        self.session_index: int = 0
+        self.active_session_id: str = f"session_{self.session_index:03d}"
+
+    def trigger_pre_reset_warning(self) -> str:
+        """Issue the 55-minute memory consolidation warning prompt."""
+        return self.PRE_RESET_WARNING
+
+    def advance_session(self) -> Dict[str, Any]:
+        """Perform hourly context reset and build re-hydrated system prompt."""
+        self.session_index += 1
+        self.active_session_id = f"session_{self.session_index:03d}"
+
+        # 1. Read semantic memory in full
+        semantic_content = ""
+        if self.memory.semantic_path.exists():
+            semantic_content = self.memory.semantic_path.read_text(encoding="utf-8")
+
+        # 2. Extract single-line summaries of episodic entries (Appendix A.2)
+        episodic_summaries: List[str] = []
+        for e in self.memory.episodic_entries:
+            summary = (
+                f"[{time.strftime('%H:%M:%S', time.gmtime(e.timestamp))}] "
+                f"Step {e.step}: {e.action} -> "
+                + (f"Pretense: '{e.symbolic_pretense}' | " if e.symbolic_pretense else "")
+                + (f"Cause: '{e.hypothesized_cause}'" if e.hypothesized_cause else f"Obs: {e.observation}")
+            )
+            episodic_summaries.append(summary)
+
+        # 3. Assemble rehydrated session system prompt
+        rehydrated_prompt = (
+            f"=== SOUL.md ===\n{self.soul_text}\n\n"
+            f"=== ACTIVE SESSION ===\nSession ID: {self.active_session_id}\n\n"
+            f"=== SEMANTIC MEMORY (Full Rules & Affordances) ===\n{semantic_content}\n\n"
+            f"=== EPISODIC MEMORY SUMMARIES ({len(episodic_summaries)} events) ===\n"
+            + "\n".join(episodic_summaries[-50:])  # Bound to last 50 entries
+        )
+
+        return {
+            "new_session_id": self.active_session_id,
+            "session_index": self.session_index,
+            "rehydrated_prompt_length": len(rehydrated_prompt),
+            "rehydrated_system_prompt": rehydrated_prompt,
+            "episodic_entries_count": len(self.memory.episodic_entries),
+            "semantic_affordances_count": len(self.memory.semantic_affordances),
+        }
+
+
+@dataclass
+class EmpiricalPlayBenchmarkScorecard:
+    """Quantitative evaluation suite comparing play-trained vs naive agents (arXiv:2610.07130 Sec 5.1).
+
+    Probes 4 downstream tasks:
+    1. many-5-towers: Build as many 5-block-high towers as possible.
+    2. objects-on-spire: Get as many objects as possible onto the Spire.
+    3. throw-on-spire: Throw a block onto the Spire without climbing.
+    4. tallest-tower: Build tallest tower in one column.
+    """
+
+    agent_id: str
+    play_hours: float
+    many_5_towers_count: int
+    objects_on_spire_count: int
+    throw_on_spire_success: bool
+    tallest_tower_blocks: int
+
+    @classmethod
+    def reference_30h_mean(cls) -> "EmpiricalPlayBenchmarkScorecard":
+        """Reference mean performance of 30-hour play agents from Cloos et al. (Fig 5)."""
+        return cls(
+            agent_id="ref_30h_claude_opus_4_7",
+            play_hours=30.0,
+            many_5_towers_count=7,
+            objects_on_spire_count=10,
+            throw_on_spire_success=True,
+            tallest_tower_blocks=23,
+        )
+
+    @classmethod
+    def reference_0h_mean(cls) -> "EmpiricalPlayBenchmarkScorecard":
+        """Reference mean performance of naive 0-hour agents from Cloos et al. (Fig 5)."""
+        return cls(
+            agent_id="ref_0h_naive_baseline",
+            play_hours=0.0,
+            many_5_towers_count=2,
+            objects_on_spire_count=3,
+            throw_on_spire_success=False,
+            tallest_tower_blocks=15,
+        )
+
+    def evaluate_relative_lift(self, baseline: "EmpiricalPlayBenchmarkScorecard") -> Dict[str, float]:
+        """Compute relative percentage improvements over naive baseline."""
+        tower_lift = (self.many_5_towers_count - baseline.many_5_towers_count) / max(1, baseline.many_5_towers_count)
+        spire_lift = (self.objects_on_spire_count - baseline.objects_on_spire_count) / max(1, baseline.objects_on_spire_count)
+        height_lift = (self.tallest_tower_blocks - baseline.tallest_tower_blocks) / max(1, baseline.tallest_tower_blocks)
+        return {
+            "many_5_towers_lift": tower_lift * 100.0,
+            "objects_on_spire_lift": spire_lift * 100.0,
+            "tallest_tower_lift": height_lift * 100.0,
+            "throw_success_delta": 1.0 if self.throw_on_spire_success and not baseline.throw_on_spire_success else 0.0,
+        }
