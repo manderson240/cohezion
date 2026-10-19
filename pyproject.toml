@@ -143,6 +143,7 @@ dev = [
     "mutmut>=3.0.0",  # Mutation testing suite verification
     "baml-py>=0.226.2",
     "pytest-rerunfailures>=16.6.1",
+    "pyrefly>=1.4.0",
 ]
 ml = [
     "torch>=2.0.0",
@@ -185,7 +186,7 @@ rocm = [
 ]
 
 [tool.ruff]
-target-version = "py311"
+target-version = "py313"
 line-length = 100  # Extended from 88 to accommodate f-strings and comprehensions (Retrospective Session 14)
 exclude = [
     ".archives",

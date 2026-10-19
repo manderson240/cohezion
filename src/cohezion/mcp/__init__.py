@@ -4,6 +4,14 @@ from __future__ import annotations
 
 import contextlib
 
+from .context_curator import (
+    AgentRole,
+    ContextCurator,
+    CuratedMessage,
+    DenyByDefaultMCPGuard,
+    ToolAccessPolicy,
+    ToolDefinition,
+)
 from .oreilly_mcp_client import (
     OReillyContentItem,
     OReillyMCPClient,
@@ -16,6 +24,12 @@ __all__ = [
     "OReillyMCPClient",
     "OReillyContentItem",
     "OReillyTOCItem",
+    "AgentRole",
+    "ContextCurator",
+    "CuratedMessage",
+    "DenyByDefaultMCPGuard",
+    "ToolAccessPolicy",
+    "ToolDefinition",
 ]
 
 # Wiring-sweep 2026-06-22: mcp/ orphan modules — creates import-graph edges.
