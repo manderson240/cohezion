@@ -18,10 +18,10 @@ import psutil
 
 
 LOCK_PATH = Path("/tmp/cohezion_fleet_modelload.lock")
-MIN_AVAILABLE_MEM_GIB = 35.0  # Raised for safety on 128GB UMA
-MAX_SWAP_USED_GIB = 2.0  # Hard swap threshold
-MAX_GTT_USED_GIB = 50.0  # Max safe GPU GTT allocation in GB
-MAX_PSI_PRESSURE = 20.0  # Max kernel memory pressure avg10
+MIN_AVAILABLE_MEM_GIB = 16.0  # Safe floor on 128GB UMA (leaves ample OS and driver buffer)
+MAX_SWAP_USED_GIB = 16.0  # Accommodates dormant daemon paging on a 39GB swap partition
+MAX_GTT_USED_GIB = 72.0  # Allows 70B/32B models to reside in 120GB GTT aperture
+MAX_PSI_PRESSURE = 25.0  # Kernel memory pressure avg10
 
 
 class SmartOOMGovernor:
@@ -83,7 +83,10 @@ class SmartOOMGovernor:
                 False,
                 f"Kernel memory pressure! PSI avg10: {psi} (Max {MAX_PSI_PRESSURE}). Delegate to Cloud.",
             )
-        return True, f"Local Silicon Safe (Avail: {avail_gib} GiB, Swap: {swap_gib} GiB, GTT: {gtt_gib} GiB)"
+        return (
+            True,
+            f"Local Silicon Safe (Avail: {avail_gib} GiB, Swap: {swap_gib} GiB, GTT: {gtt_gib} GiB)",
+        )
 
 
 class CrossSessionFleetLock:

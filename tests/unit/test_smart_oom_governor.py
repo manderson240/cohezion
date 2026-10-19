@@ -24,7 +24,7 @@ def test_smart_oom_governor_memory_state():
 
 def test_smart_oom_governor_rejection_on_low_memory():
     with patch("psutil.virtual_memory") as mock_vm, patch("psutil.swap_memory") as mock_sm:
-        mock_vm.return_value = MagicMock(available=20.0 * (1024**3))
+        mock_vm.return_value = MagicMock(available=10.0 * (1024**3))
         mock_sm.return_value = MagicMock(used=0.5 * (1024**3))
 
         can_exec, reason = SmartOOMGovernor.can_execute_local()
@@ -33,9 +33,11 @@ def test_smart_oom_governor_rejection_on_low_memory():
 
 
 def test_smart_oom_governor_rejection_on_gtt_saturation():
-    with patch("psutil.virtual_memory") as mock_vm, patch(
-        "psutil.swap_memory"
-    ) as mock_sm, patch.object(SmartOOMGovernor, "get_gtt_used_gib", return_value=55.0):
+    with (
+        patch("psutil.virtual_memory") as mock_vm,
+        patch("psutil.swap_memory") as mock_sm,
+        patch.object(SmartOOMGovernor, "get_gtt_used_gib", return_value=80.0),
+    ):
         mock_vm.return_value = MagicMock(available=50.0 * (1024**3))
         mock_sm.return_value = MagicMock(used=0.5 * (1024**3))
 
@@ -45,12 +47,11 @@ def test_smart_oom_governor_rejection_on_gtt_saturation():
 
 
 def test_smart_oom_governor_rejection_on_psi_pressure():
-    with patch("psutil.virtual_memory") as mock_vm, patch(
-        "psutil.swap_memory"
-    ) as mock_sm, patch.object(
-        SmartOOMGovernor, "get_gtt_used_gib", return_value=25.0
-    ), patch.object(
-        SmartOOMGovernor, "get_psi_pressure", return_value=35.0
+    with (
+        patch("psutil.virtual_memory") as mock_vm,
+        patch("psutil.swap_memory") as mock_sm,
+        patch.object(SmartOOMGovernor, "get_gtt_used_gib", return_value=25.0),
+        patch.object(SmartOOMGovernor, "get_psi_pressure", return_value=35.0),
     ):
         mock_vm.return_value = MagicMock(available=50.0 * (1024**3))
         mock_sm.return_value = MagicMock(used=0.5 * (1024**3))
