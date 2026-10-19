@@ -1,5 +1,7 @@
 .PHONY: help format lint lint-check lint-ratchet type-check test all clean train evaluate benchmark demo validate compound-train training-history kernel-status kernel-cycle kernel-loop kernel-loop-dry kernel-report async-guard routing-guard resume dev-loop test-unit test-parallel test-quarantine check-licenses generate-sbom
 
+GOMP_PRELOAD := $(shell [ -f /usr/lib/x86_64-linux-gnu/libgomp.so.1 ] && echo LD_PRELOAD=/usr/lib/x86_64-linux-gnu/libgomp.so.1)
+
 help:  ## Show this help message
 	@echo "Available targets:"
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-20s\033[0m %s\n", $$1, $$2}'
@@ -46,7 +48,7 @@ resume:  ## Re-verify the Anthropic Universes living resume (docs/anthropic-univ
 	@echo "✓ Resume receipt refreshed: docs/resume_receipt.json"
 
 test-fast:  ## Run fast unit tests only (<1s each, no live services)
-	PYTHONPATH=src:scripts:scripts/ci:. uv run pytest tests/unit tests/ouroboros tests/mycelium tests/integrations tests/mcp tests/scripts --import-mode=append --tb=short -q -p no:warnings
+	$(GOMP_PRELOAD) PYTHONPATH=src:scripts:scripts/ci:. uv run pytest tests/unit tests/ouroboros tests/mycelium tests/integrations tests/mcp tests/scripts --import-mode=append --tb=short -q -p no:warnings
 	@echo "✓ Fast tests complete"
 
 lint-ratchet:  ## Check ruff debt ratchet (blocking gate)

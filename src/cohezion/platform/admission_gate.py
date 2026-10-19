@@ -70,7 +70,7 @@ RESIDENT_CACHE_TTL_S = 1.5  # bound per-request health fetches on the hot path
 # leaves ~43 GiB of UMA headroom for CPU DRAM and system page cache.
 GTT_HEADROOM_FRACTION = 0.55
 MAX_SAFE_GTT_GB = 50.0  # Absolute GTT ceiling in GB
-MAX_SAFE_SWAP_PCT = 20.0  # Refuse non-resident loads if swap used > 20%
+MAX_SAFE_SWAP_PCT = 30.0  # Refuse non-resident loads if swap used > 30% (allows benign cold pages on 39GB swap)
 MAX_SAFE_PSI_PRESSURE = 20.0  # Refuse non-resident loads if PSI some avg10 > 20.0
 # Request-body keys that name a model; presence of any makes a request load-triggering.
 _MODEL_KEYS = ("model", "model_name")
@@ -166,6 +166,7 @@ class GateConfig:
     upstream_base: str = DEFAULT_UPSTREAM
     health_timeout_s: float = 2.0
     enforce_aperture_guard: bool = False
+    max_swap_pct: float = MAX_SAFE_SWAP_PCT
 
     @classmethod
     def from_env(cls) -> GateConfig:
@@ -178,20 +179,25 @@ class GateConfig:
         )
         enforce_raw = os.environ.get("COHEZION_ADMISSION_ENFORCE", "1").strip().lower()
         aperture_raw = os.environ.get("COHEZION_ADMISSION_APERTURE_GUARD", "1").strip().lower()
+        swap_pct_raw = os.environ.get(
+            "COHEZION_MAX_SAFE_SWAP_PCT", str(MAX_SAFE_SWAP_PCT)
+        )
         cfg = cls(
             floor_gb=float(floor),
             enforce=enforce_raw not in ("0", "false", "no", "off", ""),
             upstream_base=os.environ.get("COHEZION_ADMISSION_UPSTREAM", DEFAULT_UPSTREAM),
             health_timeout_s=float(os.environ.get("COHEZION_ADMISSION_HEALTH_TIMEOUT_S", "2.0")),
             enforce_aperture_guard=aperture_raw not in ("0", "false", "no", "off", ""),
+            max_swap_pct=float(swap_pct_raw),
         )
         logger.info(
-            "admission config: floor=%.1fGB enforce=%s (raw=%r) upstream=%s aperture_guard=%s",
+            "admission config: floor=%.1fGB enforce=%s (raw=%r) upstream=%s aperture_guard=%s max_swap=%.1f%%",
             cfg.floor_gb,
             cfg.enforce,
             enforce_raw,
             cfg.upstream_base,
             cfg.enforce_aperture_guard,
+            cfg.max_swap_pct,
         )
         return cfg
 
@@ -330,9 +336,10 @@ class AdmissionGate:
             return self._refusal(reason, model_name)
 
         swap_pct = self._read_swap()
-        if swap_pct is not None and swap_pct > MAX_SAFE_SWAP_PCT:
+        max_swap = self._config.max_swap_pct
+        if swap_pct is not None and swap_pct > max_swap:
             reason = (
-                f"swap saturation: {swap_pct:.1f}% used > {MAX_SAFE_SWAP_PCT:.1f}% threshold — "
+                f"swap saturation: {swap_pct:.1f}% used > {max_swap:.1f}% threshold — "
                 f"refusing non-resident load '{model_name}' to prevent kernel freeze"
             )
             return self._refusal(reason, model_name)
