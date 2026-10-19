@@ -392,6 +392,34 @@ def verify_invariants(code_path: str, comp_slug: str) -> bool:
     except Exception as e:
         logger.warning("[%s] Red-Team note: %s", comp_slug, e)
 
+    # 5. ARIA Pre-Dispatch Supervisory Guard (arXiv:2610.20780)
+    try:
+        from cohezion.aria.kaggle_guard import KaggleDispatchGuard, KaggleJob
+
+        guard = KaggleDispatchGuard(enforce=True)
+        job = KaggleJob(comp_slug=comp_slug, slot_num=0, code_path=path)
+        decision = guard.evaluate(job)
+        if decision.action in ("BLOCK", "ROLLBACK"):
+            logger.critical(
+                "[%s] ARIA Kaggle Guard REJECTED dispatch (%s): %s",
+                comp_slug,
+                decision.action,
+                decision.reasons,
+            )
+            return False
+        elif decision.action == "AMEND" and decision.amended_artifact:
+            logger.info("[%s] ARIA Kaggle Guard auto-amended code: %s", comp_slug, decision.reasons)
+            decision.amended_artifact.path.write_text(
+                decision.amended_artifact.raw_content, encoding="utf-8"
+            )
+        logger.info(
+            "[%s] ✓ ARIA Pre-Dispatch Supervisory Guard PASSED (%s).",
+            comp_slug,
+            decision.action,
+        )
+    except Exception as e:
+        logger.warning("[%s] ARIA Kaggle Guard note: %s", comp_slug, e)
+
     return True
 
 
