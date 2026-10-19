@@ -1,0 +1,28 @@
+# Pyrefly Configuration for Cohezion (Google/Meta High-Throughput Rust Type Checker)
+# Up to 98% faster incremental rebuilds than Pytype/Mypy
+
+project-includes = [
+    "src",
+    "tests",
+]
+project-excludes = [
+    "src/cohezion/competition",
+    "src/cohezion/benchmarks",
+    "agents",
+    "**/__pycache__",
+    ".worktrees",
+]
+search-path = ["src"]
+python-version = "3.13.0"
+infer-with-first-use = false
+
+[errors]
+unknown-return-type = "ignore"
+unknown-attribute-access = "ignore"
+unknown-variable-type = "ignore"
+unknown-attribute-type = "ignore"
+unknown-argument-type = "ignore"
+missing-source-for-stubs = "ignore"
+missing-import = "warn"
+implicit-any-parameter = "ignore"
+missing-source = "ignore"
