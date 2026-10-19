@@ -92,6 +92,13 @@ INJECTION_PATTERNS: list[tuple[str, re.Pattern[str]]] = [
 _LEET = str.maketrans(
     {"1": "i", "0": "o", "3": "e", "@": "a", "4": "a", "5": "s", "7": "t", "$": "s"}
 )
+# Cyrillic and Greek letters that render identically to Latin ones (Unicode confusables).
+_CONFUSABLES = str.maketrans(
+    {
+        **dict(zip("аеорсухіјѕԁԛԝАВЕКМНОРСТХІЈЅ", "aeopcyxijsdqwABEKMHOPCTXIJS")),
+        **dict(zip("οιαενρτυχκΑΒΕΖΗΙΚΜΝΟΡΤΥΧ", "oiaevptuxkABEZHIKMNOPTYX")),
+    }
+)
 _B64 = re.compile(r"[A-Za-z0-9+/]{16,}={0,2}")
 
 
@@ -120,7 +127,15 @@ def normalize_variants(text: str) -> list[str]:
     # Unicode fold: NFKD strips combining marks and maps fullwidth/compatibility forms,
     # which defeats homoglyph substitution without a per-character lookup table.
     folded = unicodedata.normalize("NFKD", text)
-    folded = "".join(c for c in folded if not unicodedata.combining(c))
+    # Drop combining marks AND format characters (category Cf: zero-width space/joiner,
+    # soft hyphen, word joiner). NFKD leaves Cf in place, and one invisible character
+    # between letters evaded every signal (challenger/solver mutation run, 2026-10-18).
+    folded = "".join(
+        c for c in folded if not unicodedata.combining(c) and unicodedata.category(c) != "Cf"
+    )
+    # Cyrillic/Greek look-alikes are distinct letters, not compatibility forms, so NFKD
+    # cannot fold them; map the confusable subset to Latin explicitly.
+    folded = folded.translate(_CONFUSABLES)
     if folded != text:
         variants.append(folded)
 
