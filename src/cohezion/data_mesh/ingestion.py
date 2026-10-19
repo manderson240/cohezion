@@ -12,7 +12,7 @@ from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import datetime
 
-from cohezion.datamesh.schema import UnifiedRecord
+from cohezion.data_mesh.schema import UnifiedRecord
 
 
 logger = logging.getLogger(__name__)

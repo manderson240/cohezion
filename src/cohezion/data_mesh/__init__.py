@@ -146,12 +146,12 @@ with contextlib.suppress(Exception):
 # is kept deliberately: a broken torch install can raise OSError/RuntimeError, and the
 # package must stay importable either way.
 try:
-    from cohezion.datamesh.federation import DomainEndpoint as DomainEndpoint
-    from cohezion.datamesh.federation import FederationLayer as FederationLayer
-    from cohezion.datamesh.schema import DataLineage as DataLineage
-    from cohezion.datamesh.schema import Physics12D as Physics12D
-    from cohezion.datamesh.schema import RecordType as RecordType
-    from cohezion.datamesh.schema import UnifiedRecord as UnifiedRecord
+    from cohezion.data_mesh.federation import DomainEndpoint as DomainEndpoint
+    from cohezion.data_mesh.federation import FederationLayer as FederationLayer
+    from cohezion.data_mesh.schema import DataLineage as DataLineage
+    from cohezion.data_mesh.schema import Physics12D as Physics12D
+    from cohezion.data_mesh.schema import RecordType as RecordType
+    from cohezion.data_mesh.schema import UnifiedRecord as UnifiedRecord
 
     __all__ += [
         "DataLineage",
@@ -163,9 +163,7 @@ try:
     ]
 except Exception as exc:
     logger.debug(
-        "data_mesh: datamesh/ orphan types unavailable (%s: %s) — FederationLayer, "
-        "DomainEndpoint, UnifiedRecord, Physics12D, RecordType and DataLineage will not "
-        "be importable from cohezion.data_mesh",
+        "data_mesh: canonical types unavailable (%s: %s)",
         type(exc).__name__,
         exc,
     )
