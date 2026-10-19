@@ -238,7 +238,9 @@ _CLAUDE_FABLE = CapabilityProfile(
     supported_modes=frozenset({"chat", "tool_use", "reasoning", "long_horizon", "adversarial"}),
     optimal_ctx=200000,
     min_ctx=1024,
-    strengths=frozenset({"reasoning", "code_gen", "long_horizon", "architect", "adversarial_review"}),
+    strengths=frozenset(
+        {"reasoning", "code_gen", "long_horizon", "architect", "adversarial_review"}
+    ),
     weaknesses=frozenset(),
     sampling_sweet_spot={"temperature": 0.7, "top_p": 0.95},
     prompt_template_fingerprint="claude",
@@ -283,6 +285,346 @@ _GEMINI_3_PRO = CapabilityProfile(
 )
 
 
+_NEMOTRON_3_SUPER = CapabilityProfile(
+    model_id="nemotron-3-super:cloud",
+    family="nemotron",
+    supported_modes=frozenset({"chat", "tool_use", "summarization"}),
+    optimal_ctx=262144,
+    min_ctx=1024,
+    strengths=frozenset({"sentinel", "low_cost", "monitoring", "high_throughput"}),
+    weaknesses=frozenset({"deep_math"}),
+    sampling_sweet_spot={"temperature": 0.1, "top_p": 0.9},
+    prompt_template_fingerprint="chatml",
+    thinking_mode="never",
+    known_failure_modes=(),
+    source_url="https://ollama.com/library/nemotron-3-super",
+    read_at=_READ_AT,
+)
+
+
+_GPT_OSS_20B = CapabilityProfile(
+    model_id="gpt-oss:20b-cloud",
+    family="gpt-oss",
+    supported_modes=frozenset({"chat", "code", "reasoning"}),
+    optimal_ctx=131072,
+    min_ctx=1024,
+    strengths=frozenset({"reasoning", "code", "low_cost", "general_chat"}),
+    weaknesses=frozenset({"long_horizon"}),
+    sampling_sweet_spot={"temperature": 0.2, "top_p": 0.95},
+    prompt_template_fingerprint="chatml",
+    thinking_mode="optional_prefix",
+    known_failure_modes=(),
+    source_url="https://ollama.com/library/gpt-oss",
+    read_at=_READ_AT,
+)
+
+
+_CLEF = CapabilityProfile(
+    model_id="clef:cloud",
+    family="audio",
+    supported_modes=frozenset({"audio", "music", "analysis"}),
+    optimal_ctx=131072,
+    min_ctx=1024,
+    strengths=frozenset({"audio_analysis", "music_understanding", "sonification"}),
+    weaknesses=frozenset({"code_gen"}),
+    sampling_sweet_spot={"temperature": 0.3, "top_p": 0.9},
+    prompt_template_fingerprint="clef",
+    thinking_mode="never",
+    known_failure_modes=(),
+    source_url="https://ollama.com/library/clef",
+    read_at=_READ_AT,
+)
+
+
+_GEMMA_4_31B_CLOUD = CapabilityProfile(
+    model_id="gemma4:31b-cloud",
+    family="gemma4",
+    supported_modes=frozenset({"chat", "tool_use", "reasoning", "multimodal"}),
+    optimal_ctx=262144,
+    min_ctx=1024,
+    strengths=frozenset({"reasoning", "container_emulation", "embeddings", "kaggle_agent"}),
+    weaknesses=frozenset(),
+    sampling_sweet_spot={"temperature": 0.5, "top_p": 0.95},
+    prompt_template_fingerprint="gemma",
+    thinking_mode="always",
+    known_failure_modes=(),
+    source_url="https://ollama.com/library/gemma4",
+    read_at=_READ_AT,
+)
+
+
+_GLM_53_FLASH = CapabilityProfile(
+    model_id="glm-5.3-flash:cloud",
+    family="glm",
+    supported_modes=frozenset({"chat", "tool_use", "summarization", "low_latency"}),
+    optimal_ctx=1048576,
+    min_ctx=1024,
+    strengths=frozenset({"fast_qa", "retrieval", "low_cost", "high_throughput"}),
+    weaknesses=frozenset({"formal_proofs"}),
+    sampling_sweet_spot={"temperature": 0.2, "top_p": 0.9},
+    prompt_template_fingerprint="chatml",
+    thinking_mode="never",
+    known_failure_modes=(),
+    source_url="https://ollama.com/library/glm-5.3-flash",
+    read_at=_READ_AT,
+)
+
+
+_MINIMAX_M31_FLASH = CapabilityProfile(
+    model_id="minimax-m3.1-flash:cloud",
+    family="minimax",
+    supported_modes=frozenset({"chat", "summarization", "tool_use"}),
+    optimal_ctx=1048576,
+    min_ctx=1024,
+    strengths=frozenset({"conversational", "speed", "tool_use", "low_cost"}),
+    weaknesses=frozenset({"deep_math"}),
+    sampling_sweet_spot={"temperature": 0.3, "top_p": 0.95},
+    prompt_template_fingerprint="chatml",
+    thinking_mode="never",
+    known_failure_modes=(),
+    source_url="https://ollama.com/library/minimax-m3.1-flash",
+    read_at=_READ_AT,
+)
+
+
+_GPT_OSS_120B = CapabilityProfile(
+    model_id="gpt-oss:120b-cloud",
+    family="gpt-oss",
+    supported_modes=frozenset({"chat", "reasoning", "code", "paper_track"}),
+    optimal_ctx=131072,
+    min_ctx=1024,
+    strengths=frozenset({"academic_papers", "verifiable_theorems", "open_weights", "reasoning"}),
+    weaknesses=frozenset({"latency"}),
+    sampling_sweet_spot={"temperature": 0.3, "top_p": 0.95},
+    prompt_template_fingerprint="chatml",
+    thinking_mode="optional_prefix",
+    known_failure_modes=(),
+    source_url="https://ollama.com/library/gpt-oss",
+    read_at=_READ_AT,
+)
+
+
+_DEEPSEEK_V4_FLASH = CapabilityProfile(
+    model_id="deepseek-v4-flash:cloud",
+    family="deepseek",
+    supported_modes=frozenset({"chat", "summarization", "fast_qa"}),
+    optimal_ctx=131072,
+    min_ctx=1024,
+    strengths=frozenset({"fast_qa", "low_latency", "draft"}),
+    weaknesses=frozenset({"deep_reasoning"}),
+    sampling_sweet_spot={"temperature": 0.2, "top_p": 0.9},
+    prompt_template_fingerprint="chatml",
+    thinking_mode="never",
+    known_failure_modes=(),
+    source_url="https://ollama.com/library/deepseek-v4-flash",
+    read_at=_READ_AT,
+)
+
+
+_MUSE_SPARK_OPEN = CapabilityProfile(
+    model_id="muse-spark-open:cloud",
+    family="creative",
+    supported_modes=frozenset({"chat", "creative", "ideation"}),
+    optimal_ctx=131072,
+    min_ctx=1024,
+    strengths=frozenset({"creative_synthesis", "brainstorming", "ideation"}),
+    weaknesses=frozenset({"code_execution"}),
+    sampling_sweet_spot={"temperature": 0.7, "top_p": 0.95},
+    prompt_template_fingerprint="chatml",
+    thinking_mode="never",
+    known_failure_modes=(),
+    source_url="https://ollama.com/library/muse-spark-open",
+    read_at=_READ_AT,
+)
+
+
+_DEEPSEEK_V41_FLASH = CapabilityProfile(
+    model_id="deepseek-v4.1-flash:cloud",
+    family="deepseek",
+    supported_modes=frozenset({"chat", "search", "reasoning", "triage"}),
+    optimal_ctx=1048576,
+    min_ctx=1024,
+    strengths=frozenset({"deep_search", "invariant_triage", "low_cost", "reasoning"}),
+    weaknesses=frozenset(),
+    sampling_sweet_spot={"temperature": 0.2, "top_p": 0.95},
+    prompt_template_fingerprint="chatml",
+    thinking_mode="optional_prefix",
+    known_failure_modes=(),
+    source_url="https://ollama.com/library/deepseek-v4.1-flash",
+    read_at=_READ_AT,
+)
+
+
+_MINIMAX_M27 = CapabilityProfile(
+    model_id="minimax-m2.7:cloud",
+    family="minimax",
+    supported_modes=frozenset({"chat", "tool_use", "agent"}),
+    optimal_ctx=262144,
+    min_ctx=1024,
+    strengths=frozenset({"tool_use", "fast_patch", "agentic_workflows"}),
+    weaknesses=frozenset(),
+    sampling_sweet_spot={"temperature": 0.2, "top_p": 0.9},
+    prompt_template_fingerprint="chatml",
+    thinking_mode="never",
+    known_failure_modes=(),
+    source_url="https://ollama.com/library/minimax-m2.7",
+    read_at=_READ_AT,
+)
+
+
+_NEMOTRON_3_ULTRA = CapabilityProfile(
+    model_id="nemotron-3-ultra:cloud",
+    family="nemotron",
+    supported_modes=frozenset({"chat", "reasoning", "verification"}),
+    optimal_ctx=262144,
+    min_ctx=1024,
+    strengths=frozenset({"continuous_verification", "ci_cd", "hypothesis_testing", "reasoning"}),
+    weaknesses=frozenset(),
+    sampling_sweet_spot={"temperature": 0.1, "top_p": 0.9},
+    prompt_template_fingerprint="chatml",
+    thinking_mode="optional_prefix",
+    known_failure_modes=(),
+    source_url="https://ollama.com/library/nemotron-3-ultra",
+    read_at=_READ_AT,
+)
+
+
+_MISTRAL_LARGE_4 = CapabilityProfile(
+    model_id="mistral-large-4:cloud",
+    family="mistral",
+    supported_modes=frozenset({"chat", "multimodal", "tool_use", "reasoning"}),
+    optimal_ctx=1048576,
+    min_ctx=1024,
+    strengths=frozenset({"multimodal", "enterprise", "reasoning", "tool_use"}),
+    weaknesses=frozenset(),
+    sampling_sweet_spot={"temperature": 0.3, "top_p": 0.95},
+    prompt_template_fingerprint="mistral",
+    thinking_mode="never",
+    known_failure_modes=(),
+    source_url="https://ollama.com/library/mistral-large-4",
+    read_at=_READ_AT,
+)
+
+
+_GLM_52 = CapabilityProfile(
+    model_id="glm-5.2:cloud",
+    family="glm",
+    supported_modes=frozenset({"chat", "science", "reasoning"}),
+    optimal_ctx=1048576,
+    min_ctx=1024,
+    strengths=frozenset({"science_frontier", "physics", "mass_spectrometry", "reasoning"}),
+    weaknesses=frozenset(),
+    sampling_sweet_spot={"temperature": 0.2, "top_p": 0.9},
+    prompt_template_fingerprint="chatml",
+    thinking_mode="never",
+    known_failure_modes=(),
+    source_url="https://ollama.com/library/glm-5.2",
+    read_at=_READ_AT,
+)
+
+
+_KIMI_K26 = CapabilityProfile(
+    model_id="kimi-k2.6:cloud",
+    family="kimi",
+    supported_modes=frozenset({"chat", "reasoning", "tool_use"}),
+    optimal_ctx=262144,
+    min_ctx=1024,
+    strengths=frozenset({"reasoning", "tool_use", "general_agent"}),
+    weaknesses=frozenset(),
+    sampling_sweet_spot={"temperature": 0.3, "top_p": 0.95},
+    prompt_template_fingerprint="chatml",
+    thinking_mode="never",
+    known_failure_modes=(),
+    source_url="https://ollama.com/library/kimi-k2.6",
+    read_at=_READ_AT,
+)
+
+
+_MINIMAX_M3 = CapabilityProfile(
+    model_id="minimax-m3:cloud",
+    family="minimax",
+    supported_modes=frozenset({"chat", "creative", "code"}),
+    optimal_ctx=1048576,
+    min_ctx=1024,
+    strengths=frozenset({"creative_synthesis", "coding", "agentic_frontier"}),
+    weaknesses=frozenset(),
+    sampling_sweet_spot={"temperature": 0.7, "top_p": 0.98},
+    prompt_template_fingerprint="chatml",
+    thinking_mode="never",
+    known_failure_modes=(),
+    source_url="https://ollama.com/library/minimax-m3",
+    read_at=_READ_AT,
+)
+
+
+_KIMI_K27_CODE = CapabilityProfile(
+    model_id="kimi-k2.7-code:cloud",
+    family="kimi",
+    supported_modes=frozenset({"chat", "code", "tool_use"}),
+    optimal_ctx=262144,
+    min_ctx=1024,
+    strengths=frozenset({"coding", "tool_use", "fast_patch", "ast_refactor"}),
+    weaknesses=frozenset(),
+    sampling_sweet_spot={"temperature": 0.05, "top_p": 0.85},
+    prompt_template_fingerprint="chatml",
+    thinking_mode="optional_prefix",
+    known_failure_modes=(),
+    source_url="https://ollama.com/library/kimi-k2.7-code",
+    read_at=_READ_AT,
+)
+
+
+_DEEPSEEK_V4_PRO = CapabilityProfile(
+    model_id="deepseek-v4-pro:cloud",
+    family="deepseek",
+    supported_modes=frozenset({"chat", "reasoning", "proof", "long_horizon"}),
+    optimal_ctx=524288,
+    min_ctx=1024,
+    strengths=frozenset({"deep_reasoning", "formal_proofs", "grandmaster_logic", "invariant_proofs"}),
+    weaknesses=frozenset(),
+    sampling_sweet_spot={"temperature": 0.1, "top_p": 0.9},
+    prompt_template_fingerprint="chatml",
+    thinking_mode="always",
+    known_failure_modes=(),
+    source_url="https://ollama.com/library/deepseek-v4-pro",
+    read_at=_READ_AT,
+)
+
+
+_GLM_53 = CapabilityProfile(
+    model_id="glm-5.3:cloud",
+    family="glm",
+    supported_modes=frozenset({"chat", "code", "reasoning", "long_horizon"}),
+    optimal_ctx=1048576,
+    min_ctx=1024,
+    strengths=frozenset({"coding", "long_horizon", "agentic_refactor", "flagship_coding"}),
+    weaknesses=frozenset(),
+    sampling_sweet_spot={"temperature": 0.1, "top_p": 0.9},
+    prompt_template_fingerprint="chatml",
+    thinking_mode="always",
+    known_failure_modes=(),
+    source_url="https://ollama.com/library/glm-5.3",
+    read_at=_READ_AT,
+)
+
+
+_KIMI_K3 = CapabilityProfile(
+    model_id="kimi-k3:cloud",
+    family="kimi",
+    supported_modes=frozenset({"chat", "multimodal", "reasoning", "game_affordance"}),
+    optimal_ctx=1048576,
+    min_ctx=1024,
+    strengths=frozenset({"native_multimodal", "deep_reasoning", "arc3_game_affordance", "visual_dynamics"}),
+    weaknesses=frozenset({"cost"}),
+    sampling_sweet_spot={"temperature": 0.3, "top_p": 0.95},
+    prompt_template_fingerprint="chatml",
+    thinking_mode="always",
+    known_failure_modes=(),
+    source_url="https://ollama.com/library/kimi-k3",
+    read_at=_READ_AT,
+)
+
+
 # ── The registry ─────────────────────────────────────────────────────────────
 
 
@@ -297,18 +639,44 @@ DEFAULT_PROFILES: dict[str, CapabilityProfile] = {
     "deepseek-v3.2:cloud": _DEEPSEEK_V32,
     "gemini-3-flash-preview:cloud": _GEMINI_3_FLASH_PREVIEW,
     "claude-haiku-5-5": _CLAUDE_HAIKU_55,
-    "haiku": _CLAUDE_HAIKU_55,
     "claude-sonnet-5-5": _CLAUDE_SONNET_55,
-    "sonnet": _CLAUDE_SONNET_55,
     "claude-opus-5-5": _CLAUDE_OPUS_55,
-    "opus": _CLAUDE_OPUS_55,
     "claude-fable-5": _CLAUDE_FABLE,
-    "fable": _CLAUDE_FABLE,
     "gemini-3-flash": _GEMINI_3_FLASH,
     "gemini-3-pro": _GEMINI_3_PRO,
+    # Ollama Cloud Roster (Pro Plan Active)
+    "nemotron-3-super:cloud": _NEMOTRON_3_SUPER,
+    "gpt-oss:20b-cloud": _GPT_OSS_20B,
+    "clef:cloud": _CLEF,
+    "gemma4:31b-cloud": _GEMMA_4_31B_CLOUD,
+    "glm-5.3-flash:cloud": _GLM_53_FLASH,
+    "minimax-m3.1-flash:cloud": _MINIMAX_M31_FLASH,
+    "gpt-oss:120b-cloud": _GPT_OSS_120B,
+    "deepseek-v4-flash:cloud": _DEEPSEEK_V4_FLASH,
+    "muse-spark-open:cloud": _MUSE_SPARK_OPEN,
+    "deepseek-v4.1-flash:cloud": _DEEPSEEK_V41_FLASH,
+    "minimax-m2.7:cloud": _MINIMAX_M27,
+    "nemotron-3-ultra:cloud": _NEMOTRON_3_ULTRA,
+    "mistral-large-4:cloud": _MISTRAL_LARGE_4,
+    "glm-5.2:cloud": _GLM_52,
+    "kimi-k2.6:cloud": _KIMI_K26,
+    "minimax-m3:cloud": _MINIMAX_M3,
+    "kimi-k2.7-code:cloud": _KIMI_K27_CODE,
+    "deepseek-v4-pro:cloud": _DEEPSEEK_V4_PRO,
+    "glm-5.3:cloud": _GLM_53,
+    "kimi-k3:cloud": _KIMI_K3,
+}
+
+_ALIASES: dict[str, str] = {
+    "haiku": "claude-haiku-5-5",
+    "sonnet": "claude-sonnet-5-5",
+    "opus": "claude-opus-5-5",
+    "fable": "claude-fable-5",
 }
 
 
 def get_profile(model_id: str) -> CapabilityProfile | None:
     """Return the default profile for `model_id`, or None if not registered."""
-    return DEFAULT_PROFILES.get(model_id)
+    resolved = _ALIASES.get(model_id, model_id)
+    return DEFAULT_PROFILES.get(resolved)
+

@@ -5,21 +5,28 @@ from typing import Any
 
 import httpx
 
+from cohezion.inference.ollama_pricing import get_ollama_governor
 from cohezion.inference.transports.base import BaseInferenceTransport, TransportResponse
 
 
 class OllamaCloudTransport(BaseInferenceTransport):
-    """Transport adapter for Ollama Cloud endpoints (:11434)."""
+    """Transport adapter for Ollama Cloud endpoints (:11434).
+
+    Enforces Ollama Pro plan concurrency limit (3 concurrent requests)
+    via OllamaConcurrencyGovernor.
+    """
 
     def __init__(self, base_url: str = "http://localhost:11434"):
         self.base_url = base_url.rstrip("/")
         self.url = f"{self.base_url}/api/generate"
+        self.governor = get_ollama_governor()
 
     async def query(
         self, prompt: str, model_id: str, params: dict[str, Any] | None = None
     ) -> TransportResponse | None:
         t0 = time.perf_counter()
         payload = {"model": model_id, "prompt": prompt, "stream": False, "options": params or {}}
+        await self.governor.acquire()
         try:
             async with httpx.AsyncClient(timeout=45.0) as client:
                 res = await client.post(self.url, json=payload)
@@ -37,6 +44,8 @@ class OllamaCloudTransport(BaseInferenceTransport):
                     )
         except Exception:
             return None
+        finally:
+            self.governor.release()
         return None
 
     async def is_healthy(self) -> bool:

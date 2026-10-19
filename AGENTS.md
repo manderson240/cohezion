@@ -316,25 +316,38 @@ Select lane by task class:
 | Embeddings (concurrent) | `embed-gemma-300m-FLM` | FLM / NPU | 13305 | Zero UMA footprint |
 | Tiny edge fallback | `Qwen3-0.6B-GGUF` | CPU (llamacpp) | 13305 | 0.36 GB RAM only |
 
-### Tier 2 — Ollama Cloud & Headless Claude Code
+### Tier 2 — Ollama Cloud (Pro Plan Active) & Headless Claude Code
+
+> **Ollama Pro Plan Specifications (https://ollama.com/pricing)**:
+> - **Monthly Usage Credit**: **$60.00 / month** included usage credits (resets monthly; no rollover; metered pay-as-you-go beyond).
+> - **Concurrency Limit**: **3 concurrent requests** strictly enforced via `OllamaConcurrencyGovernor` (`asyncio.Semaphore(3)`). Requests beyond 3 are queued.
+> - **Off-Peak Discount Window**: Outside 12:00–18:00 UTC on weekdays (Monday–Friday), and all day Saturday & Sunday (UTC). Eligible models (`deepseek-v4.1-flash:cloud`, `deepseek-v4-pro:cloud`) receive a **50% discount** on input and output token rates.
 
 Use for ALL heavy workloads: coding, multi-file refactoring, deep reasoning, mathematics, long context (>8k), and agentic tool swarms. Mapped directly from the official Ollama Cloud catalog (`https://ollama.com/search?c=cloud`):
 
-| Task Class | Model / Engine | Context | Strengths & Notes |
-|------------|----------------|:-------:|-------------------|
-| **Flagship Coding & Agentic Refactor** | `glm-5.3:cloud` | 1M | Z.ai flagship model; top open-weights for long-horizon agentic coding |
-| **Agentic Tool Use & Fast Patches** | `kimi-k2.7-code:cloud` | 256K | Moonshot AI coding agent; 30% lower thinking tokens, fast AST patch gen |
-| **Deep Reasoning & Formal Proofs** | `deepseek-v4-pro:cloud` | 524K | 1.6T MoE with 3 reasoning modes; Grandmaster logic & invariant proofs |
-| **Native Multimodal & Puzzle Agents** | `kimi-k3:cloud` | 1M | Moonshot 2.81T flagship; ARC-3 game affordances, complex visual dynamics |
-| **Frontier Enterprise MoE Multimodal** | `mistral-large-4:cloud` | 1M | 1.05T MoE (52B active + 1.6B vision encoder); enterprise multi-modal |
-| **High-Efficiency Multimodal Flash** | `glm-5.3-flash:cloud` | 1M | 18B active, Claude Opus 4.8 tier at $0.15/$0.50 per 1M tokens |
-| **Fast Deep Search & Invariant Triage**| `deepseek-v4.1-flash:cloud` | 1M | 763B search & reasoning; fast candidate ranking & formula triage |
-| **Ultra-Low Cost Background Swarms** | `nemotron-3-super:cloud` | 256K | 120B MoE (12B active) at $0.015/$0.60 per 1M; continuous sentinel daemons |
-| **High-Throughput Swarm Reasoning** | `nemotron-3-ultra:cloud` | 256K | 550B MoE; continuous CI/CD verification & hypothesis shootouts |
-| **Long-Horizon Science & Spectrometry**| `glm-5.2:cloud` | 1M | Physics, chemistry, formula cleavage matching (CASMI26) |
-| **Academic Paper & Theorem Proofs** | `gpt-oss:120b-cloud` | 128K | Open-weight verifiable theorems & Gemma-4 Paper Track ablations |
-| **Gemma Container Emulation** | `gemma4:31b-cloud` | 256K | Verifies container parity before Kaggle code agent submission |
-| **Autonomous Headless Coding Agent** | Headless Claude Code (`claude -p`) | 200K | Direct execution via `/home/mike-anderson/.local/bin/claude` |
+| Task Class | Model / Engine | Context | Pricing (per 1M in / out) | Strengths & Notes |
+|------------|----------------|:-------:|:-------------------------:|-------------------|
+| **Ultra-Low Cost Sentinels** | `nemotron-3-super:cloud` | 256K | $0.015 / $0.60 | 120B MoE (12B active); 24/7 background sentinel daemons & audit loops |
+| **Open Compact Reasoning** | `gpt-oss:20b-cloud` | 128K | $0.07 / $0.30 | Open-weights compact reasoning, low-latency agent tasks |
+| **Audio & Music Sonification** | `clef:cloud` | 128K | $0.10 / $0.40 | Audio analysis, sound separation, and metric sonification |
+| **Gemma Container Emulation** | `gemma4:31b-cloud` | 256K | $0.14 / $0.40 | Container parity verification before Kaggle agent submission & dense embeddings |
+| **High-Efficiency Flash QA** | `glm-5.3-flash:cloud` | 1M | $0.15 / $0.50 | 18B active, Claude Opus 4.8 tier at ultra-low cost; fast retrieval |
+| **Fast Conversational Agent** | `minimax-m3.1-flash:cloud`| 1M | $0.15 / $0.60 | High-speed conversational agent & low-overhead tool use |
+| **Academic Paper & Theorems** | `gpt-oss:120b-cloud` | 128K | $0.15 / $0.60 | Open-weight verifiable theorems & Gemma-4 Paper Track ablations |
+| **Fast Sub-Second Drafts** | `deepseek-v4-flash:cloud` | 128K | $0.15 / $0.60 | Ultra-fast sub-second edge draft generation |
+| **Creative Spark & Ideation** | `muse-spark-open:cloud` | 128K | $0.20 / $0.80 | Divergent creative synthesis, brainstorming, and hypothesis generation |
+| **Deep Search & Invariant Triage**| `deepseek-v4.1-flash:cloud`| 1M | $0.30 / $1.20 *(off-peak $0.15/$0.60)* | 763B search & reasoning; fast candidate ranking & formula triage |
+| **Fast Agentic Tool Workflows** | `minimax-m2.7:cloud` | 256K | $0.30 / $1.20 | Autonomous tool use, rapid AST patch generation |
+| **High-Throughput Swarm Reasoning**| `nemotron-3-ultra:cloud`| 256K | $0.40 / $1.60 | 550B MoE; continuous CI/CD verification & hypothesis shootouts |
+| **Frontier Enterprise Multimodal** | `mistral-large-4:cloud` | 1M | $0.68 / $2.09 | 1.05T MoE (52B active + 1.6B vision encoder); enterprise multi-modal |
+| **Long-Horizon Science & Spectra** | `glm-5.2:cloud` | 1M | $0.70 / $2.40 | Physics, chemistry, mass spectrometry formula cleavage matching (CASMI26) |
+| **General Agentic Reasoning** | `kimi-k2.6:cloud` | 256K | $0.80 / $3.20 | Multi-step agentic problem solving & tool calling |
+| **Frontier Creative & Code** | `minimax-m3:cloud` | 1M | $0.80 / $3.20 | High-capacity creative synthesis & agentic code generation |
+| **Agentic Tool Use & Fast Patches**| `kimi-k2.7-code:cloud` | 256K | $0.95 / $4.00 | Moonshot AI coding agent; 30% lower thinking tokens, fast AST patch gen |
+| **Deep Reasoning & Formal Proofs** | `deepseek-v4-pro:cloud` | 524K | $1.32 / $3.96 *(off-peak $0.66/$1.98)* | 1.6T MoE with 3 reasoning modes; Grandmaster logic & invariant proofs |
+| **Flagship Coding & Agentic Refactor**| `glm-5.3:cloud` | 1M | $1.40 / $4.40 | Z.ai flagship model; top open-weights for long-horizon agentic coding |
+| **Native Multimodal & Puzzle Agents**| `kimi-k3:cloud` | 1M | $3.00 / $15.00 | Moonshot 2.81T flagship; ARC-3 game affordances, complex visual dynamics |
+| **Autonomous Headless Coding Agent** | Headless Claude Code (`claude -p`) | 200K | Metered Anthropic | Direct execution via `/home/mike-anderson/.local/bin/claude` |
 
 Route via `UnifiedHybridRouter` using `backend="ollama_cloud"` or Hermes CLI (`/home/mike-anderson/.local/bin/hermes -m <model>`).
 
@@ -489,6 +502,7 @@ Equivalent Python via the OpenAI SDK:
 ```python
 from openai import OpenAI
 import base64
+
 client = OpenAI(base_url="http://localhost:13305/api/v1", api_key="lemonade")
 r = client.images.generate(model="SD-Turbo", prompt="PROMPT_HERE", size="512x512")
 open("out.png", "wb").write(base64.b64decode(r.data[0].b64_json))

@@ -19,6 +19,7 @@ from cohezion.core.event_bus import Event, EventBus, get_event_bus
 from cohezion.inference.aperture_guard import validate_tier1_request
 from cohezion.inference.delegation_logger import DelegationEvent, DelegationLogger
 from cohezion.inference.lemonade_health import probe_lemonade
+from cohezion.inference.ollama_pricing import get_ollama_governor, is_off_peak
 from cohezion.inference.transports.base import BaseInferenceTransport
 from cohezion.inference.transports.lemonade import LemonadeTransport
 from cohezion.inference.transports.ollama import OllamaCloudTransport
@@ -202,12 +203,15 @@ TIER_1_ROSTER = {
 
 TIER_2_ROSTER = {
     "reasoning": "deepseek-v4-pro:cloud",
-    "coding": "qwen3.5:397b-cloud",
+    "coding": "glm-5.3:cloud",
     "coding_claude": "claude-code-headless",
     "deep_reasoning": "kimi-k3:cloud",
     "coding_tools": "kimi-k2.7-code:cloud",
     "research": "glm-5.2:cloud",
-    "general": "deepseek-v4-pro:cloud",
+    "general": "gpt-oss:120b-cloud",
+    "fast_qa": "glm-5.3-flash:cloud",
+    "sentinel": "nemotron-3-super:cloud",
+    "creative": "minimax-m3:cloud",
 }
 
 TIER_3_ROSTER = {
@@ -417,10 +421,16 @@ class UnifiedHybridRouter:
         return result
 
     def _select_model_for_tier(self, tier: int, task_type: str) -> str:
-        """Map task type to specific model in tier roster."""
+        """Map task type to specific model in tier roster with off-peak cost optimizations."""
         if tier == 1:
             return TIER_1_ROSTER.get(task_type, TIER_1_ROSTER["coding"])
         elif tier == 2:
+            # Leverage 50% discount during off-peak window for deep reasoning & deep search
+            if is_off_peak():
+                if task_type in ("reasoning", "deep_reasoning"):
+                    return "deepseek-v4-pro:cloud"
+                elif task_type in ("research", "fast_qa"):
+                    return "deepseek-v4.1-flash:cloud"
             return TIER_2_ROSTER.get(task_type, TIER_2_ROSTER["general"])
         elif tier == 3:
             return TIER_3_ROSTER.get(task_type, TIER_3_ROSTER["general"])
@@ -921,6 +931,8 @@ class UnifiedHybridRouter:
             "options": options,
         }
         cloud_timeout = float(os.environ.get("COHEZION_CLOUD_TIMEOUT", "120.0"))
+        governor = get_ollama_governor()
+        await governor.acquire()
         try:
             async with httpx.AsyncClient(timeout=cloud_timeout) as client:
                 res = await client.post(OLLAMA_URL, json=payload)
@@ -941,6 +953,8 @@ class UnifiedHybridRouter:
             circuit.record_failure()
             logger.debug("Ollama Cloud query bypassed: %s", exc)
             return None
+        finally:
+            governor.release()
 
     async def _publish_routing_event(
         self,
