@@ -220,8 +220,8 @@ class FineGrainedAccessController:
 
         # Standard simple predicate parser: e.g. "region = 'US'" or "active == True"
         clean = filter_expr.strip()
-        # Match pattern: field op value (e.g. region = 'US' or age >= 18)
-        match = re.match(r"^([a-zA-Z0-9_]+)\s*(=|==|!=|>|<|>=|<=)\s*(.+)$", clean)
+        # Match pattern: multi-character operators MUST precede single-character in alternation
+        match = re.match(r"^([a-zA-Z0-9_]+)\s*(==|!=|>=|<=|=|>|<)\s*(.+)$", clean)
         if not match:
             raise FailClosedViolationError(
                 f"Unparseable predicate expression '{filter_expr}'; aborting under fail-closed mandate."
