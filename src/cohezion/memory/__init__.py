@@ -14,3 +14,24 @@ with contextlib.suppress(Exception):
     from cohezion.memory.mem0_adapter import Mem0Config as Mem0Config
     from cohezion.memory.mem0_adapter import build_local_mem0 as build_local_mem0
     from cohezion.memory.mem0_adapter import mem0_available as mem0_available
+
+# Stanford Memorilla Latent Semantic Memory (arXiv:2610.21375)
+with contextlib.suppress(Exception):
+    from cohezion.memory.memorilla_engine import (
+        AgenticLoopDetector as AgenticLoopDetector,
+    )
+    from cohezion.memory.memorilla_engine import (
+        DocumentRecord as DocumentRecord,
+    )
+    from cohezion.memory.memorilla_engine import (
+        HybridMemorillaRAG as HybridMemorillaRAG,
+    )
+    from cohezion.memory.memorilla_engine import (
+        MemorillaDocumentStore as MemorillaDocumentStore,
+    )
+    from cohezion.memory.memorilla_engine import (
+        MemorillaEngine as MemorillaEngine,
+    )
+    from cohezion.memory.memorilla_engine import (
+        MemorillaMemoryModule as MemorillaMemoryModule,
+    )
