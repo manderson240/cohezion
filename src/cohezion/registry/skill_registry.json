@@ -6215,5 +6215,46 @@
     "generated_from": "skill.md",
     "last_updated": "",
     "attestation_leaf_hash": null
+  },
+  "AGI_TO_ASI_PATHWAYS_PRIME": {
+    "description": "Comprehensive systems engineering and theoretical machine intelligence doctrine governing the transition from human-level Artificial General Intelligence (AGI) to Artificial General Superintelligence (ASI) and Universal AI (UAI). Grounded in the seminal Google DeepMind taxonomy by Genewein, Franklin",
+    "keywords": [
+      "agi",
+      "agi (competent/median human)",
+      "asi",
+      "asi (collective superhuman)",
+      "pathways",
+      "table 2: fundamental inviolable limits",
+      "table 4: the 6 frictions & bottlenecks",
+      "the intelligence continuum",
+      "to",
+      "universal ai (uai / aixi)"
+    ],
+    "path": "src/cohezion/skills/AGI_TO_ASI_PATHWAYS_PRIME.md",
+    "version": "1.0.0",
+    "template_version": "v0.1",
+    "generated_from": "skill.md",
+    "last_updated": "",
+    "attestation_leaf_hash": null
+  },
+  "KAGGLE_PODIUM_COURSE_CORRECTION_PRIME": {
+    "description": "Kaggle Competitive Grandmaster Engineering, Out-Of-Fold (OOF) Validation Products, Metric-Direct Loss Functions, and Pre-Flight Quality Gating. This skill establishes the non-negotiable operational principles required to transition machine learning workflows from public notebook ensemble plateaus (7",
+    "keywords": [
+      "correction",
+      "course",
+      "kaggle",
+      "leak-free 5-fold group validation",
+      "metric-loss alignment invariant",
+      "pareto error bucketing",
+      "podium",
+      "statistical significance promotion gate",
+      "the public blender ceiling"
+    ],
+    "path": "src/cohezion/skills/KAGGLE_PODIUM_COURSE_CORRECTION_PRIME.md",
+    "version": "1.0.0",
+    "template_version": "v0.1",
+    "generated_from": "skill.md",
+    "last_updated": "",
+    "attestation_leaf_hash": null
   }
 }

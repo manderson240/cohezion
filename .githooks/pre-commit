@@ -12,4 +12,10 @@ uv run python scripts/ci/version_governance.py
 # 2. Run Fast Import Smoke Test
 uv run pytest tests/unit/test_import_smoke.py -q --tb=short -p no:warnings
 
-echo "✓ Pre-commit SemVer & Import Smoke checks PASSED."
+# 3. Run Pre-Commit Security & Artifact Guard
+uv run python scripts/hooks/pre-commit.py
+
+# 4. Run Kaggle Validation & Preflight Invariant Gates
+uv run pytest tests/kaggle/ -q --tb=short -p no:warnings
+
+echo "✓ Pre-commit SemVer, Import Smoke, Security & Kaggle Invariant checks PASSED."
