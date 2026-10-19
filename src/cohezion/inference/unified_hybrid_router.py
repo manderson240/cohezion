@@ -80,7 +80,6 @@ _TIER1_PINS: dict[TaskClass, str] = {
 }
 
 
-
 _TIER2_PINS: dict[TaskClass, str] = {
     TaskClass.REASONING: "deepseek-v4-pro:cloud",  # 1.6T MoE Top Reasoning & Formal Logic
     TaskClass.DEEP_REASONING: "kimi-k3:cloud",  # Kimi K3 Autonomous Deep Reasoning & Multimodal Search
@@ -338,7 +337,15 @@ class UnifiedHybridRouter:
                 logger.debug("FLUME geometric correspondence fallback: %s", exc)
                 quality_gap = max(0.0, target_quality_required - estimated_tier1_quality)
         else:
-            quality_gap = max(0.0, target_quality_required - estimated_tier1_quality)
+            # Tier 1 NPU/CPU models excel at fast_qa/draft/vision, but heavy coding
+            # and deep reasoning have a pronounced quality gap against frontier Tier 2 clouds (AGENTS.md).
+            effective_tier1 = (
+                0.55
+                if task_type in ("coding", "deep_reasoning", "coding_tools")
+                and estimated_tier1_quality == 0.8
+                else estimated_tier1_quality
+            )
+            quality_gap = max(0.0, target_quality_required - effective_tier1)
 
         # Baseline: Start at Tier 1 if not saturated and context fits Tier 1
         current_tier = 1
@@ -367,9 +374,7 @@ class UnifiedHybridRouter:
                         selected_model = self._select_model_for_tier(3, task_type)
                         reason = f"Tier 3 escalation (EVI={evi_2_to_3:.2f} > {self.evi_threshold:.2f}, high context/importance)"
                     else:
-                        reason = (
-                            f"Tier 2 cloud offload (EVI={evi_1_to_2:.2f} > {self.evi_threshold:.2f})"
-                        )
+                        reason = f"Tier 2 cloud offload (EVI={evi_1_to_2:.2f} > {self.evi_threshold:.2f})"
                 else:
                     reason = (
                         "Tier 2 cloud offload (NPU/CPU local policy enforced)"
