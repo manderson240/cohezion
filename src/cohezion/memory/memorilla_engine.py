@@ -10,7 +10,7 @@ from __future__ import annotations
 import hashlib
 import math
 from dataclasses import dataclass, field
-from typing import Any
+from typing import Any, cast
 
 import numpy as np
 import torch
@@ -129,6 +129,41 @@ class MemorillaDocumentStore:
         self._matrix_cache = None
 
 
+class _RefinementBlock(nn.Module):
+    """Perceiver iterative cross-attention refinement block."""
+
+    def __init__(
+        self,
+        encoder_dim: int,
+        actual_ffn_dim: int,
+        num_heads: int,
+        dropout: float,
+    ) -> None:
+        super().__init__()
+        self.norm_q = nn.LayerNorm(encoder_dim)
+        self.attn = nn.MultiheadAttention(
+            embed_dim=encoder_dim,
+            num_heads=num_heads,
+            dropout=dropout,
+            batch_first=True,
+        )
+        self.norm_ffn = nn.LayerNorm(encoder_dim)
+        self.ffn = nn.Sequential(
+            nn.Linear(encoder_dim, actual_ffn_dim),
+            nn.GELU(),
+            nn.Dropout(dropout),
+            nn.Linear(actual_ffn_dim, encoder_dim),
+        )
+
+    def forward(self, r: torch.Tensor, z_docs_norm: torch.Tensor) -> torch.Tensor:
+        r_norm = self.norm_q(r)
+        attn_out, _ = self.attn(r_norm, z_docs_norm, z_docs_norm)
+        r = r + attn_out
+        ffn_norm = self.norm_ffn(r)
+        r = r + self.ffn(ffn_norm)
+        return r
+
+
 class MemorillaMemoryModule(nn.Module):
     """Trainable latent memory module f_mem (arXiv:2610.21375).
 
@@ -175,27 +210,12 @@ class MemorillaMemoryModule(nn.Module):
 
         # Stage 3: Perceiver iterative cross-attention refinement blocks
         self.doc_norm = nn.LayerNorm(encoder_dim)
-        self.ref_blocks = nn.ModuleList()
-        for _ in range(num_refinement_blocks):
-            block = nn.ModuleDict(
-                {
-                    "norm_q": nn.LayerNorm(encoder_dim),
-                    "attn": nn.MultiheadAttention(
-                        embed_dim=encoder_dim,
-                        num_heads=num_heads,
-                        dropout=dropout,
-                        batch_first=True,
-                    ),
-                    "norm_ffn": nn.LayerNorm(encoder_dim),
-                    "ffn": nn.Sequential(
-                        nn.Linear(encoder_dim, actual_ffn_dim),
-                        nn.GELU(),
-                        nn.Dropout(dropout),
-                        nn.Linear(actual_ffn_dim, encoder_dim),
-                    ),
-                }
-            )
-            self.ref_blocks.append(block)
+        self.ref_blocks = nn.ModuleList(
+            [
+                _RefinementBlock(encoder_dim, actual_ffn_dim, num_heads, dropout)
+                for _ in range(num_refinement_blocks)
+            ]
+        )
 
         # Stage 4: Projection to LLM input embedding space
         self.proj_norm = nn.LayerNorm(encoder_dim)
@@ -247,16 +267,12 @@ class MemorillaMemoryModule(nn.Module):
             z_docs_norm = self.doc_norm(z_docs)
             r = q_c
             for block in self.ref_blocks:
-                r_norm = block["norm_q"](r)
-                attn_out, _ = block["attn"](r_norm, z_docs_norm, z_docs_norm)
-                r = r + attn_out
-                ffn_norm = block["norm_ffn"](r)
-                r = r + block["ffn"](ffn_norm)
+                r = block(r, z_docs_norm)
 
         # Stage 4: Projection to LLM input embedding space
         r_proj = self.proj(self.proj_norm(r))
         m = self.output_norm(r_proj)
-        return m
+        return cast(torch.Tensor, m)
 
 
 class AgenticLoopDetector:
@@ -438,7 +454,7 @@ class MemorillaEngine:
         self.module.eval()
         with torch.no_grad():
             m_t = self.module(q_t, z_d_t)
-        return m_t.squeeze(0).cpu().numpy()
+        return cast(np.ndarray, m_t.squeeze(0).cpu().numpy())
 
     def process_agent_turn(
         self,

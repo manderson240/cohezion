@@ -338,9 +338,7 @@ class CopulaRankBlender:
     """
 
     @staticmethod
-    def blend(
-        preds_list: list[np.ndarray], weights: list[float] | None = None
-    ) -> np.ndarray:
+    def blend(preds_list: list[np.ndarray], weights: list[float] | None = None) -> np.ndarray:
         """Blends probability arrays via empirical rank normalization into standard Gaussian copula space."""
         if not preds_list:
             raise ValueError("preds_list cannot be empty")

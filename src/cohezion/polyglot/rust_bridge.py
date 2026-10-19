@@ -178,5 +178,7 @@ def fast_poincare_mobius_add(u: Sequence[float], v: Sequence[float]) -> list[flo
     if denom <= 0.0:
         denom = 1e-7
 
-    return [((1.0 + 2.0 * u_dot_v + v_sq) * x + (1.0 - u_sq) * y) / denom for x, y in zip(u, v, strict=True)]
-
+    return [
+        ((1.0 + 2.0 * u_dot_v + v_sq) * x + (1.0 - u_sq) * y) / denom
+        for x, y in zip(u, v, strict=True)
+    ]

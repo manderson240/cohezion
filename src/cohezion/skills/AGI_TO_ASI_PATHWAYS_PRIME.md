@@ -89,7 +89,7 @@ from cohezion.compound.asi_pathways import SubstrateMigrationHarness
 migration = SubstrateMigrationHarness.audit_substrate_migration(
     source_lane="npu_flm",
     target_lane="cpu_zen5",
-    state_size_bytes=1024 * 1024 * 64, # 64MB state
+    state_size_bytes=1024 * 1024 * 64,  # 64MB state
 )
 assert migration["status"] == "APPROVED"
 assert migration["lossless_guarantee"] is True

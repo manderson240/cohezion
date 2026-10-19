@@ -56,9 +56,7 @@ class TestGAIANormalizer:
         assert GAIANormalizer.exact_match("Hyphenated-Word", "hyphenated word")
 
     def test_sets_and_lists(self) -> None:
-        assert GAIANormalizer.exact_match(
-            "apple, banana, cherry", "cherry, apple, banana"
-        )
+        assert GAIANormalizer.exact_match("apple, banana, cherry", "cherry, apple, banana")
         assert GAIANormalizer.exact_match(
             "carbon, hydrogen, oxygen, phosphorus",
             "phosphorus, oxygen, hydrogen, carbon",
@@ -93,7 +91,7 @@ class TestGAIARunner:
         runner = GAIARunner()
 
         # Dangerous eval/exec in Python tool call must trigger AutoHarness violation
-        v_res = runner.verify_tool_action("python", "eval('__import__(\"os\").system(\"ls\")')")
+        v_res = runner.verify_tool_action("python", 'eval(\'__import__("os").system("ls")\')')
         assert not v_res.valid
         assert any("eval" in viol for viol in v_res.violations)
 

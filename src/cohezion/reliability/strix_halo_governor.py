@@ -70,9 +70,7 @@ class StrixHaloGovernor:
         """Verify Lemonade router responsiveness on port 13305."""
         endpoints = [f"{self.base_url}/api/v1/models", f"{self.base_url}/admission/status"]
         for url in endpoints:
-            req = urllib.request.Request(
-                url, headers={"Content-Type": "application/json"}
-            )
+            req = urllib.request.Request(url, headers={"Content-Type": "application/json"})
             t0 = time.perf_counter()
             try:
                 with urllib.request.urlopen(req, timeout=timeout_s) as resp:

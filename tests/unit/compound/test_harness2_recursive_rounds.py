@@ -51,18 +51,28 @@ def test_harness_mount_and_load_roundtrip() -> None:
 
         # Check prompt file
         assert (target_path / "prompt.txt").is_file()
-        assert (target_path / "prompt.txt").read_text(encoding="utf-8") == "You are an elite reasoning agent."
+        assert (target_path / "prompt.txt").read_text(
+            encoding="utf-8"
+        ) == "You are an elite reasoning agent."
 
         # Check directory components
         assert (target_path / "skills" / "README.md").is_file()
-        assert "Domain Skill: Radiomics" in (target_path / "skills" / "README.md").read_text(encoding="utf-8")
+        assert "Domain Skill: Radiomics" in (target_path / "skills" / "README.md").read_text(
+            encoding="utf-8"
+        )
 
         # Reload from directory
         loaded_harness = HarnessDefinition.load_from_directory("test_reloaded", target_path)
         assert loaded_harness.harness_id == "test_reloaded"
-        assert loaded_harness.get_content(HarnessComponentType.PROMPT) == harness.get_content(HarnessComponentType.PROMPT)
-        assert loaded_harness.get_content(HarnessComponentType.GUARDRAILS) == harness.get_content(HarnessComponentType.GUARDRAILS)
-        assert loaded_harness.get_content(HarnessComponentType.SKILLS) == harness.get_content(HarnessComponentType.SKILLS)
+        assert loaded_harness.get_content(HarnessComponentType.PROMPT) == harness.get_content(
+            HarnessComponentType.PROMPT
+        )
+        assert loaded_harness.get_content(HarnessComponentType.GUARDRAILS) == harness.get_content(
+            HarnessComponentType.GUARDRAILS
+        )
+        assert loaded_harness.get_content(HarnessComponentType.SKILLS) == harness.get_content(
+            HarnessComponentType.SKILLS
+        )
 
 
 @pytest.mark.unit

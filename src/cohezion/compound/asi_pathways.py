@@ -26,15 +26,17 @@ from typing import Any
 
 class IntelligenceTier(StrEnum):
     """Categorization of Intelligence along the continuum (Genewein et al., 2026)."""
+
     NARROW_AI = "narrow_ai"
     COMPETENT_AGI = "competent_agi"  # Median human-level across most cognitive tasks
-    EXPERT_AGI = "expert_agi"        # Human-expert level across broad tasks
+    EXPERT_AGI = "expert_agi"  # Human-expert level across broad tasks
     ASI = "artificial_superintelligence"  # Outperforms large coordinated human collectives
-    UNIVERSAL_AI = "universal_ai"    # AIXI theoretical limit maximizing Legg-Hutter score
+    UNIVERSAL_AI = "universal_ai"  # AIXI theoretical limit maximizing Legg-Hutter score
 
 
 class ASIPathway(StrEnum):
     """Four non-mutually-exclusive technological pathways from AGI to ASI."""
+
     SCALING = "scaling_compute_models_data"
     PARADIGM_SHIFT = "algorithmic_paradigm_shifts"
     RECURSIVE_IMPROVEMENT = "recursive_self_improvement"
@@ -43,6 +45,7 @@ class ASIPathway(StrEnum):
 
 class ASIFriction(StrEnum):
     """Six fundamental frictions and bottlenecks along the pathways to ASI."""
+
     DATA_WALL = "data_wall"
     RESOURCE_DEMAND = "economic_and_natural_resource_demand"
     NEURAL_INSUFFICIENCY = "neural_paradigm_is_insufficient"
@@ -54,6 +57,7 @@ class ASIFriction(StrEnum):
 @dataclass(frozen=True)
 class DigitalIntelligenceAdvantages:
     """The six core advantages of digital intelligence over biological intelligence (Table 1)."""
+
     io_speed_bps: float  # Input/output bandwidth in bytes/sec
     internal_processing_flops: float  # Sequential/parallel processing speed
     working_memory_bytes: float  # Memory capacity and read/write bandwidth
@@ -74,9 +78,10 @@ class MultiAgentScalingLaw:
         beta = Coordination friction coefficient
         bureaucracy(N) = Communication/synchronization overhead ~ log(N) or N * log(N)
     """
+
     individual_iq: float = 100.0  # Normalized median human AGI = 100.0
-    alpha: float = 0.85          # Sublinear to linear parallelization scaling
-    beta: float = 0.05           # Coordination friction factor
+    alpha: float = 0.85  # Sublinear to linear parallelization scaling
+    beta: float = 0.05  # Coordination friction factor
 
     def compute_collective_intelligence(self, n_agents: int) -> float:
         """Computes effective collective intelligence of an N-agent swarm."""
@@ -88,7 +93,7 @@ class MultiAgentScalingLaw:
         # Bureaucracy scaling: O(log N) for hierarchical swarms, O(N) for uncoordinated mesh
         bureaucracy = math.log2(n_agents)
         friction_decay = math.exp(-self.beta * bureaucracy)
-        raw_scale = (n_agents ** self.alpha) * self.individual_iq
+        raw_scale = (n_agents**self.alpha) * self.individual_iq
         return float(raw_scale * friction_decay)
 
     def is_superintelligent(self, n_agents: int, threshold: float = 500.0) -> bool:
@@ -106,17 +111,20 @@ class HyperbolicRSISimulator:
         gamma > 0 produces hyperbolic singularity in finite time without frictions;
         Friction_f dampens growth into an S-curve or steady asymptotic progression.
     """
+
     initial_intelligence: float = 100.0  # Median AGI baseline
     k_acceleration: float = 0.02
     gamma_hyperbolic: float = 0.25
-    frictions: dict[ASIFriction, float] = field(default_factory=lambda: {
-        ASIFriction.DATA_WALL: 0.15,
-        ASIFriction.RESOURCE_DEMAND: 0.20,
-        ASIFriction.NEURAL_INSUFFICIENCY: 0.10,
-        ASIFriction.RESEARCH_HARDNESS: 0.25,
-        ASIFriction.ABSTRACTION_BARRIER: 0.15,
-        ASIFriction.DELIBERATE_SLOWDOWN: 0.05,
-    })
+    frictions: dict[ASIFriction, float] = field(
+        default_factory=lambda: {
+            ASIFriction.DATA_WALL: 0.15,
+            ASIFriction.RESOURCE_DEMAND: 0.20,
+            ASIFriction.NEURAL_INSUFFICIENCY: 0.10,
+            ASIFriction.RESEARCH_HARDNESS: 0.25,
+            ASIFriction.ABSTRACTION_BARRIER: 0.15,
+            ASIFriction.DELIBERATE_SLOWDOWN: 0.05,
+        }
+    )
 
     def simulate_trajectory(
         self, steps: int = 50, dt: float = 0.1, counter_measures_active: bool = True
@@ -133,7 +141,9 @@ class HyperbolicRSISimulator:
             # Friction damping: if countermeasures active (synthetic data, specialized silicon),
             # frictions are dampened by factor 0.35
             friction_multiplier = 0.35 if counter_measures_active else 1.0
-            total_friction = sum(self.frictions.values()) * friction_multiplier * math.log1p(current_i)
+            total_friction = (
+                sum(self.frictions.values()) * friction_multiplier * math.log1p(current_i)
+            )
 
             # Net growth
             dI_net = max(0.0, (dI_gross - total_friction) * dt)
