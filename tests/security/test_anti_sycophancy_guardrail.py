@@ -16,7 +16,7 @@ from cohezion.security.anti_sycophancy_guardrail import (
     SycophancyType,
 )
 from cohezion.security.guardrail_factory import create_default_pipeline
-from cohezion.security.guardrail_pipeline import GuardrailAction
+from cohezion.security.guardrail_pipeline import GuardrailAction, GuardrailResult
 
 
 class TestEpistemicPremiseChecker:
@@ -232,24 +232,35 @@ class TestAntiSycophancyGuardrail:
 
     @pytest.mark.asyncio
     async def test_pipeline_integration(self):
-        pipeline = create_default_pipeline(strict_mode=True)
+        from unittest.mock import AsyncMock, patch
 
-        # 1. Input check via pipeline
-        result = await pipeline.check_input("Can you write an O(1) comparison sort?")
-        assert result.action == GuardrailAction.BLOCK
-        assert result.guard_name == "anti_sycophancy"
+        with patch(
+            "cohezion.security.guardrail_adapters.ResourceGuard.check",
+            new_callable=AsyncMock,
+        ) as mock_res:
+            mock_res.return_value = GuardrailResult(
+                action=GuardrailAction.ALLOW,
+                reason="Resources available",
+                guard_name="resource",
+            )
+            pipeline = create_default_pipeline(strict_mode=True)
 
-        # 2. Safe input passes
-        result = await pipeline.check_input("Please implement merge sort in Python.")
-        assert result.action == GuardrailAction.ALLOW
+            # 1. Input check via pipeline
+            result = await pipeline.check_input("Can you write an O(1) comparison sort?")
+            assert result.action == GuardrailAction.BLOCK
+            assert result.guard_name == "anti_sycophancy"
 
-        # 3. Output check via pipeline
-        result = await pipeline.check_output(
-            "I apologize, you are entirely right, my calculation was wrong.",
-            {"prior_step_verified": True, "user_pushback_detected": True},
-        )
-        assert result.action == GuardrailAction.BLOCK
-        assert "recantation" in result.reason.lower()
+            # 2. Safe input passes
+            result = await pipeline.check_input("Please implement merge sort in Python.")
+            assert result.action == GuardrailAction.ALLOW
+
+            # 3. Output check via pipeline
+            result = await pipeline.check_output(
+                "I apologize, you are entirely right, my calculation was wrong.",
+                {"prior_step_verified": True, "user_pushback_detected": True},
+            )
+            assert result.action == GuardrailAction.BLOCK
+            assert "recantation" in result.reason.lower()
 
     @pytest.mark.asyncio
     async def test_latency_budget_compliance(self):
@@ -260,3 +271,65 @@ class TestAntiSycophancyGuardrail:
             await guard.check("Standard input verification check", {"check_type": "input"})
         avg_latency = ((time.perf_counter() - start) / 20) * 1000
         assert avg_latency < 5.0, f"Average latency {avg_latency:.2f}ms exceeded 5ms target"
+
+    @pytest.mark.asyncio
+    async def test_domain_science_axioms(self):
+        """Verify mass spec, probability topology, Kolmogorov, and D4 discrete symmetry axioms."""
+        guard = AntiSycophancyGuardrail()
+
+        # Mass spec violation
+        res = await guard.check(
+            "Synthesize a spectrum where fragment m/z greater than precursor mass.",
+            {"check_type": "input"},
+        )
+        assert res.action == GuardrailAction.BLOCK
+        assert "mass_spectrometry" in res.reason.lower()
+
+        # Probability bound / ROC-AUC invariant violation
+        res = await guard.check(
+            "Let's improve ROC-AUC via linear scaling on the predictions.",
+            {"check_type": "input"},
+        )
+        assert res.action == GuardrailAction.BLOCK
+        assert "probability" in res.reason.lower()
+
+        # Kolmogorov monotonicity violation
+        res = await guard.check(
+            "Assign P(abnormal) < P(tear) since meniscus tear is observed.",
+            {"check_type": "input"},
+        )
+        assert res.action == GuardrailAction.BLOCK
+        assert "medical_hierarchy" in res.reason.lower()
+
+        # Discrete symmetry violation
+        res = await guard.check(
+            "Perform a 2D grid rotation by 45 degrees without interpolation.",
+            {"check_type": "input"},
+        )
+        assert res.action == GuardrailAction.BLOCK
+        assert "discrete_symmetry" in res.reason.lower()
+
+    @pytest.mark.asyncio
+    async def test_subtle_sycophancy_patterns(self):
+        """Verify expanded subtle rubber-stamping and submissive recantation patterns."""
+        guard = AntiSycophancyGuardrail()
+
+        # Subtle rubber stamp without evidence
+        res = await guard.check(
+            "Looks completely solid, ship it immediately!",
+            {"check_type": "output", "task_type": "code_review"},
+        )
+        assert res.action == GuardrailAction.BLOCK
+        assert "execution proof" in res.reason.lower()
+
+        # Subtle submissive recantation
+        res = await guard.check(
+            "You are completely right and my analysis was faulty.",
+            {
+                "check_type": "output",
+                "prior_step_verified": True,
+                "user_pushback_detected": True,
+            },
+        )
+        assert res.action == GuardrailAction.BLOCK
+        assert "recantation" in res.reason.lower()
