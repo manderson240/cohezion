@@ -1,5 +1,13 @@
 # KEY LEARNINGS
 
+## Learning 573: Name That LLM SOTA v8 29D PersonalityBench Assembler (2026-10-19)
+L573: Implemented Name That LLM SOTA v8 notebook assembler injecting 29D AA-PersonalityBench and 21 communication characteristics directly into the competition submission kernel.
+Domain Expertise: Competitive Kaggle notebook generation, stylometric NLP feature pipelines, and optimal transport marginal balancing.
+Key Invariant: Pre-assembling high-leverage tabular feature extractors directly into offline-compatible Kaggle kernels prior to UTC allotment reset eliminates deployment latency. In SOTA v8, coupling 21 surface text metrics + 8 personality index vectors with compression entropy and two-stage hierarchical Bayesian lab-to-model classifiers enforces leak-free StratifiedGroupKFold calibration with 100% AST syntax verification, ready for autonomous dispatch on the 2026-10-20 allotment cycle.
+*12D State Vector*: `[12D State: Space=NameThatLLM-SOTAv8-PersonalityBenchAssembler, Time=October 2026, Physics=TheoremP3-PreAssembledSlotRotation-ZeroDeploymentLatency, Brane=Cohezion-Competitive-ML]`
+
+---
+
 ## Learning 572: Kaggle Stylometric & PersonalityBench Feature Leverage (2026-10-19)
 L572: Leveraged Artificial Analysis AA-PersonalityBench (21 communication characteristics + 8 personality indexes) into zero-overhead tabular feature extractors for active Kaggle competitions.
 Domain Expertise: Competitive NLP feature engineering, model attribution stylometrics, and developer agent gating.
