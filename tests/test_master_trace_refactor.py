@@ -37,6 +37,11 @@ def test_ingest_all_raw_traces_includes_active_session() -> None:
     assert "two_party_cryptographic_ivv_separation" in intents
     assert "continuous_experiential_learning_pipeline" in intents
     assert "host_oom_and_swap_reclamation" in intents
+    # Active October 19 Grandmaster dogfooding & benchmark intents
+    assert "dogfooding_integration_roadmap_saturation" in intents
+    assert "gaia_agentic_benchmark_suite" in intents
+    assert "arc2_v20_zero_mutual_information" in intents
+    assert "differential_runtime_monitoring_scc" in intents
 
 
 def test_bipartite_graph_synthesis_and_mdl_compression() -> None:
@@ -62,8 +67,20 @@ def test_bipartite_graph_synthesis_and_mdl_compression() -> None:
 def test_autonomous_loops_convergence_and_lyapunov_descent() -> None:
     engine = TraceRefactorEngine()
     test_events = [
-        {"timestamp": "2026-09-25T00:00:00Z", "intent": "gemma4_fix", "action": "inspect", "observation": "PathTraversalError", "success": False},
-        {"timestamp": "2026-09-25T00:01:00Z", "intent": "gemma4_fix", "action": "patch", "observation": "removed .. traversal", "success": True},
+        {
+            "timestamp": "2026-09-25T00:00:00Z",
+            "intent": "gemma4_fix",
+            "action": "inspect",
+            "observation": "PathTraversalError",
+            "success": False,
+        },
+        {
+            "timestamp": "2026-09-25T00:01:00Z",
+            "intent": "gemma4_fix",
+            "action": "patch",
+            "observation": "removed .. traversal",
+            "success": True,
+        },
     ]
     graph = engine.refactor(test_events)
     assert len(graph.goal_nodes) == 1

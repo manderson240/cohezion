@@ -1,5 +1,21 @@
 # KEY LEARNINGS
 
+## Learning 577: Kaggle Enveda Casmi26 Molecule Id Mass Spectra Autoharness - Compound Retrospective Skill (2026-10-19)
+L577: Automated Retrospective Skill Extractor extracted reusable domain capability from `scripts/kaggle/casmi26_v4n_podium/patch_casmi26_v30_podium_rerank.py`.
+Domain Expertise: Autonomous invariant solution for enveda-CASMI26-molecule-id-mass-spectra extracted from validated slot patch.
+Key Invariant: Enforces deterministic execution without LLM inference overhead. Registered in CapabilityRegistry and UniversalCompetitionHarness.
+*12D State Vector*: `[12D State: Space=KAGGLE_ENVEDA_CASMI26_MOLECULE_ID_MASS_SPECTRA_AUTOHARNESS, Time=October 2026, Physics=CompoundFlywheel-ReusableSkillExtraction-ZeroOverhead, Brane=Cohezion-Ascension-Sovereignty]`
+
+---
+
+## Learning 576: Kaggle Enveda Casmi26 Molecule Id Mass Spectra Autoharness - Compound Retrospective Skill (2026-10-19)
+L576: Automated Retrospective Skill Extractor extracted reusable domain capability from `scripts/kaggle/casmi26_v4n_podium/patch_casmi26_v30_podium_rerank.py`.
+Domain Expertise: Autonomous invariant solution for enveda-CASMI26-molecule-id-mass-spectra extracted from validated slot patch.
+Key Invariant: Enforces deterministic execution without LLM inference overhead. Registered in CapabilityRegistry and UniversalCompetitionHarness.
+*12D State Vector*: `[12D State: Space=KAGGLE_ENVEDA_CASMI26_MOLECULE_ID_MASS_SPECTRA_AUTOHARNESS, Time=October 2026, Physics=CompoundFlywheel-ReusableSkillExtraction-ZeroOverhead, Brane=Cohezion-Ascension-Sovereignty]`
+
+---
+
 ## Learning 575: Kaggle Rsna Knee Abnormality Detection Autoharness - Compound Retrospective Skill (2026-10-19)
 L575: Automated Retrospective Skill Extractor extracted reusable domain capability from `scripts/kaggle/rsna_r7_raptor_blend/assemble_rsna_v42_jsn_isotonic_fusion.py`.
 Domain Expertise: Autonomous invariant solution for rsna-knee-abnormality-detection extracted from validated slot patch.
