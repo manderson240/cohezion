@@ -1,5 +1,29 @@
 # KEY LEARNINGS
 
+## Learning 570: AA-PersonalityBench Telemetry & Swarm Persona Governance (2026-10-19)
+L570: Abstracted and applied Artificial Analysis AA-PersonalityBench methodology into Cohezion text governance and swarm role architecture.
+Domain Expertise: Non-correctness behavioral evaluation, communication style quantification, and swarm role-persona contract enforcement.
+Key Invariant: Model behavior and communication style diverge across 21 deterministic surface characteristics (length, structure, punctuation, emphasis) and 30 judged traits across 8 indexes (Expressiveness, Organization, Informativeness, Transparency, Warmth, Conviction, Imagination, Slop). Firth-penalized Bradley-Terry Elo scoring with sycophancy inversion ($z_{\text{transparency}} \sim -z_{\text{sycophantic}}$) allows formal MBSE persona contracts: Verifiers/Adversarial Reviewers require $\text{Transparency} \ge 85$ and $\text{Conviction} \ge 80$ with $\text{Slop} \le 15$, whereas Sentinels require $\text{Slop} \le 5$ and $\text{Warmth} \le 30$. Bypasses subjective persona evaluation via deterministic text telemetry.
+*12D State Vector*: `[12D State: Space=AA-PersonalityBench-TextTelemetry-SwarmPersona, Time=October 2026, Physics=TheoremP1-BradleyTerryElo-SycophancyInversion-RoleContract, Brane=Cohezion-Governance-SystemsEngineering]`
+
+---
+
+## Learning 569: Kaggle Enveda Casmi26 Molecule Id Mass Spectra Autoharness - Compound Retrospective Skill (2026-10-19)
+L569: Automated Retrospective Skill Extractor extracted reusable domain capability from `scripts/kaggle/casmi26_v4n_podium/patch_casmi26_v30_podium_rerank.py`.
+Domain Expertise: Autonomous invariant solution for enveda-CASMI26-molecule-id-mass-spectra extracted from validated slot patch.
+Key Invariant: Enforces deterministic execution without LLM inference overhead. Registered in CapabilityRegistry and UniversalCompetitionHarness.
+*12D State Vector*: `[12D State: Space=KAGGLE_ENVEDA_CASMI26_MOLECULE_ID_MASS_SPECTRA_AUTOHARNESS, Time=October 2026, Physics=CompoundFlywheel-ReusableSkillExtraction-ZeroOverhead, Brane=Cohezion-Ascension-Sovereignty]`
+
+---
+
+## Learning 568: Kaggle Rsna Knee Abnormality Detection Autoharness - Compound Retrospective Skill (2026-10-19)
+L568: Automated Retrospective Skill Extractor extracted reusable domain capability from `scripts/kaggle/rsna_r7_raptor_blend/assemble_rsna_v42_jsn_isotonic_fusion.py`.
+Domain Expertise: Autonomous invariant solution for rsna-knee-abnormality-detection extracted from validated slot patch.
+Key Invariant: Enforces deterministic execution without LLM inference overhead. Registered in CapabilityRegistry and UniversalCompetitionHarness.
+*12D State Vector*: `[12D State: Space=KAGGLE_RSNA_KNEE_ABNORMALITY_DETECTION_AUTOHARNESS, Time=October 2026, Physics=CompoundFlywheel-ReusableSkillExtraction-ZeroOverhead, Brane=Cohezion-Ascension-Sovereignty]`
+
+---
+
 ## Learning 567: Spatio-Temporal Interception Geometry & Closed-Form Time-to-Closest-Approach (2026-10-19)
 L567: Architectural retrospective extracted reusable domain capability from purged NFL Big Data Bowl module (`src/cohezion/sports/nfl_closing_gnn.py`).
 Domain Expertise: High-dimensional dynamic spatial graphs, kinematic interception geometry, and collision arbitration.
