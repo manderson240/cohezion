@@ -49,6 +49,9 @@ WORKSPACE = Path(
     "/home/mike-anderson/.gemini/antigravity-cli/worktrees/cohezion/ollama_lemonade_kaggle_push"
 )
 sys.path.insert(0, str(WORKSPACE / "src"))
+from cohezion.compound.ivv_engine import IVVGatekeeper, IndependentVerifier  # noqa: E402
+from cohezion.compound.retrospective_skill_extractor import RetrospectiveSkillExtractor  # noqa: E402
+from cohezion.data_mesh.shm_mesh import SharedMemoryDataProductBuffer  # noqa: E402
 from cohezion.kaggle.preflight_validator import PreflightValidator  # noqa: E402
 
 
@@ -530,7 +533,7 @@ def dispatch_slot_submission(
 
 
 def log_experiential_learning(comp_slug: str, sub: Any) -> None:
-    """Logs scored submissions to SurrealDB and the Obsidian Vault."""
+    """Logs scored submissions to SurrealDB and the Obsidian Vault, and triggers retrospective skill extraction."""
     try:
         sys.path.insert(0, str(WORKSPACE / "scripts" / "kaggle"))
         from recursive_experiential_learner import audit_and_learn
@@ -542,6 +545,29 @@ def log_experiential_learning(comp_slug: str, sub: Any) -> None:
             sub.ref,
             sub.public_score,
         )
+
+        # Compound Engineering: Retrospective Skill Extractor hook
+        comp_cfg = PORTFOLIO_CONFIG.get(comp_slug, {})
+        latest_slot = comp_cfg.get("slots", {}).get(1, {})
+        patch_script_path = latest_slot.get("patch_script")
+        if patch_script_path:
+            patch_file = WORKSPACE / patch_script_path
+            if patch_file.exists():
+                extractor = RetrospectiveSkillExtractor(workspace_root=WORKSPACE)
+                spec = extractor.extract_from_python_code(
+                    code_content=patch_file.read_text(encoding="utf-8"),
+                    name=f"KAGGLE_{comp_slug.replace('-', '_').upper()}_AUTOHARNESS",
+                    domain_expertise=f"Autonomous invariant solution for {comp_slug} extracted from validated slot patch.",
+                    source_artifact=str(patch_script_path),
+                    tags=["kaggle", comp_slug, "autoharness", "retrospective"],
+                )
+                res = extractor.extract_and_register(spec)
+                logger.info(
+                    "[%s] ✓ Retrospective Skill Extractor registered skill: %s (Learning %s)",
+                    comp_slug,
+                    spec.name,
+                    res.get("learning_id"),
+                )
     except Exception as e:
         logger.warning("[%s] Experiential learning logging note: %s", comp_slug, e)
 
@@ -721,6 +747,41 @@ def run_cycle(api: KaggleApi, state: dict[str, Any]) -> bool:
                 comp_slug,
                 target_slot,
                 preflight_res.reason,
+            )
+            continue
+
+        # Enforce Two-Party Independent Verification & Validation (IV&V) Gate
+        ivv_verifier = IndependentVerifier(verifier_id="AdversarialKaggleVerifier")
+        slot_info = comp_cfg.get("slots", {}).get(target_slot, {})
+        patch_script_path = slot_info.get("patch_script")
+        patch_code = ""
+        if patch_script_path:
+            p = WORKSPACE / patch_script_path
+            if p.exists():
+                try:
+                    patch_code = p.read_text(encoding="utf-8")
+                except Exception:
+                    pass
+
+        ivv_cert = ivv_verifier.audit_code_artifact(
+            artifact_id=f"{comp_slug}:slot_{target_slot}",
+            creator_id="KaggleAllotmentEngine",
+            code_str=patch_code,
+            requirements_spec={"competition_type": comp_slug},
+        )
+        gatekeeper = IVVGatekeeper()
+        if ivv_cert.is_valid:
+            gatekeeper.register_certificate(ivv_cert)
+
+        ready, ivv_reason = gatekeeper.verify_deployment_readiness(
+            f"{comp_slug}:slot_{target_slot}", creator_id="KaggleAllotmentEngine"
+        )
+        if not ready:
+            logger.warning(
+                "[%s] Slot %d BLOCKED by Two-Party IV&V Gatekeeper: %s",
+                comp_slug,
+                target_slot,
+                ivv_reason,
             )
             continue
 

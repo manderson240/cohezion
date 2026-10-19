@@ -118,9 +118,14 @@ class SemanticCacheSystem:
                 self.l2_vector_cache.pop(0)
 
         # Insert L3 SurrealDB
-        data = {"key": key, "prompt": prompt, "value": value, "timestamp": time.time()}
-        surql = f"UPSERT semantic_cache:{key} CONTENT {json.dumps(data)};"
         try:
+            val_to_serialize = value
+            if hasattr(value, "__dataclass_fields__"):
+                import dataclasses
+                val_to_serialize = dataclasses.asdict(value)
+
+            data = {"key": key, "prompt": prompt, "value": val_to_serialize, "timestamp": time.time()}
+            surql = f"UPSERT semantic_cache:{key} CONTENT {json.dumps(data, default=str)};"
             req = urllib.request.Request(
                 SURREAL_URL,
                 data=surql.encode(),

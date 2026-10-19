@@ -10,6 +10,7 @@ Enforces strict quality gate before any Kaggle submission slot is dispatched:
 from __future__ import annotations
 
 import ast
+import hashlib
 import logging
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -17,6 +18,7 @@ from typing import Any
 
 import numpy as np
 
+from cohezion.cache.semantic_cache_system import SemanticCacheSystem
 from cohezion.kaggle.validation_product import LeakFreeSplitter, OOFValidationHarness
 
 
@@ -41,8 +43,13 @@ class PreflightResult:
 class PreflightValidator:
     """Pre-flight validation engine protecting daily Kaggle submission allotments."""
 
-    def __init__(self, workspace_root: Path | None = None) -> None:
+    def __init__(
+        self,
+        workspace_root: Path | None = None,
+        cache: SemanticCacheSystem | None = None,
+    ) -> None:
         self.workspace_root = workspace_root or Path.cwd()
+        self.cache = cache or SemanticCacheSystem(l1_capacity=1000)
 
     def validate_slot(
         self,
@@ -65,6 +72,30 @@ class PreflightValidator:
         slot_info = comp_cfg.get("slots", {}).get(slot_num, {})
         slot_name = slot_info.get("name", f"slot_{slot_num}")
         patch_script_path = slot_info.get("patch_script")
+
+        # 0. Canonical Content Fingerprint for Semantic Cache
+        patch_hash = "none"
+        if patch_script_path:
+            full_path = self.workspace_root / patch_script_path
+            if full_path.exists():
+                try:
+                    patch_bytes = full_path.read_bytes()
+                    patch_hash = hashlib.sha256(patch_bytes).hexdigest()
+                except Exception:
+                    pass
+
+        cache_key = f"preflight:{comp_slug}:{slot_num}:{patch_script_path}:{patch_hash}:{baseline_score}"
+        hit = self.cache.get(cache_key)
+        if hit is not None and isinstance(hit.value, PreflightResult):
+            logger.info(
+                "[%s] Pre-flight cache HIT (%s, latency=%0.3fms) for slot %d (%s)",
+                comp_slug,
+                hit.tier,
+                hit.latency_ms,
+                slot_num,
+                slot_name,
+            )
+            return hit.value
 
         # 1. AST Syntax & Static Verification for Patch Script (if present)
         if patch_script_path:
@@ -133,7 +164,7 @@ class PreflightValidator:
 
         if val_result.recommendation == "REJECT_CV_REGRESSION":
             logger.warning("[%s] Candidate %s rejected due to CV regression.", comp_slug, slot_name)
-            return PreflightResult(
+            res = PreflightResult(
                 competition=comp_slug,
                 slot_num=slot_num,
                 passed=False,
@@ -143,6 +174,8 @@ class PreflightValidator:
                 ci_upper=val_result.ci_upper,
                 p_value=val_result.p_value,
             )
+            self.cache.put(cache_key, res)
+            return res
 
         logger.info(
             "[%s] Pre-flight gate PASSED for Slot %d (%s). OOF Score: %0.4f [95%% CI: %0.4f, %0.4f]",
@@ -154,7 +187,7 @@ class PreflightValidator:
             val_result.ci_upper,
         )
 
-        return PreflightResult(
+        res = PreflightResult(
             competition=comp_slug,
             slot_num=slot_num,
             passed=True,
@@ -165,3 +198,5 @@ class PreflightValidator:
             p_value=val_result.p_value,
             metadata={"slot_name": slot_name},
         )
+        self.cache.put(cache_key, res)
+        return res

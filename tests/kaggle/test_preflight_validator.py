@@ -65,3 +65,24 @@ def test_preflight_validator_rejects_syntax_error_script() -> None:
         result = validator.validate_slot("arc-prize-2026-arc-agi-2", 3, cfg)
         assert result.passed is False
         assert "SyntaxError" in result.reason
+
+
+def test_preflight_validator_semantic_cache_hit() -> None:
+    validator = PreflightValidator()
+    cfg = {
+        "slots": {
+            1: {
+                "name": "cache_test_slot",
+                "patch_script": None,
+            }
+        }
+    }
+    # First call: cache miss, computes and populates L1 cache
+    res1 = validator.validate_slot("name-that-llm", 1, cfg)
+    assert res1.passed is True
+
+    # Second call: cache hit, instantaneous return
+    res2 = validator.validate_slot("name-that-llm", 1, cfg)
+    assert res2.passed is True
+    assert res2 == res1
+    assert len(validator.cache.l1_cache) >= 1

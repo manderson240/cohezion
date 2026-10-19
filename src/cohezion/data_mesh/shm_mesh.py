@@ -127,9 +127,7 @@ class SharedMemoryDataProductBuffer:
             if len(header_bytes) < HEADER_SIZE:
                 raise ValueError(f"Corrupted header in shared memory product '{product_id}'")
 
-            magic, version, meta_len, payload_len = struct.unpack(
-                HEADER_FORMAT, header_bytes
-            )
+            magic, version, meta_len, payload_len = struct.unpack(HEADER_FORMAT, header_bytes)
             if magic != MAGIC:
                 raise ValueError(f"Invalid magic identifier in product '{product_id}'")
 
@@ -138,6 +136,30 @@ class SharedMemoryDataProductBuffer:
 
             payload_bytes = f.read(payload_len)
             return meta, memoryview(payload_bytes)
+
+    def publish_numpy(
+        self,
+        product_id: str,
+        arr: Any,
+        metadata: dict[str, Any] | None = None,
+    ) -> ShmProductDescriptor:
+        """Publish a NumPy array to shared memory with metadata describing its shape and dtype."""
+        import numpy as np
+
+        meta = dict(metadata or {})
+        meta["dtype"] = str(arr.dtype)
+        meta["shape"] = list(arr.shape)
+        return self.publish(product_id, arr.tobytes(), meta)
+
+    def read_numpy(self, product_id: str) -> tuple[dict[str, Any], Any]:
+        """Read a NumPy array directly from shared memory buffer using its shape and dtype."""
+        import numpy as np
+
+        meta, mv = self.read(product_id)
+        dtype = np.dtype(meta["dtype"])
+        shape = tuple(meta["shape"])
+        arr = np.frombuffer(mv, dtype=dtype).reshape(shape)
+        return meta, arr
 
     def delete(self, product_id: str) -> bool:
         """Remove a product buffer from shared memory."""
