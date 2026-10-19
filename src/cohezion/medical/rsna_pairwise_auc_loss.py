@@ -98,3 +98,21 @@ class PairwiseAUCRankingLoss:
             aucs.append(float(concordance / (P_k * N_k)))
 
         return float(np.mean(aucs)) if aucs else 0.5
+
+    def forward(
+        self,
+        y_true: np.ndarray,
+        y_pred: np.ndarray,
+        eps: float = 1e-7,
+    ) -> tuple[float, dict[int, float]]:
+        """Alias for compute_loss_numpy."""
+        return self.compute_loss_numpy(y_true, y_pred, eps=eps)
+
+    def __call__(
+        self,
+        y_true: np.ndarray,
+        y_pred: np.ndarray,
+        eps: float = 1e-7,
+    ) -> tuple[float, dict[int, float]]:
+        """Callable invocation forwarding to compute_loss_numpy."""
+        return self.compute_loss_numpy(y_true, y_pred, eps=eps)
