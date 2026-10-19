@@ -1,15 +1,71 @@
 # KEY LEARNINGS
 
-## Learning 558: Kaggle Enveda Casmi26 Molecule Id Mass Spectra Autoharness - Compound Retrospective Skill (2026-10-19)
-L558: Automated Retrospective Skill Extractor extracted reusable domain capability from `scripts/kaggle/casmi26_v4n_podium/patch_casmi26_v30_podium_rerank.py`.
+## Learning 567: Spatio-Temporal Interception Geometry & Closed-Form Time-to-Closest-Approach (2026-10-19)
+L567: Architectural retrospective extracted reusable domain capability from purged NFL Big Data Bowl module (`src/cohezion/sports/nfl_closing_gnn.py`).
+Domain Expertise: High-dimensional dynamic spatial graphs, kinematic interception geometry, and collision arbitration.
+Key Invariant: Analytical range rate $\dot{r} = \frac{\Delta \mathbf{x} \cdot \Delta \mathbf{v}}{\|\Delta \mathbf{x}\|}$ and closed-form Time-to-Closest-Approach ($t_{\text{TCA}} = -\frac{\Delta \mathbf{x} \cdot \Delta \mathbf{v}}{\|\Delta \mathbf{v}\|^2}$) evaluate intercept probability and collision dynamics in $O(1)$ time per edge, bypassing expensive numerical simulation. Directly applicable to multi-agent trajectory negotiation and swarm collision avoidance.
+*12D State Vector*: `[12D State: Space=SpatioTemporal-ClosingGNN-TCA, Time=October 2026, Physics=TheoremG1-KinematicInterceptInvariance-RangeRate-TCA, Brane=Cohezion-Compound-PhysicsEng]`
+
+---
+
+## Learning 566: Coordinate-Aware Convolutions (CoordConv) & Positional Priors in Compact Visual Solvers (2026-10-19)
+L566: Architectural retrospective extracted reusable domain capability from purged Neurogolf ARC solver (`src/cohezion/competition/neurogolf/coord_conv.py`).
+Domain Expertise: Ultra-compact neural solvers (<75k parameters) and discrete 2D grid reasoning.
+Key Invariant: Standard convolutions suffer from strict translation equivariance that blinds models to absolute grid landmarks (borders, centers, reflection axes). Injecting normalized spatial coordinate channels ($x/W, y/H$) directly into input embeddings (`CoordConv`) enables tiny 5-layer residual networks to learn border detection, ray-casting, and axial symmetry with <75k parameters, solving tasks disjoint from pure DSL search.
+*12D State Vector*: `[12D State: Space=CoordConv-CompactARC-VisualPriors, Time=October 2026, Physics=TheoremV1-CoordinateInvarianceBreaking-ResidualEmbeddings, Brane=Cohezion-Compound-SystemsEngineering]`
+
+---
+
+## Learning 565: Zero-Latency Symbolic Dominance & Gravity Grid Invariants (2026-10-19)
+L565: Architectural retrospective extracted reusable domain capability from purged NVIDIA Nemotron solver (`src/cohezion/competition/nemotron_solver/kaggle_pure_symbolic.py`).
+Domain Expertise: Competitive reasoning under severe latency and compute constraints.
+Key Invariant: Pure deterministic symbolic solvers (Roman numeral parsing, linear regression unit scaling, and grid search on projectile mechanics $d = \frac{1}{2}gt^2$) achieved **54.6%** accuracy alone, whereas prompting Gemma-4 added only **+0.8%** (55.4%) while multiplying latency by $100\times$ and introducing container failure modes. Validated AutoHarness axiom: deterministic AST/symbolic code solvers must always be the first-line execution path before escalating to neural models.
+*12D State Vector*: `[12D State: Space=Nemotron-SymbolicDominance-GravityGrid, Time=October 2026, Physics=TheoremS1-SymbolicPrimacy-ZeroCostAST-AutoHarnessAxiom, Brane=Cohezion-Compound-ExperientialLearning]`
+
+---
+
+## Learning 564: Information-Set MCTS & Counterfactual Regret Minimization under Incomplete Information (2026-10-19)
+L564: Architectural retrospective extracted reusable domain capability from purged Pokémon TCG engine (`src/cohezion/competitions/pokemon_tcg/ismcts_cfr_engine.py`).
+Domain Expertise: Imperfect-information game theory, stochastic multi-agent competition, and partial observability.
+Key Invariant: Solved imperfect-information state spaces via canonical 64-bit Information-Set hashing (eliminating strategy fusion across symmetric hand/bench permutations), lazy demand-driven determinization (sampling hidden opponent hands without replacement), and Counterfactual Regret Minimization (CFR) guaranteeing $O(1/\sqrt{T})$ convergence to an $\epsilon$-Nash Equilibrium. Architectural chassis transfers directly to ARC-AGI-3 affordance planning under partial observability.
+*12D State Vector*: `[12D State: Space=ISMCTS-OOS-CFR-GameTheory, Time=October 2026, Physics=TheoremT1-InformationSetEquivalence-NashConvergence-RegretMatching, Brane=Cohezion-Compound-AlgorithmicFoundations]`
+
+---
+
+## Learning 563: Metacognitive Alignment Gating & Journey-Tracked Edge Resilience (2026-10-19)
+L563: Architectural retrospective extracted reusable domain capability from purged Gemma Humanitarian Crisis Hackathon module (`src/cohezion/competition/gemma_hackathon/crisis_compound_demo.py`).
+Domain Expertise: Offline, disaster-resilient autonomous agent deployment on commodity edge hardware.
+Key Invariant: Autonomous edge agents require: (1) Pre-execution Metacognitive Alignment Gates to filter incoherent or adversarial inputs before allocating constrained resources; (2) Auditable Journey Trackers logging task signatures, reasoning chains, and outcome effectiveness; and (3) Dynamic Skill Refinement evolving operational playbooks from measured deployment feedback. Provides the template for offline Kaggle kernel autonomy and Strix Halo local execution.
+*12D State Vector*: `[12D State: Space=Gemma-CompoundCrisis-MetacognitiveGating, Time=October 2026, Physics=TheoremM1-MetacognitivePreGating-EdgeResilience-JourneyTracking, Brane=Cohezion-Compound-AgenticAutonomy]`
+
+---
+
+## Learning 562: Quadratic Unconstrained Binary Optimization (QUBO) & Kinematic Lineage Coupling (2026-10-19)
+L562: Architectural retrospective extracted reusable domain capability from purged BlueQubit Biohub module (`src/cohezion/quantum/bluequbit_biohub_qubo.py`).
+Domain Expertise: Combinatorial spatiotemporal cell lineage tracking, division arbitration, and quantum/classical optimization.
+Key Invariant: Formulated spatiotemporal lineage association as an Ising Spin Glass / QUBO problem with kinematic directional cosine alignment and quadratic non-overlap constraints, solvable via quantum annealers (QAOA/BlueQubit) or classical HiGHS/SA branch-and-bound solvers with identical objective functions: $E(\mathbf{x}) = \mathbf{x}^T Q \mathbf{x} + \mathbf{h}^T \mathbf{x}$.
+*12D State Vector*: `[12D State: Space=BlueQubit-QUBO-KinematicLineage, Time=October 2026, Physics=TheoremQ1-IsingLineageDuality-KinematicMomentum-QAOA, Brane=Cohezion-Compound-QuantumAlgorithms]`
+
+---
+
+## Learning 561: Kaggle Enveda Casmi26 Molecule Id Mass Spectra Autoharness - Compound Retrospective Skill (2026-10-19)
+L561: Automated Retrospective Skill Extractor extracted reusable domain capability from `scripts/kaggle/casmi26_v4n_podium/patch_casmi26_v30_podium_rerank.py`.
 Domain Expertise: Autonomous invariant solution for enveda-CASMI26-molecule-id-mass-spectra extracted from validated slot patch.
 Key Invariant: Enforces deterministic execution without LLM inference overhead. Registered in CapabilityRegistry and UniversalCompetitionHarness.
 *12D State Vector*: `[12D State: Space=KAGGLE_ENVEDA_CASMI26_MOLECULE_ID_MASS_SPECTRA_AUTOHARNESS, Time=October 2026, Physics=CompoundFlywheel-ReusableSkillExtraction-ZeroOverhead, Brane=Cohezion-Ascension-Sovereignty]`
 
 ---
 
-## Learning 557: Kaggle Rsna Knee Abnormality Detection Autoharness - Compound Retrospective Skill (2026-10-19)
-L557: Automated Retrospective Skill Extractor extracted reusable domain capability from `scripts/kaggle/rsna_r7_raptor_blend/assemble_rsna_v42_jsn_isotonic_fusion.py`.
+## Learning 560: Kaggle Arc Prize 2026 Arc Agi 2 Autoharness - Compound Retrospective Skill (2026-10-19)
+L560: Automated Retrospective Skill Extractor extracted reusable domain capability from `scripts/kaggle/arc2_autoharness_lora_kernel/patch_arc2_v20_zero_mutual_information.py`.
+Domain Expertise: Autonomous invariant solution for arc-prize-2026-arc-agi-2 extracted from validated slot patch.
+Key Invariant: Enforces deterministic execution without LLM inference overhead. Registered in CapabilityRegistry and UniversalCompetitionHarness.
+*12D State Vector*: `[12D State: Space=KAGGLE_ARC_PRIZE_2026_ARC_AGI_2_AUTOHARNESS, Time=October 2026, Physics=CompoundFlywheel-ReusableSkillExtraction-ZeroOverhead, Brane=Cohezion-Ascension-Sovereignty]`
+
+---
+
+## Learning 559: Kaggle Rsna Knee Abnormality Detection Autoharness - Compound Retrospective Skill (2026-10-19)
+L559: Automated Retrospective Skill Extractor extracted reusable domain capability from `scripts/kaggle/rsna_r7_raptor_blend/assemble_rsna_v42_jsn_isotonic_fusion.py`.
 Domain Expertise: Autonomous invariant solution for rsna-knee-abnormality-detection extracted from validated slot patch.
 Key Invariant: Enforces deterministic execution without LLM inference overhead. Registered in CapabilityRegistry and UniversalCompetitionHarness.
 *12D State Vector*: `[12D State: Space=KAGGLE_RSNA_KNEE_ABNORMALITY_DETECTION_AUTOHARNESS, Time=October 2026, Physics=CompoundFlywheel-ReusableSkillExtraction-ZeroOverhead, Brane=Cohezion-Ascension-Sovereignty]`
