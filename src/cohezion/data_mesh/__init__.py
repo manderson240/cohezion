@@ -183,3 +183,20 @@ with contextlib.suppress(Exception):
         "ShmProductDescriptor",
     ]
 
+with contextlib.suppress(Exception):
+    from cohezion.data_mesh.iceberg_read_restrictions import (
+        ColumnProjection as ColumnProjection,
+        FailClosedViolationError as FailClosedViolationError,
+        FineGrainedAccessController as FineGrainedAccessController,
+        MaskingAction as MaskingAction,
+        ReadRestrictions as ReadRestrictions,
+    )
+
+    __all__ += [
+        "ColumnProjection",
+        "FailClosedViolationError",
+        "FineGrainedAccessController",
+        "MaskingAction",
+        "ReadRestrictions",
+    ]
+
