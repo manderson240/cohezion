@@ -18,8 +18,12 @@ import json
 import shutil
 from pathlib import Path
 
-NOTEBOOK_PATH = Path("scripts/kaggle/arc2_autoharness_lora_kernel/arc-agi-2-fork-lb33-89-20260903.ipynb")
-BACKUP_PATH = Path("scripts/kaggle/arc2_autoharness_lora_kernel/arc-agi-2-fork-lb33-89-20260903.ipynb.v15.bak")
+NOTEBOOK_PATH = Path(
+    "scripts/kaggle/arc2_autoharness_lora_kernel/arc-agi-2-fork-lb33-89-20260903.ipynb"
+)
+BACKUP_PATH = Path(
+    "scripts/kaggle/arc2_autoharness_lora_kernel/arc-agi-2-fork-lb33-89-20260903.ipynb.v15.bak"
+)
 
 
 def patch_arc2_v16() -> None:
@@ -77,7 +81,9 @@ def patch_arc2_v16() -> None:
                     except Exception:
                         target_pred[attempt_key] = [r[::-1] for r in test_in]"""
 
-    new_loop_end = old_loop_end + """
+    new_loop_end = (
+        old_loop_end
+        + """
 
         # SOTA v16 Monotonic Resolution: If attempt_2 is identical to attempt_1, replace with NPU D4 transform
         cur_a1 = target_pred.get('attempt_1')
@@ -90,6 +96,7 @@ def patch_arc2_v16() -> None:
                     target_pred['attempt_2'] = d4_hyp
             except Exception:
                 pass"""
+    )
 
     src = src.replace(old_loop_end, new_loop_end)
     src = src.replace("AutoHarness SOTA v15", "AutoHarness SOTA v16 (NPU-D4)")
@@ -102,7 +109,9 @@ def patch_arc2_v16() -> None:
         if cell.get("cell_type") == "code":
             raw_src = cell.get("source", [])
             full_text = "".join(raw_src) if isinstance(raw_src, list) else str(raw_src)
-            clean_lines = [line for line in full_text.splitlines() if not line.strip().startswith(("!", "%"))]
+            clean_lines = [
+                line for line in full_text.splitlines() if not line.strip().startswith(("!", "%"))
+            ]
             code = "\n".join(clean_lines)
             try:
                 ast.parse(code)

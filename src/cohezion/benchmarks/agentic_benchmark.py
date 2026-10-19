@@ -322,8 +322,12 @@ class GAIARunner:
 
                     # Verify any code tool calls through AutoHarness
                     for call in tool_calls:
-                        tool_type = call.get("name", "")
-                        code_str = call.get("args", {}).get("code", "")
+                        if isinstance(call, dict):
+                            tool_type = call.get("name", "")
+                            code_str = call.get("args", {}).get("code", "")
+                        else:
+                            tool_type = str(call)
+                            code_str = ""
                         if code_str:
                             v_res = self.verify_tool_action(tool_type, code_str)
                             if not v_res.valid:
@@ -409,6 +413,8 @@ class GAIARunner:
         if vault_path is None:
             base_vault = Path.home() / "vaults" / "cohezion-vault" / "benchmarks"
             target_file = base_vault / f"gaia_benchmark_{timestamp_slug}.md"
+        elif vault_path.is_dir() or not vault_path.suffix:
+            target_file = vault_path / f"gaia_benchmark_{timestamp_slug}.md"
         else:
             target_file = vault_path
 

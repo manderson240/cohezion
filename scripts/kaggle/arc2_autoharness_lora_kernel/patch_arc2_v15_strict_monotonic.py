@@ -20,8 +20,12 @@ import json
 import shutil
 from pathlib import Path
 
-NOTEBOOK_PATH = Path("scripts/kaggle/arc2_autoharness_lora_kernel/arc-agi-2-fork-lb33-89-20260903.ipynb")
-BACKUP_PATH = Path("scripts/kaggle/arc2_autoharness_lora_kernel/arc-agi-2-fork-lb33-89-20260903.ipynb.v14.bak")
+NOTEBOOK_PATH = Path(
+    "scripts/kaggle/arc2_autoharness_lora_kernel/arc-agi-2-fork-lb33-89-20260903.ipynb"
+)
+BACKUP_PATH = Path(
+    "scripts/kaggle/arc2_autoharness_lora_kernel/arc-agi-2-fork-lb33-89-20260903.ipynb.v14.bak"
+)
 
 
 def patch_arc2_v15() -> None:
@@ -72,7 +76,9 @@ def patch_arc2_v15() -> None:
         if cell.get("cell_type") == "code":
             raw_src = cell.get("source", [])
             full_text = "".join(raw_src) if isinstance(raw_src, list) else str(raw_src)
-            clean_lines = [line for line in full_text.splitlines() if not line.strip().startswith(("!", "%"))]
+            clean_lines = [
+                line for line in full_text.splitlines() if not line.strip().startswith(("!", "%"))
+            ]
             code = "\n".join(clean_lines)
             try:
                 ast.parse(code)

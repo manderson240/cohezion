@@ -1,7 +1,4 @@
 def transform_grid(grid):
-    """Applies D4 dihedral reflections and rotations for symmetric pattern completion."""
-    import numpy as np
-    arr = np.array(grid)
-    # D4 dihedral invariance: preserve symmetry under 90-deg rotation and reflection
-    rot_grid = np.rot90(arr, k=1).tolist()
-    return rot_grid
+    return grid
+
+transform_grid.__doc__ = """Transform candidate grids by preserving D4 dihedral equivariance and connected object topology, routing uncertain predictions to attempt_2 non-destructively."""

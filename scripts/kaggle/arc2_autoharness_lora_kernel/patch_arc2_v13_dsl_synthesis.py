@@ -13,7 +13,9 @@ import json
 import shutil
 from pathlib import Path
 
-NOTEBOOK_PATH = Path("scripts/kaggle/arc2_autoharness_lora_kernel/arc-agi-2-fork-lb33-89-20260903.ipynb")
+NOTEBOOK_PATH = Path(
+    "scripts/kaggle/arc2_autoharness_lora_kernel/arc-agi-2-fork-lb33-89-20260903.ipynb"
+)
 BACKUP_PATH = NOTEBOOK_PATH.with_suffix(".ipynb.v12.bak")
 
 

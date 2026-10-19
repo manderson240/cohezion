@@ -20,18 +20,20 @@ import numpy as np
 def d4_transforms(arr: np.ndarray) -> list[np.ndarray]:
     """Generates all 8 unique transformations in the D4 dihedral symmetry group."""
     return [
-        arr,                               # rot0 (identity)
-        np.rot90(arr, 1),                  # rot90
-        np.rot90(arr, 2),                  # rot180
-        np.rot90(arr, 3),                  # rot270
-        np.fliplr(arr),                    # horizontal reflection
-        np.flipud(arr),                    # vertical reflection
-        arr.T,                             # main diagonal transpose
-        np.fliplr(np.flipud(arr.T)),       # anti-diagonal transpose
+        arr,  # rot0 (identity)
+        np.rot90(arr, 1),  # rot90
+        np.rot90(arr, 2),  # rot180
+        np.rot90(arr, 3),  # rot270
+        np.fliplr(arr),  # horizontal reflection
+        np.flipud(arr),  # vertical reflection
+        arr.T,  # main diagonal transpose
+        np.fliplr(np.flipud(arr.T)),  # anti-diagonal transpose
     ]
 
 
-def solve_d4_equivariance(train_pairs: list[dict[str, Any]], test_in: list[list[int]]) -> list[list[int]] | None:
+def solve_d4_equivariance(
+    train_pairs: list[dict[str, Any]], test_in: list[list[int]]
+) -> list[list[int]] | None:
     """Finds if a single D4 operation exactly maps input -> output across all train demonstrations."""
     if not train_pairs:
         return None

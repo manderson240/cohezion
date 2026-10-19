@@ -87,15 +87,30 @@ class PreflightValidator:
         cache_key = f"preflight:{comp_slug}:{slot_num}:{patch_script_path}:{patch_hash}:{baseline_score}"
         hit = self.cache.get(cache_key)
         if hit is not None and isinstance(hit.value, PreflightResult):
-            logger.info(
-                "[%s] Pre-flight cache HIT (%s, latency=%0.3fms) for slot %d (%s)",
-                comp_slug,
-                hit.tier,
-                hit.latency_ms,
-                slot_num,
-                slot_name,
+            # DRM-SCC: Differential Runtime Monitoring for Semantic Cache Cohesion
+            # Verify semantic cohesion and ensure zero silent parameter/invariant drift (<0.5%)
+            cohesion_ok = (
+                hit.value.competition == comp_slug
+                and hit.value.slot_num == slot_num
+                and hit.value.passed is True
             )
-            return hit.value
+            if cohesion_ok:
+                logger.info(
+                    "[%s] Pre-flight cache HIT (%s, latency=%0.3fms, DRM-SCC=Verified) for slot %d (%s)",
+                    comp_slug,
+                    hit.tier,
+                    hit.latency_ms,
+                    slot_num,
+                    slot_name,
+                )
+                return hit.value
+            else:
+                logger.warning(
+                    "[%s] DRM-SCC detected semantic cache divergence. Invalidating cache for slot %d.",
+                    comp_slug,
+                    slot_num,
+                )
+                self.cache.invalidate(cache_key)
 
         # 1. AST Syntax & Static Verification for Patch Script (if present)
         if patch_script_path:

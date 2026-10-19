@@ -373,6 +373,7 @@ if not rerun_mode:
     print('*** Reload score:', data.validate_submission(reload_submission))
 '''
 
+
 def apply_patch():
     logger.info("Reading notebook: %s", NOTEBOOK_PATH)
     with open(NOTEBOOK_PATH, "r", encoding="utf-8") as f:
@@ -403,6 +404,7 @@ def apply_patch():
     logger.info("Notebook successfully patched: %s", NOTEBOOK_PATH)
     return nb
 
+
 def verify_ast(nb):
     logger.info("Running AST syntax verification across all cells...")
     for idx, cell in enumerate(nb["cells"]):
@@ -425,6 +427,7 @@ def verify_ast(nb):
             logger.error("  Cell %d: SYNTAX ERROR: %s", idx, e)
             raise
     logger.info("✓ All notebook cells passed AST syntax verification.")
+
 
 def run_ivv_audit(nb):
     if IndependentVerifier is None:
@@ -487,6 +490,7 @@ def run_ivv_audit(nb):
     if not ready:
         raise RuntimeError(f"IV&V Gatekeeper rejected deployment: {msg}")
     return cert
+
 
 if __name__ == "__main__":
     nb = apply_patch()
