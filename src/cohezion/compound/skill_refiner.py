@@ -20,6 +20,7 @@ from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from pathlib import Path
+from statistics import median
 from typing import Any
 
 
@@ -310,6 +311,11 @@ class SkillRefiner:
         # and the goal target rotates through _RQGM_GOAL_ROTATION, breaking local optima.
         self._goal_epoch: int = 0
         self._goal_consecutive_hits: int = 0
+        # RQGM3: per-target pass/fail history used to rank goal targets by uncertainty.
+        self._goal_outcomes: dict[str, deque] = {
+            t: deque(maxlen=20) for t in self._RQGM_GOAL_ROTATION
+        }
+        self._goal_tok_eff: deque = deque(maxlen=20)
         # RV2 (RiVER frequency penalty — arXiv:2606.27369): per-candidate win counter for
         # _autodata_select(); dominant candidates are penalised via 1/(1+wins) to prevent
         # perspective lock.
@@ -432,6 +438,7 @@ class SkillRefiner:
 
         Each firing increments _goal_epoch and resets _goal_consecutive_hits.
         """
+        self._record_goal_outcomes(metrics)
         tally = self._goal_call_tally.get(skill_name, 0) + 1
         self._goal_call_tally[skill_name] = tally
         if tally < self._goal_auto_threshold:
@@ -453,13 +460,58 @@ class SkillRefiner:
                     "target_metric": "escalation_count",
                 }
         else:
-            # Epoch 1+: rotate through goal targets regardless of current metrics.
-            target = self._RQGM_GOAL_ROTATION[self._goal_epoch % len(self._RQGM_GOAL_ROTATION)]
+            # Epoch 1+: RQGM3 uncertainty-ranked target (rotation fallback on thin data).
+            target = self._select_rqgm_target()
             self._session_goal = {
                 "objective": f"rqgm-epoch-{self._goal_epoch} optimize {target}",
                 "target_metric": target,
             }
         self._goal_epoch += 1
+
+    _RQGM_MIN_SAMPLES: int = 4
+    _RQGM_TE_BASELINE_N: int = 5
+
+    def _record_goal_outcomes(self, metrics: "ExecutionMetrics") -> None:
+        """RQGM3: log whether each candidate goal target is currently being met."""
+        self._goal_outcomes["quality_score"].append(metrics.quality_score >= 0.6)
+        self._goal_outcomes["escalation_count"].append(getattr(metrics, "escalation_count", 0) == 0)
+        # Token efficiency is judged against a baseline FROZEN at the median of the first
+        # _RQGM_TE_BASELINE_N calls. A rolling median passes ~50 % by construction, so the
+        # selector would chase it forever; a frozen one lets a real improvement retire it.
+        te = metrics.token_efficiency
+        if len(self._goal_tok_eff) < self._RQGM_TE_BASELINE_N:
+            self._goal_tok_eff.append(te)
+        else:
+            baseline = median(self._goal_tok_eff)
+            self._goal_outcomes["token_efficiency"].append(te >= baseline)
+
+    def _select_rqgm_target(self) -> str:
+        """RQGM3: pick the most uncertain target metric, never the previous one.
+
+        Challenger/solver self-play (R-Zero arXiv 2508.05004) rewards tasks the solver
+        passes about half the time: a metric that always passes or always fails carries
+        no learning signal. Score = variance of the Beta(passes+1, fails+1) posterior: largest
+        near p=0.5 and shrinking with sample count, so a plug-in p(1-p) on a handful of
+        calls cannot dominate (party-mode review). Outcomes are observed for EVERY metric on
+        every call, so no target is starved of data by not being chosen; this is not a
+        bandit. The previous target is excluded (diversity term, OptiScribe 2609.37356).
+        Falls back to the RQGM2 rotation until every candidate has _RQGM_MIN_SAMPLES outcomes.
+        """
+        rotation = self._RQGM_GOAL_ROTATION
+        prev = (self._session_goal or {}).get("target_metric")
+        start = self._goal_epoch % len(rotation)
+        ordered = [rotation[(start + k) % len(rotation)] for k in range(len(rotation))]
+        candidates = [t for t in ordered if t != prev] or ordered
+        if any(len(self._goal_outcomes[t]) < self._RQGM_MIN_SAMPLES for t in candidates):
+            return candidates[0]
+
+        def uncertainty(t: str) -> float:
+            outcomes = self._goal_outcomes[t]
+            a, b = sum(outcomes) + 1, len(outcomes) - sum(outcomes) + 1
+            return a * b / ((a + b) ** 2 * (a + b + 1))
+
+        # max() keeps the first maximum, so ties resolve in rotation order.
+        return max(candidates, key=uncertainty)
 
     def skill_proximity(self, skill_a: str, skill_b: str) -> float:
         """#102: lineage-based skill proximity — CSHL brain development analogy.

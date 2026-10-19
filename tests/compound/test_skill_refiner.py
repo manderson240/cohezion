@@ -1855,3 +1855,88 @@ class TestSeesawCheck:
         sr = SkillRefiner()
         result = sr._seesaw_check(missing, "Remove cache entirely.")
         assert result is True, "Missing PRIME file must fail-open (True)"
+
+
+class TestRQGMUncertaintyRankedGoal:
+    """RQGM3: epoch 1+ picks the most UNCERTAIN target metric (challenger/solver).
+
+    Source: R-Zero arXiv 2508.05004 (reward tasks the solver passes ~50 % of the time) and
+    OptiScribe 2609.37356 (explicit diversity term). A metric that always passes or always
+    fails carries no learning signal, so blind rotation wastes an epoch on it.
+    """
+
+    _SKILL = "rqgm3_skill"
+
+    def _m(self, quality=0.3, escalation=0, tok_eff=100.0):
+        m = ExecutionMetrics(
+            success=True,
+            duration_seconds=1.0,
+            tokens_used=100,
+            token_efficiency=tok_eff,
+            quality_score=quality,
+            anomaly_score=0.5,
+            cached_hits=0,
+        )
+        m.escalation_count = escalation
+        return m
+
+    def test_rqgm3_picks_uncertain_metric_over_rotation_slot(self):
+        """Discriminating: blind rotation picks escalation_count at epoch 1; it must not.
+
+        Epoch 0 sets quality_score (quality < 0.5). Over epoch 1 escalation_count is 0 every
+        call (pass rate 1, no signal) while token_efficiency alternates above and below its
+        median (pass rate ~0.5). The uncertainty ranking must choose token_efficiency.
+        """
+        sr = SkillRefiner()
+        n = sr._goal_auto_threshold
+        for _ in range(n):
+            sr._auto_update_goal(self._SKILL, self._m())
+        assert sr._session_goal["target_metric"] == "quality_score"
+        for i in range(n):
+            sr._auto_update_goal(self._SKILL, self._m(tok_eff=50.0 if i % 2 else 150.0))
+        assert sr._session_goal["target_metric"] == "token_efficiency", sr._session_goal
+
+    def test_rqgm3_never_repeats_previous_target(self):
+        """Diversity term: even if the previous target stays most uncertain, it is excluded."""
+        sr = SkillRefiner()
+        n = sr._goal_auto_threshold
+        targets = []
+        for epoch in range(6):
+            for i in range(n):
+                q = 0.9 if (epoch + i) % 2 else 0.3  # quality stays ~50 %: most uncertain
+                sr._auto_update_goal(self._SKILL, self._m(quality=q))
+            if sr._session_goal:
+                targets.append(sr._session_goal["target_metric"])
+        from itertools import pairwise
+
+        assert all(a != b for a, b in pairwise(targets)), targets
+
+    def test_rqgm3_improved_metric_retires_instead_of_chasing_moving_baseline(self):
+        """Discriminating (party-mode review, Red Rook + Bayes Bandit): a ROLLING-median
+        predicate passes ~50 % by construction, so the selector would chase token_efficiency
+        forever. Against a FROZEN baseline, a metric that genuinely improved (100 -> ~200)
+        passes ~always and carries no signal, so it must NOT be chosen.
+        """
+        sr = SkillRefiner()
+        for _ in range(5):
+            sr._record_goal_outcomes(self._m(tok_eff=100.0))  # freezes the baseline at 100
+        for i in range(25):
+            sr._record_goal_outcomes(
+                self._m(
+                    quality=0.9 if i % 2 else 0.3,
+                    escalation=i % 2,
+                    tok_eff=210.0 if i % 2 else 190.0,
+                )
+            )
+        sr._goal_epoch = 2
+        sr._session_goal = {"objective": "x", "target_metric": "quality_score"}
+        assert sr._select_rqgm_target() != "token_efficiency"
+
+    def test_rqgm3_thin_data_falls_back_to_rotation(self):
+        """With fewer than the minimum samples per metric, behaviour equals the old rotation."""
+        sr = SkillRefiner()
+        sr._goal_epoch = 1
+        sr._session_goal = {"objective": "x", "target_metric": "quality_score"}
+        sr._goal_call_tally[self._SKILL] = sr._goal_auto_threshold - 1
+        sr._auto_update_goal(self._SKILL, self._m())
+        assert sr._session_goal["target_metric"] == "escalation_count"
