@@ -32,9 +32,10 @@ from __future__ import annotations
 import sys
 import tempfile
 import warnings
+from pathlib import Path
+
 
 warnings.simplefilter("ignore", SyntaxWarning)  # ast.parse of scripts/ would flood the gate log
-from pathlib import Path
 
 
 REPO = Path(__file__).resolve().parents[2]
