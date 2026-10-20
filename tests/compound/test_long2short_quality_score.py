@@ -88,20 +88,20 @@ class TestLong2ShortArithmetic:
         qs = report.results[0]["quality_score"]
         assert qs == pytest.approx(1.0 / 200)
 
+    # PQ1 (review 2026-09-22 C4): a failure whose producer reported NO quality is UNKNOWN,
+    # not 0.0 -- the same absent key is what instrument faults (act_error, router down) carry.
+    # The failure itself still reaches the detector as success_rate 0.0.
     def test_failure_positive_tokens(self):
         coord = LoopCoordinator(LoopConfig())
         result = _make_result(success=False, tokens_used=300)
         report = _call_record_result(coord, result, tokens=300)
-        qs = report.results[0]["quality_score"]
-        assert qs == pytest.approx(0.0)
+        assert report.results[0]["quality_score"] is None
 
     def test_failure_zero_tokens(self):
-        """Failures with 0 tokens score 0.0 (not None) — failure is definite."""
         coord = LoopCoordinator(LoopConfig())
         result = _make_result(success=False, tokens_used=0)
         report = _call_record_result(coord, result, tokens=0)
-        qs = report.results[0]["quality_score"]
-        assert qs == pytest.approx(0.0)
+        assert report.results[0]["quality_score"] is None
 
     def test_success_zero_tokens_returns_none(self):
         """success=True but tokens=0 → undefined; return None (sparse-metrics contract)."""
@@ -174,13 +174,14 @@ class TestQualityScoreFedToDetector:
         assert call_kwargs["quality_score"] == pytest.approx(1.0 / 100)
 
     def test_quality_score_passed_to_detector_on_failure(self):
+        """An unmeasured failure: no 0.0 quality stand-in, but the failure is still seen."""
         detector = MagicMock(spec=DegradationDetector)
         coord = LoopCoordinator(LoopConfig(), degradation_detector=detector)
         result = _make_result(success=False, tokens_used=200)
         _call_record_result(coord, result, tokens=200)
         call_kwargs = detector.check_degradation.call_args[0][0]
-        assert "quality_score" in call_kwargs
-        assert call_kwargs["quality_score"] == pytest.approx(0.0)
+        assert "quality_score" not in call_kwargs
+        assert call_kwargs["success_rate"] == pytest.approx(0.0)
 
     def test_quality_score_omitted_from_detector_when_none(self):
         """success=True, tokens=0 → quality_score=None → NOT passed to detector

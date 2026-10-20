@@ -33,20 +33,23 @@ class MoESkillRouter:
 
     DORMANT IN PRODUCTION (recorded 2026-09-22, deliberately not wired). Nothing outside
     tests constructs this router or calls ``update()``/``route()``; ``SkillRefiner`` accepts it
-    (MR4) but no factory passes one (default ``None``). It is left unwired because no honest reward signal
-    for "expert k's recommendation was good" exists yet -- wiring ``update()`` to what is
-    available would be a placebo that never moves a weight. Three pieces are missing:
+    (MR4) but no factory passes one (default ``None``). Of the three pieces an honest reward for
+    "expert k's recommendation was good" needs, two now exist (corrected 2026-09-22, after the
+    improvement-loop merge):
 
-    1. Attribution: the expert behind a recommendation is not persisted.
-       ``SkillRefiner._candidate_expert_map`` is rebuilt on every call and ``LearningSignal``
-       carries the recommendation text only.
-    2. Causal path: an appended refinement never reaches the next execution. The executor puts
-       ``learned_refinements`` into the guidance dict, but ``make_local_execute_fn`` builds its
-       prompt from ``guidance["guidance"]`` only; nothing reads that key.
-    3. Outcome: on the production path ``quality_score`` is the constant 0.5 (no quality key in
-       the local-inference metrics, so ``_extract_metrics`` falls back), so any delta is 0.
+    - Causal path -- EXISTS. ``make_local_execute_fn`` renders ``guidance["learned_refinements"]``
+      into the prompt (``_format_learned_refinements``), and ``load_refined_guidance`` reads the
+      PRIME file plus the refinement overlay the writer uses for tracked PRIMEs.
+    - Outcome -- EXISTS, but sparse. ``cascade_quality_score`` replaced the constant 0.5: it is
+      measured only where content evidence exists (``ast.parse`` on code tasks, a security
+      reject, an exhausted cascade, an ACT oracle) and is ``None`` (UNKNOWN) everywhere else.
+    - Attribution -- MISSING; the remaining blocker. The expert behind a recommendation is not
+      persisted: ``SkillRefiner._candidate_expert_map`` is rebuilt on every call and
+      ``LearningSignal`` carries the recommendation text only, so a later outcome cannot be
+      credited to the expert that produced the refinement.
 
-    Wire it only once all three exist, and add it to ``scripts/ci/dormancy_scan.py`` then.
+    Wire it once attribution exists (and only on lanes where quality is measured), and add it
+    to ``scripts/ci/dormancy_scan.py`` then.
     """
 
     _EXPERT_NAMES: list[str] = ["quality", "efficiency", "caching", "tier", "fallback"]

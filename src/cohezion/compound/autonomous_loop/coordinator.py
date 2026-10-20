@@ -14,6 +14,16 @@ from dataclasses import dataclass, field
 from typing import Any
 
 
+# Result statuses that say nothing about the MODEL: the instrument failed (act_error: git hook,
+# bad spec, crash; no_resident_model: router), no oracle exists (needs_oracle), or the executor
+# returned nothing for the task (result_missing -- the placeholder run() fabricates). PQ1: their
+# quality is UNKNOWN, and success=False is not a model measurement either, so neither a 0.0
+# quality nor a 0.0 success_rate may reach the DegradationDetector baseline.
+_UNKNOWN_OUTCOME_STATUSES = frozenset(
+    {"act_error", "no_resident_model", "needs_oracle", "result_missing"}
+)
+
+
 @dataclass
 class LoopConfig:
     use_local_inference: bool = True
@@ -47,6 +57,10 @@ class LoopTask:
     oracle_test: str = ""
     edit_file: str = ""
     edit_targets: list[str] = field(default_factory=list)
+    # The skill this task exercises, i.e. the skill_name CompoundExecutor.execute_task would
+    # hand predict_tier. Measured ACT outcomes are keyed (skill, category) so that caller reads
+    # them; empty falls back to "act_loop", which no predict_tier caller queries.
+    skill: str = ""
 
 
 @dataclass
@@ -55,6 +69,8 @@ class SprintResult:
     cloud_tokens: int = 0
     tasks_done: int = 0
     tasks_failed: int = 0
+    # Third outcome: no oracle, so neither completion nor failure (see _record_result).
+    tasks_needs_oracle: int = 0
 
     @property
     def tokens_used(self) -> int:
@@ -65,6 +81,9 @@ class SprintResult:
 class RunReport:
     tasks_completed: int = 0
     tasks_failed: int = 0
+    # Tasks that ran but cannot be judged -- no ACT oracle. NOT failures: a consumer must not
+    # retry them (a rerun cannot produce an oracle) nor count them against health.
+    tasks_needs_oracle: int = 0
     results: list[dict[str, Any]] = field(default_factory=list)
     sprint_results: list[SprintResult] = field(default_factory=list)
 
@@ -162,6 +181,7 @@ class LoopCoordinator:
                             task.id,
                             {
                                 "success": False,
+                                "status": "result_missing",
                                 "tokens_used": 0,
                                 "node": "?",
                                 "model": "?",
@@ -219,7 +239,12 @@ class LoopCoordinator:
             if cloud_exec is not None and getattr(cloud_exec, "_started", False):
                 cloud_exec.stop()
 
-        if sprint.tokens_used > 0 or sprint.tasks_done > 0 or sprint.tasks_failed > 0:
+        if (
+            sprint.tokens_used > 0
+            or sprint.tasks_done > 0
+            or sprint.tasks_failed > 0
+            or sprint.tasks_needs_oracle > 0
+        ):
             self._sprint_results.append(sprint)
 
         report.sprint_results = list(self._sprint_results)
@@ -266,20 +291,27 @@ class LoopCoordinator:
         success = result.get("success", False)
         task_fail_count = fail_counts.get(task.id, 0)
         if success:
+            outcome = "done"
             fail_counts[task.id] = 0
             report.tasks_completed += 1
             sprint.tasks_done += 1
+        elif result.get("status") == "needs_oracle":
+            # Third outcome: the task has no oracle, so it can be neither completed nor failed.
+            # Not a failure count (a retry or cloud escalation cannot produce an oracle), not a
+            # health failure for consumers of tasks_failed -- surfaced on its own counter.
+            outcome = "needs_oracle"
+            report.tasks_needs_oracle += 1
+            sprint.tasks_needs_oracle += 1
         else:
-            # needs_oracle is not a model failure: escalating it to cloud cannot help.
-            if result.get("status") != "needs_oracle":
-                fail_counts[task.id] = task_fail_count + 1
+            outcome = "failed"
+            fail_counts[task.id] = task_fail_count + 1
             report.tasks_failed += 1
             sprint.tasks_failed += 1
 
         cat = task.category
         if cat not in category_stats:
             category_stats[cat] = {"done": 0, "failed": 0}
-        category_stats[cat]["done" if success else "failed"] += 1
+        category_stats[cat][outcome] = category_stats[cat].get(outcome, 0) + 1
 
         if "cascade_quality_score" in result:
             # PQ1: the producer measured quality (ACT: oracle GREEN 1.0 / EXHAUSTED 0.0) or
@@ -287,13 +319,16 @@ class LoopCoordinator:
             # an instrument failure must not be scored 0.0 as if the model had failed.
             quality_score: float | None = result["cascade_quality_score"]
             self._record_act_difficulty(task, result, quality_score)
-        # Long2Short quality score: success/tokens (sparse — None when undefined)
-        elif not success:
-            quality_score = 0.0
-        elif tokens > 0:
+        # Long2Short quality score: success/tokens (sparse — None when undefined). A failure
+        # with NO producer-reported quality is UNKNOWN (PQ1), not 0.0: the absent key is
+        # exactly what act_error / no_resident_model / needs_oracle / result_missing carry.
+        elif success and tokens > 0:
             quality_score = 1.0 / tokens
         else:
-            quality_score = None  # success=True, tokens=0 → undefined
+            quality_score = None
+        outcome_known = result.get("status") not in _UNKNOWN_OUTCOME_STATUSES and not (
+            "cascade_quality_score" in result and result["cascade_quality_score"] is None
+        )
 
         report.results.append(
             {
@@ -301,6 +336,7 @@ class LoopCoordinator:
                 "tokens": tokens,
                 "is_cloud": is_cloud,
                 "success": success,
+                "outcome": outcome,
                 "node": result.get("node", "cloud" if is_cloud else "?"),
                 "model": result.get("model", "?"),
                 "elapsed_ms": result.get("elapsed_ms", 0),
@@ -314,9 +350,10 @@ class LoopCoordinator:
             with contextlib.suppress(Exception):
                 sparse: dict[str, Any] = {
                     "elapsed_seconds": result.get("elapsed_ms", 0) / 1000.0,
-                    "success_rate": 1.0 if success else 0.0,
                     "token_surprisal": result.get("token_surprisal"),
                 }
+                if outcome_known:
+                    sparse["success_rate"] = 1.0 if success else 0.0
                 if quality_score is not None:
                     sparse["quality_score"] = quality_score
                 self._degradation_detector.check_degradation(sparse)
@@ -337,7 +374,7 @@ class LoopCoordinator:
             return
         with contextlib.suppress(Exception):
             self._difficulty_estimator.record(
-                "act_loop",
+                getattr(task, "skill", "") or "act_loop",
                 task.category,
                 tier,
                 0,  # act_loop iterations are attempts on one model, not tier escalations

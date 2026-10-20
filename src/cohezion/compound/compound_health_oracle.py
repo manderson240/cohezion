@@ -168,6 +168,26 @@ class CompoundHealthOracle:
         self._last_assessment = assessment
         return assessment
 
+    def reassess(self) -> HealthAssessment | None:
+        """Re-synthesize the assessment from the EXISTING measured window; ingest nothing.
+
+        For callers whose latest execution has no measured quality. ``assess`` needs a score,
+        and inventing one (0.5, 0.0, the last value) is the stand-in PQ1 forbids. But skipping
+        the oracle entirely froze ``_last_assessment`` -- including one restored from
+        ``oracle_state.json`` that an older ``_synthesize`` produced -- so a stale tier routed
+        every task until a MEASURED score arrived, which for non-code lanes is never. Here only
+        the synthesis function re-runs, over scores that were all measured.
+
+        Below min_samples (no confirmed regime) the assessment is left untouched: re-deriving
+        the warming-up default there would overwrite real restored state with a placeholder.
+        """
+        regime = self._tracker.current_regime()
+        if regime is None:
+            return self._last_assessment
+        confidence = max(0.0, min(1.0, 1.0 - 2.0 * self._tracker.deviation()))
+        self._last_assessment = self._synthesize(regime, confidence)
+        return self._last_assessment
+
     def is_healthy(self) -> bool:
         """Return True iff the latest assessment is alert_level="ok" (HIHO regime).
 

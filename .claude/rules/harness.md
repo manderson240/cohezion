@@ -656,11 +656,15 @@ far better (state, action, next_state) triples than inferred state-pair transiti
   `tests/compound/test_moe_router_perturbation.py::TestConsumptionPerturbation::test_c2_null_router_matches_no_router_with_trajectory_candidate`
   (was a strict xfail), `::test_mr7_trajectory_candidate_survives_a_trained_router`.
 - **MR1-MR6 are NOT production invariants.** No non-test code constructs `MoESkillRouter` or
-  calls `update()`/`route()`; no factory passes `moe_router` (default None). Deliberately left unwired:
-  no honest reward exists -- (1) the expert behind a recommendation is not persisted,
-  (2) appended refinements never reach the prompt (`learned_refinements` has no reader;
-  `make_local_execute_fn` reads `guidance["guidance"]` only), (3) production `quality_score`
-  is the constant 0.5. Wire only when all three exist; add it to `dormancy_scan.py` then.
+  calls `update()`/`route()`; no factory passes `moe_router` (default None). Deliberately left unwired.
+  Of the three reward prerequisites, as of the 2026-09-22 improvement-loop merge (corrected
+  that day -- the earlier text said all three were missing): (2) refinements DO reach the prompt
+  (`make_local_execute_fn` -> `_format_learned_refinements`; `load_refined_guidance` reads the PRIME
+  file plus the out-of-repo refinement overlay); (3) quality is no longer the constant 0.5 --
+  `cascade_quality_score` is measured on code/security/exhausted/ACT outcomes and None (UNKNOWN)
+  elsewhere, so the reward is sparse. **The remaining blocker is (1) attribution**: the expert
+  behind a recommendation is not persisted (`_candidate_expert_map` is rebuilt per call,
+  `LearningSignal` has no expert field). Wire only once it exists; add to `dormancy_scan.py` then.
 - **Verification**: `uv run pytest tests/compound/test_moe_router_perturbation.py tests/compound/test_moe_skill_router.py -q` -> 47 passed
 
 ## Lessons Captured (2026-05-02)
