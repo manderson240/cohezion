@@ -55,6 +55,7 @@ def _make_repo(root: Path) -> Path:
         ["config", "commit.gpgsign", "false"],
         ["add", "."],
         ["commit", "-q", "-m", "base"],
+        ["checkout", "-q", "-b", "act/test"],  # ACT commits only to an act/ branch
     ):
         _git(repo, *c)
     return repo

@@ -2,6 +2,7 @@
 
 import asyncio
 import logging
+import os
 from contextlib import asynccontextmanager
 
 import uvicorn
@@ -43,6 +44,34 @@ def protect_mcp_app(mcp_app, api_key: str):
     return APIKeyAuth(mcp_app, api_key=api_key)
 
 
+_LOOPBACK_HOSTS = {"127.0.0.1", "localhost", "::1"}
+ALLOW_NO_AUTH_ENV = "MCP_ALLOW_NO_AUTH"
+
+
+def check_auth_config(config: ServerConfig) -> None:
+    """Refuse to serve without MCP_API_KEY (security finding M3, 2026-09-22).
+
+    An empty key used to mean "no auth" with only a log warning, on default host
+    0.0.0.0, exposing vault writes and root SurrealDB tools. Now an empty key is
+    refused unless the host is loopback AND ``MCP_ALLOW_NO_AUTH=1`` (local dev).
+    Loopback alone is not enough: the public tunnel connects to localhost.
+    """
+    if config.api_key:
+        return
+    if config.host in _LOOPBACK_HOSTS and os.environ.get(ALLOW_NO_AUTH_ENV) == "1":
+        logger.warning(
+            "MCP_API_KEY unset: serving UNAUTHENTICATED on %s (%s=1)",
+            config.host,
+            ALLOW_NO_AUTH_ENV,
+        )
+        return
+    raise SystemExit(
+        f"MCP_API_KEY is not set; refusing to start on {config.host}. Set "
+        f"MCP_API_KEY, or for local dev bind MCP_HOST=127.0.0.1 and set "
+        f"{ALLOW_NO_AUTH_ENV}=1."
+    )
+
+
 def main():
     """Run the MCP server."""
     logging.basicConfig(
@@ -51,12 +80,7 @@ def main():
     )
 
     config = ServerConfig.from_env()
-
-    if not config.api_key:
-        logger.warning(
-            "MCP_API_KEY is not set. The server will run without authentication. "
-            "Set MCP_API_KEY environment variable for production use."
-        )
+    check_auth_config(config)
 
     logger.info("Vault path: %s", config.vault_path)
     logger.info("Starting Cloud Vault MCP Server on %s:%d", config.host, config.port)
@@ -74,11 +98,18 @@ def main():
         logger.info("Health check enabled")
 
     # FastMCP provides factory methods to build ASGI apps - call streamable_http_app()
-    mcp_app = mcp.streamable_http_app()
+    app = build_app(config, mcp.streamable_http_app(), health_checker)
+    serve(app, config)
 
-    # Enforce MCP_API_KEY on every MCP request (/health is routed separately).
-    mcp_app = protect_mcp_app(mcp_app, config.api_key)
 
+def build_app(config: ServerConfig, mcp_app, health_checker=None):
+    """Compose the served ASGI app: MCP, /health, and /events/vault (watcher on).
+
+    MCP_API_KEY is enforced on the COMPOSED app (security finding M2, 2026-09-22):
+    the key was applied to the MCP sub-app only, so /events/vault -- which streams
+    vault paths and renames -- was routed around it. /health stays open
+    (APIKeyAuth.EXCLUDED_PATHS).
+    """
     # Add TrustedHostMiddleware if not accepting all hosts
     if "*" not in config.allowed_hosts:
         mcp_app = TrustedHostMiddleware(mcp_app, allowed_hosts=config.allowed_hosts)
@@ -178,6 +209,8 @@ def main():
                 # WebSocket or other protocol
                 await mcp_app(scope, receive, send)
 
+    app = protect_mcp_app(app, config.api_key)
+
     # Apply HTTPS middleware if TLS is enabled
     if config.tls_enabled and TLSConfig and create_https_app:
         logger.info("Configuring HTTPS/TLS security")
@@ -198,6 +231,11 @@ def main():
             logger.info("TLS certificate validated successfully")
             app = create_https_app(app, tls_config, allow_http_localhost=True)
 
+    return app
+
+
+def serve(app, config: ServerConfig) -> None:
+    """Run *app* with uvicorn on the configured host/port (TLS when configured)."""
     # Run with uvicorn directly to control host/port
     # Note: For HTTPS, use ssl_certfile and ssl_keyfile parameters
     ssl_certfile = None

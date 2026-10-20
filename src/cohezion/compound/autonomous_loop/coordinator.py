@@ -18,7 +18,8 @@ from typing import Any
 class LoopConfig:
     use_local_inference: bool = True
     local_base_url: str = "http://localhost:13305"
-    worktree_path: str = "/tmp/worktree"
+    # "" = the dedicated ACT worktree <repo>/.cache/act-worktree on act/loop (local_executor).
+    worktree_path: str = ""
     checkpoint_path: str = "/tmp/checkpoint.json"
     backlog_path: str = "/tmp/backlog.json"
     results_path: str = "/tmp/results.json"
