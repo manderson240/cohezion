@@ -7,7 +7,7 @@ import sys
 # Add src to path
 sys.path.append(os.path.join(os.getcwd(), "src"))
 
-from cohezion.core.mcp_client import create_mcp_client
+from cohezion.core.mcp_client import create_mcp_client, resolve_api_key
 
 
 async def final_retrospective():
@@ -35,7 +35,7 @@ async def final_retrospective():
     print("Initiating Final Knowledge Precipitation...")
     try:
         # Use the compound server directly
-        client = create_mcp_client(server_url="http://localhost:8379", api_key="cohezion-dev-key")
+        client = create_mcp_client(server_url="http://localhost:8379", api_key=resolve_api_key())
         await client.connect()
 
         # Precipitate to Vault and Database

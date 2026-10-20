@@ -41,6 +41,7 @@ import logging
 import os
 import re
 import tempfile
+import urllib.error
 import urllib.request
 from collections.abc import Callable
 from datetime import UTC, datetime
@@ -181,15 +182,82 @@ _INFRA_FAILURE = re.compile(
 
 
 def is_infra_failure(err_msg: str) -> bool:
-    """True when *err_msg* describes the inference/API apparatus, not the item."""
+    """True when *err_msg* describes the inference/API apparatus, not the item.
+
+    Only ever apply this to an ERROR string (an exception message or ``metrics["error"]``),
+    never to model output: a proposal that merely talks about timeouts would match.
+    """
     return bool(_INFRA_FAILURE.search(err_msg))
 
 
-class GuardrailBlockedError(RuntimeError):
+# Exception class names (``metrics["error_type"]``, set by CompoundExecutor when
+# execute_fn raises) that mean the apparatus failed, not the item.
+_INFRA_ERROR_TYPES = frozenset(
+    {
+        "URLError",
+        "TimeoutError",
+        "timeout",
+        "ConnectionError",
+        "ConnectionRefusedError",
+        "ConnectionResetError",
+        "ConnectionAbortedError",
+        "BrokenPipeError",
+        "RemoteDisconnected",
+        "IncompleteRead",
+        "ReadTimeout",
+        "ConnectTimeout",
+        "ReadTimeoutError",
+    }
+)
+
+
+def infra_signal(result: Any) -> bool:
+    """Did a failed execution fail because the apparatus was down? Structured fields only.
+
+    C5 (2026-09-22): classification used ``_failure_reason``, which falls back to
+    ``result.output`` -- model prose. A proposal about "raising the request timeout" was
+    then classed as an outage, never counted, and retried forever. The verdict now comes
+    from ``metrics["error_type"]`` and ``metrics["error"]`` alone; with no structured error
+    the failure is NOT infra (counted), which keeps retries bounded.
+    """
+    metrics = getattr(result, "metrics", None)
+    if not isinstance(metrics, dict):
+        return False
+    if str(metrics.get("error_type") or "") in _INFRA_ERROR_TYPES:
+        return True
+    return is_infra_failure(str(metrics.get("error") or ""))
+
+
+def exception_is_infra(exc: BaseException) -> bool:
+    """Infra verdict for any exception raised while actioning an item.
+
+    A cycle failure carries the verdict computed from structured metrics. An HTTP error is
+    infra only for a 5xx; a 4xx is the API rejecting THIS item and must count, whatever its
+    text says. Other exceptions are infra by type, then by their own message (an exception
+    message, never model output).
+    """
+    if isinstance(exc, CycleFailedError):
+        return exc.infra
+    if isinstance(exc, urllib.error.HTTPError):
+        return exc.code >= 500
+    if isinstance(exc, (urllib.error.URLError, TimeoutError, ConnectionError)):
+        return True
+    return is_infra_failure(str(exc))
+
+
+class CycleFailedError(RuntimeError):
+    """The compound cycle reported failure; ``infra`` is decided from structured fields."""
+
+    def __init__(self, message: str, *, infra: bool = False) -> None:
+        super().__init__(message)
+        self.infra = infra
+
+
+class GuardrailBlockedError(CycleFailedError):
     """The compound cycle's input guardrail BLOCKED the item; carries which guard did it."""
 
     def __init__(self, message: str, guard_name: str = "", reason: str = "") -> None:
-        super().__init__(message)
+        super().__init__(message, infra=False)
         self.guard_name = guard_name
         self.reason = reason
 
@@ -240,6 +308,27 @@ def triage(item: dict[str, Any]) -> str | None:
     return None
 
 
+# Card types the work-queue honesty gate caps at MONITOR until they link a probe result.
+# Mirrors ``cohezion.api.card_honesty.RESEARCH_TYPES`` (pinned equal by a unit test);
+# importing it would pull in the whole FastAPI app package.
+PROBE_GATED_TYPES = frozenset({"research", "fleet"})
+
+
+def needs_probe(item: dict[str, Any]) -> bool:
+    """A research card whose APPLY claim the honesty gate capped at MONITOR, still unprobed.
+
+    Such a card may only be actioned through the experiment lane: the experiment IS the
+    probe, and its artifact is what gets recorded as ``probe_ref``. A card the research
+    daemon itself rated MONITOR (no ``relevance_claimed``) is not one of these.
+    """
+    return (
+        str(item.get("type", "")) in PROBE_GATED_TYPES
+        and item.get("relevance") == "MONITOR"
+        and item.get("relevance_claimed") == "APPLY"
+        and not item.get("probe_ref")
+    )
+
+
 def load_actioned_ids(proposals_path: Path = PROPOSALS_PATH) -> set[str]:
     """Item ids already present in the proposals queue (the dedup key)."""
     ids: set[str] = set()
@@ -254,6 +343,21 @@ def load_actioned_ids(proposals_path: Path = PROPOSALS_PATH) -> set[str]:
         if item_id:
             ids.add(str(item_id))
     return ids
+
+
+def load_vault_note(item_id: str, proposals_path: Path = PROPOSALS_PATH) -> str:
+    """The experiment artifact recorded for *item_id*, or "" (legacy entries lack it)."""
+    if not proposals_path.exists():
+        return ""
+    note = ""
+    for line in proposals_path.read_text().splitlines():
+        try:
+            entry = json.loads(line)
+        except json.JSONDecodeError:
+            continue
+        if str(entry.get("item_id")) == item_id and entry.get("vault_note"):
+            note = str(entry["vault_note"])
+    return note
 
 
 class WorkQueueAPI:
@@ -278,12 +382,20 @@ class WorkQueueAPI:
             return json.loads(resp.read())
 
     def eligible_items(self) -> list[dict[str, Any]]:
-        """APPLY items in reviewed/approved — the drain target, oldest first."""
-        items: list[dict[str, Any]] = []
-        for status in ("reviewed", "approved"):
-            page = self._request("GET", f"/api/work-queue?relevance=APPLY&status={status}")
-            items.extend(page.get("items", []))
-        return sorted(items, key=lambda i: i.get("created_at", ""))
+        """The drain target in reviewed/approved: APPLY items, then capped research cards.
+
+        Each group is oldest first. APPLY comes first so a backlog of capped cards cannot
+        eat the batch. Capped cards (``needs_probe``) are only ever run as experiments.
+        """
+
+        def _fetch(relevance: str) -> list[dict[str, Any]]:
+            rows: list[dict[str, Any]] = []
+            for status in ("reviewed", "approved"):
+                path = f"/api/work-queue?relevance={relevance}&status={status}"
+                rows.extend(self._request("GET", path).get("items", []))
+            return sorted(rows, key=lambda i: i.get("created_at", ""))
+
+        return _fetch("APPLY") + [i for i in _fetch("MONITOR") if needs_probe(i)]
 
     def mark_actioned(self, item_id: str, route: str) -> dict:
         """Record WHICH lane actioned the card, without touching its content.
@@ -298,6 +410,18 @@ class WorkQueueAPI:
             "PATCH",
             f"/api/work-queue/{item_id}",
             {"status": "actioned", "action_route": route},
+        )
+
+    def mark_actioned_with_probe(self, item_id: str, route: str, probe_ref: str) -> dict:
+        """Action a capped research card and link the experiment that probed it.
+
+        ``relevance`` is deliberately NOT sent: the router re-gates any relevance write,
+        and whether the probe licenses APPLY is a judgement for whoever reads its result.
+        """
+        return self._request(
+            "PATCH",
+            f"/api/work-queue/{item_id}",
+            {"status": "actioned", "action_route": route, "probe_ref": probe_ref},
         )
 
     def pending_items(self) -> list[dict[str, Any]]:
@@ -480,7 +604,10 @@ def action_item(
                 guard_name=str(metrics.get("blocked_by_guard") or ""),
                 reason=str(metrics.get("blocked_guard_reason") or ""),
             )
-        raise RuntimeError(f"compound cycle failed for {item['id']}: {_failure_reason(result)}")
+        raise CycleFailedError(
+            f"compound cycle failed for {item['id']}: {_failure_reason(result)}",
+            infra=infra_signal(result),
+        )
 
     parsed = _parse_proposal(captured.get("raw", ""))
     entry = {
@@ -495,9 +622,35 @@ def action_item(
     }
     artifact: dict[str, Any] = {"route": route, "proposal_entry": entry}
     if route == "experiment":
-        artifact["vault_note"] = str(_write_vault_experiment(item, parsed, vault_dir))
+        artifact["vault_note"] = entry["vault_note"] = str(
+            _write_vault_experiment(item, parsed, vault_dir)
+        )
     _append_proposal(entry, proposals_path)
     return artifact
+
+
+def _admission_refusal(admit: Callable[[str], Any], model: str) -> str:
+    """Empty string when *model* is admitted, else the refusal reason; a raising gate refuses."""
+    try:
+        result = admit(model)
+    except Exception as exc:  # the gate is a safety check: unavailable means closed
+        return f"admission gate error: {type(exc).__name__}: {exc}"
+    if getattr(result, "ok", False):
+        return ""
+    return str(getattr(result, "reason", "") or "admission refused")
+
+
+def summary_exit_code(summary: dict[str, Any]) -> int:
+    """Process exit code for one actioner run: 1 only for unresolved failures.
+
+    Terminal dispositions (``rejected``, ``failed_permanent``) and transient deferrals
+    (``deferred_transient_guard``, ``deferred_admission``) are handled outcomes; exiting 1
+    on them marked the 5-minute systemd unit failed under ordinary memory pressure.
+    """
+    handled = set()
+    for key in ("rejected", "failed_permanent", "deferred_transient_guard", "deferred_admission"):
+        handled.update(summary.get(key) or [])
+    return 1 if any(k not in handled for k in summary.get("failed", {})) else 0
 
 
 def run_batch(
@@ -510,8 +663,17 @@ def run_batch(
     vault_dir: Path = VAULT_EXPERIMENTS_DIR,
     misses_path: Path | None = None,
     dry_run: bool = False,
+    admit: Callable[[str], Any] | None = None,
+    model: str = DEFAULT_MODEL,
 ) -> dict[str, Any]:
     """Drain up to *batch_size* eligible items. Returns an honest summary.
+
+    Admission: when *admit* is given (production: ``hotswap.ensure_resident``), *model*
+    is admitted before every item that would call it, so a load the router would make on
+    demand still honours the 16 GiB RAM floor. The first refusal (or a gate that raises)
+    closes admission for the run: that item and every later routable one are listed in
+    ``deferred_admission`` with the reason in ``admission_refused``. Deferrals are neither
+    failures nor counted toward ``MAX_FAILURE_ATTEMPTS``.
 
     Per-item failures are isolated: the item stays ``reviewed`` (no PATCH) and
     the batch continues. Items with no triage match are left untouched in the queue
@@ -524,7 +686,7 @@ def run_batch(
     Non-guardrail failures are counted per item content (same ledger file); after
     ``MAX_FAILURE_ATTEMPTS`` the item is listed in ``failed_permanent`` and later runs
     skip it (``skipped_failed_permanent``) until its content changes. Infrastructure
-    failures (``is_infra_failure``) never count -- an outage must not DLQ good cards.
+    failures (``exception_is_infra``) never count -- an outage must not DLQ good cards.
     Guardrail blocks split by guard (``guardrail_block_kind``): content guards reject
     the card; resource/rate-limit blocks are listed in ``deferred_transient_guard`` and
     neither reject nor count.
@@ -548,11 +710,13 @@ def run_batch(
         "deduped": [],
         "failed": {},
         "failed_permanent": [],
+        "skipped_needs_probe": [],
         "dry_run": dry_run,
     }
 
     attempts = 0
     walked_all = True
+    admission_refused = ""
     for item in api.eligible_items():
         # batch_size caps ATTEMPTED items only — permanently-unmatched items at
         # the head of the oldest-first queue must not starve matchable ones
@@ -572,8 +736,14 @@ def run_batch(
         if prior and prior["attempts"] >= MAX_FAILURE_ATTEMPTS:
             summary["skipped_failed_permanent"] += 1
             continue
-        summary["processed"] += 1
+        probe_lane = needs_probe(item)
         route = triage(item)
+        if probe_lane and route == "implement":
+            # A capped card may only be probed, never implemented. Not a triage miss: its
+            # relevance can still change, so it stays out of the content-keyed ledger.
+            summary["skipped_needs_probe"].append(item_id)
+            continue
+        summary["processed"] += 1
         if route is None:
             summary["skipped_no_match"].append(item_id)
             if item_id:  # empty ids would all collide on one ledger key
@@ -583,12 +753,23 @@ def run_batch(
         if dry_run:
             summary["actioned"].append({"id": item_id, "route": route, "dry_run": True})
             continue
+        if admit is not None and item_id not in actioned_ids and not admission_refused:
+            admission_refused = _admission_refusal(admit, model)
+            if admission_refused:
+                summary["admission_refused"] = admission_refused
+                logger.warning("actioner: admission refused, deferring run: %s", admission_refused)
+        if admission_refused and item_id not in actioned_ids:
+            summary.setdefault("deferred_admission", []).append(item_id)
+            continue
         try:
+            probe_ref = ""
             if item_id in actioned_ids:
                 # Crash-replay: artifact already exists — just re-PATCH (no-op action).
                 summary["deduped"].append(item_id)
+                if probe_lane:
+                    probe_ref = load_vault_note(item_id, proposals_path)
             else:
-                action_item(
+                artifact = action_item(
                     item,
                     route,
                     executor,
@@ -597,7 +778,11 @@ def run_batch(
                     vault_dir=vault_dir,
                 )
                 actioned_ids.add(item_id)
-            api.mark_actioned(item_id, route=route)
+                probe_ref = str(artifact.get("vault_note", "")) if probe_lane else ""
+            if probe_ref:
+                api.mark_actioned_with_probe(item_id, route=route, probe_ref=probe_ref)
+            else:
+                api.mark_actioned(item_id, route=route)
             summary["actioned"].append({"id": item_id, "route": route})
             if failures.pop(item_id, None) is not None:
                 failures_changed = True
@@ -623,7 +808,7 @@ def run_batch(
                 summary["failed"][item_id] = err_msg
                 continue
             summary["failed"][item_id] = err_msg
-            if item_id and not is_infra_failure(err_msg):
+            if item_id and not exception_is_infra(exc):
                 count = (prior["attempts"] if prior else 0) + 1
                 failures[item_id] = {
                     "fp": fingerprint,

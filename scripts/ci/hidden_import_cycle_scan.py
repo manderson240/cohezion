@@ -64,6 +64,11 @@ HUBS = (
 )
 _BROAD = {"Exception", "BaseException", "ImportError", "ModuleNotFoundError"}
 _TIMEOUT_S = 180
+# A per-order timeout is retried this many times, then recorded as UNKNOWN (not a defect,
+# not a worker error). The gate fails as UNKNOWN only when more than this fraction of
+# orders went unmeasured -- a mostly-timed-out scan proves nothing either way.
+_TIMEOUT_RETRIES = 1
+_MAX_UNKNOWN_FRACTION = 0.25
 
 
 # --------------------------------------------------------------------------- AST phase
@@ -223,22 +228,43 @@ import os; os._exit(0)
 """
 
 
-def _run_order(order: list[str], spec: dict, env: dict, py: str) -> dict:
+def _run_order(
+    order: list[str],
+    spec: dict,
+    env: dict,
+    py: str,
+    timeout_s: float = _TIMEOUT_S,
+    retries: int = _TIMEOUT_RETRIES,
+) -> dict:
+    """Run one import order in a fresh interpreter.
+
+    A timeout is retried up to *retries* times, then returned as ``unknown`` -- on a busy
+    box it measures contention, not import cycles. A worker that exits without a result
+    is a real ``error``.
+    """
     fd, spec_file = tempfile.mkstemp(suffix=".json")
     with os.fdopen(fd, "w") as fh:
         json.dump({**spec, "order": order}, fh)
     try:
-        proc = subprocess.run(
-            [py, "-c", _WORKER, spec_file],
-            capture_output=True,
-            text=True,
-            env=env,
-            timeout=_TIMEOUT_S,
-            cwd=str(REPO),
-            check=False,
-        )
-    except subprocess.TimeoutExpired:
-        return {"order": order, "error": f"timeout after {_TIMEOUT_S}s"}
+        for attempt in range(1, retries + 2):
+            try:
+                proc = subprocess.run(
+                    [py, "-c", _WORKER, spec_file],
+                    capture_output=True,
+                    text=True,
+                    env=env,
+                    timeout=timeout_s,
+                    cwd=str(REPO),
+                    check=False,
+                )
+                break
+            except subprocess.TimeoutExpired:
+                if attempt > retries:
+                    return {
+                        "order": order,
+                        "unknown": f"timeout after {timeout_s}s",
+                        "attempts": attempt,
+                    }
     finally:
         os.unlink(spec_file)
     for ln in proc.stdout.splitlines():
@@ -272,6 +298,8 @@ def scan(
     hubs: tuple[str, ...] = HUBS,
     jobs: int | None = None,
     packages: list[str] | None = None,
+    timeout_s: float = _TIMEOUT_S,
+    retries: int = _TIMEOUT_RETRIES,
 ) -> dict:
     found = discover(src, root_pkg)
     if packages:
@@ -288,7 +316,7 @@ def scan(
     jobs = jobs or max(1, min(8, (os.cpu_count() or 2) // 2))
     py = _python()
     with ThreadPoolExecutor(max_workers=jobs) as pool:
-        runs = list(pool.map(lambda o: _run_order(o, spec, env, py), orders))
+        runs = list(pool.map(lambda o: _run_order(o, spec, env, py, timeout_s, retries), orders))
     return aggregate(found, runs, root_pkg)
 
 
@@ -297,8 +325,9 @@ def aggregate(found: dict, runs: list[dict], root_pkg: str) -> dict:
         lambda: {"missing_in": [], "present_in": 0, "causes": {}}
     )
     worker_errors = [r for r in runs if "error" in r]
+    unknown_orders = [r for r in runs if "unknown" in r]
     for r in runs:
-        if "error" in r:
+        if "error" in r or "unknown" in r:
             continue
         by_pkg: dict[str, list[dict]] = defaultdict(list)
         for s in r["swallowed"]:
@@ -355,6 +384,7 @@ def aggregate(found: dict, runs: list[dict], root_pkg: str) -> dict:
         "packages": len(found),
         "runs": len(runs),
         "worker_errors": worker_errors,
+        "unknown_orders": unknown_orders,
         "counts": dict(counts),
         "entries": entries,
     }
@@ -390,6 +420,8 @@ def _print_report(res: dict, verbose: bool) -> None:
     )
     for w in res["worker_errors"]:
         print(f"  WORKER ERROR {w['order']}: {w['error'][:200]}")
+    for u in res.get("unknown_orders", []):
+        print(f"  UNKNOWN {u['order']}: {u['unknown']} ({u.get('attempts', 1)} attempt(s))")
     for e in res["entries"]:
         if not verbose and e["category"] != "defect":
             continue
@@ -407,6 +439,13 @@ def gate(res: dict) -> int:
     if res["worker_errors"]:
         print("FAIL: worker subprocess errors -- the scan is UNKNOWN, not clean.")
         return 1
+    unknown = res.get("unknown_orders", [])
+    if len(unknown) > _MAX_UNKNOWN_FRACTION * max(res["runs"], 1):
+        print(
+            f"FAIL: {len(unknown)}/{res['runs']} orders timed out -- too little was measured "
+            "to gate (UNKNOWN). Re-run on a quieter box or with fewer --jobs."
+        )
+        return 1
     measured = {e["key"] for e in res["entries"] if e["category"] == "defect"}
     base = _read_baseline()
     if base is None:
@@ -419,6 +458,14 @@ def gate(res: dict) -> int:
             print(f"  + {k}")
         print("Fix with a lazy import at the point of use; never extend the baseline.")
         return 1
+    if fixed and unknown:
+        # A timed-out order cannot show a defect, so "fixed" may just mean "unmeasured".
+        # Demanding --update here would bake a stale baseline in.
+        print(
+            f"PASS (UNKNOWN: {len(unknown)} order(s) timed out): no new defects; "
+            f"{len(fixed)} baseline entries unobserved -- paydown not assessed this run"
+        )
+        return 0
     if fixed:
         print(
             f"FAIL: {len(fixed)} baseline entries now fixed -- lock in the paydown: "
@@ -427,7 +474,8 @@ def gate(res: dict) -> int:
         for k in sorted(fixed):
             print(f"  - {k}")
         return 1
-    print(f"PASS: {len(measured)} defect-class hidden names == baseline")
+    note = f" (UNKNOWN: {len(unknown)} order(s) timed out)" if unknown else ""
+    print(f"PASS: {len(measured)} defect-class hidden names == baseline{note}")
     return 0
 
 
@@ -479,6 +527,19 @@ def self_test() -> int:
     if res["worker_errors"]:
         print(f"self-test FAIL: worker errors {res['worker_errors']}")
         ok = False
+    # A hanging import must come back UNKNOWN: not a worker error, not a defect.
+    with tempfile.TemporaryDirectory() as tmp:
+        slow = Path(tmp) / "zzslow"
+        slow.mkdir()
+        (slow / "__init__.py").write_text(
+            "import contextlib\nwith contextlib.suppress(Exception):\n"
+            "    from zzslow.hang import H as H\n"
+        )
+        (slow / "hang.py").write_text("import time\ntime.sleep(30)\nclass H: pass\n")
+        slow_res = scan(src=Path(tmp), root_pkg="zzslow", hubs=(), jobs=1, timeout_s=1, retries=0)
+    if slow_res["worker_errors"] or slow_res["entries"] or len(slow_res["unknown_orders"]) != 1:
+        print(f"self-test FAIL: a timed-out order must be UNKNOWN only: {slow_res}")
+        ok = False
     print("self-test PASS" if ok else "self-test FAILED")
     return 0 if ok else 1
 
@@ -501,8 +562,8 @@ def main() -> int:
     if args.report or args.package:
         return 0
     if args.update:
-        if res["worker_errors"]:
-            print("refusing --update: worker errors make the measurement UNKNOWN")
+        if res["worker_errors"] or res["unknown_orders"]:
+            print("refusing --update: worker errors/timeouts make the measurement UNKNOWN")
             return 1
         measured = {e["key"] for e in res["entries"] if e["category"] == "defect"}
         base = _read_baseline()

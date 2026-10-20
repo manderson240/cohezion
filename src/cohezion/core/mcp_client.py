@@ -59,6 +59,29 @@ class MCPToolError(MCPClientError):
     """MCP tool execution failed."""
 
 
+def resolve_api_key() -> str:
+    """The vault MCP key: CLOUD_VAULT_API_KEY, else MCP_API_KEY, else the file it names.
+
+    MCP_API_KEY is the variable the vault server itself enforces, so a unit that runs the
+    server can share it. CLOUD_VAULT_API_KEY_FILE names a file holding the key. There is
+    no built-in default: the old literal ``cohezion-dev-key`` was rejected by every
+    key-enforcing server. Returns "" when nothing is configured (a server without
+    MCP_API_KEY runs unauthenticated). Never log the returned value.
+    """
+    for var in ("CLOUD_VAULT_API_KEY", "MCP_API_KEY"):
+        value = os.getenv(var, "").strip()
+        if value:
+            return value
+    key_file = os.getenv("CLOUD_VAULT_API_KEY_FILE", "").strip()
+    if key_file:
+        try:
+            with open(os.path.expanduser(key_file), encoding="utf-8") as fh:
+                return fh.read().strip()
+        except OSError as exc:
+            logger.error("CLOUD_VAULT_API_KEY_FILE is set but unreadable: %s", type(exc).__name__)
+    return ""
+
+
 class MCPClient:
     """Async Client for Cloud Vault MCP Server operations."""
 
@@ -66,6 +89,22 @@ class MCPClient:
         self.config = config
         self._client: httpx.AsyncClient | None = None
         self._session_id: str | None = None
+        # Set on the first 401/403. A rejected key stays rejected, so later calls re-raise
+        # it without a request: no retry loop against the server, one ERROR in the log.
+        self._auth_error: MCPAuthenticationError | None = None
+
+    def _reject(self, status: int) -> MCPAuthenticationError:
+        """Record and log (once, at ERROR) that the server rejected our key."""
+        if self._auth_error is None:
+            key_state = "a key was sent" if self.config.api_key else "no key was sent"
+            self._auth_error = MCPAuthenticationError(
+                f"Vault MCP server {self.config.server_url} rejected the request "
+                f"(HTTP {status}; {key_state}). Set CLOUD_VAULT_API_KEY (or MCP_API_KEY, or "
+                "CLOUD_VAULT_API_KEY_FILE) in this process's environment to the key the "
+                "server enforces as MCP_API_KEY, then restart it."
+            )
+            logger.error("%s", self._auth_error)
+        return self._auth_error
 
     async def __aenter__(self) -> MCPClient:
         await self.connect()
@@ -76,14 +115,17 @@ class MCPClient:
 
     async def connect(self) -> None:
         """Establish connection to MCP server and initialize session."""
+        if self._auth_error is not None:
+            raise self._auth_error
         if self._client is not None:
             return
 
         headers = {
-            "Authorization": f"Bearer {self.config.api_key}",
             "Content-Type": "application/json",
             "Accept": "application/json, text/event-stream",
         }
+        if self.config.api_key:
+            headers["Authorization"] = f"Bearer {self.config.api_key}"
 
         self._client = httpx.AsyncClient(
             base_url=self.config.server_url,
@@ -118,9 +160,7 @@ class MCPClient:
         except httpx.HTTPStatusError as e:
             await self.close()
             if e.response.status_code in (401, 403):
-                raise MCPAuthenticationError(
-                    f"Authentication failed (HTTP {e.response.status_code})"
-                ) from e
+                raise self._reject(e.response.status_code) from e
             raise MCPConnectionError(f"Failed to connect to MCP server: {e}") from e
         except httpx.RequestError as e:
             await self.close()
@@ -137,7 +177,13 @@ class MCPClient:
         self._session_id = None
 
     async def _call_tool(self, tool_name: str, arguments: dict[str, Any]) -> Any:
-        """Invoke an MCP tool via the initialized session."""
+        """Invoke an MCP tool via the initialized session.
+
+        Raises MCPAuthenticationError (not MCPToolError) when the server rejects the key,
+        so callers can tell a misconfigured deployment from a failed tool.
+        """
+        if self._auth_error is not None:
+            raise self._auth_error
         if not self._client:
             await self.connect()
 
@@ -171,6 +217,12 @@ class MCPClient:
 
         except MCPToolError:
             raise
+        except httpx.HTTPStatusError as e:
+            if e.response.status_code in (401, 403):
+                await self.close()
+                raise self._reject(e.response.status_code) from e
+            logger.error(f"MCP tool call failed: {e}")
+            raise MCPToolError(f"Failed to call tool '{tool_name}': {e}") from e
         except Exception as e:
             logger.error(f"MCP tool call failed: {e}")
             raise MCPToolError(f"Failed to call tool '{tool_name}': {e}") from e
@@ -416,6 +468,5 @@ def get_mcp_client() -> MCPClient:
     global _mcp_client_instance
     if _mcp_client_instance is None:
         server_url = os.getenv("CLOUD_VAULT_URL", "http://localhost:8360")
-        api_key = os.getenv("CLOUD_VAULT_API_KEY", "cohezion-dev-key")
-        _mcp_client_instance = create_mcp_client(server_url=server_url, api_key=api_key)
+        _mcp_client_instance = create_mcp_client(server_url=server_url, api_key=resolve_api_key())
     return _mcp_client_instance
