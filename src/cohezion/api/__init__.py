@@ -115,6 +115,14 @@ with contextlib.suppress(ImportError):
 
     app.include_router(architecture_router, prefix="/api/architecture")
 
+# Extended physics read-only GET endpoints (/api/physics/*). Defined since #196 but never
+# mounted, so every path 404'd. Handlers are bounded numpy/torch-scalar computations with
+# lazy imports -- no model loads or network I/O.
+with contextlib.suppress(ImportError):
+    from cohezion.api.services.physics_extended import physics_ext_router
+
+    app.include_router(physics_ext_router, prefix="/api")
+
 # Register telemetry websocket
 app.include_router(telemetry_router)
 

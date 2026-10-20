@@ -31,6 +31,10 @@ class ConfigTemplateManager:
         created on first access.
     """
 
+    # cwd-relative on purpose (callers run from the repo root). A class attribute so the
+    # test suite can redirect it away from the tracked file (tests/conftest.py).
+    REGISTRY_PATH: Path = Path("src/cohezion/skills/skill_registry.json")
+
     def __init__(self, engine: TemplateEngine | None = None) -> None:
         self._engine = engine
 
@@ -97,7 +101,7 @@ class ConfigTemplateManager:
         spec : SkillSpec
             The skill spec to register.
         """
-        registry_path = Path("src/cohezion/skills/skill_registry.json")
+        registry_path = self.REGISTRY_PATH
         registry: dict = {}
 
         if registry_path.exists():

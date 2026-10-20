@@ -13,7 +13,6 @@ from typing import Any
 
 import numpy as np
 
-from cohezion.compound.exp_persistence.vault import get_vault_logger
 from cohezion.core.persistence.redis_aggregator import get_redis
 
 
@@ -37,6 +36,11 @@ class SemanticCache:
     @property
     def vault(self):
         if self._vault is None:
+            # Lazy: a module-level import pulled the whole cohezion.compound package in while
+            # cohezion.reliability was half-built, so guarded re-exports across agents/,
+            # compound/, core/ and swarm/ silently vanished (hidden_import_cycle_scan.py).
+            from cohezion.compound.exp_persistence.vault import get_vault_logger
+
             self._vault = get_vault_logger()
         return self._vault
 

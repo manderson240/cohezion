@@ -129,14 +129,10 @@ def _member_defined(files: list[Path], member: str) -> bool:
 # this list: write the test or delete the claim. (Measured fresh at port time; the
 # original 2026-08-09 list shrank because TR1/MB1 were retired and LT1/RV2 gained their
 # real tests in tests/compound/test_harness_claims.py in the same pick chain.)
-KNOWN_PHANTOM_TESTS = frozenset(
-    {
-        "test_low_coherence_llm_makes_gate_skip",  # JG3
-        "test_t1_epoch_fields_exist_with_zero_defaults",  # RQGM1
-        "test_track_execution_action_captured_from_tier_used",  # JI1
-        "test_track_execution_explicit_action_overrides_tier_used",  # JI1
-    }
-)
+# Emptied 2026-09-21: all four grandfathered entries were resolved (JG3's claim corrected to
+# the Beta-prior REROUTE behaviour; JI1/RQGM1 repointed at the renamed tests). Every cited
+# test name must now resolve or the check fails — keep it that way.
+KNOWN_PHANTOM_TESTS: frozenset[str] = frozenset()
 
 
 @lru_cache(maxsize=1)

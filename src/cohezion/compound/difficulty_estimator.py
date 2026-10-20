@@ -151,7 +151,7 @@ class DifficultyEstimator:
         operation_type: str,
         tier_used: str,
         escalation_count: int,
-        quality_score: float,
+        quality_score: float | None,
         latency_s: float = 0.0,
     ) -> None:
         """Append one execution record; old entries drop off at window=10.
@@ -160,7 +160,11 @@ class DifficultyEstimator:
             latency_s: Wall-clock latency of this execution in seconds.
                 When > 0, predict_tier uses median latency to pick the
                 fastest adequate tier instead of the positionally-cheapest.
+            quality_score: None means UNMEASURED; the record is skipped entirely so
+                an unknown outcome cannot move the per-tier stats (no stand-in value).
         """
+        if quality_score is None:
+            return
         key = (skill_name, operation_type)
         self._history[key].append(
             _TierRecord(

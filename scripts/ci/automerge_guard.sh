@@ -147,7 +147,17 @@ step "ruff format --check" uv run ruff format --check src/ tests/
 step_advisory "ruff lint check" uv run ruff check src/ tests/
 
 # Step 3: Ruff debt ratchet (gating)
-step "ruff debt ratchet" uv run python scripts/ci/ruff_ratchet.py
+step "ruff ratchet self-test" uv run python scripts/ci/ruff_ratchet.py --self-test
+# Monotone: fails if count != baseline, or if the baseline rose vs merge-base(HEAD, origin/main)
+# without LINT_BASELINE_RAISE_REASON. origin/main is fetched above, so the base must be readable.
+step "ruff debt ratchet" env RUFF_RATCHET_REQUIRE_BASE=1 uv run python scripts/ci/ruff_ratchet.py
+
+# Step 3a: Selective blocking lint. The full `ruff check` stays advisory (large backlog),
+# but these rules are at ZERO and each is a real defect, not style: F811 = a redefined
+# name (e.g. a FastAPI handler registered 3x — #241/#242 triplicated physics_extended.py),
+# W605 = an invalid escape that silently corrupts strings today ("\beta" -> backspace)
+# and becomes a SyntaxError in a future Python. Promote more rules here as they hit 0.
+step "ruff blocking rules (F811,W605)" uv run ruff check --no-cache --select F811,W605 src/ tests/
 
 # Step 3b: Mypy debt ratchet. --self-test first, same reason as the other scanners:
 # a broken ratchet otherwise reads as a clean "no new type debt". The self-test also
@@ -158,14 +168,28 @@ step "mypy ratchet self-test" uv run python scripts/ci/mypy_ratchet.py --self-te
 step "mypy debt ratchet" uv run python scripts/ci/mypy_ratchet.py
 
 
-# Step 4: Unit tests (gating)
-step "unit tests" uv run pytest tests/unit/ -q --tb=short -p no:warnings
+# Step 4: Unit tests (gating). `-m "not integration"`: a gate must be deterministic, and
+# integration-marked tests assert on LIVE service state (fleet residency, :13305 up) that
+# flips between runs of the same tree. They run below as an advisory step instead.
+step "unit tests" uv run pytest tests/unit/ -q --tb=short -p no:warnings -m "not integration"
 
 # Step 5: Import smoke test
 step "import smoke test" uv run pytest tests/unit/test_import_smoke.py -q --tb=short -p no:warnings
 
-# Step 6: Inference tests (gating — but live tests skip without Lemonade)
-step "inference tests" uv run pytest tests/inference/ -q --tb=short -p no:warnings
+# Step 6: Inference tests (gating; live-service tests deselected, see Step 4)
+step "inference tests" uv run pytest tests/inference/ -q --tb=short -p no:warnings -m "not integration"
+
+# Step 6a: Live-service tests from the gated dirs -- ADVISORY. Loud when the fleet is
+# degraded (e.g. the RC1 canary in test_recipe_constraint_support.py), never blocking.
+step_advisory "live-service tests (integration marker)" uv run pytest tests/unit/ tests/inference/ tests/reliability/ tests/security/ -q --tb=short -p no:warnings -m integration
+
+# Step 6a: Reliability tests (gating). Holds the SR1 OOM-guard / resource-guard tests that
+# were red for weeks while tests/reliability ran only under continue-on-error.
+step "reliability tests" uv run pytest tests/reliability/ -q --tb=short -p no:warnings -m "not integration"
+
+# Step 6a-bis: Security tests (gating). Holds the AG1-AG5 production guardrail ratchet and the
+# MCPHTTPSClient always-verify contract; previously ran only under continue-on-error.
+step "security tests" uv run pytest tests/security/ -q --tb=short -p no:warnings -m "not integration"
 
 # Step 6b: Local-LLM choke-point. Flags NET-NEW raw chat/completions call sites
 # that bypass the blessed path + its content->reasoning_content fallback.
@@ -196,6 +220,17 @@ step "local-llm choke-point" bash scripts/ci/check_local_llm_chokepoint.sh
 # sentinel + known-wired capability). A scanner bug otherwise reads as a clean 0 errors.
 step "dormancy self-test" uv run python scripts/ci/dormancy_scan.py --self-test
 step "dormancy scan" uv run python scripts/ci/dormancy_scan.py
+
+# Step 6c-hidden: Hidden import cycles -- "did a guarded re-export silently vanish?". 112 package
+# __init__.py files wrap re-exports in suppress(Exception)/except Exception, which also swallows
+# "cannot import name X from partially initialized module" -- so a cycle deletes the name, and
+# WHICH names vanish depends on import order (JourneyPersistence, AdversarialCritique,
+# 2026-09-22: tests passed alone and failed in a batch). Imports each guarded package in fresh
+# subprocesses under several orders and records the exception each guard swallowed. Down-only
+# ratchet over hidden_import_cycle_baseline.txt. --self-test first (planted cycle must be flagged,
+# planted missing third-party must not). Slow: ~8 min at 8 jobs (fresh interpreter per order).
+step "hidden-import-cycle self-test" uv run python scripts/ci/hidden_import_cycle_scan.py --self-test
+step "hidden-import-cycle ratchet" uv run python scripts/ci/hidden_import_cycle_scan.py
 
 # Step 6c-bis: Doc↔code drift — the sibling of 6c. dormancy_scan asks "does this code have a
 # consumer?"; this asks "do the docs tell the truth about the code?". Already gating in

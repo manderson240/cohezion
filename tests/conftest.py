@@ -16,6 +16,18 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
+# Live inference-router guard for the blocking suites (unit/inference/cache/compound): any
+# unmarked test that tries to reach :13305-13309 is refused, and fails unless the attempt is a
+# known read-only reachability probe. See tests/_live_port_guard.py.
+from tests._live_port_guard import (  # noqa: F401 - pytest hooks, registered by name
+    pytest_configure,
+    pytest_runtest_call,
+    pytest_runtest_setup,
+    pytest_runtest_teardown,
+    pytest_unconfigure,
+    router_offline,
+)
+
 
 # Hypothesis CI profile (loaded via HYPOTHESIS_PROFILE=ci in CI workflows):
 # derandomize=True makes CI failures reproducible; deadline=None avoids flaky
@@ -72,6 +84,26 @@ if "transformers" not in sys.modules:
 
 
 @pytest.fixture(scope="session", autouse=True)
+def _no_live_journey_writes() -> Generator[None, None, None]:
+    """Keep JourneyTracker out of the shared live SurrealDB (cohezion/main).
+
+    Measured 2026-09-21: ~19k of 23,379 ``journey_transition`` rows were written by this
+    suite ("Same task" x2200, "Test task" x1607, ...). Tests that need the write path
+    re-enable it with ``monkeypatch.setenv("COHEZION_JOURNEY_PERSIST", "1")`` and a fake
+    urlopen -- see tests/compound/test_journey_live_isolation.py.
+    """
+    previous = os.environ.get("COHEZION_JOURNEY_PERSIST")
+    os.environ["COHEZION_JOURNEY_PERSIST"] = "0"
+    try:
+        yield
+    finally:
+        if previous is None:
+            os.environ.pop("COHEZION_JOURNEY_PERSIST", None)
+        else:
+            os.environ["COHEZION_JOURNEY_PERSIST"] = previous
+
+
+@pytest.fixture(scope="session", autouse=True)
 def _isolate_cohezion_state(tmp_path_factory) -> Generator[Path, None, None]:
     """Keep SkillHealthTracker out of the user's real ~/.cohezion state root.
 
@@ -103,6 +135,50 @@ def _isolate_cohezion_state(tmp_path_factory) -> Generator[Path, None, None]:
             os.environ.pop("COHEZION_STATE_DIR", None)
         else:
             os.environ["COHEZION_STATE_DIR"] = previous
+
+
+@pytest.fixture(scope="session", autouse=True)
+def _isolate_skill_approvals(tmp_path_factory) -> Generator[Path, None, None]:
+    """Redirect SkillRefiner's pending-approvals queue away from ~/.cohezion.
+
+    ``_APPROVALS_PATH`` is a ClassVar built from ``Path.home()`` at import, so
+    COHEZION_STATE_DIR above never reaches it: every blocked promotion a test provoked
+    was appended to the operator's real review queue. Patched on the class, once per
+    session; tests that set their own path (monkeypatch) still win for their duration.
+    """
+    from cohezion.compound.skill_refiner import SkillRefiner
+
+    path = tmp_path_factory.mktemp("skill_approvals") / "pending_skill_approvals.jsonl"
+    previous = SkillRefiner._APPROVALS_PATH
+    SkillRefiner._APPROVALS_PATH = path
+    try:
+        yield path
+    finally:
+        SkillRefiner._APPROVALS_PATH = previous
+
+
+@pytest.fixture(scope="session", autouse=True)
+def _isolate_skill_registry(tmp_path_factory) -> Generator[Path, None, None]:
+    """Keep ConfigTemplateManager.update_registry off the tracked skill registry.
+
+    Its default is the cwd-relative, git-tracked src/cohezion/skills/skill_registry.json;
+    tests that generate agents (test_version_header_in_generated_agent) rewrote it on
+    every run. Starts from a copy so readers still see the real entries.
+    """
+    import shutil
+
+    from cohezion.core.config_templates import ConfigTemplateManager
+
+    path = tmp_path_factory.mktemp("skill_registry") / "skill_registry.json"
+    real = Path(__file__).resolve().parents[1] / "src/cohezion/skills/skill_registry.json"
+    if real.exists():
+        shutil.copyfile(real, path)
+    previous = ConfigTemplateManager.REGISTRY_PATH
+    ConfigTemplateManager.REGISTRY_PATH = path
+    try:
+        yield path
+    finally:
+        ConfigTemplateManager.REGISTRY_PATH = previous
 
 
 @pytest.fixture

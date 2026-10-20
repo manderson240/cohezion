@@ -71,11 +71,17 @@ class TestCH1Structural:
 class TestCH2HihoOk:
     """Discriminating: wrong impl returning "warn" for all regimes fails this."""
 
-    def _make_hiho_scores(self, n: int = 40) -> list[float]:
-        """Produce Brownian-like scores around 0.5 to trigger HIHO regime."""
+    def _make_hiho_scores(self, n: int = 40, seed: int = 1) -> list[float]:
+        """Produce Brownian-like scores around 0.5 to trigger HIHO regime.
+
+        Seed 1 ends HIHO-by-FD with a NON-declining final window (slope +0.011/sample).
+        The previous seed 42 ended HIHO with a window falling 0.55 -> 0.29 (slope
+        -0.0141/sample): a real degradation, which the quality-statistic veto correctly
+        reports as critical — see test_hiho_shaped_but_declining_window_is_critical.
+        """
         import random
 
-        rng = random.Random(42)
+        rng = random.Random(seed)
         scores = []
         val = 0.5
         for _ in range(n):
@@ -92,11 +98,26 @@ class TestCH2HihoOk:
         for s in scores:
             last = oracle.assess(s)
 
-        # May not be HIHO on every run (depends on FD) — only assert if regime is HIHO
-        if last and last.regime is FractalRegime.HIHO:
-            assert last.alert_level == "ok"
-            assert last.alerts == []
-        # else: regime depends on the random walk — not every 40-score sequence hits HIHO
+        assert last is not None
+        assert last.regime is FractalRegime.HIHO, "fixture no longer reaches HIHO"
+        assert last.alert_level == "ok"
+        assert last.alerts == []
+
+    def test_hiho_shaped_but_declining_window_is_critical(self) -> None:
+        """FD regime is shape-only: a HIHO-shaped window that is FALLING must not read ok.
+
+        This was the seed-42 fixture of the test above. Its final window drops 0.55 -> 0.29;
+        the quality-statistic veto (restored after 768f6d811 dropped its consumer) reports
+        it as DEGRADING/critical while the regime field still says HIHO.
+        """
+        oracle = CompoundHealthOracle(window_size=20, degradation_detector=None)
+        last = None
+        for s in self._make_hiho_scores(40, seed=42):
+            last = oracle.assess(s)
+        assert last is not None
+        assert last.regime is FractalRegime.HIHO
+        assert last.alert_level == "critical"
+        assert "DEGRADING" in " ".join(last.alerts)
 
     def test_ok_assessment_direct_synthesis(self) -> None:
         """Force HIHO via _synthesize() directly to validate the branch without FD luck."""

@@ -3,7 +3,6 @@
 import logging
 from typing import Any
 
-from cohezion.compound.exp_persistence.vault import get_vault_logger
 from cohezion.security.guardrail_adapters import (
     ConstitutionalGuard,
     OutputFilterGuard,
@@ -15,6 +14,19 @@ from cohezion.security.guardrail_pipeline import GuardrailPipeline
 
 
 logger = logging.getLogger(__name__)
+
+
+def get_vault_logger() -> Any:
+    """Lazy shim for ``cohezion.compound.exp_persistence.vault.get_vault_logger``.
+
+    A module-level import made ``import cohezion.security`` (pulled in by agents.base) run the
+    whole cohezion.compound package init, re-entering cohezion.agents while agents.base was
+    half-built and silently dropping AdversarialCritique & co (hidden_import_cycle_scan.py).
+    Kept as a module attribute so ``patch("...guardrail_factory.get_vault_logger")`` still works.
+    """
+    from cohezion.compound.exp_persistence.vault import get_vault_logger as _get_vault_logger
+
+    return _get_vault_logger()
 
 
 async def _audit_to_vault(event: dict[str, Any]) -> None:

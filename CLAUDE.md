@@ -101,6 +101,13 @@ Dedicated per-port servers (13306, 13307, 13309) are redundant and often offline
 curl -s http://localhost:13305/v1/models | python3 -c "import sys,json; d=json.load(sys.stdin); print([m['id'] for m in d['data'][:5]])"
 ```
 
+### ⚡ Shared Hardware & Coordination (full text: AGENTS.md top section)
+Claude sessions, Antigravity, Hermes Desktop and daemons share one 128 GiB box, one NPU slot,
+one :13305 router. Gate every model load on `cohezion.inference.hotswap`'s 16 GiB floor
+(`ResourceGuard.can_load_model` has no floor); FLM/NPU weights count against RAM; never restart
+`lemond` yourself; register what you hold with `python -m cohezion.sessions register`. Durable
+cross-session events need SurrealDB credentials or `publish_and_persist` persists nothing.
+
 ### ⚡ Editing After Formatters
 The `post-edit-lint.sh` PostToolUse hook runs `pre-commit run --files <file>` (which includes ruff) after **every** Edit/Write on Python/JS/TS files. Ruff may reformat the file, invalidating subsequent Edit anchors.
 

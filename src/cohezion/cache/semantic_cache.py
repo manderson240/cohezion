@@ -93,9 +93,19 @@ class CacheEntry:
     scope: str = ""  # AOEP scope axis: "" = global, else agent/task scope tag
     # PR 2: (model_id, family, thinking_mode) the entry was stored under.
     card_signature: tuple[str, str, str] | None = None
+    # Embedding space the vector lives in (encoder tier id, e.g. "lemonade-nomic-768").
+    # Entries are only ever compared against queries from the SAME space: two
+    # 384D tiers (MiniLM vs SHA-256 hash) share a dim but not a geometry.
+    encoder_id: str = ""
 
 
 _singleton: "SemanticCache | None" = None
+
+# How long a per-instance lemonade availability decision is trusted before
+# re-probing. Bounds router probes to <= 1 per TTL per cache instance and keeps
+# a flapping router from flipping the embedding space on every call.
+_LEMONADE_PROBE_TTL_S = 300.0
+_LEMONADE_ENCODER_ID = "lemonade-nomic-768"
 
 
 class SemanticCache:
@@ -189,6 +199,12 @@ class SemanticCache:
         self.enable_adaptive_threshold = enable_adaptive_threshold
         self.novelty_threshold = novelty_threshold
 
+        # Per-instance encoder decision: (lemonade_ok, decided_at). Probed at most
+        # once per _LEMONADE_PROBE_TTL_S instead of on every put()/get().
+        self._lemonade_probe: tuple[bool, float] | None = None
+        # Embedding space the vectorized L2 matrix currently holds.
+        self._l2_space: str = ""
+
         # Auto-tune threshold for the active encoder (exp_RRRR, 2026-05-29)
         # When using the default (0.80), probe the actual encoder dimension and adjust.
         # sentence-transformers crashes on XDNA2, falling back to FLUME VAE 256D;
@@ -197,7 +213,7 @@ class SemanticCache:
         if profile_threshold is not None:
             similarity_threshold = profile_threshold
         elif similarity_threshold == self._DEFAULT_THRESHOLD:
-            similarity_threshold = self._auto_tune_threshold_for_encoder()
+            similarity_threshold = self._auto_tune_threshold_for_instance()
         self.similarity_threshold = similarity_threshold
         self.initial_threshold = similarity_threshold
 
@@ -252,6 +268,47 @@ class SemanticCache:
         except Exception:
             return SemanticCache._DEFAULT_THRESHOLD
 
+    def _auto_tune_threshold_for_instance(self) -> float:
+        """Like ``_auto_tune_threshold_for_encoder`` but through this instance's
+        cached encoder decision, so construction does not cost a second probe."""
+        try:
+            dim = self._embed("routing task probe")[0].shape[0]
+            return self._THRESHOLD_BY_DIM.get(dim, self._DEFAULT_THRESHOLD)
+        except Exception:
+            return self._DEFAULT_THRESHOLD
+
+    def _lemonade_ok(self) -> bool:
+        """Cached router availability for this instance (TTL-bounded probe)."""
+        now = time.monotonic()
+        probe = self._lemonade_probe
+        if probe is None or now - probe[1] > _LEMONADE_PROBE_TTL_S:
+            try:
+                ok = bool(get_lemonade_encoder().is_available())
+            except Exception as e:
+                logger.debug("Lemonade probe failed: %s", e)
+                ok = False
+            self._lemonade_probe = (ok, now)
+            return ok
+        return probe[0]
+
+    def _embed(self, text: str) -> tuple[np.ndarray, str]:
+        """Embed ``text`` and return ``(vector, encoder_id)``.
+
+        Uses this instance's cached lemonade decision instead of probing the
+        router per call. If ``_text_to_embedding`` has been replaced (tests,
+        subclasses), that callable is honoured and its space is keyed by dim.
+        """
+        fn = self._text_to_embedding
+        if fn is not _ORIGINAL_TEXT_TO_EMBEDDING:
+            vec = np.asarray(fn(text))
+            return vec, f"external-{vec.shape[-1]}"
+        try_lemonade = self._lemonade_ok()
+        vec, encoder_id = self._encode_tagged(text, try_lemonade=try_lemonade)
+        if try_lemonade and encoder_id != _LEMONADE_ENCODER_ID:
+            # Router answered the probe but failed to embed: stay off it for a TTL.
+            self._lemonade_probe = (False, time.monotonic())
+        return vec, encoder_id
+
     @classmethod
     def get_instance(cls) -> "SemanticCache":
         """Return the module-level singleton, creating it on first call.
@@ -277,26 +334,38 @@ class SemanticCache:
 
         Returns:
             numpy array (dim varies by encoder), L2-normalized
+
+        Probes the router on every call; ``SemanticCache`` instances use the
+        TTL-cached ``_embed`` instead.
         """
-        # 1. Lemonade nomic-embed (primary on XDNA2 — sentence-transformers crashes there)
         try:
-            enc = get_lemonade_encoder()
-            if enc.is_available():
-                return enc.encode(text)
+            try_lemonade = bool(get_lemonade_encoder().is_available())
         except Exception as e:
-            logger.debug("Lemonade encoder failed: %s", e)
+            logger.debug("Lemonade probe failed: %s", e)
+            try_lemonade = False
+        return SemanticCache._encode_tagged(text, try_lemonade=try_lemonade)[0]
+
+    @staticmethod
+    def _encode_tagged(text: str, *, try_lemonade: bool) -> tuple[np.ndarray, str]:
+        """Run the encoder cascade and return ``(vector, encoder_id)``."""
+        # 1. Lemonade nomic-embed (primary on XDNA2 — sentence-transformers crashes there)
+        if try_lemonade:
+            try:
+                return get_lemonade_encoder().encode(text), _LEMONADE_ENCODER_ID
+            except Exception as e:
+                logger.debug("Lemonade encoder failed: %s", e)
 
         # 2. sentence-transformers (primary on non-XDNA2 systems)
         try:
-            encoder = get_text_encoder()
-            return encoder.encode(text)
+            vec = get_text_encoder().encode(text)
+            return vec, f"sentence-transformers-{np.asarray(vec).shape[-1]}"
         except Exception as e:
             logger.debug("Semantic encoding failed: %s", e)
 
         # 3. FLUME VAE fallback
         try:
-            vae_encoder = get_encoder()
-            return vae_encoder.encode(text)
+            vec = get_encoder().encode(text)
+            return vec, f"flume-vae-{np.asarray(vec).shape[-1]}"
         except Exception as vae_e:
             logger.debug("VAE encoding also failed: %s — using hash fallback", vae_e)
 
@@ -308,7 +377,7 @@ class SemanticCache:
         norm = np.linalg.norm(embedding)
         if norm > 0:
             embedding /= norm
-        return embedding
+        return embedding, "sha256-hash-384"
 
     @staticmethod
     def _cosine_similarity(a: np.ndarray, b: np.ndarray) -> float:
@@ -324,7 +393,21 @@ class SemanticCache:
         dot_product = np.dot(a, b)
         return float(dot_product)
 
-    def _is_novel(self, embedding: np.ndarray) -> bool:
+    def _ensure_l2_space(self, encoder_id: str) -> None:
+        """Point the vectorized L2 matrix at ``encoder_id``'s entries only.
+
+        The matrix never mixes embedding spaces: switching spaces rebuilds it
+        from the L2 entries embedded by that encoder (O(n), only on a switch).
+        """
+        if encoder_id == self._l2_space:
+            return
+        self._l2_space = encoder_id
+        self._l2_keys = [k for k, e in self.l2_cache.items() if e.encoder_id == encoder_id]
+        self._l2_matrix = (
+            np.stack([self.l2_cache[k].embedding for k in self._l2_keys]) if self._l2_keys else None
+        )
+
+    def _is_novel(self, embedding: np.ndarray, encoder_id: str | None = None) -> bool:
         """Check if embedding is novel relative to existing L2 entries.
 
         Returns True if the embedding's max cosine similarity to any existing
@@ -337,6 +420,8 @@ class SemanticCache:
         Returns:
             True if novel (should insert), False if near-duplicate (skip).
         """
+        if encoder_id is not None:
+            self._ensure_l2_space(encoder_id)
         if self._l2_matrix is None or len(self._l2_keys) == 0:
             return True
         sims = np.dot(self._l2_matrix, embedding)
@@ -451,7 +536,8 @@ class SemanticCache:
         # (prompt, card_signature) so it carries the card; without a
         # card we embed the prompt alone (legacy behavior preserved).
         embed_text = full_prompt if card_signature is not None else prompt
-        query_embedding = self._text_to_embedding(embed_text)
+        query_embedding, query_space = self._embed(embed_text)
+        self._ensure_l2_space(query_space)
         best_match = None
         best_similarity = 0.0
         current_threshold = self._get_adaptive_threshold()
@@ -474,12 +560,13 @@ class SemanticCache:
         if vault_result:
             self.hits_l3 += 1
             # Create entry and promote to L1
-            embedding = self._text_to_embedding(prompt)
+            embedding, encoder_id = self._embed(prompt)
             entry = CacheEntry(
                 key=hash_key,
                 prompt=prompt,
                 response=vault_result,
                 embedding=embedding,
+                encoder_id=encoder_id,
             )
             self._promote_to_l1(hash_key, entry)
             return vault_result
@@ -512,7 +599,8 @@ class SemanticCache:
 
         # L2: semantic
         embed_text = full_prompt if card_signature is not None else prompt
-        query_embedding = self._text_to_embedding(embed_text)
+        query_embedding, query_space = self._embed(embed_text)
+        self._ensure_l2_space(query_space)
         current_threshold = self._get_adaptive_threshold()
         if self._l2_matrix is not None and len(self._l2_keys) > 0:
             sims = np.dot(self._l2_matrix, query_embedding)
@@ -565,7 +653,7 @@ class SemanticCache:
         # (prompt, card_signature); without a card we embed the prompt
         # alone (legacy behavior preserved).
         embed_text = full_prompt if card_signature is not None else prompt
-        embedding = self._text_to_embedding(embed_text)
+        embedding, encoder_id = self._embed(embed_text)
 
         entry = CacheEntry(
             key=hash_key,
@@ -574,13 +662,14 @@ class SemanticCache:
             scope=scope,
             embedding=embedding,
             card_signature=card_signature,
+            encoder_id=encoder_id,
         )
 
         # Store in L1 (exact match)
         self._put_l1(hash_key, entry)
 
         # Store in L2 (semantic) — skip if near-duplicate (novelty gate)
-        if self._is_novel(embedding):
+        if self._is_novel(embedding, encoder_id):
             self._put_l2(hash_key, entry)
         else:
             self.novelty_skipped += 1
@@ -636,7 +725,7 @@ class SemanticCache:
             del self.l2_cache[lfu_key]
             del self.l2_lfu_counts[lfu_key]
             # Rebuild matrix after eviction (infrequent — only when L2 is full)
-            self._l2_keys = list(self.l2_cache.keys())
+            self._l2_keys = [k for k, e in self.l2_cache.items() if e.encoder_id == self._l2_space]
             if self._l2_keys:
                 self._l2_matrix = np.stack([self.l2_cache[k].embedding for k in self._l2_keys])
             else:
@@ -644,6 +733,11 @@ class SemanticCache:
 
         self.l2_cache[hash_key] = entry
         self.l2_lfu_counts[hash_key] = 1
+        if entry.encoder_id != self._l2_space:
+            # Different embedding space: rebuild the matrix for the new space
+            # (includes this entry) rather than stacking mismatched rows.
+            self._ensure_l2_space(entry.encoder_id)
+            return
 
         # Incremental append to matrix (cheap path — no eviction)
         self._l2_keys.append(hash_key)
@@ -833,9 +927,15 @@ class SemanticCache:
         self.l2_lfu_counts.clear()
         self._l2_keys.clear()
         self._l2_matrix = None
+        self._l2_space = ""
         self.hits_l1 = 0
         self.hits_l2 = 0
         self.hits_l3 = 0
         self.misses = 0
         self.novelty_skipped = 0
         self._access_window.clear()
+
+
+# Identity of the unpatched encoder, so ``_embed`` can tell when a test or
+# subclass has replaced ``_text_to_embedding`` and must be honoured.
+_ORIGINAL_TEXT_TO_EMBEDDING = SemanticCache.__dict__["_text_to_embedding"].__func__

@@ -399,5 +399,7 @@ class TestAQ6ScaleMismatch:
         assert self._extract({"anomaly_score": 0.9}).quality_score == pytest.approx(0.9)
 
     def test_default_when_absent(self):
-        """Absent => the pre-existing 0.5 default, unchanged."""
-        assert self._extract({}).quality_score == pytest.approx(0.5)
+        """Absent => UNKNOWN (None). Was a fabricated 0.5, one tenth below the GIC floor,
+        which made every production run look identical (changed 2026-09-22; see
+        tests/compound/test_production_quality_signal.py)."""
+        assert self._extract({}).quality_score is None

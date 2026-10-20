@@ -27,7 +27,12 @@ sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 from cohezion.compound.autonomous_loop.coordinator import LoopConfig, LoopCoordinator, LoopTask
 from cohezion.compound.autonomous_loop.local_executor import get_tier_health, warmup_tiers
 from cohezion.config.defaults import LEMONADE_BASE_URL
-from cohezion.inference.oom_guard import check_ram, verify_all_bounded
+from cohezion.inference.oom_guard import (
+    EMPTY_CATALOG,
+    ROUTER_UNREACHABLE,
+    check_ram,
+    verify_all_bounded,
+)
 
 
 logging.basicConfig(
@@ -472,6 +477,12 @@ def main() -> None:
         sys.exit(1)
 
     _, violations = verify_all_bounded(args.base_url)
+    if violations == [ROUTER_UNREACHABLE]:
+        logger.error("Aborting: cannot read the router catalog; ctx bounds UNKNOWN")
+        sys.exit(1)
+    if violations == [EMPTY_CATALOG]:
+        logger.error("Aborting: router is up but lists no models; ctx bounds UNKNOWN")
+        sys.exit(1)
     if violations:
         logger.error("N3 VIOLATION: heavy models with ctx_size=0: %s", violations)
         logger.error("Run: oom_guard.scan_and_harden() to fix before continuing")

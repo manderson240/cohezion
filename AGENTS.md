@@ -16,6 +16,12 @@ Cohezion is an agentic AI framework with universe simulation, compound sessions,
 - `scripts/lanes/` - The four lane scripts (WS2B)
 - `tests/` - Test suite (use `make test-fast` for quick feedback)
 
+**Subsystem instructions:** `src/cohezion/{compound,data_mesh,graph,inference,physics,sessions,swarm,world_model}/`,
+`src/web/anima_dashboard/` and `docs/tutorials/wasm_explorer/` each carry an `AGENTS.md` —
+a symlink to that directory's `CLAUDE.md`, so Claude and every AGENTS.md-reading harness see one
+file. Edit the `CLAUDE.md`; a new nested `CLAUDE.md` needs its `AGENTS.md` link
+(`tests/unit/test_nested_agents_md_mirror.py` enforces it).
+
 ## Development Workflow
 1. Use `make format` before committing
 2. Use `make lint` to check style
@@ -27,6 +33,29 @@ Cohezion is an agentic AI framework with universe simulation, compound sessions,
 - Reset singletons in tests: `cohezion.api._vae_trainer = None`
 - All I/O must be async with timeouts
 - Use Pydantic validation at API boundaries
+
+## Shared Hardware & Cross-Session Coordination (ALL harnesses — read first)
+
+One box, shared by everything at once: Claude Code sessions, Antigravity, Hermes Desktop, and
+systemd daemons all draw on the same 128 GiB unified memory, the same single-slot NPU, and the
+same Lemonade router (:13305). Measured facts (2026-09-21), not aspirations:
+
+- **Before loading any model, gate it on the 16 GiB floor:** `cohezion.inference.hotswap`
+  (`ensure_resident`, or `free_gb() - RAM_FLOOR_GB >= weights + KV`). Do **not** rely on
+  `ResourceGuard.can_load_model` alone — it has no floor and approved a 21 GiB load that would
+  have left 11 GiB. Direct `flm serve` / `llama-server` bypasses every gate: check first.
+- **The NPU is not free memory.** FLM weights live in system RAM (`qwen3.6-moe:35b-a3b` = 21 GiB).
+  The NPU serves one model at a time; stop any `flm serve` you started when you are done.
+- **Never restart `lemond` or other system services yourself** — Hermes Desktop routes through
+  it. Report the wedge (e.g. `/v1/models` gives no response) and ask the user.
+- **Announce what you hold** on the session bus, and update it when that changes:
+  `python -m cohezion.sessions register --pid $$ <sid> "<label: what you hold / are loading>"`;
+  `python -m cohezion.sessions list` shows other registered sessions. Only sessions that
+  register are visible — daemons and Hermes currently do not.
+- **Durable events** go through `CrossSessionEventBridge.publish_and_persist` into SurrealDB
+  `event_log` (recipe under "Preexisting Condition Logging"). It needs SurrealDB credentials
+  (vault key `surreal/local`, or `SURREAL_USER`/`SURREAL_PASSWORD`); without them it returns
+  True and persists nothing — a warning is the only signal. Verify by querying `event_log`.
 
 ## Core AGI Mandates (2026-08-03)
 1. **AutoHarness (arXiv:2603.03329v1)**: Mandate `AutoHarness` deterministic code-as-action verifiers and bytecode compilers to bypass LLM calls at inference time with 0 ms latency (`src/cohezion/agi/autoharness_policy.py`).
@@ -260,15 +289,22 @@ mention them in conversation.
 Use these two channels:
 
 1. **Event Bus** (`cohezion.core.event_bus`): Publish a typed event so
-   monitoring/healing systems can react in real time.
+   monitoring/healing systems can react in real time. A bare `EventBus` is an in-process
+   queue that no other session can see, and `publish()` returns False until `start()` —
+   persist through the bridge for anything another session must see (verified 2026-09-21):
    ```python
    from cohezion.core.event_bus import Event, EventBus
-   bus = EventBus()
-   await bus.publish(Event.agent_complete(
-       agent="audit-init-modules",
+   from cohezion.core.cross_session_event_bridge import CrossSessionEventBridge
+   bus = EventBus(); await bus.start()
+   bridge = CrossSessionEventBridge(event_bus=bus, session_id="<your-sid>")
+   await bridge.initialize()
+   bridge.publish_and_persist(Event.agent_complete(
+       agent_name="audit-init-modules", duration_ms=0.0,
        result={"finding": "api/__init__.py has 1594 LOC inline logic",
                "severity": "critical", "category": "tech_debt"},
    ))
+   # Inside a running loop True only means "scheduled"; confirm the row in event_log.
+   # Without SurrealDB credentials the write is refused with only a warning (see top).
    ```
 
 2. **Agentic Kanban** (`cohezion.data_mesh.kanban_bridge`): Create a
@@ -297,7 +333,7 @@ Every agent MUST evaluate this three-tier decision tree **before** sending any i
 ### Tier 1 — Lemonade OmniRouter (NPU/iGPU/CPU, port 13305)
 
 Preferred for all routine inference. Lemonade dispatches across dedicated hardware backends:
-- **NPU Backend**: FastFlowLM (`recipe: flm`, `/var/cache/lemonade/bin/flm/npu/flm`) executing directly on AMD XDNA2 SRAM (<2W, 0 UMA RAM usage).
+- **NPU Backend**: FastFlowLM (`recipe: flm`, `/var/cache/lemonade/bin/flm/npu/flm`) executing on the AMD XDNA2 NPU (low power). Model weights still occupy system RAM — FLM's `qwen3.6-moe:35b-a3b` is 21 GiB — so FLM loads count against the 16 GiB floor like any other.
 - **iGPU Backend**: llama.cpp Vulkan (`recipe: llamacpp`) for heavy GGUF models on RDNA 3.5.
 - **CPU Backend**: ONNX / kokoro (`recipe: kokoro`) for TTS and audio.
 

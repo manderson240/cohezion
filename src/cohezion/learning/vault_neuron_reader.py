@@ -12,8 +12,6 @@ import time
 from dataclasses import dataclass
 from typing import Any
 
-from cohezion.core.persistence.surreal_client import get_surreal_client
-
 
 try:
     import httpx as _httpx
@@ -51,7 +49,15 @@ class VaultNeuronGraph:
     """SurrealDB 3.x Experiential Hypergraph with HNSW Vector Search & Synaptic Plasticity."""
 
     def __init__(self, surreal_client: Any | None = None) -> None:
-        self.surreal = surreal_client or get_surreal_client()
+        if surreal_client is None:
+            # Lazy: a module-level import of core.persistence closes an import cycle
+            # (core -> ... -> compound.skill_refiner -> this module, still partially
+            # initialised), which bound skill_refiner.VaultNeuronWriter to None and
+            # silently pinned mgpo_weight() to 1.0 (regression from e9869f425).
+            from cohezion.core.persistence.surreal_client import get_surreal_client
+
+            surreal_client = get_surreal_client()
+        self.surreal = surreal_client
         self._schema_initialized = False
 
     async def ensure_schema(self) -> None:

@@ -35,14 +35,19 @@ proposal verdict is always ``PROPOSED`` — never a claimed result.
 
 from __future__ import annotations
 
+import hashlib
 import json
 import logging
+import os
 import re
+import tempfile
 import urllib.request
 from collections.abc import Callable
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
+
+from cohezion.security.guardrail_pipeline import CONTENT_GUARDS
 
 
 logger = logging.getLogger(__name__)
@@ -58,16 +63,160 @@ BATCH_SIZE = 50
 # match over title + abstract + domain). Route B is checked FIRST: methodology
 # keywords are the narrower class, and an item like "prompt tuning for evals"
 # belongs with the experiment loop, not the implementation queue.
+#
+# Truncated stems (``quanti[sz]``, ``fine[- ]?tun``, ``orchestrat``) take a trailing
+# ``\w*`` so they match their inflections at a word START only. Before 2026-09-22 they sat
+# inside ``\b(...)\b`` with nothing after them, so ``quantiz`` required a word boundary
+# right after the ``z`` and never matched "quantized"/"quantization" (same for
+# "fine-tuning", "orchestration"). Whole words stay whole-word; ``distill`` gets its
+# noun and gerund only ("distilled water" is not ML).
 _ROUTE_B_EXPERIMENT = re.compile(
-    r"\b(train|training|fine-?tun|sft|rlhf|dpo|distill|curriculum|eval|benchmark|"
-    r"skill-methodology|reward model|dataset)\b",
+    r"\b(train|training|fine[- ]?tun\w*|sft|rlhf|dpo|distill(?:ation|ing)?|"
+    r"curriculum|eval|benchmark|skill-methodology|reward model|dataset)\b",
     re.IGNORECASE,
 )
 _ROUTE_A_IMPLEMENT = re.compile(
-    r"\b(tool|toolchain|config|prompt|prompt-pattern|agent|inference|serving|quantiz|"
-    r"cache|caching|rag|retrieval|routing|orchestrat|mcp|sandbox|scheduler)\b",
+    r"\b(tool|toolchain|config|prompt|prompt-pattern|agent|inference|serving|quanti[sz]\w*|"
+    r"cache|caching|rag|retrieval|routing|orchestrat\w*|mcp|sandbox|scheduler)\b",
     re.IGNORECASE,
 )
+
+
+# Bump when triage() logic changes in a way the regex patterns below do not capture
+# (e.g. RC1's type=improvement short-circuit). Part of the triage-miss ledger key.
+_TRIAGE_LOGIC_REVISION = 2
+MISSES_FILENAME = "actioner_triage_misses.json"
+
+
+def triage_rules_version() -> str:
+    """Fingerprint of the triage rules. A recorded miss is valid only under this value."""
+    material = "\x00".join(
+        (str(_TRIAGE_LOGIC_REVISION), _ROUTE_B_EXPERIMENT.pattern, _ROUTE_A_IMPLEMENT.pattern)
+    )
+    return hashlib.sha256(material.encode()).hexdigest()[:16]
+
+
+# The item fields triage() reads. A recorded miss is a verdict on THIS content, so an
+# item edited or re-typed after it missed is re-triaged (adversarial review 2026-09-21).
+_TRIAGE_FIELDS = ("type", "title", "abstract", "description", "domain")
+
+
+def triage_content_fingerprint(item: dict[str, Any]) -> str:
+    """Fingerprint of the fields triage() reads; the ledger value for a recorded miss."""
+    material = "\x00".join(str(item.get(k, "")) for k in _TRIAGE_FIELDS)
+    return hashlib.sha256(material.encode()).hexdigest()[:16]
+
+
+def load_triage_misses(path: Path, rules_version: str) -> dict[str, str]:
+    """Item ids that matched no rule under *rules_version* (id -> content fingerprint).
+
+    A ledger written under different rules is ignored, so a rule change re-examines
+    every previously unmatched item. Unreadable ledger -> empty (re-examine, never skip).
+    """
+    try:
+        data = json.loads(path.read_text())
+    except (OSError, ValueError):
+        return {}
+    if not isinstance(data, dict) or data.get("rules_version") != rules_version:
+        return {}
+    misses = data.get("misses")
+    return {str(k): str(v) for k, v in misses.items()} if isinstance(misses, dict) else {}
+
+
+def load_failure_attempts(path: Path) -> dict[str, dict[str, Any]]:
+    """Counted non-guardrail failures per item id: ``{id: {"fp", "attempts", "last_error"}}``.
+
+    Stored in the same ledger file as the misses but NOT invalidated by a triage-rule
+    change: a failure is a verdict on executing the item, not on routing it.
+    """
+    try:
+        data = json.loads(path.read_text())
+    except (OSError, ValueError):
+        return {}
+    failures = data.get("failures") if isinstance(data, dict) else None
+    if not isinstance(failures, dict):
+        return {}
+    return {
+        str(k): v
+        for k, v in failures.items()
+        if isinstance(v, dict) and isinstance(v.get("attempts"), int)
+    }
+
+
+def save_triage_misses(
+    path: Path,
+    rules_version: str,
+    misses: dict[str, str],
+    failures: dict[str, dict[str, Any]] | None = None,
+) -> None:
+    """Atomically replace the ledger (one write per run, never the work-queue file)."""
+    path.parent.mkdir(parents=True, exist_ok=True)
+    # Unique temp name: two concurrent runs must not interleave writes into one .tmp.
+    with tempfile.NamedTemporaryFile(
+        "w", dir=path.parent, prefix=path.name + ".", suffix=".tmp", delete=False
+    ) as tmp:
+        tmp.write(
+            json.dumps(
+                {"rules_version": rules_version, "misses": misses, "failures": failures or {}}
+            )
+        )
+    os.replace(tmp.name, path)
+
+
+# Non-guardrail failures are retried at most this many times per item content, then the
+# item is terminal ``failed_permanent`` (skipped, NOT patched -- the card stays visible in
+# ``reviewed`` for manual triage). 2026-09-21: one item produced 541 journey rows from an
+# unbounded retry loop.
+MAX_FAILURE_ATTEMPTS = 3
+
+# Failures that say nothing about the item: the shared apparatus was down. Counting them
+# would permanently fail every good card attempted during a model-load outage (observed
+# live 2026-09-21: ``404 No model loaded: Gemma-4-E4B-it-GGUF``), so they never count.
+_INFRA_FAILURE = re.compile(
+    r"model_not_loaded|no model loaded|connection refused|connection reset|timed out|"
+    r"timeout|urlerror|remote ?disconnected|remote end closed|temporary failure|"
+    r"name or service not known|status 5\d\d|http error 5\d\d|service unavailable",
+    re.IGNORECASE,
+)
+
+
+def is_infra_failure(err_msg: str) -> bool:
+    """True when *err_msg* describes the inference/API apparatus, not the item."""
+    return bool(_INFRA_FAILURE.search(err_msg))
+
+
+class GuardrailBlockedError(RuntimeError):
+    """The compound cycle's input guardrail BLOCKED the item; carries which guard did it."""
+
+    def __init__(self, message: str, guard_name: str = "", reason: str = "") -> None:
+        super().__init__(message)
+        self.guard_name = guard_name
+        self.reason = reason
+
+
+def guardrail_block_kind(exc: BaseException) -> str | None:
+    """Classify a failure as a guardrail block: 'content', 'transient', or None (not a block).
+
+    - 'content': a text-inspecting guard (``CONTENT_GUARDS``) judged the input -- the same
+      text is blocked again every run, so the card is terminal-rejected (Learning 414).
+    - 'transient': a state guard (``resource`` CPU/memory pressure, ``rate_limit`` quota)
+      or a fail-closed guard *exception* -- says nothing about the item; retry later and
+      never count it toward ``MAX_FAILURE_ATTEMPTS`` (same treatment as infra failures).
+    A block whose guard is unknown (legacy executors that report only the message) keeps
+    the historical terminal behaviour.
+    Scope: INPUT blocks only. An output-filter block (``metrics.output_blocked_by_guardrails``)
+    judges non-deterministic model output, so it deliberately stays on the counted,
+    capped retry path rather than rejecting the card.
+    """
+    guard = getattr(exc, "guard_name", "") if isinstance(exc, GuardrailBlockedError) else ""
+    if guard:
+        if str(getattr(exc, "reason", "")).startswith("Guardrail exception:"):
+            return "transient"
+        return "content" if guard in CONTENT_GUARDS else "transient"
+    err_msg = str(exc)
+    if "Input blocked by guardrails" in err_msg or "Potential injection pattern" in err_msg:
+        return "content"
+    return None
 
 
 def triage(item: dict[str, Any]) -> str | None:
@@ -164,16 +313,21 @@ class WorkQueueAPI:
         return sorted(page.get("items", []), key=lambda i: i.get("created_at", ""))
 
     def mark_reviewed(self, item_id: str, relevance: str, note: str) -> dict:
-        """Promote a triaged item into the lane the actioner actually polls."""
+        """Promote a triaged item into the lane the actioner actually polls.
+
+        The triage reason is APPENDED to ``notes`` (``notes_append``), never written over
+        it -- same defect class as ``mark_actioned``: ``notes`` holds the research analysis.
+        """
         return self._request(
             "PATCH",
             f"/api/work-queue/{item_id}",
-            {"status": "reviewed", "relevance": relevance, "notes": note},
+            {"status": "reviewed", "relevance": relevance, "notes_append": note},
         )
 
     def mark_rejected(self, item_id: str, note: str) -> dict:
+        """Reject a card, appending the reason to ``notes`` rather than replacing it."""
         return self._request(
-            "PATCH", f"/api/work-queue/{item_id}", {"status": "rejected", "notes": note}
+            "PATCH", f"/api/work-queue/{item_id}", {"status": "rejected", "notes_append": note}
         )
 
 
@@ -319,6 +473,13 @@ def action_item(
         execute_fn=execute_fn,
     )
     if not getattr(result, "success", False):
+        metrics = getattr(result, "metrics", None)
+        if isinstance(metrics, dict) and metrics.get("blocked_by_guardrails"):
+            raise GuardrailBlockedError(
+                f"compound cycle failed for {item['id']}: {_failure_reason(result)}",
+                guard_name=str(metrics.get("blocked_by_guard") or ""),
+                reason=str(metrics.get("blocked_guard_reason") or ""),
+            )
         raise RuntimeError(f"compound cycle failed for {item['id']}: {_failure_reason(result)}")
 
     parsed = _parse_proposal(captured.get("raw", ""))
@@ -347,37 +508,76 @@ def run_batch(
     batch_size: int = BATCH_SIZE,
     proposals_path: Path = PROPOSALS_PATH,
     vault_dir: Path = VAULT_EXPERIMENTS_DIR,
+    misses_path: Path | None = None,
     dry_run: bool = False,
 ) -> dict[str, Any]:
     """Drain up to *batch_size* eligible items. Returns an honest summary.
 
     Per-item failures are isolated: the item stays ``reviewed`` (no PATCH) and
-    the batch continues. Items with no triage match are left untouched.
+    the batch continues. Items with no triage match are left untouched in the queue
+    and recorded in the triage-miss ledger (default: next to *proposals_path*), so
+    later runs skip them until the triage rules change (2026-09-21: every 5-min run
+    was re-triaging the same ~2,771 unmatchable items). ``processed`` counts items
+    actually triaged this run; ``skipped_known_miss`` counts ledger skips. The
+    eligible-item list is still fetched each run.
+
+    Non-guardrail failures are counted per item content (same ledger file); after
+    ``MAX_FAILURE_ATTEMPTS`` the item is listed in ``failed_permanent`` and later runs
+    skip it (``skipped_failed_permanent``) until its content changes. Infrastructure
+    failures (``is_infra_failure``) never count -- an outage must not DLQ good cards.
+    Guardrail blocks split by guard (``guardrail_block_kind``): content guards reject
+    the card; resource/rate-limit blocks are listed in ``deferred_transient_guard`` and
+    neither reject nor count.
     """
     api = api or WorkQueueAPI()
     chat_fn = chat_fn or default_chat_fn()
     actioned_ids = load_actioned_ids(proposals_path)
+    misses_path = misses_path or proposals_path.with_name(MISSES_FILENAME)
+    rules_version = triage_rules_version()
+    known_misses = load_triage_misses(misses_path, rules_version)
+    failures = load_failure_attempts(misses_path)
+    failures_changed = False
+    new_misses: dict[str, str] = {}
+    seen_ids: set[str] = set()
     summary: dict[str, Any] = {
         "processed": 0,
         "actioned": [],
         "skipped_no_match": [],
+        "skipped_known_miss": 0,
+        "skipped_failed_permanent": 0,
         "deduped": [],
         "failed": {},
+        "failed_permanent": [],
         "dry_run": dry_run,
     }
 
     attempts = 0
+    walked_all = True
     for item in api.eligible_items():
         # batch_size caps ATTEMPTED items only — permanently-unmatched items at
         # the head of the oldest-first queue must not starve matchable ones
         # behind them (found live 2026-07-10: 3 no-match items ate a whole batch).
         if attempts >= batch_size:
+            walked_all = False
             break
-        summary["processed"] += 1
         item_id = str(item.get("id", ""))
+        seen_ids.add(item_id)
+        fingerprint = triage_content_fingerprint(item)
+        if item_id and known_misses.get(item_id) == fingerprint:
+            summary["skipped_known_miss"] += 1
+            continue
+        prior = failures.get(item_id)
+        if prior and prior.get("fp") != fingerprint:
+            prior = None  # content changed: a fresh item gets a fresh retry budget
+        if prior and prior["attempts"] >= MAX_FAILURE_ATTEMPTS:
+            summary["skipped_failed_permanent"] += 1
+            continue
+        summary["processed"] += 1
         route = triage(item)
         if route is None:
             summary["skipped_no_match"].append(item_id)
+            if item_id:  # empty ids would all collide on one ledger key
+                new_misses[item_id] = fingerprint
             continue
         attempts += 1
         if dry_run:
@@ -399,12 +599,20 @@ def run_batch(
                 actioned_ids.add(item_id)
             api.mark_actioned(item_id, route=route)
             summary["actioned"].append({"id": item_id, "route": route})
+            if failures.pop(item_id, None) is not None:
+                failures_changed = True
         except Exception as exc:
             err_msg = str(exc)
             logger.warning("actioner: item %s failed: %s", item_id, err_msg)
-            # If the item failed due to guardrail injection detection, reject it
-            # so it does not poison the queue and cause an infinite crash loop (Learning 414).
-            if "Input blocked by guardrails" in err_msg or "Potential injection pattern" in err_msg:
+            block_kind = guardrail_block_kind(exc)
+            if block_kind == "transient":
+                # Resource/rate guard: system load, not the item. Retry next run, uncounted.
+                summary["failed"][item_id] = err_msg
+                summary.setdefault("deferred_transient_guard", []).append(item_id)
+                continue
+            # A content guardrail block is deterministic for this text: reject it so it
+            # does not poison the queue and cause an infinite crash loop (Learning 414).
+            if block_kind == "content":
                 try:
                     api.mark_rejected(item_id, note=f"rejected by guardrail: {err_msg[:200]}")
                     summary.setdefault("rejected", []).append(item_id)
@@ -412,5 +620,32 @@ def run_batch(
                     logger.error(
                         "actioner: failed to mark item %s rejected: %s", item_id, patch_exc
                     )
+                summary["failed"][item_id] = err_msg
+                continue
             summary["failed"][item_id] = err_msg
+            if item_id and not is_infra_failure(err_msg):
+                count = (prior["attempts"] if prior else 0) + 1
+                failures[item_id] = {
+                    "fp": fingerprint,
+                    "attempts": count,
+                    "last_error": err_msg[:200],
+                }
+                failures_changed = True
+                if count >= MAX_FAILURE_ATTEMPTS:
+                    summary["failed_permanent"].append(item_id)
+                    logger.warning(
+                        "actioner: item %s failed_permanent after %d attempts", item_id, count
+                    )
+    stale_failures = failures.keys() - seen_ids if walked_all else set()
+    if not dry_run and (
+        new_misses or known_misses.keys() - seen_ids or failures_changed or stale_failures
+    ):
+        # Keep misses still in the eligible set (plus unseen ones if the batch cap cut the
+        # walk short), so the ledger tracks the queue instead of growing forever.
+        kept = {k: v for k, v in known_misses.items() if k in seen_ids or not walked_all}
+        kept_failures = {k: v for k, v in failures.items() if k not in stale_failures}
+        try:
+            save_triage_misses(misses_path, rules_version, {**kept, **new_misses}, kept_failures)
+        except OSError as exc:
+            logger.warning("actioner: could not record triage misses: %s", exc)
     return summary

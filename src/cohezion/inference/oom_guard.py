@@ -43,6 +43,12 @@ SAFE_CTX_SIZE: int = 16384
 # KV cache cannot exhaust unified memory even on a partially-used system.
 HEAVY_MODEL_GB_THRESHOLD: float = 5.0
 
+# verify_all_bounded's violation entry when the catalog cannot be read: bound state UNKNOWN.
+ROUTER_UNREACHABLE: str = "<router unreachable: ctx bounds UNKNOWN>"
+# verify_all_bounded's violation entry when the router answers but lists no models: also
+# UNKNOWN (nothing to vouch for), but the remedy differs -- the router is up, don't restart it.
+EMPTY_CATALOG: str = "<router reachable but catalog EMPTY: ctx bounds UNKNOWN>"
+
 
 def check_ram(min_free_gb: float = 20.0) -> tuple[bool, float]:
     """Return (safe, free_gb).  safe=True when free RAM >= min_free_gb.
@@ -82,6 +88,19 @@ def _get_catalog(base_url: str, timeout: float = 5.0) -> list[dict[str, Any]]:
     return []
 
 
+def _router_reachable(base_url: str, timeout: float = 5.0) -> bool:
+    """True when the router answers HTTP at all (any status); False on a transport failure."""
+    try:
+        req = urllib.request.Request(base_url.rstrip("/") + "/v1/models", method="GET")  # noqa: S310
+        with urllib.request.urlopen(req, timeout=timeout):  # noqa: S310
+            return True
+    except urllib.error.HTTPError:
+        return True  # it answered, just not with 2xx
+    except Exception as exc:
+        logger.debug("Router reachability probe %s failed: %s", base_url, exc)
+        return False
+
+
 def _get_recipe_options(base_url: str, model_name: str, timeout: float = 5.0) -> dict[str, Any]:
     """Fetch /api/v1/models/<name> and return recipe_options dict (may be empty)."""
     try:
@@ -103,9 +122,10 @@ def _harden_model(
 ) -> bool:
     """POST /api/v1/load with save_options=true to permanently cap ctx_size.
 
-    This is the only durable fix (direct file edit is overwritten on restart).
-    Does NOT load the model into GPU memory — it only writes the recipe_options.
-    Returns True on HTTP 200 or 201.
+    THIS LOADS THE MODEL. Lemonade documents /load as "Load a model into memory"; save_options
+    only additionally persists the recipe options. (The previous docstring claimed it did not
+    load — false, and dangerous: hardening a heavy model means resident weights.) Callers must
+    gate on free RAM first; scan_and_harden does. Returns True on HTTP 200 or 201.
     """
     payload = json.dumps(
         {"model_name": model_name, "ctx_size": ctx_size, "save_options": True}
@@ -138,15 +158,23 @@ def _is_heavy(model: dict[str, Any]) -> bool:
     """True when the model's size field indicates ≥ HEAVY_MODEL_GB_THRESHOLD GB.
 
     Size field may be absent, None, or a float (GB).  When absent we assume
-    heavy=True for unknown models to err on the side of caution.
+    heavy=True for unknown models to err on the side of caution. A size too small for the
+    model's parameter count (hotswap.implausible_size_gb, RS7: a live 35B reports 1.68 GB)
+    is treated as unknown, i.e. heavy -- a wrong size must not exempt a model from N3.
     """
+    from cohezion.inference.hotswap import implausible_size_gb
+
     size = model.get("size")
     if size is None:
         return True  # unknown size → treat as heavy
     try:
-        return float(size) >= HEAVY_MODEL_GB_THRESHOLD
+        size_gb = float(size)
     except (TypeError, ValueError):
         return True
+    name: str = model.get("model_name") or model.get("id") or ""
+    if name and implausible_size_gb(name, size_gb):
+        return True
+    return size_gb >= HEAVY_MODEL_GB_THRESHOLD
 
 
 def _ctx_is_unsafe(recipe_options: dict[str, Any]) -> bool:
@@ -167,15 +195,22 @@ def scan_and_harden(
         "already_safe": [model_names that were already bounded],
         "skipped":   [small models left untouched],
         "failed":    [model_names where hardening failed],
+        "deferred":  [unsafe models NOT hardened because loading them would breach the floor],
         "router_offline": bool,
         "free_ram_gb": float,
     }
 
-    This is designed to be called:
-    1. From the lemonade-warmup.sh hook (python3 -c "from cohezion.inference.oom_guard import scan_and_harden; scan_and_harden()")
-    2. From omni_recipes.LemonadeLoopRecipes.register_all() after known-recipe registration
-    3. From LoopCoordinator._pre_sprint_health_check()
+    Hardening loads the model (see _harden_model), so each one is gated: it runs only when
+    free RAM minus the model's size still leaves hotswap.RAM_FLOOR_GB. Unknown size defers.
+    A catalog size too small for the model's parameter count (hotswap.implausible_size_gb, RS7:
+    a live 35B reports 1.68 GB) is treated as unknown: the model counts as heavy and defers.
+
+    Callers: the Claude Code SessionStart hook ``~/.claude/hooks/lemonade-warmup.sh`` runs this
+    on every session start. The register_all and LoopCoordinator call sites an older docstring
+    listed do not exist.
     """
+    from cohezion.inference.hotswap import RAM_FLOOR_GB, implausible_size_gb
+
     _, free_gb = check_ram(min_free_gb=0.0)  # just measure, don't gate here
 
     catalog = _get_catalog(base_url)
@@ -186,6 +221,7 @@ def scan_and_harden(
             "already_safe": [],
             "skipped": [],
             "failed": [],
+            "deferred": [],
             "router_offline": True,
             "free_ram_gb": free_gb,
         }
@@ -194,13 +230,24 @@ def scan_and_harden(
     already_safe: list[str] = []
     skipped: list[str] = []
     failed: list[str] = []
+    deferred: list[str] = []
 
     for model in catalog:
         name: str = model.get("model_name") or model.get("id") or ""
         if not name:
             continue
 
-        if not _is_heavy(model):
+        try:
+            size_gb: float | None = float(model["size"])
+        except (KeyError, TypeError, ValueError):
+            size_gb = None
+        if size_gb is not None and implausible_size_gb(name, size_gb):
+            logger.warning(
+                "OOMGuard: %s reports an implausible %.2f GB; size unknown", name, size_gb
+            )
+            size_gb = None  # a wrong size is worse than a missing one (RS7)
+
+        if size_gb is not None and not _is_heavy(model):
             skipped.append(name)
             continue
 
@@ -209,8 +256,13 @@ def scan_and_harden(
         recipe_options = model.get("recipe_options") or _get_recipe_options(base_url, name)
 
         if _ctx_is_unsafe(recipe_options):
+            if size_gb is None or free_gb - size_gb < RAM_FLOOR_GB:
+                deferred.append(name)  # hardening would load it past the floor
+                continue
             ok = _harden_model(base_url, name, ctx_size=safe_ctx)
             (hardened if ok else failed).append(name)
+            if ok:
+                free_gb -= size_gb  # it is resident now; the next decision must see that
         else:
             already_safe.append(name)
 
@@ -219,6 +271,7 @@ def scan_and_harden(
         "already_safe": already_safe,
         "skipped": skipped,
         "failed": failed,
+        "deferred": deferred,
         "router_offline": False,
         "free_ram_gb": free_gb,
     }
@@ -329,7 +382,13 @@ def verify_all_bounded(base_url: str = LEMONADE_BASE_URL) -> tuple[bool, list[st
     """
     catalog = _get_catalog(base_url)
     if not catalog:
-        return True, []  # router offline — no violation to report
+        # Could not look, so cannot vouch: an unreachable router is UNKNOWN, not "all bounded".
+        # (Returned True until 2026-09-21 — a safety check that reported safe when blind.)
+        # _get_catalog maps "unreachable" and "reachable, zero models" to the same [], so
+        # probe once more to name the right one: the operator remedies differ.
+        if _router_reachable(base_url):
+            return False, [EMPTY_CATALOG]
+        return False, [ROUTER_UNREACHABLE]
 
     violations: list[str] = []
     for model in catalog:

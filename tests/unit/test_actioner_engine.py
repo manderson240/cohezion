@@ -281,3 +281,43 @@ def test_rc2_failure_reason_is_surfaced_not_empty(tmp_path):
     assert "guardrail" in reason.lower() or "override" in reason.lower(), (
         f"real cause not surfaced: {reason!r}"
     )
+
+
+# --- Stem matching (2026-09-22) --------------------------------------------------------
+# `quantiz` / `fine-?tun` / `orchestrat` sat inside \b(...)\b with nothing after them, so
+# they required a word boundary mid-word and never matched their own inflections. On the
+# live queue 191 of 2,825 unmatched eligible items route after the fix.
+
+
+@pytest.mark.parametrize(
+    ("title", "route"),
+    [
+        ("Sherry Quantization shrinks a 1.5TB model", "implement"),
+        ("Serving quantized 27B models on a laptop", "implement"),
+        ("Low-bit quantisation of attention", "implement"),
+        ("A council orchestrator for program evolution", "implement"),
+        ("Multi-agent orchestration without a planner", "implement"),
+        ("Parameter-efficient fine-tuning at scale", "experiment"),
+        ("How to finetune Qwen on a single GPU", "experiment"),
+        ("Fine tuned retrievers beat BM25", "experiment"),
+        ("On-policy distillation for small students", "experiment"),
+    ],
+)
+def test_stems_match_their_inflections(title, route):
+    assert triage(_item(1, title=title, domain="")) == route
+
+
+@pytest.mark.parametrize(
+    "title",
+    [
+        "Quantum error correction on superconducting qubits",  # quantum != quantiz
+        "Quantity surveying in civil engineering",  # quantity != quantis
+        "Fine-grained taxonomy of beetles",  # fine-grained != fine-tun
+        "The orchestra's string section at dusk",  # orchestra != orchestrat
+        "Distilled water chemistry of limestone caves",  # distill: explicit forms only
+        "Distillery tourism in Scotland",
+        "Prequantized lattice fields in lattice QCD",  # stem must start the word
+    ],
+)
+def test_stem_near_misses_do_not_route(title):
+    assert triage(_item(1, title=title, domain="")) is None

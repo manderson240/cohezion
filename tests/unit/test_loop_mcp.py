@@ -256,6 +256,28 @@ async def test_event_publish_priority_passthrough() -> None:
     assert "priority: 2" in captured["sql"]
 
 
+def test_import_is_stdout_silent_from_a_read_only_cwd(tmp_path) -> None:
+    """DISCRIMINATING: stdout silence must not depend on the CWD being writable.
+
+    `cohezion.compound.universal.init` runs at import, logs to `$CWD/.opencode/logs`, and
+    when that mkdir fails (any read-only checkout) it used to fall back to print() -- onto
+    the stdio MCP channel. The test above passes from a writable CWD and cannot see this.
+    """
+    ro = tmp_path / "ro"
+    ro.mkdir()
+    ro.chmod(0o555)
+    src = Path(__file__).resolve().parents[2] / "src"
+    code = f"import sys; sys.path.insert(0, {str(src)!r}); from cohezion.mcp import loop_mcp"
+    try:
+        proc = subprocess.run(
+            [sys.executable, "-c", code], cwd=ro, capture_output=True, timeout=300, check=False
+        )
+    finally:
+        ro.chmod(0o755)
+    assert proc.returncode == 0, f"import failed: {proc.stderr[-400:]!r}"
+    assert proc.stdout == b"", f"stdout must be empty, got {proc.stdout[:200]!r}"
+
+
 def test_import_does_not_pull_kaggle_or_write_stdout() -> None:
     """`import cohezion.mcp.loop_mcp` must be stdout-silent AND kaggle-free.
 

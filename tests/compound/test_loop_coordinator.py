@@ -13,6 +13,13 @@ from __future__ import annotations
 
 from unittest.mock import MagicMock, patch
 
+import pytest
+
+
+# The code under test calls the lemonade router (:13305) and fails open when it is down.
+# Fake it as down instead of discovering that against the live fleet (tests/_live_port_guard.py).
+pytestmark = pytest.mark.usefixtures("router_offline")
+
 
 def _make_config(**overrides):
     from cohezion.compound.autonomous_loop.coordinator import LoopConfig

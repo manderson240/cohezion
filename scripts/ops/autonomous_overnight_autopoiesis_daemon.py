@@ -55,6 +55,17 @@ def check_system_memory() -> MemoryState:
     return OOMGuard.get_memory_state()
 
 
+def _observed_state(loop_res, mem_state: MemoryState) -> list[list[float]] | None:
+    """Per-iteration [reward, free-RAM fraction] from MEASURED values; None if any is unknown."""
+    if not mem_state.total_gb:
+        return None
+    frac = max(0.0, min(1.0, mem_state.available_gb / mem_state.total_gb))
+    rewards = [it.learning.reward for it in loop_res.history]
+    if not rewards or any(r is None for r in rewards):
+        return None
+    return [[float(r), frac] for r in rewards]
+
+
 async def main():
     logger.info("=" * 80)
     logger.info("🌌 STARTING SOVEREIGN OVERNIGHT AUTOPOIESIS DAEMON")
@@ -69,6 +80,7 @@ async def main():
     tri_silicon_engine = TriSiliconAutopoiesisEngine(cpu_threads=16)
 
     executed_cycles = 0
+    prev_state: list[list[float]] | None = None  # observed state of the previous cycle
     while executed_cycles < TOTAL_CYCLES:
         cycle = executed_cycles + 1
         t_cycle_start = time.perf_counter()
@@ -116,19 +128,33 @@ async def main():
             loop_res = loop.run(goal)
             cycle_ms = (time.perf_counter() - t_cycle_start) * 1000.0
 
-            # 4. Evaluate Negentropy Invariant
-            pre_points = [[0.1 * i, 0.1 * i] for i in range(4)]
-            post_points = [[0.05 * i, 0.05 * i] for i in range(4)]
-            entropy_res = entropy_engine.evaluate_transition(
-                pre_points=pre_points,
-                post_points=post_points,
-                allow_dissipative_export=True,
+            # 4. Evaluate Negentropy Invariant on OBSERVED state (was a hardcoded point list,
+            #    which made Delta S = -0.5848 on every cycle). State point per iteration:
+            #    [measured reward, measured free-RAM fraction]. Unknown reward -> no Delta S.
+            post_state = _observed_state(loop_res, mem_state)
+            delta_s = None
+            negentropy_ok = None
+            if prev_state is not None and post_state is not None:
+                entropy_res = entropy_engine.evaluate_transition(
+                    pre_points=prev_state,
+                    post_points=post_state,
+                    pre_coherences=[pt[0] for pt in prev_state],
+                    post_coherences=[pt[0] for pt in post_state],
+                    allow_dissipative_export=True,
+                )
+                delta_s = entropy_res.delta_entropy
+                negentropy_ok = entropy_res.autoharness_verified
+            prev_state = post_state
+            ds_txt = f"{delta_s:.4f}" if delta_s is not None else "UNKNOWN"
+            rw_txt = (
+                f"{loop_res.final_reward:.4f}" if loop_res.final_reward is not None else "UNKNOWN"
             )
 
             logger.info(
-                f"Cycle {cycle} Executed: Converged={loop_res.converged}, "
-                f"Reward={loop_res.final_reward:.4f}, "
-                f"Delta S={entropy_res.delta_entropy:.4f} (Negentropy OK={entropy_res.autoharness_verified}), "
+                f"Cycle {cycle}: "
+                f"{'Converged=' + str(loop_res.converged) if loop_res.steps_executed else 'NO STEP EXECUTED'}, "
+                f"Reward={rw_txt}, "
+                f"Delta S={ds_txt} (Negentropy OK={negentropy_ok}), "
                 f"Duration={cycle_ms:.1f}ms"
             )
 
@@ -145,9 +171,9 @@ async def main():
                 "source": "overnight_autopoiesis",
                 "category": "autopoietic_evolution",
                 "description": (
-                    f"Converged: {loop_res.converged} | "
-                    f"Final Reward: {loop_res.final_reward:.4f} | "
-                    f"Entropy Delta: {entropy_res.delta_entropy:.4f} | "
+                    f"{'Converged: ' + str(loop_res.converged) if loop_res.steps_executed else 'No step executed (nothing attempted)'} | "
+                    f"Final Reward: {rw_txt} | "
+                    f"Entropy Delta: {ds_txt} | "
                     f"NPU Guidance: {tri_res.npu_guidance[:60]} | "
                     f"ARC Programs: {tri_res.cpu_arc_programs_found} | "
                     f"Memory Cohesion: {fabric_report.cohesion_index:.3f} | "
@@ -164,8 +190,9 @@ async def main():
                     result={
                         "cycle": cycle,
                         "converged": loop_res.converged,
+                        "steps_executed": loop_res.steps_executed,
                         "reward": loop_res.final_reward,
-                        "delta_entropy": entropy_res.delta_entropy,
+                        "delta_entropy": delta_s,
                         "tri_silicon": {
                             "npu_latency_ms": tri_res.npu_latency_ms,
                             "cpu_latency_ms": tri_res.cpu_latency_ms,

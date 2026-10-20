@@ -1,4 +1,4 @@
-"""Michael Levin-Inspired Bioelectric Voltage Diffusion & Morphogenetic Attractor Engine.
+r"""Michael Levin-Inspired Bioelectric Voltage Diffusion & Morphogenetic Attractor Engine.
 
 Models 2D grids as bioelectric cellular lattices with:
 1. Membrane Potential $V_{ij} \in [-70, -10]$ mV.

@@ -7,13 +7,20 @@ from __future__ import annotations
 
 import asyncio
 import logging
+from typing import TYPE_CHECKING
 
 from pydantic import BaseModel
 
-from cohezion.agents.specialists.ecoresilience_agent import EcoResilienceAgent
 from cohezion.compound.executor import CompoundExecutor
 from cohezion.compound.stability_guard import HIHOStabilityGuard
 from cohezion.flume.manifolds.translator import ManifoldProjection
+
+
+if TYPE_CHECKING:
+    # Annotation-only. A runtime import closed the cycle ecoresilience_agent -> compound
+    # (package init) -> eco_symphony -> resilience_loop -> ecoresilience_agent (half-loaded);
+    # see the matching note in eco_symphony.py.
+    from cohezion.agents.specialists.ecoresilience_agent import EcoResilienceAgent
 
 
 logger = logging.getLogger(__name__)

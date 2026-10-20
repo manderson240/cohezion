@@ -14,8 +14,14 @@ from cohezion.compound.post_execution import PostExecutionOrchestrator
 
 
 @pytest.mark.asyncio
-async def test_post_execution_orchestrator_run_success():
+async def test_post_execution_orchestrator_run_success(monkeypatch):
     """[P0] Should run post-execution orchestrator with no errors."""
+    # The CLR quality gate asks the live :13305 router (GAIA client, then httpx) for a verdict.
+    # Fake it as unreachable: the gate returns no verdict and the orchestrator proceeds.
+    monkeypatch.setattr(
+        "cohezion.compound.clr_quality_gate.CLRQualityGate._call_inference",
+        lambda self, prompt: None,
+    )
     mock_executor = MagicMock()
     mock_executor._enable_alignment_analysis = True
     mock_executor._degradation_mode = False

@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 # long lines: SQL/URLs/docstrings — wrapping reduces readability
 import asyncio
 import importlib.util
@@ -6,7 +8,7 @@ import logging
 import re
 import sys
 from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import aiofiles
 
@@ -29,8 +31,13 @@ try:
 except (FileNotFoundError, ImportError, AttributeError):
     GENERATION_PROMPT = ""  # Fallback if file missing or error loading
 
-from cohezion.compound.session_manager import CompoundSessionManager
 from cohezion.swarm.compound_client import get_compound_client
+
+
+if TYPE_CHECKING:
+    # Annotation-only at module scope; `import cohezion.swarm` otherwise ran the whole
+    # cohezion.compound package init -- a hidden cycle (hidden_import_cycle_scan.py).
+    from cohezion.compound.session_manager import CompoundSessionManager
 
 
 # Set up logging
@@ -123,6 +130,8 @@ class RZeroEvolver:
         # Handle both {"train": [...]} and [...] formats
         tasks = data.get("train", []) if isinstance(data, dict) else data
         print(f"Loaded {len(tasks)} tasks for evaluation.")
+
+        from cohezion.compound.session_manager import CompoundSessionManager
 
         async with CompoundSessionManager() as mgr:
             mgr.start_session(max_cache_entries=256)

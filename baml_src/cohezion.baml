@@ -58,12 +58,15 @@ class NextStep {
 function RecommendNextStep(context: string, candidates: string) -> NextStep {
   client "HybridCohezion"
   prompt #"
+    {{ _.role("user") }}
     You are a senior engineer planning the next step for the Cohezion repo.
     Context: {{ context }}
     Candidate actions:
     {{ candidates }}
     Pick the highest-leverage next step. Respond with the action, a one-sentence
     rationale, and a risk level.
+
+    {{ ctx.output_format }}
   "#
 }
 
@@ -81,6 +84,7 @@ class TaskInvariants {
 function DeriveTaskInvariants(task_context: string, train_examples: string) -> TaskInvariants {
   client "HybridCohezion"
   prompt #"
+    {{ _.role("user") }}
     You are the Cohezion AutoHarness Invariant Extractor.
     Task Context: {{ task_context }}
     Train Examples:
@@ -91,6 +95,8 @@ function DeriveTaskInvariants(task_context: string, train_examples: string) -> T
     2. Colors: which colors appear in both input and output (conserved), and which colors are strictly illegal/alien (forbidden)?
     3. Symmetry: is the output invariant under horizontal reflection, vertical reflection, 90/180-deg rotation, or diagonal reflection?
     4. Provide a concise technical description of the governing rule.
+
+    {{ ctx.output_format }}
   "#
 }
 
@@ -108,6 +114,7 @@ class CodeHarness {
 function SynthesizeCodeHarness(env_spec: string, failure_trace: string) -> CodeHarness {
   client "HybridCohezion"
   prompt #"
+    {{ _.role("user") }}
     You are the Cohezion AutoHarness Zero-Cost Bytecode Compiler.
     Environment Specification:
     {{ env_spec }}
@@ -120,6 +127,8 @@ function SynthesizeCodeHarness(env_spec: string, failure_trace: string) -> CodeH
     - postcondition_assertions: array of python assert expressions for outputs
     - python_verifier_code: executable deterministic verifier function
     - estimated_latency_ms: expected execution latency in milliseconds (typically < 1.0ms)
+
+    {{ ctx.output_format }}
   "#
 }
 
@@ -137,6 +146,7 @@ class SubmissionStrategy {
 function AuditLeaderboardNextAction(competition: string, leaderboard_snapshot: string) -> SubmissionStrategy {
   client "HybridCohezion"
   prompt #"
+    {{ _.role("user") }}
     You are the Cohezion Kaggle Competition Master Strategist.
     Competition: {{ competition }}
     Leaderboard Snapshot & Validation Scores:
@@ -144,5 +154,7 @@ function AuditLeaderboardNextAction(competition: string, leaderboard_snapshot: s
 
     Evaluate recent validation trajectories against leaderboard benchmarks:
     Recommend the single optimal next submission or modeling action, provide a confidence score (0.0 to 1.0), and concise strategic reasoning.
+
+    {{ ctx.output_format }}
   "#
 }

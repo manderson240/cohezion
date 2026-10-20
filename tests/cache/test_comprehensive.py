@@ -24,10 +24,28 @@ class TestSemanticCache:
         assert cache is not None
         assert cache.similarity_threshold == 0.9
 
-    def test_cache_with_defaults(self):
-        """[P1] Should use default values."""
+    def test_cache_with_defaults(self, monkeypatch):
+        """[P1] Should use default values.
+
+        The default threshold is auto-tuned to the active encoder's dimension. It used to probe
+        the LIVE :13305 embedder (and asserted 0.75, which no encoder maps to); pin the encoder
+        to an offline 768-D stand-in for nomic-embed and expect its calibrated threshold (CA1).
+        """
+        import numpy as np
+
+        from cohezion.cache.lemonade_encoder import OPTIMAL_THRESHOLD
+
+        class _Offline768:
+            def is_available(self) -> bool:
+                return True
+
+            def encode(self, text: str) -> np.ndarray:
+                vec = np.ones(768, dtype=np.float32)
+                return vec / np.linalg.norm(vec)
+
+        monkeypatch.setattr("cohezion.cache.semantic_cache.get_lemonade_encoder", _Offline768)
         cache = SemanticCache()
-        assert cache.similarity_threshold == 0.75
+        assert cache.similarity_threshold == OPTIMAL_THRESHOLD
         assert cache.max_l1_size == 512
         assert cache.max_l2_size == 1024
 

@@ -25,7 +25,6 @@ from typing import Any
 
 import httpx
 
-from cohezion.research.autoresearch import AutoResearcher
 from cohezion.swarm.dynamic_model_router import MemoryBandwidthAnalyzer
 from cohezion.swarm.lemonade_manager import LemonadeManager
 from cohezion.swarm.model_manager import OLLAMA_HOST
@@ -64,6 +63,10 @@ class ModelPoolManager:
         self._memory = MemoryBandwidthAnalyzer()
         self._pool: dict[str, PooledModel] = {}
         self._initialized = False
+        # Lazy: a module-level import made `import cohezion.swarm` pull research -> compound,
+        # a hidden cycle that silently dropped guarded re-exports (hidden_import_cycle_scan.py).
+        from cohezion.research.autoresearch import AutoResearcher
+
         self.researcher = AutoResearcher()
         self.lemonade = LemonadeManager(port=lemonade_port)
 

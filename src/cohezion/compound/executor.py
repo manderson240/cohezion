@@ -1057,7 +1057,14 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
             if input_check and input_check.action == GuardrailAction.BLOCK:
                 error_msg = f"Input blocked by guardrails: {input_check.reason}"
                 output = f"Error: {error_msg}"
-                metrics = {"error": error_msg, "blocked_by_guardrails": True}
+                metrics = {
+                    "error": error_msg,
+                    "blocked_by_guardrails": True,
+                    # Which guard: a content block is terminal, a resource/rate block
+                    # is transient load (consumed by actioner.engine.run_batch).
+                    "blocked_by_guard": input_check.guard_name,
+                    "blocked_guard_reason": input_check.reason,
+                }
                 logger.warning("Task input blocked: %s", input_check.reason)
                 # Log execution result and return
                 self.logger.log_execution_result(
@@ -1812,13 +1819,18 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
         # capability matrix's skill axis read 0 against a 305-skill registry for 28 days
         # while the store filled with names nothing could use. A lane name in the skill
         # store is noise; skip it at the source rather than filter it at every reader.
+        # (2026-09-22: "research-actioner" is now a registered skill, RESEARCH_ACTIONER_PRIME,
+        # so it IS recorded from here on; other lane labels still are not.)
         if self._skill_health_tracker and self._is_registry_skill(skill_name):
             try:
                 tokens = 0
-                quality = 0.0
                 if token_metrics:
                     tokens = token_metrics.get("tokens_used", 0)
-                quality = metrics.get("coherence", 0.0)
+                from cohezion.compound.skill_health_tracker import (
+                    health_quality_from_metrics,
+                )
+
+                quality = health_quality_from_metrics(metrics)
                 self._skill_health_tracker.record_usage(
                     skill_name=skill_name,
                     success=success,
@@ -1831,7 +1843,15 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
         # Step 7.5: Check for degradation and manage HIHO band (non-blocking)
         # Coherence within HIHO band [0.4, 0.6] -> exit degradation mode
         # Coherence outside band with CRITICAL alert -> enter degradation mode
-        coherence_val = metrics.get("coherence", 0.5)
+        # No stand-in when absent: a missing coherence is UNKNOWN, and the detector
+        # already skips a None mean_coherence ("not provided this call"). Step 5.8
+        # normally sets it, so this changes only the absent case (was a constant 0.5).
+        _coh_raw = metrics.get("coherence")
+        coherence_val = (
+            float(_coh_raw)
+            if isinstance(_coh_raw, (int, float)) and not isinstance(_coh_raw, bool)
+            else None
+        )
 
         # Step 7.5a: Cosmic Fire -- first entry into the HIHO band ignites, once per process
         # (irreversible: ignition_count never resets). Cascade action 4 (persist) runs here;
@@ -1853,7 +1873,7 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
             except Exception as e:
                 logger.debug("Cosmic Fire ignition failed (non-blocking): %s", e)
 
-        if 0.4 <= coherence_val <= 0.6 and self._degradation_mode:
+        if coherence_val is not None and 0.4 <= coherence_val <= 0.6 and self._degradation_mode:
             logger.info(
                 "Cohesion returned to HIHO band (%.2f), exiting degradation mode", coherence_val
             )
@@ -1890,18 +1910,24 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
                     # actual execution quality (2606.32026). Fail-open: any exception is
                     # suppressed so calibration never blocks the execution pipeline.
                     _wm = getattr(self._jepa_gate, "_world_model", None)
-                    if _wm is not None and hasattr(_wm, "observe"):
-                        _actual_quality = float(
-                            metrics.get("quality_score", metrics.get("coherence", 0.5))
-                        )
-                        try:
+                    # PQ1: calibrate only against a MEASURED quality; UNKNOWN -> no observe.
+                    # The producer's cascade_quality_score is authoritative when present
+                    # (incl. None); else the AUTODQA quality_score. NOT `coherence`: by this
+                    # step it is always set, to the Step-5 self-computed blend when nothing
+                    # measured it -- constant per success/anomaly profile, the same class
+                    # of stand-in as the former 0.5 fallback.
+                    if "cascade_quality_score" in metrics:
+                        _q = metrics["cascade_quality_score"]
+                    else:
+                        _q = metrics.get("quality_score")
+                    _measured = isinstance(_q, (int, float)) and not isinstance(_q, bool)
+                    if _wm is not None and hasattr(_wm, "observe") and _measured:
+                        with contextlib.suppress(Exception):  # never block on calibration
                             _wm.observe(
                                 task_description,
                                 self._jepa_gate.last_coherence,
-                                _actual_quality,
+                                float(_q),
                             )
-                        except Exception:  # never block on calibration
-                            pass
                 alerts = self._degradation_detector.check_degradation(degradation_metrics)
                 if alerts:
                     metrics["degradation_alerts"] = len(alerts)
@@ -1918,7 +1944,7 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
                         metrics["execution_degraded"] = True
                         logger.warning(
                             "Entering degradation mode: %d CRITICAL alerts, "
-                            "cohesion=%.2f outside HIHO band",
+                            "cohesion=%s outside HIHO band",
                             len(critical_alerts),
                             coherence_val,
                         )

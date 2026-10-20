@@ -12,6 +12,10 @@ These tests mock the judge lane (deterministic) by routing `_chat_complete` on
 the prompt: the Dev prompt contains "compound engineering assistant", the judge
 prompt contains "QA verifier". The falsification test (test_*_wrong_answer_*)
 FAILS against the old `bool(strip())` impl and PASSES against the knot.
+
+AMENDED 2026-09-21: the judge verdict is now ADVISORY (`judge_pass`). A task with
+no oracle is `needs_oracle` and never success, however well its prose is judged --
+completion requires an act_loop commit (see test_local_executor_act.py).
 """
 
 from __future__ import annotations
@@ -69,17 +73,20 @@ def test_nonempty_wrong_answer_yields_failure(monkeypatch, _npu_node):
     result = ex.execute_task(task, "/tmp/wt")
     # The Dev output is non-empty (the old gate would PASS it) — prove that:
     assert result["output"].strip(), "Dev output must be non-empty (old gate would pass)"
-    assert result["success"] is False  # the knot: quality FAIL
+    assert result["success"] is False
+    assert result["judge_pass"] is False  # the knot: quality FAIL
     assert chat.calls["judge"] == 1  # judge lane actually consulted
 
 
-def test_correct_answer_yields_success(monkeypatch, _npu_node):
+def test_correct_answer_is_advisory_pass_not_success(monkeypatch, _npu_node):
     chat = _make_chat("The capital of France is Paris.", "PASS")
     monkeypatch.setattr(le, "_chat_complete", chat)
     ex = le.LocalImprovementExecutor()
     task = _Task("t1", "What is the capital of France?", "general", "Answer must be Paris")
     result = ex.execute_task(task, "/tmp/wt")
-    assert result["success"] is True
+    assert result["judge_pass"] is True
+    assert result["success"] is False  # prose is never completion
+    assert result["status"] == "needs_oracle"
 
 
 def test_empty_output_fails_fast_without_judge(monkeypatch, _npu_node):
@@ -100,19 +107,21 @@ def test_judge_error_fails_open_to_prefilter(monkeypatch, _npu_node):
     ex = le.LocalImprovementExecutor()
     task = _Task("t1", "Do something", "general", "criteria")
     result = ex.execute_task(task, "/tmp/wt")
-    assert result["success"] is True  # non-empty + judge errored → fail-open PASS
+    assert result["judge_pass"] is True  # non-empty + judge errored → fail-open PASS
+    assert result["success"] is False
 
 
-def test_genuine_quality_fails_route_to_cloud_exactly_once(monkeypatch):
-    """N genuine QA-fails (quality, not emptiness) drive cloud escalation once."""
+def test_genuine_act_fails_route_to_cloud_exactly_once(monkeypatch):
+    """N genuine ACT failures (not needs_oracle) drive cloud escalation exactly once."""
     from cohezion.compound.autonomous_loop.coordinator import LoopConfig, LoopCoordinator, LoopTask
 
-    # Real LocalImprovementExecutor, but no warmup subprocess / RAM gate.
     monkeypatch.setattr(le, "warmup_tiers", lambda *a, **k: {})
     monkeypatch.setattr(le, "check_ram", lambda *a, **k: (True, 100.0))
-    monkeypatch.setattr(le, "_classify_node", lambda _d: "npu")
-    # Dev output non-empty but WRONG; judge says FAIL → quality-driven escalation.
-    monkeypatch.setattr(le, "_chat_complete", _make_chat("Non-empty wrong answer.", "FAIL"))
+    monkeypatch.setattr(
+        le.LocalImprovementExecutor,
+        "execute_task",
+        lambda self, task, wt: {"task_id": task.id, "success": False, "status": "act_exhausted"},
+    )
 
     cloud = Mock()
     cloud._started = True
@@ -125,9 +134,10 @@ def test_genuine_quality_fails_route_to_cloud_exactly_once(monkeypatch):
         max_tokens=10**9,
     )
     coord = LoopCoordinator(cfg)
-    # Same task id picked 4× → 3 local quality-fails, 4th escalates to cloud.
+    monkeypatch.setattr(coord, "_consolidate_episodes", lambda _r: None)  # no live LLM
+    # Same task id picked 4x -> 3 local ACT failures, 4th escalates to cloud.
     coord._backlog = [
-        LoopTask("t1", "wrong-on-purpose", "general", 1, "must be correct", 10) for _ in range(4)
+        LoopTask("t1", "fails-on-purpose", "general", 1, "must be correct", 10) for _ in range(4)
     ]
     coord.run(executor=cloud)
 

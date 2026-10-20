@@ -344,7 +344,11 @@ class TestExecutorRecordsOnlyRegistrySkills:
     0 of which canonicalised to a registry skill (29 test fixtures from before COHEZION_STATE_DIR
     isolation + the actioner daemon's lane label 'research-actioner', 1,175 invocations). The
     capability matrix's skill axis therefore read 0. The executor must not write lane labels
-    into the skill store; a real registry skill must still be recorded."""
+    into the skill store; a real registry skill must still be recorded.
+    2026-09-22: 'research-actioner' became a real skill (RESEARCH_ACTIONER_PRIME.md), so the
+    lane-label cases below use a name that is in no registry."""
+
+    LANE = "unregistered-lane-label"
 
     def _executor(self):
         from unittest.mock import MagicMock
@@ -358,11 +362,15 @@ class TestExecutorRecordsOnlyRegistrySkills:
 
     def test_lane_label_is_not_recorded(self):
         ex, _ = self._executor()
-        assert ex._is_registry_skill("research-actioner") is False
+        assert ex._is_registry_skill(self.LANE) is False
 
     def test_registry_skill_is_recorded(self):
         ex, _ = self._executor()
         assert ex._is_registry_skill(_a_registry_skill()) is True
+
+    def test_research_actioner_is_now_a_registry_skill(self):
+        ex, _ = self._executor()
+        assert ex._is_registry_skill("research-actioner") is True
 
     def test_empty_name_is_not_recorded(self):
         ex, _ = self._executor()
@@ -374,7 +382,7 @@ class TestExecutorRecordsOnlyRegistrySkills:
         ex, tracker = self._executor()
         ex.execute_task(
             task_description="t",
-            skill_name="research-actioner",
+            skill_name=self.LANE,
             operation_type="generate",
             execute_fn=lambda guidance: ("out", {}),
         )

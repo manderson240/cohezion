@@ -342,6 +342,7 @@ def lemonade_reachable() -> bool:
         return False
 
 
+@pytest.mark.integration  # live :1330x service -> not in the deterministic gate
 @pytest.mark.skipif(not lemonade_reachable(), reason="lemonade :13305 not reachable")
 @pytest.mark.asyncio
 async def test_route_against_live_omni_with_real_probe():
@@ -394,6 +395,7 @@ async def test_route_against_live_omni_with_real_probe():
     assert "recipe-down" not in " ".join(result.attempts)
 
 
+@pytest.mark.integration  # live :1330x service -> not in the deterministic gate
 @pytest.mark.skipif(not lemonade_reachable(), reason="lemonade :13305 not reachable")
 @pytest.mark.asyncio
 async def test_get_lemonade_health_live_returns_real_snapshot():

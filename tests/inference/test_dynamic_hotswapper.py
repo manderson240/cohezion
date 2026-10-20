@@ -7,6 +7,11 @@ import pytest
 from cohezion.inference.dynamic_hotswapper import DynamicModelHotSwapper
 
 
+# The code under test calls the lemonade router (:13305) and fails open when it is down.
+# Fake it as down instead of discovering that against the live fleet (tests/_live_port_guard.py).
+pytestmark = pytest.mark.usefixtures("router_offline")
+
+
 @pytest.mark.asyncio
 async def test_hotswap_refuses_oversized_model():
     swapper = DynamicModelHotSwapper()

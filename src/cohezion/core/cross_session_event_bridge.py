@@ -16,12 +16,16 @@ from dataclasses import dataclass, field
 from typing import Any
 
 from cohezion.core.event_bus import Event, EventBus
-from cohezion.core.persistence.surreal_client import SurrealClient
+from cohezion.core.persistence.surreal_client import InMemoryStore, SurrealClient
 
 
 logger = logging.getLogger(__name__)
 
 _EVENT_HANDLER_TIMEOUT_S = float(os.environ.get("EVENT_HANDLER_TIMEOUT_S", "3.0"))
+
+
+class NonDurableBackendError(RuntimeError):
+    """The client answered, but from process-local memory: nothing reached event_log."""
 
 
 @dataclass
@@ -36,15 +40,57 @@ class CrossSessionEventBridge:
     # Strong refs to in-loop persist tasks: the loop holds only weak refs, so an
     # un-retained task can be garbage-collected mid-flight.
     _pending_persist: set[asyncio.Task[bool]] = field(default_factory=set, init=False, repr=False)
+    # Why events cannot reach event_log, once known (probe at initialize, or a failed write).
+    # None = no known problem. While set, publish_and_persist reports False instead of True.
+    persistence_error: str | None = field(default=None, init=False)
 
     async def initialize(self) -> None:
-        """Subscribe bridge to the local EventBus and ensure DB connection."""
+        """Subscribe bridge to the local EventBus and ensure DB connection.
+
+        Probes persistence once. Until 2026-09-21 a session without SurrealDB credentials got
+        True from every publish_and_persist while the client refused every write, and the only
+        signal was a per-event warning.
+        """
         if not self._subscribed:
             self.event_bus.register_handler(self._on_local_event, event_type=None)
             self._subscribed = True
             logger.info(
                 "CrossSessionEventBridge subscribed to local EventBus for session: %s",
                 self.session_id,
+            )
+        try:
+            await asyncio.wait_for(
+                self.surreal_client.query("RETURN 1;", {}), timeout=_EVENT_HANDLER_TIMEOUT_S
+            )
+            self._require_durable_backend()
+            self.persistence_error = None
+        except Exception as err:
+            self._record_persistence_error(err)
+
+    def _require_durable_backend(self) -> None:
+        """Raise if the client silently fell back to InMemoryStore.
+
+        SurrealClient.connect() swaps in a process-local InMemoryStore when the server is
+        unreachable, and every query then "succeeds" against it. That is not persistence:
+        other sessions never see the event. Checked after each query because the fallback
+        happens lazily inside the first one.
+        """
+        if isinstance(getattr(self.surreal_client, "_client", None), InMemoryStore):
+            raise NonDurableBackendError(
+                f"SurrealClient fell back to InMemoryStore "
+                f"({getattr(self.surreal_client, 'url', '?')} unreachable?)"
+            )
+
+    def _record_persistence_error(self, err: BaseException) -> None:
+        first = self.persistence_error is None
+        self.persistence_error = f"{type(err).__name__}: {err}"
+        if first:
+            logger.error(
+                "CrossSessionEventBridge (session %s) CANNOT persist to event_log -- events stay "
+                "in this process and publish_and_persist returns False until a write succeeds. "
+                "Cause: %s",
+                self.session_id,
+                self.persistence_error,
             )
 
     def _record_id(self, event: Event) -> str:
@@ -76,18 +122,26 @@ class CrossSessionEventBridge:
                 ),
                 timeout=_EVENT_HANDLER_TIMEOUT_S,
             )
+            self._require_durable_backend()
             logger.debug("Persisted cross-session event %s to event_log", record_id)
+            self.persistence_error = None
             return True
-        except TimeoutError:
+        except TimeoutError as err:
             logger.error(
                 "Event persistence timed out after %.1fs -- event %s/%s LOST from event_log",
                 _EVENT_HANDLER_TIMEOUT_S,
                 event.type.name,
                 event.source,
             )
+            self._record_persistence_error(
+                err
+                if str(err)
+                else TimeoutError(f"write timed out after {_EVENT_HANDLER_TIMEOUT_S}s")
+            )
             return False
         except Exception as err:
             logger.warning("Failed to persist event to SurrealDB event_log: %s", err)
+            self._record_persistence_error(err)
             return False
 
     async def _on_local_event(self, event: Event) -> None:
@@ -162,7 +216,9 @@ class CrossSessionEventBridge:
         task = asyncio.ensure_future(self._persist(event))
         self._pending_persist.add(task)
         task.add_done_callback(self._on_persist_done)
-        return dispatched
+        # Persistence already known broken: still dispatched locally (and the write is retried,
+        # which clears the error on success), but cross-session delivery must not be claimed.
+        return dispatched and self.persistence_error is None
 
     def _on_persist_done(self, task: asyncio.Task[bool]) -> None:
         """Retire a scheduled persist task and surface any failure it would hide."""

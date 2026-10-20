@@ -352,11 +352,12 @@ class TestGuardrailEndToEnd:
         assert result.action == GuardrailAction.ALLOW
 
 
-@pytest.mark.integration
 @pytest.mark.asyncio
 async def test_resource_guard_live_probe(_resources_available):
     """The one un-mocked boundary smoke: real psutil. Its verdict depends on the host, so it
-    only asserts the contract shape, never ALLOW vs BLOCK."""
+    only asserts the contract shape, never ALLOW vs BLOCK -- which makes it deterministic, so it
+    runs in the blocking security gate (no `integration` mark: tests/unit/
+    test_integration_marker_audit.py forbids deselecting a security test)."""
     from cohezion.security.guardrail_adapters import get_resource_monitor
 
     _resources_available.get_stats.side_effect = None

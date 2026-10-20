@@ -21,6 +21,9 @@ Established against Lemonade 11.5.0 (2026-07-28). The version is RECORDED, not a
 FastFlowLM later gains constraint support this test goes red, which is the correct signal.
 
 Skips gracefully when :13305 is unreachable or a required model is not already resident.
+The live tests are marked `integration` (2026-09-21): they run in automerge_guard.sh's
+ADVISORY live step, loud as before, but out of the deterministic merge gate -- their verdict
+depends on fleet residency at the moment of the run, not on the tree under test.
 The resident check is SAFETY-CRITICAL, not politeness: this box runs below the 16 GB N3 floor,
 so a request that triggers an auto-load is an OOM hazard (root harness.md N3).
 """
@@ -121,6 +124,7 @@ def _chat(model_id: str, *, grammar: str | None) -> tuple[int, str]:
     return status, content
 
 
+@pytest.mark.integration  # live :1330x service -> not in the deterministic gate
 def test_rc1_lanes_are_actually_running() -> None:
     """CANARY: fail LOUDLY when the RC1 proof has silently stopped running.
 
@@ -176,6 +180,7 @@ def test_reachable_but_empty_fleet_fails_rather_than_skips(monkeypatch) -> None:
     assert "RC1 PROOF IS NOT RUNNING" in str(exc.value)
 
 
+@pytest.mark.integration  # live :1330x service -> not in the deterministic gate
 @pytest.mark.parametrize("model_id,expect_enforced", LANES)
 def test_recipe_grammar_enforcement(model_id: str, expect_enforced: bool) -> None:
     """llamacpp CONSTRAINS output to the grammar; flm accepts `grammar` and IGNORES it silently."""

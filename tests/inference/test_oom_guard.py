@@ -144,6 +144,7 @@ def test_scan_hardens_unsafe_heavy_model():
     catalog = [_make_model("Qwen3.6-35B-A3B-NoThinking", 21.7, 0)]
     with (
         patch("cohezion.inference.oom_guard._get_catalog", return_value=catalog),
+        patch("cohezion.inference.oom_guard.check_ram", return_value=(True, 64.0)),
         patch("cohezion.inference.oom_guard._harden_model", return_value=True) as mock_harden,
     ):
         report = scan_and_harden()
@@ -173,11 +174,46 @@ def test_scan_records_failed_harden():
     catalog = [_make_model("Gemma-4-26B-A4B-it-GGUF", 18.1, 0)]
     with (
         patch("cohezion.inference.oom_guard._get_catalog", return_value=catalog),
+        patch("cohezion.inference.oom_guard.check_ram", return_value=(True, 64.0)),
         patch("cohezion.inference.oom_guard._harden_model", return_value=False),
     ):
         report = scan_and_harden()
     assert report["failed"] == ["Gemma-4-26B-A4B-it-GGUF"]
     assert report["hardened"] == []
+
+
+def test_scan_defers_hardening_that_would_breach_the_floor():
+    """Hardening is a /api/v1/load — it makes the model resident. With 30 GB free, loading a
+    21.7 GB model leaves 8.3 GB (< 16 GB floor): it must be deferred, never loaded.
+    Before 2026-09-21 this loaded it, on the false premise that /load does not load."""
+    from cohezion.inference.oom_guard import scan_and_harden
+
+    catalog = [_make_model("Qwen3.6-35B-A3B-NoThinking", 21.7, 0)]
+    with (
+        patch("cohezion.inference.oom_guard._get_catalog", return_value=catalog),
+        patch("cohezion.inference.oom_guard.check_ram", return_value=(True, 30.0)),
+        patch("cohezion.inference.oom_guard._harden_model") as mock_harden,
+    ):
+        report = scan_and_harden()
+    mock_harden.assert_not_called()
+    assert report["deferred"] == ["Qwen3.6-35B-A3B-NoThinking"]
+    assert report["hardened"] == []
+
+
+def test_scan_accounts_for_each_hardened_model_before_the_next():
+    """Three 18 GB models, 60 GB free: 60 -> 42 -> 24 (both >= 16, hardened); the third would
+    leave 6. Deciding each against the ORIGINAL 60 GB would harden all three."""
+    from cohezion.inference.oom_guard import scan_and_harden
+
+    catalog = [_make_model(f"Heavy-{i}", 18.0, 0) for i in range(3)]
+    with (
+        patch("cohezion.inference.oom_guard._get_catalog", return_value=catalog),
+        patch("cohezion.inference.oom_guard.check_ram", return_value=(True, 60.0)),
+        patch("cohezion.inference.oom_guard._harden_model", return_value=True),
+    ):
+        report = scan_and_harden()
+    assert report["hardened"] == ["Heavy-0", "Heavy-1"]
+    assert report["deferred"] == ["Heavy-2"]
 
 
 # ── verify_all_bounded ────────────────────────────────────────────────────────
@@ -210,9 +246,93 @@ def test_verify_all_bounded_finds_violation():
 
 
 def test_verify_router_offline():
+    import urllib.error
+    import urllib.request
+
     from cohezion.inference.oom_guard import verify_all_bounded
 
-    with patch("cohezion.inference.oom_guard._get_catalog", return_value=[]):
+    def _refused(*_a, **_k):
+        raise urllib.error.URLError("connection refused")
+
+    # Patch the HTTP boundary: an EMPTY catalog from a reachable router is a different
+    # verdict (EMPTY_CATALOG), so offline must be simulated as offline, not as [].
+    with patch.object(urllib.request, "urlopen", _refused):
+        safe, violations = verify_all_bounded("http://127.0.0.1:9")
+    # Blind is not safe: an unreachable router means the bounds are UNKNOWN.
+    from cohezion.inference.oom_guard import ROUTER_UNREACHABLE
+
+    assert safe is False
+    assert violations == [ROUTER_UNREACHABLE]
+
+
+def test_scan_defers_a_model_whose_catalog_size_is_implausible():
+    """RS7: the live catalog reports Qwen3.6-35B-A3B-GGUF at 1.68 GB; a 35B cannot be.
+
+    Trusting it, 30 GB free looks like 28 GB of headroom, so the hardener would /load a
+    ~20 GB model and leave ~10 GB, below the 16 GB floor. An implausible size must be handled
+    like an unknown one: deferred, never loaded (adversarial review 2026-09-21).
+    """
+    from cohezion.inference.oom_guard import scan_and_harden
+
+    catalog = [_make_model("Qwen3.6-35B-A3B-GGUF", 1.68, 0)]
+    with (
+        patch("cohezion.inference.oom_guard._get_catalog", return_value=catalog),
+        patch("cohezion.inference.oom_guard.check_ram", return_value=(True, 30.0)),
+        patch("cohezion.inference.oom_guard._harden_model", return_value=True) as mock_harden,
+    ):
+        report = scan_and_harden()
+    mock_harden.assert_not_called()
+    assert report["deferred"] == ["Qwen3.6-35B-A3B-GGUF"]
+
+
+def test_scan_still_hardens_a_plausible_small_quant():
+    """Positive control: a genuine low-bit quant (0.163 GB/B) is plausible and fits."""
+    from cohezion.inference.oom_guard import scan_and_harden
+
+    catalog = [_make_model("Bonsai-27B-gguf-Q1_0", 5.41, 0)]
+    with (
+        patch("cohezion.inference.oom_guard._get_catalog", return_value=catalog),
+        patch("cohezion.inference.oom_guard.check_ram", return_value=(True, 30.0)),
+        patch("cohezion.inference.oom_guard._harden_model", return_value=True) as mock_harden,
+    ):
+        report = scan_and_harden()
+    mock_harden.assert_called_once()
+    assert report["hardened"] == ["Bonsai-27B-gguf-Q1_0"]
+
+
+def test_verify_flags_ctx0_on_a_model_whose_catalog_size_is_implausible():
+    """RS7 applied to _is_heavy: a 35B reported at 1.68 GB is not "light".
+
+    _is_heavy trusted the raw size, so verify_all_bounded skipped the model and vouched for
+    an unbounded ctx_size on a ~20 GB load (review follow-up 2026-09-21).
+    """
+    from cohezion.inference.oom_guard import verify_all_bounded
+
+    catalog = [_make_model("Qwen3.6-35B-A3B-GGUF", 1.68, 0)]
+    with patch("cohezion.inference.oom_guard._get_catalog", return_value=catalog):
         safe, violations = verify_all_bounded()
-    assert safe is True  # offline → no violations to report
-    assert violations == []
+    assert safe is False
+    assert violations == ["Qwen3.6-35B-A3B-GGUF"]
+
+
+def test_pre_load_gate_blocks_ctx0_on_a_model_whose_catalog_size_is_implausible():
+    from cohezion.inference.oom_guard import pre_load_gate
+
+    catalog = [_make_model("Qwen3.6-35B-A3B-GGUF", 1.68, 0)]
+    with (
+        patch("cohezion.inference.oom_guard._get_catalog", return_value=catalog),
+        patch("cohezion.inference.oom_guard.check_ram", return_value=(True, 100.0)),
+    ):
+        ok, reason = pre_load_gate("Qwen3.6-35B-A3B-GGUF", ctx_size=0)
+    assert ok is False
+    assert "N3" in reason
+
+
+def test_verify_still_skips_a_plausibly_small_model():
+    """Positive control: a real small model (1B at 0.9 GB) is not heavy."""
+    from cohezion.inference.oom_guard import verify_all_bounded
+
+    catalog = [_make_model("Llama-3.2-1B-Instruct-GGUF", 0.9, 0)]
+    with patch("cohezion.inference.oom_guard._get_catalog", return_value=catalog):
+        safe, violations = verify_all_bounded()
+    assert safe is True and violations == []

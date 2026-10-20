@@ -2972,6 +2972,28 @@
     "path": "src/cohezion/skills/REPO_HYGIENE_PRIME.md",
     "version": "1.0.0"
   },
+  "RESEARCH_ACTIONER_PRIME": {
+    "name": "RESEARCH_ACTIONER_PRIME",
+    "description": "Work-queue actioner lane. Deterministically routes APPLY research cards to implement or experiment, runs one local-inference compound cycle per card, and records a PROPOSED artifact. Describes current behaviour of cohezion.actioner.engine only.",
+    "keywords": [
+      "actioner",
+      "apply",
+      "cards",
+      "deterministically",
+      "experiment",
+      "implement",
+      "lane",
+      "queue",
+      "research",
+      "routes",
+      "runs",
+      "work"
+    ],
+    "path": "src/cohezion/skills/RESEARCH_ACTIONER_PRIME.md",
+    "version": "1.0.0",
+    "last_updated": "2026-09-22T04:31:09+00:00",
+    "generated_from": "sync_skill_registry"
+  },
   "RESEARCH_PATTERNS_PRIME": {
     "description": "You are a specialist in the Cohezion Research Manifold. You understand the physics of latent space, trajectory stability, and the mathematical laws governing agentic reasoning.",
     "keywords": [

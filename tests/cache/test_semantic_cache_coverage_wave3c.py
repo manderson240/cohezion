@@ -196,6 +196,11 @@ class TestL2Eviction:
     @pytest.mark.asyncio
     async def test_l2_lfu_eviction_at_capacity(self, fixed_embedding):
         """When L2 is full, the lowest-count entry is evicted."""
+        # Distinct (near-orthogonal) per-put vectors: the novelty gate added in ec1f73dd3
+        # rejects L2 inserts whose cosine to an existing entry is >= 0.95, so with the
+        # fixture's single shared vector p2/p3 never reached L2 and eviction never ran.
+        # First vector is consumed by the constructor's encoder-dimension probe.
+        fixed_embedding[:] = [_unit_vec(0), _unit_vec(1), _unit_vec(2), _unit_vec(3)]
         cache = SemanticCache(max_l1_size=512, max_l2_size=2)
 
         await cache.put("p1", "r1", model="m")
@@ -384,6 +389,8 @@ class TestStatsAndClearEdges:
     async def test_clear_resets_all_counters(self, fixed_embedding):
         cache = SemanticCache()
         await cache.put("p", "r", model="m")
+        await cache.put("p-dup", "r", model="m")  # same fixed vector -> novelty_skipped=1
+        assert cache.novelty_skipped == 1
         await cache.get("p", model="m")  # +1 L1 hit
         await cache.get("missing", model="m")  # +1 miss
         cache.clear()
@@ -401,4 +408,10 @@ class TestStatsAndClearEdges:
             "l1_size": 0,
             "l2_size": 0,
             "similarity_threshold": cache.similarity_threshold,
+            # Added after this test was written: combined_hit_rate + access_entropy
+            # (9dce6dddd), novelty_skipped (ec1f73dd3). Exact equality is kept so a
+            # future stats key must be acknowledged here too.
+            "combined_hit_rate": 0.0,
+            "novelty_skipped": 0,
+            "access_entropy": 0.0,
         }

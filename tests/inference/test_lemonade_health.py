@@ -445,6 +445,7 @@ LIVE = pytest.mark.skipif(
 )
 
 
+@pytest.mark.integration  # live :1330x service -> not in the deterministic gate
 @LIVE
 @pytest.mark.asyncio
 async def test_probe_lemonade_live():
@@ -458,6 +459,7 @@ async def test_probe_lemonade_live():
     assert h.ctx_hazards == [], f"unexpected live ctx hazards: {[str(x) for x in h.ctx_hazards]}"
 
 
+@pytest.mark.integration  # live :1330x service -> not in the deterministic gate
 @LIVE
 @pytest.mark.asyncio
 async def test_is_lemonade_alive_live():

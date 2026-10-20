@@ -20,6 +20,21 @@ from pathlib import Path
 logger = logging.getLogger(__name__)
 
 
+def health_quality_from_metrics(metrics: dict) -> float | None:
+    """The quality value to record for one execution's metrics dict.
+
+    A producer that publishes ``cascade_quality_score`` (``make_local_execute_fn``) has
+    spoken -- its value is used, and an explicit None means UNMEASURED. Otherwise the
+    legacy ``coherence`` reading is kept for existing callers.
+    """
+    if "cascade_quality_score" in metrics:
+        raw = metrics["cascade_quality_score"]
+        if isinstance(raw, (int, float)) and not isinstance(raw, bool):
+            return float(raw)
+        return None
+    return metrics.get("coherence", 0.0)
+
+
 @dataclass
 class SkillHealthRecord:
     """Health metrics for a single PRIME skill."""
@@ -32,6 +47,10 @@ class SkillHealthRecord:
     total_tokens_used: int = 0
     total_quality_score: float = 0.0
     created_date: str = ""
+    # Successes whose quality was UNMEASURED. Excluded from avg_quality_score's
+    # denominator so an unknown run is not averaged in as 0.0. Default 0 keeps
+    # records persisted before this field unchanged.
+    unscored_successes: int = 0
 
     @property
     def success_rate(self) -> float:
@@ -47,9 +66,10 @@ class SkillHealthRecord:
 
     @property
     def avg_quality_score(self) -> float:
-        if self.successful_invocations == 0:
+        scored = self.successful_invocations - self.unscored_successes
+        if scored <= 0:
             return 0.0
-        return self.total_quality_score / self.successful_invocations
+        return self.total_quality_score / scored
 
     @property
     def health_score(self) -> float:
@@ -155,7 +175,7 @@ class SkillHealthTracker:
         skill_name: str,
         success: bool,
         tokens_used: int = 0,
-        quality_score: float = 0.0,
+        quality_score: float | None = 0.0,
     ) -> None:
         """Record a skill invocation with its outcome.
 
@@ -163,7 +183,8 @@ class SkillHealthTracker:
             skill_name: Name of the PRIME skill that was used
             success: Whether the execution succeeded
             tokens_used: Number of tokens consumed (0 if unknown)
-            quality_score: Quality score for successful runs (0.0 if unknown)
+            quality_score: Quality score for successful runs; None = UNMEASURED
+                (counted as a success, excluded from the quality average)
         """
         if skill_name not in self._records:
             self._records[skill_name] = SkillHealthRecord(
@@ -174,7 +195,10 @@ class SkillHealthTracker:
         record.total_invocations += 1
         if success:
             record.successful_invocations += 1
-            record.total_quality_score += quality_score
+            if quality_score is None:
+                record.unscored_successes += 1
+            else:
+                record.total_quality_score += quality_score
         else:
             record.failed_invocations += 1
         record.total_tokens_used += tokens_used

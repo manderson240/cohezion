@@ -110,7 +110,7 @@ class UnifiedPerpetualLoopDaemon:
             summary = (
                 f"NPU guidance ({tri_res.npu_latency_ms:.0f}ms), "
                 f"CPU ARC found={tri_res.cpu_arc_programs_found}, "
-                f"ΔS={tri_res.delta_entropy:.4f}"
+                f"ΔS={f'{tri_res.delta_entropy:.4f}' if tri_res.delta_entropy is not None else 'UNKNOWN'}"
             )
             return PhaseResult(
                 phase_name="autopoiesis",

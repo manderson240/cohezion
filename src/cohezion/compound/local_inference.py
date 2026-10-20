@@ -173,6 +173,80 @@ def _engine_for(min_tier_index: int, escalation_count: int, is_cloud: bool) -> s
     return _OMNI_TIERS[idx]
 
 
+# Learned-refinement prompt budget (LEARN -> next-cycle link).
+# SkillRefiner appends "## Learned Refinement" sections to a skill's PRIME file and
+# fetch_experience_guidance() puts them in guidance["learned_refinements"] (most recent
+# first, already capped at 5 by load_refined_guidance). Each section is ~300-500 chars.
+# 3 sections / 1500 chars (~375 tokens) keeps the newest lessons in view without
+# crowding the small NPU tier's context -- older refinements are the ones most likely
+# superseded, so they are the ones dropped.
+_MAX_REFINEMENT_SECTIONS = 3
+_MAX_REFINEMENT_CHARS = 1500
+_REFINEMENT_HEADER = "### Learned refinements from prior runs of this skill"
+
+
+def _format_learned_refinements(guidance) -> str:
+    """Render guidance["learned_refinements"] as a bounded, delimited prompt section.
+
+    Returns "" when there is nothing to add (non-dict guidance, missing/empty key,
+    non-string entries) so the prompt is byte-identical to the pre-refinement one.
+    Whole sections are dropped once the char budget is reached; a single oversized
+    newest section is truncated rather than dropped, so the latest lesson survives.
+    """
+    if not isinstance(guidance, dict):
+        return ""
+    raw = guidance.get("learned_refinements")
+    if not isinstance(raw, list):
+        return ""
+    sections = [s.strip() for s in raw if isinstance(s, str) and s.strip()]
+    kept: list[str] = []
+    used = 0
+    for section in sections[:_MAX_REFINEMENT_SECTIONS]:
+        if used + len(section) > _MAX_REFINEMENT_CHARS:
+            if not kept:
+                kept.append(section[:_MAX_REFINEMENT_CHARS].rstrip() + " [truncated]")
+            break
+        kept.append(section)
+        used += len(section)
+    if not kept:
+        return ""
+    return f"{_REFINEMENT_HEADER}\n\n" + "\n\n".join(kept) + "\n\n### End learned refinements"
+
+
+def _cascade_quality(text: str, output_type: str | None) -> tuple[float | None, str]:
+    """Quality of one cascade outcome, from evidence this function actually holds.
+
+    Returns ``(score, source)``. ``score is None`` means UNMEASURED and must be read as
+    unknown by every consumer -- never as a middling value. The previous behaviour
+    (no key at all, consumers defaulting to 0.5) pinned every production run at one
+    constant just below DifficultyEstimator's 0.6 floor, so no learner could tell a
+    good run from a bad one.
+
+    Deliberately NOT used as quality, because each was measured to be something else
+    (vault report 2026-09-03 "production quality signals are length or constant"):
+    - the tier gates in ``result.tier_path`` -- ``QualityGate`` is ``min_chars`` only, and
+      the terminal tier is ``QualityGate.TRUST``, which passes unconditionally;
+    - ``escalation_count`` -- RELATIVE to entry tier (H1/H2), so "clean <=> 0" degrades to
+      "was the entry tier" (falsified 2026-09-03);
+    - ``quality_eval`` scores for non-code types -- categorical is constant, generation is
+      length, short_answer rejects terse-correct answers (AQ6).
+    What IS content evidence: ``ast.parse`` on a code task (the one calibrated branch),
+    and a security rejection (prompt-injection / credential-leak pattern in the text).
+    Empty output is handled by the caller as a measured 0.0 (exhausted cascade).
+    """
+    try:
+        from cohezion.inference.quality_eval import evaluate
+
+        verdict = evaluate(text, output_type or "unknown")
+    except Exception:
+        return None, "unmeasured: quality_eval unavailable"
+    if verdict.reason.startswith("security:"):
+        return 0.0, verdict.reason
+    if output_type == "code":
+        return float(verdict.score), f"code: {verdict.reason}"
+    return None, f"unmeasured: no calibrated content check for {output_type or 'unknown'}"
+
+
 def make_local_execute_fn(task_description: str = "", context_prefix: str = "", orchestrator=None):
     """Return a callable compatible with CompoundExecutor.execute_task(execute_fn=...).
 
@@ -209,6 +283,14 @@ def make_local_execute_fn(task_description: str = "", context_prefix: str = "", 
         else:
             guidance_text = str(guidance) if guidance else ""
         parts = [p for p in [context_prefix, guidance_text, task_description] if p]
+        # Routing (classify + fast path) sees the prompt WITHOUT refinements, so a
+        # skill accumulating lessons never silently changes which tier it lands on.
+        routing_prompt = "\n\n".join(parts).strip()
+        # Consume the LEARN step: refinements go after the fixed context and BEFORE the
+        # variable guidance/task text (stable-first, so prefix caching still helps).
+        refinements = _format_learned_refinements(guidance)
+        if refinements:
+            parts.insert(1 if context_prefix else 0, refinements)
         prompt = "\n\n".join(parts).strip()
         # Lever 1 (correctness-review fix): override the orchestrator's escalation floor with the
         # task's quality_gate_chars ONLY for genuinely SHORT outputs (categorical/short answers) — so a
@@ -218,7 +300,7 @@ def make_local_execute_fn(task_description: str = "", context_prefix: str = "", 
         try:
             from cohezion.inference.task_classifier import classify
 
-            _d = classify(prompt)
+            _d = classify(routing_prompt)
             gate_chars = (
                 _d.quality_gate_chars
                 if _d.output_type in ("short_categorical", "short_answer")
@@ -289,6 +371,9 @@ def make_local_execute_fn(task_description: str = "", context_prefix: str = "", 
                 return "", {
                     "error": err or "cascade exhausted: empty output",
                     "gate_miss": True,
+                    # Measured failure: nothing usable came back. 0.0 is evidence, not a default.
+                    "cascade_quality_score": 0.0,
+                    "cascade_quality_source": "cascade exhausted",
                     "model": model,
                     "escalation_count": result.escalation_count,
                     "cost_usd": result.cost_usd,
@@ -323,7 +408,14 @@ def make_local_execute_fn(task_description: str = "", context_prefix: str = "", 
             except Exception:
                 pass
 
+            quality, quality_source = _cascade_quality(
+                result.text, _d.output_type if _d is not None else None
+            )
             return result.text, {
+                # Always present (possibly None): the key's PRESENCE says this producer
+                # spoke, so SkillRefiner._extract_metrics must not fall back to a stand-in.
+                "cascade_quality_score": quality,
+                "cascade_quality_source": quality_source,
                 "model": model,
                 # which ENGINE ran — feeds the GIC DifficultyEstimator so it learns per-skill
                 # engine allocation (multi-engine compounding; CB16 reads top-level tier_used).

@@ -42,6 +42,26 @@ _THINKING_MODEL_PREFIXES = ("Gemma-4-", "gemma4-")
 # Labels that indicate Qwen3-family /no_think support
 _QWEN3_THINKING_PREFIXES = ("Qwen3", "DeepSeek-Qwen3", "qwen3")
 
+# Families whose chat template honours ``chat_template_kwargs.enable_thinking``. The
+# "/no_think" soft switch is NOT sufficient: measured 2026-09-21 on :13305,
+# Qwen3.6-35B-A3B-MTP-GGUF spent 300/300 tokens reasoning with empty content under
+# "/no_think", and answered directly with enable_thinking=false. Deliberately excludes
+# DeepSeek-Qwen3 (R1-distill template, toggle unverified) and every non-Qwen family.
+_ENABLE_THINKING_TEMPLATE_PREFIXES = ("qwen3",)  # covers Qwen3, Qwen3.5, Qwen3.6 (lowercased)
+
+
+def thinking_off_extras(model_id: str) -> dict[str, Any]:
+    """Request-body fields that actually disable thinking for ``model_id``, or ``{}``.
+
+    Returns ``{"chat_template_kwargs": {"enable_thinking": False}}`` for Qwen3.x families
+    and ``{}`` for families without a verified template toggle (callers merge it into the
+    request body alongside any "/no_think" prefix, which is kept as a harmless fallback).
+    """
+    if model_id.lower().startswith(_ENABLE_THINKING_TEMPLATE_PREFIXES):
+        return {"chat_template_kwargs": {"enable_thinking": False}}
+    return {}
+
+
 # Thinking overhead observed empirically (tokens needed before first output).
 # Gemma-4 entries apply to FLM/NPU path (prefix fallback) — llamacpp serving ignores
 # budget_tokens silently, so including extra_body is safe but a no-op for llamacpp.
@@ -183,7 +203,7 @@ class ModelCardHarness:
                     model_id=model_id,
                     max_tokens=_OUTPUT_TYPE_MAX_TOKENS.get(output_type, 400),
                     prompt_prefix="/no_think\n",
-                    extra_body={},
+                    extra_body=thinking_off_extras(model_id),
                 )
             return InferenceParams(
                 model_id=model_id,
@@ -206,6 +226,7 @@ class ModelCardHarness:
             # Qwen3 /no_think: disable thinking mode via prompt prefix
             # (model card capability — cheaper than thinking budget API)
             prompt_prefix = "/no_think\n"
+            extra_body.update(thinking_off_extras(model_id))
 
         elif self.is_thinking_model(model_id):
             # Thinking models: bound reasoning via budget_tokens API

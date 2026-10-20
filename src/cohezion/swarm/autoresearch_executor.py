@@ -1,12 +1,19 @@
+from __future__ import annotations
+
 import asyncio
 import logging
 import re
 import time
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
-from cohezion.compound.session_manager import CompoundSessionManager
 from cohezion.swarm.compound_client import get_compound_client
 from cohezion.swarm.r_zero_evolver import RZeroEvolver
+
+
+if TYPE_CHECKING:
+    # Annotation-only at module scope; `import cohezion.swarm` otherwise ran the whole
+    # cohezion.compound package init -- a hidden cycle (hidden_import_cycle_scan.py).
+    from cohezion.compound.session_manager import CompoundSessionManager
 
 
 logger = logging.getLogger(__name__)
@@ -101,6 +108,8 @@ class AutoresearchExecutor:
             f"Starting Autoresearch run. Dynamic bounds: min {self.min_speed_tokens_sec} tok/s, "
             f"max {self.max_duration_seconds}s."
         )
+
+        from cohezion.compound.session_manager import CompoundSessionManager
 
         async with CompoundSessionManager() as mgr:
             mgr.start_session(max_cache_entries=256)

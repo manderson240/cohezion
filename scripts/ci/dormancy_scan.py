@@ -123,12 +123,20 @@ REGISTRY: list[tuple[str, str, str, int]] = [
         "src/cohezion/compound/skill_refiner.py",
         1,
     ),
-    # Quarter-on-a-String knot: execute_task's success verdict is gated by the QA-judge
-    # lane, NOT bool(strip()). Pin to the CALL (`_judge_quality(self._base_url`) so the
-    # def line can't satisfy the floor — removing the call re-dormants the gate → RED.
+    # Quarter-on-a-String knot: the QA-judge lane still grades the prose draft, NOT
+    # bool(strip()). AMENDED 2026-09-21: its verdict is ADVISORY (`judge_pass`); prose is
+    # never completion. Pin to the CALL so the def line can't satisfy the floor.
     (
-        "Knot: local_executor success gated by QA-judge lane (_judge_quality CONSUMED)",
+        "Knot: local_executor prose draft graded by QA-judge lane (_judge_quality CONSUMED)",
         r"_judge_quality\(self\._base_url",
+        "src/cohezion/compound/autonomous_loop/local_executor.py",
+        1,
+    ),
+    # ACT step (2026-09-21): execute_task completes a task ONLY via act_loop (oracle green +
+    # commit). Pin to the CALL; removing it returns the executor to judging prose -> RED.
+    (
+        "ACT: local_executor completes tasks via act_loop (act_loop CONSUMED)",
+        r"al\.act_loop\(",
         "src/cohezion/compound/autonomous_loop/local_executor.py",
         1,
     ),
@@ -180,6 +188,17 @@ REGISTRY: list[tuple[str, str, str, int]] = [
         "FM-record: L1 refinement CONSUMES failure_memory.record() to store the new (failure, fix) pair",
         r"self\._failure_memory\.record\(",
         "src/cohezion/compound/skill_refiner.py",
+        1,
+    ),
+    # LR1 (2026-09-22): LEARN -> next-cycle link. vault_integration PRODUCED
+    # guidance["learned_refinements"] and the executor PASSED it to execute_fn, but the only
+    # production execute_fn built its prompt from guidance["guidance"] alone -- a produced,
+    # passed, never-read key. Pinned to the call that puts the refinements INTO the prompt
+    # (not the helper's `def`), so removing the consumer re-fails this floor.
+    (
+        "LR1: make_local_execute_fn CONSUMES learned_refinements into the model prompt",
+        r"refinements = _format_learned_refinements\(guidance\)",
+        "src/cohezion/compound/local_inference.py",
         1,
     ),
 ]

@@ -15,18 +15,34 @@ The baseline carries a provenance stamp, because a baseline nobody measured is
 worse than no gate at all -- see ``_PROVENANCE`` for the incident that motivated it.
 
 Usage:
-    python scripts/ci/ruff_ratchet.py            # gate: fail if count > baseline
+    python scripts/ci/ruff_ratchet.py            # gate: fail if count != baseline, or if
+                                                  # the baseline was RAISED vs the base ref
     python scripts/ci/ruff_ratchet.py --update   # rewrite baseline to measured count
                                                   # (refuses to RAISE a measured one)
     python scripts/ci/ruff_ratchet.py --merge-reset --reason "..." [--at <merge-ref>]
                                                   # re-baseline absorbing debt inherited
                                                   # via the named MERGE commit (2 parents
                                                   # required); measures the CURRENT tree
+
+Monotonicity (2026-09-21, coding-standards audit R2). Baseline history was
+749 -> 456 -> 434 -> 478 -> 475 -> 483 -> 1198 -> 905: a ratchet that anyone can
+re-set upward is a counter, not a gate, and one that tolerates count < baseline lets
+paydown be silently re-spent. So the gate now also:
+
+* fails when the measured count is BELOW the baseline -- lower it in the same
+  commit (``--update``), so every reduction is locked in where it happened;
+* fails when the committed baseline is HIGHER than the one at
+  ``merge-base(HEAD, $RUFF_RATCHET_BASE_REF)`` (default ``origin/main``), unless
+  ``LINT_BASELINE_RAISE_REASON`` carries a written reason, which is logged. This
+  also covers ``--merge-reset`` and hand edits: the file may say anything, the
+  gate compares it to trunk. When the base cannot be read the check reports
+  UNKNOWN; set ``RUFF_RATCHET_REQUIRE_BASE=1`` (CI does) to make that a failure.
 """
 
 from __future__ import annotations
 
 import json
+import os
 import subprocess
 import sys
 from pathlib import Path
@@ -65,6 +81,64 @@ def _current_count() -> int:
 # This stamp makes an unmeasured baseline self-declaring. It is accident-proof, not
 # tamper-proof: someone can copy the comment. Accident is the failure mode we had.
 _PROVENANCE = "# measured-by: ruff_ratchet.py --update"
+_RAISE_ENV = "LINT_BASELINE_RAISE_REASON"
+_REQUIRE_BASE_ENV = "RUFF_RATCHET_REQUIRE_BASE"
+
+
+def _parse_count(text: str) -> int | None:
+    counts = [ln.strip() for ln in text.splitlines() if ln.strip() and not ln.startswith("#")]
+    return int(counts[0]) if counts else None
+
+
+def _base_baseline() -> tuple[int | None, str]:
+    """Return ``(baseline, where)`` as committed at merge-base(HEAD, base ref).
+
+    ``None`` means UNKNOWN (no base ref, shallow clone, file absent there) --
+    never "no raise". Falls back to the ref tip when no merge-base exists.
+    """
+    ref = os.environ.get("RUFF_RATCHET_BASE_REF", "origin/main")
+    try:
+        rel = BASELINE_FILE.resolve().relative_to(REPO).as_posix()
+    except ValueError:
+        return None, f"baseline file outside repo ({BASELINE_FILE})"
+    mb = subprocess.run(
+        ["git", "merge-base", "HEAD", ref], cwd=REPO, capture_output=True, text=True
+    )
+    commit = mb.stdout.strip() if mb.returncode == 0 and mb.stdout.strip() else ref
+    show = subprocess.run(
+        ["git", "show", f"{commit}:{rel}"], cwd=REPO, capture_output=True, text=True
+    )
+    if show.returncode != 0:
+        return None, f"cannot read {rel} at {commit} ({show.stderr.strip()[:120]})"
+    try:
+        return _parse_count(show.stdout), f"{ref} @ {commit[:12]}"
+    except ValueError:
+        return None, f"unparseable baseline at {commit}"
+
+
+def _check_not_raised(baseline: int) -> int:
+    """0 if the committed baseline did not rise vs the base ref (or a reason overrides)."""
+    base, where = _base_baseline()
+    if base is None:
+        print(f"⚠️  ruff_ratchet: UNKNOWN whether the baseline was raised: {where}")
+        if os.environ.get(_REQUIRE_BASE_ENV, "").strip() in ("1", "true", "yes"):
+            print(
+                f"❌ ruff_ratchet: {_REQUIRE_BASE_ENV} is set, so an unreadable base fails closed."
+            )
+            return 1
+        return 0
+    if baseline <= base:
+        return 0
+    reason = os.environ.get(_RAISE_ENV, "").strip()
+    if not reason:
+        print(
+            f"❌ ruff_ratchet: baseline RAISED {base} -> {baseline} vs {where}. The ratchet "
+            f"only moves down. If the raise is genuinely unavoidable, set "
+            f'{_RAISE_ENV}="<written reason>" and it will be logged.'
+        )
+        return 1
+    print(f"LINT-BASELINE-RAISE OVERRIDE: {base} -> {baseline} vs {where}; reason: {reason}")
+    return 0
 
 
 def _read_baseline() -> tuple[int, bool]:
@@ -76,10 +150,10 @@ def _read_baseline() -> tuple[int, bool]:
     if not BASELINE_FILE.exists():
         raise SystemExit(f"ruff_ratchet: missing baseline file {BASELINE_FILE}")
     text = BASELINE_FILE.read_text()
-    counts = [ln.strip() for ln in text.splitlines() if ln.strip() and not ln.startswith("#")]
-    if not counts:
+    count = _parse_count(text)
+    if count is None:
         raise SystemExit(f"ruff_ratchet: no count found in {BASELINE_FILE}")
-    return int(counts[0]), _PROVENANCE in text
+    return count, _PROVENANCE in text
 
 
 def _self_test() -> int:
@@ -94,8 +168,9 @@ def _self_test() -> int:
     import tempfile
     from contextlib import redirect_stdout
 
-    global BASELINE_FILE, _current_count
-    real_file, real_count = BASELINE_FILE, _current_count
+    global BASELINE_FILE, _current_count, _base_baseline
+    real_file, real_count, real_base = BASELINE_FILE, _current_count, _base_baseline
+    real_env = {k: os.environ.pop(k, None) for k in (_RAISE_ENV, _REQUIRE_BASE_ENV)}
     real_argv = sys.argv
     # main() dispatches on --self-test, so the probe must call it without that flag
     # or it recurses into itself forever.
@@ -105,6 +180,13 @@ def _self_test() -> int:
         with tempfile.TemporaryDirectory() as tmp:
             BASELINE_FILE = Path(tmp) / "lint_baseline.txt"
             _current_count = lambda: 758  # noqa: E731 - one-line stub for the probe
+            _base_baseline = lambda: (None, "self-test: no base")  # noqa: E731
+
+            def run() -> tuple[int, str]:
+                out = io.StringIO()
+                with redirect_stdout(out):
+                    rc = main()
+                return rc, out.getvalue()
 
             # 1. The historical case: unstamped baseline, tree above it.
             BASELINE_FILE.write_text("471\n")
@@ -134,9 +216,52 @@ def _self_test() -> int:
             hit = rc == 0 and "no new lint debt" in out.getvalue()
             print(f"self-test green-path: {'PASS' if hit else 'FAIL'}")
             ok &= hit
+
+            # 4. (b) Count BELOW a measured baseline must fail until it is lowered,
+            #    or paydown can be silently re-spent (905 recorded vs 896 measured).
+            BASELINE_FILE.write_text(f"800\n{_PROVENANCE}\n")
+            rc, text = run()
+            hit = rc == 1 and "lower the baseline" in text
+            print(f"self-test below-baseline-must-tighten: {'PASS' if hit else 'FAIL'}")
+            ok &= hit
+
+            # 5. (c) Baseline RAISED vs base ref, no reason -> refuse.
+            BASELINE_FILE.write_text(f"758\n{_PROVENANCE}\n")
+            _base_baseline = lambda: (700, "self-test base")  # noqa: E731
+            rc, text = run()
+            hit = rc == 1 and "RAISED 700 -> 758" in text
+            print(f"self-test raise-refused: {'PASS' if hit else 'FAIL'}")
+            ok &= hit
+
+            # 6. (c) Whitespace is not a reason.
+            os.environ[_RAISE_ENV] = "   "
+            rc, text = run()
+            hit = rc == 1 and "OVERRIDE" not in text
+            print(f"self-test blank-reason-refused: {'PASS' if hit else 'FAIL'}")
+            ok &= hit
+
+            # 7. (c) A written reason permits the raise AND is logged.
+            os.environ[_RAISE_ENV] = "self-test: inherited debt from merge X"
+            rc, text = run()
+            hit = rc == 0 and "OVERRIDE: 700 -> 758" in text and "merge X" in text
+            print(f"self-test raise-with-reason-logged: {'PASS' if hit else 'FAIL'}")
+            ok &= hit
+            os.environ.pop(_RAISE_ENV, None)
+
+            # 8. Unreadable base fails closed only when required (CI sets it).
+            _base_baseline = lambda: (None, "self-test: no base")  # noqa: E731
+            os.environ[_REQUIRE_BASE_ENV] = "1"
+            rc, text = run()
+            hit = rc == 1 and "UNKNOWN" in text
+            print(f"self-test unknown-base-fails-closed-when-required: {'PASS' if hit else 'FAIL'}")
+            ok &= hit
     finally:
-        BASELINE_FILE, _current_count = real_file, real_count
+        BASELINE_FILE, _current_count, _base_baseline = real_file, real_count, real_base
         sys.argv = real_argv
+        for k, v in real_env.items():
+            os.environ.pop(k, None)
+            if v is not None:
+                os.environ[k] = v
 
     print("self-test:", "OK" if ok else "BROKEN — this gate can no longer diagnose its own defect")
     return 0 if ok else 1
@@ -212,6 +337,8 @@ def main() -> int:
         return 0
 
     baseline, was_measured = _read_baseline()
+    if _check_not_raised(baseline):
+        return 1
     if current > baseline and not was_measured:
         # Do NOT blame the author. An unmeasured baseline can sit below anything
         # the tree has ever achieved, in which case this gate fails for everyone
@@ -233,11 +360,14 @@ def main() -> int:
         )
         return 1
     if current < baseline:
+        # Fail, don't congratulate: an unlocked reduction is slack the next PR can
+        # re-spend without tripping the gate.
         print(
-            f"✅ ruff_ratchet: {current} < baseline {baseline} — debt reduced by "
-            f"{baseline - current}! Lock it in: python scripts/ci/ruff_ratchet.py --update"
+            f"❌ ruff_ratchet: {current} < baseline {baseline} — debt reduced by "
+            f"{baseline - current}, so lower the baseline in this same commit: "
+            f"python scripts/ci/ruff_ratchet.py --update"
         )
-        return 0
+        return 1
     print(f"✅ ruff_ratchet: {current} == baseline {baseline} (no new lint debt)")
     return 0
 

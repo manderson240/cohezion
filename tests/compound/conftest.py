@@ -132,6 +132,7 @@ def _offline_fuse(request):
         yield
         return
 
+    from cohezion.cache import lemonade_encoder
     from cohezion.inference.lemonade_embed_bridge import LemonadeEmbedBridge
 
     with ExitStack() as stack:
@@ -139,6 +140,21 @@ def _offline_fuse(request):
             patch("cohezion.compound.local_inference.lemonade_available", return_value=False)
         )
         stack.enter_context(patch.object(LemonadeEmbedBridge, "is_available", return_value=False))
+        # 5. ``cohezion.cache.semantic_cache.SemanticCache._text_to_embedding`` probes
+        #    :13305 via ``LemonadeEncoder.is_available()`` on EVERY put()/get(). The
+        #    probe is per call, not per cache instance, so when the router is busy (2s
+        #    probe / 5s encode timeout) a put() can embed at 768D and the following
+        #    get() fall back to the 256D text encoder -> ``np.dot`` raises "shapes
+        #    (1,768) and (256,) not aligned". That is the intermittent failure of
+        #    test_aoep_p1_fills::test_scoped_entry_hidden_from_other_scopes in full
+        #    runs: its outcome depended on router load left by other work, not on the
+        #    code. Fused off like the other Lemonade seams; the process-wide encoder
+        #    singleton is reset so no test inherits another's instance.
+        stack.enter_context(
+            patch.object(lemonade_encoder.LemonadeEncoder, "is_available", return_value=False)
+        )
+        lemonade_encoder.reset_lemonade_encoder()
+        stack.callback(lemonade_encoder.reset_lemonade_encoder)
         for module in _SURREAL_URL_MODULES:
             # No create=True: if the attribute is renamed the fuse must fail LOUDLY
             # rather than silently resume writing to the production database.

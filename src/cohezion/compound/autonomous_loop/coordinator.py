@@ -40,6 +40,12 @@ class LoopTask:
     priority: int
     verification: str
     estimated_tokens: int
+    # ACT spec (additive, all optional): a human-written pytest node id the change must
+    # turn green, plus the ONE src/ file and top-level defs the model may replace. A task
+    # without them is `needs_oracle` -- never completion. See act_loop.py.
+    oracle_test: str = ""
+    edit_file: str = ""
+    edit_targets: list[str] = field(default_factory=list)
 
 
 @dataclass
@@ -63,8 +69,17 @@ class RunReport:
 
 
 class LoopCoordinator:
-    def __init__(self, config: LoopConfig, degradation_detector: Any = None) -> None:
+    def __init__(
+        self,
+        config: LoopConfig,
+        degradation_detector: Any = None,
+        *,
+        difficulty_estimator: Any = None,
+    ) -> None:
         self.config = config
+        # Receives measured ACT outcomes (see _record_act_difficulty). None -> run() borrows
+        # the executor's SkillRefiner estimator, the one CompoundExecutor.predict_tier reads.
+        self._difficulty_estimator = difficulty_estimator
         self._backlog: list[LoopTask] = []
         self._sprint_results: list[SprintResult] = []
         # Episodic records accumulated this run, fed to MemoryConsolidator at end-of-cycle.
@@ -87,6 +102,10 @@ class LoopCoordinator:
 
         local_exec = None
         cloud_exec = executor
+        if self._difficulty_estimator is None and executor is not None:
+            with contextlib.suppress(Exception):
+                refiner = getattr(executor, "skill_refiner", None)
+                self._difficulty_estimator = getattr(refiner, "_difficulty_estimator", None)
 
         if self.config.use_local_inference:
             local_exec = LocalImprovementExecutor(
@@ -250,7 +269,9 @@ class LoopCoordinator:
             report.tasks_completed += 1
             sprint.tasks_done += 1
         else:
-            fail_counts[task.id] = task_fail_count + 1
+            # needs_oracle is not a model failure: escalating it to cloud cannot help.
+            if result.get("status") != "needs_oracle":
+                fail_counts[task.id] = task_fail_count + 1
             report.tasks_failed += 1
             sprint.tasks_failed += 1
 
@@ -259,9 +280,15 @@ class LoopCoordinator:
             category_stats[cat] = {"done": 0, "failed": 0}
         category_stats[cat]["done" if success else "failed"] += 1
 
+        if "cascade_quality_score" in result:
+            # PQ1: the producer measured quality (ACT: oracle GREEN 1.0 / EXHAUSTED 0.0) or
+            # declared it UNKNOWN (None: instrument failure, flaky oracle). Authoritative --
+            # an instrument failure must not be scored 0.0 as if the model had failed.
+            quality_score: float | None = result["cascade_quality_score"]
+            self._record_act_difficulty(task, result, quality_score)
         # Long2Short quality score: success/tokens (sparse — None when undefined)
-        if not success:
-            quality_score: float | None = 0.0
+        elif not success:
+            quality_score = 0.0
         elif tokens > 0:
             quality_score = 1.0 / tokens
         else:
@@ -292,3 +319,27 @@ class LoopCoordinator:
                 if quality_score is not None:
                     sparse["quality_score"] = quality_score
                 self._degradation_detector.check_degradation(sparse)
+
+    def _record_act_difficulty(
+        self, task: Any, result: dict[str, Any], quality_score: float | None
+    ) -> None:
+        """Credit a measured ACT outcome to the engine that produced it.
+
+        Recorded directly, not via SkillRefiner.refine(): refine() learns only from
+        successes, so an EXHAUSTED 0.0 would never reach the estimator. Skipped when quality
+        is UNKNOWN or the engine tier is unmapped (the estimator would coerce it to "cpu").
+        """
+        tier = result.get("tier_used")
+        if self._difficulty_estimator is None or quality_score is None:
+            return
+        if tier not in ("npu", "igpu", "cpu"):
+            return
+        with contextlib.suppress(Exception):
+            self._difficulty_estimator.record(
+                "act_loop",
+                task.category,
+                tier,
+                0,  # act_loop iterations are attempts on one model, not tier escalations
+                quality_score,
+                latency_s=result.get("elapsed_ms", 0) / 1000.0,
+            )

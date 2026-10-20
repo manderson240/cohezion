@@ -1,4 +1,4 @@
-"""Yann LeCun Joint Embedding Predictive Architecture (JEPA) & Energy-Based Model for ARC-AGI.
+r"""Yann LeCun Joint Embedding Predictive Architecture (JEPA) & Energy-Based Model for ARC-AGI.
 
 Bypasses pixel-level autoregression by mapping grids to abstract latent vectors $s = f(x)$,
 predicting state transitions in latent space $s' = g(s, a)$, and selecting optimal programs $a^*$

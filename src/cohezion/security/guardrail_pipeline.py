@@ -35,6 +35,14 @@ class GuardrailAction(StrEnum):
     LOG_AND_ALLOW = "log_and_allow"
 
 
+CONTENT_GUARDS = frozenset({"constitutional", "prompt_injection", "output_filter"})
+"""Guards whose BLOCK verdict depends on the text itself (deterministic for the same input).
+
+Every other guard (``resource``, ``rate_limit``) blocks on system state -- load, quota --
+so its BLOCK is transient and says nothing about the input.
+"""
+
+
 @dataclass
 class GuardrailResult:
     """Result from a guardrail check."""

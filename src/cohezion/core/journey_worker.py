@@ -10,7 +10,6 @@ import logging
 from cohezion.core.telemetry_bus import get_telemetry_bus
 from cohezion.data_mesh.journey_telemetry import FlumeJourneyEvent
 from cohezion.data_mesh.universe_telemetry import UniverseStateEvent
-from cohezion.physics.ouroboros_bridge import OuroborosBridge
 from cohezion.reliability import get_circuit
 from cohezion.storage.surreal_client import SurrealDBClient, TrajectoryNode
 
@@ -26,6 +25,11 @@ class JourneyWorker:
     def __init__(self):
         self._bus = get_telemetry_bus()
         self._db = SurrealDBClient()
+        # Lazy: cohezion.core/__init__ re-exports JourneyWorker, so a module-level physics
+        # import dragged physics -> rewards -> persistence -> universe -> swarm -> compound
+        # into every `import cohezion.core.*` (hidden_import_cycle_scan.py).
+        from cohezion.physics.ouroboros_bridge import OuroborosBridge
+
         self._bridge = OuroborosBridge()
         self._running = False
 
