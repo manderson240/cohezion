@@ -106,7 +106,7 @@ def _query_lemonade(prompt: str, *, timeout: float = 15.0) -> str | None:
         msg = choices[0].get("message", {})
         content = msg.get("content") or msg.get("reasoning_content") or ""
         return content.strip() or None
-    except (urllib.error.URLError, urllib.error.HTTPError, Exception):
+    except Exception:  # L359: was (URLError, HTTPError, Exception), identical semantics
         return None
 
 

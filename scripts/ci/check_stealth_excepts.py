@@ -31,6 +31,9 @@ from __future__ import annotations
 
 import sys
 import tempfile
+import warnings
+
+warnings.simplefilter("ignore", SyntaxWarning)  # ast.parse of scripts/ would flood the gate log
 from pathlib import Path
 
 
@@ -118,7 +121,14 @@ def main(argv: list[str]) -> int:
         return self_test()
     report_only = "--report" in argv
 
-    gated, catchalls = scan(REPO / "src")
+    gated, catchalls = [], 0
+    for root in (
+        REPO / "src",
+        REPO / "scripts",
+    ):  # scripts/ added 2026-10-20: a src-only scan missed a live violation
+        g, c = scan(root)
+        gated += g
+        catchalls += c
     if gated:
         print(f"STEALTH-EXCEPT SCAN: {len(gated)} blocking violation(s):")
         for loc, kind in gated:
