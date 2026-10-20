@@ -81,14 +81,19 @@ def _run(api, tmp_path, **kw):
     )
 
 
-def test_capped_research_card_is_actioned_as_an_experiment_with_a_probe_ref(tmp_path):
+def test_capped_research_card_is_actioned_as_an_experiment_noting_its_design(tmp_path):
     api = FakeQueue([CAPPED_EXPERIMENT])
     s = _run(api, tmp_path)
     assert s["actioned"] == [{"id": CAPPED_EXPERIMENT["id"], "route": "experiment"}]
     (item_id, body) = api.patches[0]
     assert item_id == CAPPED_EXPERIMENT["id"]
     assert body["status"] == "actioned" and body["action_route"] == "experiment"
-    assert body["probe_ref"].endswith(".md") and (tmp_path / "v") in _parents(body["probe_ref"])
+    # A PROPOSED design is not a probe result: it must never be sent as probe_ref, which
+    # card_honesty.gate_relevance treats as licence for APPLY (consumption review 2026-10-20).
+    assert "probe_ref" not in body
+    design = body["notes_append"].split(": ", 1)[1]
+    assert "PROPOSED" in body["notes_append"] and design.endswith(".md")
+    assert (tmp_path / "v") in _parents(design)
     assert "relevance" not in body  # never re-asserts APPLY; the gate stays the judge
 
 
@@ -113,12 +118,13 @@ def test_apply_cards_come_before_capped_cards(tmp_path):
     assert [a["id"] for a in s["actioned"]] == [APPLY_ITEM["id"]]
 
 
-def test_crash_replay_of_a_capped_card_still_records_the_probe(tmp_path):
+def test_crash_replay_of_a_capped_card_still_records_the_design(tmp_path):
     _run(FakeQueue([CAPPED_EXPERIMENT]), tmp_path)
     api = FakeQueue([CAPPED_EXPERIMENT])  # PATCH was lost; the card is still MONITOR
     s = _run(api, tmp_path)
     assert s["deduped"] == [CAPPED_EXPERIMENT["id"]]
-    assert api.patches[0][1]["probe_ref"].endswith(".md")
+    body = api.patches[0][1]
+    assert "probe_ref" not in body and body["notes_append"].endswith(".md")
 
 
 def test_probe_gated_types_match_the_gate():

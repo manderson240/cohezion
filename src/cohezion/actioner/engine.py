@@ -412,16 +412,22 @@ class WorkQueueAPI:
             {"status": "actioned", "action_route": route},
         )
 
-    def mark_actioned_with_probe(self, item_id: str, route: str, probe_ref: str) -> dict:
-        """Action a capped research card and link the experiment that probed it.
+    def mark_actioned_with_design(self, item_id: str, route: str, design_ref: str) -> dict:
+        """Action a capped research card and note the experiment DESIGN written for it.
 
-        ``relevance`` is deliberately NOT sent: the router re-gates any relevance write,
-        and whether the probe licenses APPLY is a judgement for whoever reads its result.
+        The design is a PROPOSED experiment, not a run, so it is appended to ``notes`` and
+        never sent as ``probe_ref``: the router treats a non-empty ``probe_ref`` as a probe
+        RESULT that licenses APPLY (card_honesty.gate_relevance), and a design is not one.
+        ``relevance`` is not sent either -- the router re-gates any relevance write.
         """
         return self._request(
             "PATCH",
             f"/api/work-queue/{item_id}",
-            {"status": "actioned", "action_route": route, "probe_ref": probe_ref},
+            {
+                "status": "actioned",
+                "action_route": route,
+                "notes_append": f"experiment design (PROPOSED, not run): {design_ref}",
+            },
         )
 
     def pending_items(self) -> list[dict[str, Any]]:
@@ -640,14 +646,30 @@ def _admission_refusal(admit: Callable[[str], Any], model: str) -> str:
     return str(getattr(swap, "reason", "") or "admission refused")
 
 
+def admission_refusal_is_transient(reason: str) -> bool:
+    """True only for a MEASURED RAM refusal; anything else is an outage, not a deferral.
+
+    ``ensure_resident`` also refuses when it cannot see the fleet at all ("unknown weight
+    size" when the router/catalog is unreachable), when the gate raised, or when a load
+    failed. Deferring those with exit 0 turned a dead inference stack into "nothing to do"
+    every 5 minutes (blast-radius review N1, 2026-10-20). A 503 on the load itself is the
+    admission proxy's memory refusal (an unreachable router fails earlier, at the catalog).
+    """
+    return "insufficient RAM" in reason or reason.startswith("load failed: HTTP 503")
+
+
 def summary_exit_code(summary: dict[str, Any]) -> int:
     """Process exit code for one actioner run: 1 only for unresolved failures.
 
     Terminal dispositions (``rejected``, ``failed_permanent``) and transient deferrals
     (``deferred_transient_guard``, ``deferred_admission``) are handled outcomes; exiting 1
-    on them marked the 5-minute systemd unit failed under ordinary memory pressure.
+    on them marked the 5-minute systemd unit failed under ordinary memory pressure. An
+    admission refusal that is NOT a measured RAM refusal is an outage and exits 1.
     """
-    handled = set()
+    refused = summary.get("admission_refused") or ""
+    if refused and not admission_refusal_is_transient(refused):
+        return 1
+    handled: set[str] = set()
     for key in ("rejected", "failed_permanent", "deferred_transient_guard", "deferred_admission"):
         handled.update(summary.get(key) or [])
     return 1 if any(k not in handled for k in summary.get("failed", {})) else 0
@@ -762,12 +784,12 @@ def run_batch(
             summary.setdefault("deferred_admission", []).append(item_id)
             continue
         try:
-            probe_ref = ""
+            design_ref = ""
             if item_id in actioned_ids:
                 # Crash-replay: artifact already exists — just re-PATCH (no-op action).
                 summary["deduped"].append(item_id)
                 if probe_lane:
-                    probe_ref = load_vault_note(item_id, proposals_path)
+                    design_ref = load_vault_note(item_id, proposals_path)
             else:
                 artifact = action_item(
                     item,
@@ -778,9 +800,9 @@ def run_batch(
                     vault_dir=vault_dir,
                 )
                 actioned_ids.add(item_id)
-                probe_ref = str(artifact.get("vault_note", "")) if probe_lane else ""
-            if probe_ref:
-                api.mark_actioned_with_probe(item_id, route=route, probe_ref=probe_ref)
+                design_ref = str(artifact.get("vault_note", "")) if probe_lane else ""
+            if design_ref:
+                api.mark_actioned_with_design(item_id, route=route, design_ref=design_ref)
             else:
                 api.mark_actioned(item_id, route=route)
             summary["actioned"].append({"id": item_id, "route": route})
