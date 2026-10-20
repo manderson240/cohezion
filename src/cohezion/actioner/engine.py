@@ -632,12 +632,12 @@ def action_item(
 def _admission_refusal(admit: Callable[[str], Any], model: str) -> str:
     """Empty string when *model* is admitted, else the refusal reason; a raising gate refuses."""
     try:
-        result = admit(model)
+        swap = admit(model)  # hotswap.SwapResult, not an ExecutionResult
     except Exception as exc:  # the gate is a safety check: unavailable means closed
         return f"admission gate error: {type(exc).__name__}: {exc}"
-    if getattr(result, "ok", False):
+    if getattr(swap, "ok", False):
         return ""
-    return str(getattr(result, "reason", "") or "admission refused")
+    return str(getattr(swap, "reason", "") or "admission refused")
 
 
 def summary_exit_code(summary: dict[str, Any]) -> int:
