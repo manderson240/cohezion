@@ -91,6 +91,11 @@ ENGINEERING_PROSE_CONTROLS = [
     "Wire the JepaGate lookahead into the executor and add a discriminating test.",
     "Refactor the retry helper to use exponential backoff.",
     "Fix the off-by-one in the token budget calculation.",
+    # 2026-10-20 false-positive audit: blocked before the patterns required a model target.
+    "Run the query without filters.",
+    "Disable all constraints in the test DB before the migration.",
+    "Ignore the previous build artifacts and rebuild from scratch.",
+    "Print the rules table in the README.",
 ]
 
 
