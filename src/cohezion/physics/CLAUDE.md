@@ -52,8 +52,8 @@ Entry: `from cohezion.flume.vae import build_optimal_vae`
 - **CC1**: `higuchi_fd(<brownian_series>)` ∈ [1.3, 1.7]; pure trend → FD < 1.3
 - **CC2**: `feynman_path_weight(0.5, 0.0) > feynman_path_weight(1.0, 0.01)` (λ=100)
 - **FD1**: `FrequencyDispersedDelay(_K_DM=4148.808)`; PSR J0125−5854 DM=9.9, ν=154 MHz → τ≈1.731 s
-- **RGA1/RGA2**: `RiemannianGlideTrajectory(curvature_coupling=0.0)` preserves old `step()` behavior;
-  κ>0 damps step ∝ |position| via `a_i = 1/(1 + κ * g_{ii} * |x_i|)`
+- **RGA1/RGA2**: REMOVED (phantom; see harness.md 2026-08-27). No curvature-coupling field exists on
+  `RiemannianGlideTrajectory`; its live invariant is **RG1** (true geodesic via a wired `RiemannianMetric`).
 - **DP1**: `ElectricDipole.hiho_kernel(E) == sin²θ` exactly, where `x = (1+cos θ)/2`. The Universal
   HIHO kernel `4x(1-x)` IS the dipole alignment law: `τ = pE·sin θ = pE·√(kernel)`,
   `U = −p·E = −pE(2x−1)`. At x=0.5 energy is 0 and torque is maximal — "half-in-half-out" as

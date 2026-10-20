@@ -273,7 +273,7 @@ Do NOT re-add without actually implementing it + a real discriminating test.
 - `build_live_jepa_gate(lookahead_steps=3)` wired into BOTH factory paths (`executor_factory.make_executor` + `compound.__init__.make_executor`): lemonade-backed gate + k=3 lookahead when `lemonade_available()` (probed once at construction), else fail-open `JepaGate(world_model=None)` — W1 preserved.
 - Fail-OPEN discipline: uninitialized zero-state → `_BASELINE=0.7`; LLM unreachable/unparseable → persist current coherence. Neither forces a spurious SKIP.
 - **T1 structural**: `LemonadeWorldModel` has `predict_next_state` + `simulate_trajectory`; `build_live_jepa_gate` exists
-- **T2 discriminating**: `test_low_coherence_llm_makes_gate_skip` (LLM "0.05" → gate SKIP; a fail-open impl PROCEEDs), `test_high_coherence_llm_makes_gate_proceed`; `test_fallback_when_llm_raises_does_not_force_skip` (baseline ≥0.6, no false SKIP)
+- **T2 discriminating** (corrected 2026-10-20: the cited `..._makes_gate_skip` never existed; since the 2026-07-02 Beta(2,2) prior, 0.05 → 0.483 → REROUTE, not SKIP): `test_low_coherence_llm_makes_gate_reroute_not_proceed` (LLM "0.05" → gate REROUTE; a fail-open impl PROCEEDs), `test_high_coherence_llm_makes_gate_proceed`; `test_fallback_when_llm_raises_does_not_force_skip` (baseline ≥0.6, no false SKIP)
 - **T3 wiring**: `test_wires_lemonade_world_model_when_available` / `test_fail_open_when_lemonade_unavailable` (monkeypatched `lemonade_available`)
 - **Verification**: `uv run pytest tests/compound/test_lemonade_world_model.py -q` → 11 passed; LIVE: `build_live_jepa_gate().check(...)` real GAIA k=3 delegation ~0.4s
 
@@ -601,7 +601,7 @@ far better (state, action, next_state) triples than inferred state-pair transiti
 - Explicit `action` arg takes priority over `tier_used` in metrics
 - `record_env_state(env_type, step, obs, reward, action="")` — same pattern for gym envs
 - **T1 structural**: `"action" in {f.name for f in dataclasses.fields(TrajectoryPoint)}`; `field_map["action"].default == ""`; `"action" in inspect.signature(JourneyTracker.track_execution).parameters`
-- **T2 discriminating**: `test_track_execution_action_captured_from_tier_used` (must equal 'npu', not '' and not operation_type); `test_track_execution_explicit_action_overrides_tier_used` (explicit 'igpu:escalated' wins over 'npu' from metrics)
+- **T2 discriminating** (names corrected 2026-10-20; the prior `test_track_execution_*` names never existed): `test_t2_action_captured_from_tier_used` (must equal 'evidence:npu' per the AOEP amendment above, not bare 'evidence' and not ''); `test_t2_explicit_action_overrides_tier_used` (explicit action wins over tier_used from metrics)
 - **Verification**: `uv run pytest tests/test_journey_tracker.py::TestTrajectoryPointAction -q` → 7 passed
 
 ## MoE Skill Router Invariants (MR1–MR4, #83, 2026-06-28)

@@ -129,14 +129,32 @@ def _member_defined(files: list[Path], member: str) -> bool:
 # this list: write the test or delete the claim. (Measured fresh at port time; the
 # original 2026-08-09 list shrank because TR1/MB1 were retired and LT1/RV2 gained their
 # real tests in tests/compound/test_harness_claims.py in the same pick chain.)
-KNOWN_PHANTOM_TESTS = frozenset(
-    {
-        "test_low_coherence_llm_makes_gate_skip",  # JG3
-        "test_t1_epoch_fields_exist_with_zero_defaults",  # RQGM1
-        "test_track_execution_action_captured_from_tier_used",  # JI1
-        "test_track_execution_explicit_action_overrides_tier_used",  # JI1
-    }
-)
+# Emptied 2026-10-20: JG3/JI1 citations corrected to their real tests (the JG3 claim was
+# also stale in content: SKIP became REROUTE under the Beta prior); RQGM1 was already
+# re-pointed and its entry was dead weight. E7 below keeps it from silently re-growing.
+KNOWN_PHANTOM_TESTS: frozenset[str] = frozenset()
+
+
+def stale_grandfathered(known: frozenset[str], docs: list[Path]) -> list[str]:
+    """E7: grandfathered entries that no longer describe debt.
+
+    A grandfather list should only shrink. An entry is stale once its test exists
+    (debt paid: remove it, or a later deletion of that test is masked as a warning)
+    or once no doc cites it (claim deleted: the entry is dead weight, and keeping it
+    pre-authorises a future phantom with the same name).
+    """
+    cited: set[str] = set()
+    for doc in docs:
+        if doc.exists() and doc.name in ("harness.md", "CLAUDE.md"):
+            cited |= _claimed_test_names(doc.read_text(encoding="utf-8", errors="replace"))
+    defined = _defined_test_names()
+    out = []
+    for name in sorted(known):
+        if name in defined:
+            out.append(f"E7 KNOWN_PHANTOM_TESTS `{name}` is now defined — remove the entry")
+        elif name not in cited:
+            out.append(f"E7 KNOWN_PHANTOM_TESTS `{name}` is cited by no doc — remove the entry")
+    return out
 
 
 @lru_cache(maxsize=1)
@@ -350,6 +368,27 @@ def self_test() -> int:
         print(f"self-test E6 burial-control: {'PASS (silent)' if quiet else 'FAIL (fired)'}")
         ok &= quiet
 
+        # E7: an uncited grandfather entry and a now-defined one must both fire;
+        # a cited, still-missing one must not.
+        hdoc.write_text("- **Verification**: `test_still_owed_xyz`\n", encoding="utf-8")
+        e7 = stale_grandfathered(
+            frozenset(
+                {
+                    "test_still_owed_xyz",
+                    "test_uncited_xyz",
+                    "test_t2_action_captured_from_tier_used",
+                }
+            ),
+            [hdoc],
+        )
+        good = (
+            len(e7) == 2
+            and any("test_uncited_xyz" in x and "cited by no doc" in x for x in e7)
+            and not any("test_still_owed_xyz" in x for x in e7)
+        )
+        print(f"self-test E7: {'PASS' if good else 'FAIL: ' + str(e7)}")
+        ok &= good
+
         # negative control: a TRUE statement must stay silent
         doc = Path(td) / "clean.md"
         doc.write_text(
@@ -370,6 +409,7 @@ def main() -> int:
         return self_test()
     report_only = "--report" in sys.argv
     errors, warns = scan()
+    errors += stale_grandfathered(KNOWN_PHANTOM_TESTS, DOCS)
     for w in warns:
         print(w)
     for e in errors:
