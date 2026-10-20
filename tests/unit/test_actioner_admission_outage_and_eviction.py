@@ -25,7 +25,7 @@ def _summary(reason):
     [
         "insufficient RAM — refused before evicting: need 6.6GB, budget 4.0GB",
         "insufficient RAM after evicting 0: need 6.6GB, budget 1.0GB",
-        "load failed: HTTP 503 admission floor",
+        'load failed: HTTP 503 {"error": {"type": "admission_refused", "message": "floor"}}',
     ],
 )
 def test_measured_memory_refusal_is_a_transient_deferral(reason):
@@ -39,6 +39,8 @@ def test_measured_memory_refusal_is_a_transient_deferral(reason):
         "unknown weight size — refusing blind cold load",  # router/catalog unreachable
         "admission gate error: URLError: connection refused",
         "load failed: HTTP 500 boom",
+        "load failed: HTTP 503 Service Unavailable",  # relayed from lemond, not a refusal
+        'load failed: HTTP 502 {"error": {"type": "upstream_unreachable"}}',
         "load returned 200 but model is not resident",
     ],
 )

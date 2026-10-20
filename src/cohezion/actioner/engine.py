@@ -652,10 +652,15 @@ def admission_refusal_is_transient(reason: str) -> bool:
     ``ensure_resident`` also refuses when it cannot see the fleet at all ("unknown weight
     size" when the router/catalog is unreachable), when the gate raised, or when a load
     failed. Deferring those with exit 0 turned a dead inference stack into "nothing to do"
-    every 5 minutes (blast-radius review N1, 2026-10-20). A 503 on the load itself is the
-    admission proxy's memory refusal (an unreachable router fails earlier, at the catalog).
+    every 5 minutes (blast-radius review N1, 2026-10-20). The proxy's own refusal (a
+    503 whose body names ``admission_refused``) is a memory-safety refusal and transient.
     """
-    return "insufficient RAM" in reason or reason.startswith("load failed: HTTP 503")
+    if "insufficient RAM" in reason:
+        return True
+    # The admission proxy answers a refusal with 503 + {"error": {"type": "admission_refused"}}
+    # (platform/admission_proxy.py); a dead upstream is 502. A bare 503 relayed from lemond
+    # is not a refusal, so the body marker is required, not just the status code.
+    return reason.startswith("load failed: HTTP 503") and "admission_refused" in reason
 
 
 def summary_exit_code(summary: dict[str, Any]) -> int:
