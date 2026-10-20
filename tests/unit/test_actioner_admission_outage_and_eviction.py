@@ -124,3 +124,26 @@ def test_admission_floor_matches_the_proxy_chain_and_never_drops_below_16(
     for k, v in env.items():
         monkeypatch.setenv(k, v)
     assert hotswap.admission_floor_gb() == expected
+
+
+def test_protection_alone_prevents_an_eviction_that_would_succeed(fleet, monkeypatch):
+    """29 GB free, floor 25: evicting the 3 GB idle model WOULD make 6.6 GB fit (4 + 3).
+
+    Pins ``protect`` independently of the floor: without it, the timer unloads IDLE.
+    """
+    monkeypatch.setenv("COHEZION_ADMISSION_FLOOR_GB", "25")
+    monkeypatch.setattr(hotswap, "free_gb", lambda: 29.0)
+    r = hotswap.admit_without_eviction("TARGET")
+    assert r.ok is False and fleet["unload"] == [] and fleet["load"] == []
+
+
+def test_proxy_floor_alone_stops_a_load_the_16gb_floor_would_allow(fleet, monkeypatch):
+    """30 GB free: fits above 16 (budget 14) but not above the proxy's 25 (budget 5).
+
+    Pins ``admission_floor_gb`` independently of protection: at 16 the load is POSTed and
+    the proxy would refuse it with a 503.
+    """
+    monkeypatch.setenv("COHEZION_ADMISSION_FLOOR_GB", "25")
+    monkeypatch.setattr(hotswap, "free_gb", lambda: 30.0)
+    r = hotswap.admit_without_eviction("TARGET")
+    assert r.ok is False and fleet["load"] == [] and "insufficient RAM" in r.reason
