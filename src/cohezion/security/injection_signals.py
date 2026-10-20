@@ -75,11 +75,14 @@ _PATTERN_SOURCES: list[tuple[str, str]] = [
         r"(?:you\W+are\W+now|pretend|act\W+as\W+if|roleplay)"
         rf"{_FILLER}(?:dan|unrestricted|no\W+content|without\W+restriction)",
     ),
-    # verb + POSSESSIVE/system target -- "override YOUR alignment", not "override the timeout"
+    # verb + POSSESSIVE/system target -- "override YOUR alignment", not "override the timeout".
+    # The optional target group carries its own trailing \W+: the old adjacent `\W+ ... ?\W*`
+    # over the same class backtracked quadratically (2026-10-20 review: "ignore" + 50,000
+    # spaces took 39 s, a denial of service on the executor's input guardrail).
     (
         "override_constraints",
         r"(?:override|bypass|circumvent|disable|ignore)\W+"
-        r"(?:your|the\W+model|all)?\W*"
+        r"(?:(?:your|the\W+model|all)\W+)?"
         r"(?:safety|alignment|guardrail|content\W+polic|restriction|"
         r"constraint|filter|safeguard|rule)",
     ),
@@ -99,21 +102,55 @@ _CONFUSABLES = str.maketrans(
         **dict(zip("οιαενρτυχκΑΒΕΖΗΙΚΜΝΟΡΤΥΧ", "oiaevptuxkABEZHIKMNOPTYX")),
     }
 )
-_B64 = re.compile(r"[A-Za-z0-9+/]{16,}={0,2}")
+_B64 = re.compile(r"[A-Za-z0-9+/_-]{16,}={0,2}")  # standard AND url-safe alphabets
+# Invisible letters that are neither marks nor Cf: Hangul fillers and the braille blank.
+_INVISIBLE_LETTERS = frozenset("ᅟᅠㅤﾠ⠀")
+
+
+def _is_text(decoded: str) -> bool:
+    """Printable apart from ordinary whitespace. isprintable() alone rejects '\\n' and
+    '\\t', which silently dropped any multi-line base64 payload (2026-10-20 review)."""
+    return all(c.isprintable() or c in "\n\r\t" for c in decoded)
 
 
 def _decode_base64(text: str) -> str | None:
     """Decode any long base64-looking run. Attackers wrap the payload, not the sentence."""
     out = []
     for candidate in _B64.findall(text):
+        padded = candidate + "=" * (-len(candidate) % 4)
+        urlsafe = "-" in candidate or "_" in candidate
         try:
-            padded = candidate + "=" * (-len(candidate) % 4)
-            decoded = base64.b64decode(padded, validate=True).decode("utf-8", errors="strict")
+            raw = base64.b64decode(padded, altchars=b"-_" if urlsafe else None, validate=True)
+            decoded = raw.decode("utf-8", errors="strict")
         except ValueError:
             continue
-        if decoded.isprintable():
+        if _is_text(decoded):
             out.append(decoded)
     return " ".join(out) if out else None
+
+
+def _fold(text: str) -> str:
+    """Unicode fold that defeats invisible-character and homoglyph insertion.
+
+    NFKD maps fullwidth/compatibility forms; then drop every mark (category M*: combining,
+    spacing and ENCLOSING marks, variation selectors, U+034F grapheme joiner), every format
+    character (Cf: zero-width space/joiner, soft hyphen, word joiner), control characters
+    other than whitespace (whitespace is kept so line-separated words stay separate), and
+    the invisible filler letters. `unicodedata.combining()` alone was not enough: it is the
+    canonical combining CLASS, which is 0 for U+034F, variation selectors and enclosing
+    marks, so those evaded every signal (2026-10-20 review). Finally map Cyrillic/Greek
+    confusables, which are distinct letters NFKD cannot fold.
+    """
+    folded = unicodedata.normalize("NFKD", text)
+    folded = "".join(
+        c
+        for c in folded
+        if not unicodedata.category(c).startswith("M")
+        and unicodedata.category(c) != "Cf"
+        and not (unicodedata.category(c) == "Cc" and not c.isspace())
+        and c not in _INVISIBLE_LETTERS
+    )
+    return folded.translate(_CONFUSABLES)
 
 
 def normalize_variants(text: str) -> list[str]:
@@ -124,18 +161,9 @@ def normalize_variants(text: str) -> list[str]:
     """
     variants = [text]
 
-    # Unicode fold: NFKD strips combining marks and maps fullwidth/compatibility forms,
-    # which defeats homoglyph substitution without a per-character lookup table.
-    folded = unicodedata.normalize("NFKD", text)
-    # Drop combining marks AND format characters (category Cf: zero-width space/joiner,
-    # soft hyphen, word joiner). NFKD leaves Cf in place, and one invisible character
-    # between letters evaded every signal (challenger/solver mutation run, 2026-10-18).
-    folded = "".join(
-        c for c in folded if not unicodedata.combining(c) and unicodedata.category(c) != "Cf"
-    )
-    # Cyrillic/Greek look-alikes are distinct letters, not compatibility forms, so NFKD
-    # cannot fold them; map the confusable subset to Latin explicitly.
-    folded = folded.translate(_CONFUSABLES)
+    # Unicode fold (see _fold): one invisible character between letters evaded every
+    # signal before it (challenger/solver mutation run 2026-10-18; review 2026-10-20).
+    folded = _fold(text)
     if folded != text:
         variants.append(folded)
 
@@ -149,12 +177,18 @@ def normalize_variants(text: str) -> list[str]:
     if destreamed != lowered:
         variants.append(destreamed)
 
+    # Decoded layers get the same fold (one level deep), so base64 or ROT13 of a
+    # homoglyph / zero-width payload does not evade (2026-10-20 review).
     rot13 = codecs.decode(text, "rot13")
     variants.append(rot13)
+    if (frot13 := _fold(rot13)) != rot13:
+        variants.append(frot13)
 
     decoded = _decode_base64(text)
     if decoded:
         variants.append(decoded)
+        if (fdecoded := _fold(decoded)) != decoded:
+            variants.append(fdecoded)
 
     return variants
 

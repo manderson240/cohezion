@@ -54,10 +54,6 @@ Entry: `from cohezion.flume.vae import build_optimal_vae`
 - **FD1**: `FrequencyDispersedDelay(_K_DM=4148.808)`; PSR J0125−5854 DM=9.9, ν=154 MHz → τ≈1.731 s
 - **RGA1/RGA2**: REMOVED (phantom; see harness.md 2026-08-27). No curvature-coupling field exists on
   `RiemannianGlideTrajectory`; its live invariant is **RG1** (true geodesic via a wired `RiemannianMetric`).
-- **DP1**: `ElectricDipole.hiho_kernel(E) == sin²θ` exactly, where `x = (1+cos θ)/2`. The Universal
-  HIHO kernel `4x(1-x)` IS the dipole alignment law: `τ = pE·sin θ = pE·√(kernel)`,
-  `U = −p·E = −pE(2x−1)`. At x=0.5 energy is 0 and torque is maximal — "half-in-half-out" as
-  *zero commitment, maximum responsiveness*, by identity not analogy. Verified to 3.3e-16 and
 - **RG1**: the straight-line step `x + dt*v` is a geodesic only when Γ vanishes, which needs a
   **constant** metric — not merely a diagonal one (`hiho_metric` is diagonal AND curved).
   Wire `metric=` to integrate the true geodesic; `step()` must advance velocity too.
@@ -85,6 +81,6 @@ See `HARDWARE_PROFILE_PRIME.md` at repo root.
 ```bash
 uv run pytest tests/physics/ -q
 uv run pytest tests/world_model/test_sigreg.py -q    # 7 tests
-uv run pytest tests/physics/test_riemannian_glide.py -q   # RGA1-RGA2
+uv run pytest tests/physics/test_riemannian_glide.py -q   # RG1
 uv run pytest tests/physics/test_frequency_dispersed_delay.py -q  # FD1
 ```

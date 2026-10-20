@@ -472,18 +472,56 @@ class SkillRefiner:
     _RQGM_TE_BASELINE_N: int = 5
 
     def _record_goal_outcomes(self, metrics: "ExecutionMetrics") -> None:
-        """RQGM3: log whether each candidate goal target is currently being met."""
-        self._goal_outcomes["quality_score"].append(metrics.quality_score >= 0.6)
-        self._goal_outcomes["escalation_count"].append(getattr(metrics, "escalation_count", 0) == 0)
+        """RQGM3: log whether each candidate goal target is currently being met.
+
+        Only finite numbers are recorded (2026-10-20 review): a None quality_score used to
+        raise on every call, a NaN token_efficiency poisoned the frozen baseline forever
+        (every comparison False), and a 0.0 from a zero-duration/cached call froze a
+        baseline that every later call trivially passed.
+        """
+        import math
+
+        outcomes = getattr(self, "_goal_outcomes", None)
+        if outcomes is None:  # stub built via __new__ without __init__
+            return
+
+        def _num(x: object) -> float | None:
+            return float(x) if isinstance(x, (int, float)) and math.isfinite(x) else None
+
+        q = _num(getattr(metrics, "quality_score", None))
+        if q is not None:
+            outcomes["quality_score"].append(q >= 0.6)
+        esc = _num(getattr(metrics, "escalation_count", 0))
+        if esc is not None:
+            outcomes["escalation_count"].append(esc == 0)
         # Token efficiency is judged against a baseline FROZEN at the median of the first
-        # _RQGM_TE_BASELINE_N calls. A rolling median passes ~50 % by construction, so the
-        # selector would chase it forever; a frozen one lets a real improvement retire it.
-        te = metrics.token_efficiency
+        # _RQGM_TE_BASELINE_N valid (positive) calls. A rolling median passes ~50 % by
+        # construction, so the selector would chase it forever; a frozen one lets a real
+        # improvement retire it.
+        te = _num(getattr(metrics, "token_efficiency", None))
+        if te is None or te <= 0:
+            return
         if len(self._goal_tok_eff) < self._RQGM_TE_BASELINE_N:
             self._goal_tok_eff.append(te)
         else:
-            baseline = median(self._goal_tok_eff)
-            self._goal_outcomes["token_efficiency"].append(te >= baseline)
+            outcomes["token_efficiency"].append(te >= median(self._goal_tok_eff))
+
+    def _rqgm_state(self) -> dict:
+        """RQGM3 state for to_dict (JSON-safe lists)."""
+        return {
+            "goal_outcomes": {k: list(v) for k, v in getattr(self, "_goal_outcomes", {}).items()},
+            "goal_tok_eff": list(getattr(self, "_goal_tok_eff", [])),
+        }
+
+    def _load_rqgm_state(self, state: dict) -> None:
+        """Restore RQGM3 state (from_dict / restore_state). Missing keys keep defaults;
+        without this, a restart restored goal_epoch but emptied the outcomes and re-froze
+        the token-efficiency baseline (2026-10-20 review)."""
+        for target, samples in (state.get("goal_outcomes") or {}).items():
+            if target in self._goal_outcomes:
+                self._goal_outcomes[target] = deque((bool(s) for s in samples), maxlen=20)
+        if state.get("goal_tok_eff"):
+            self._goal_tok_eff = deque((float(x) for x in state["goal_tok_eff"]), maxlen=20)
 
     def _select_rqgm_target(self) -> str:
         """RQGM3: pick the most uncertain target metric, never the previous one.
@@ -1883,6 +1921,7 @@ class SkillRefiner:
             "autodata_wins": dict(getattr(self, "_autodata_wins", {})),
             "process_rewards": process_rewards,
             "erp_history": erp_history,
+            **self._rqgm_state(),
         }
 
     @classmethod
@@ -1898,6 +1937,7 @@ class SkillRefiner:
         instance._session_goal = state.get("session_goal")
         instance._goal_call_tally = dict(state.get("goal_call_tally") or {})
         instance._autodata_wins = dict(state.get("autodata_wins") or {})
+        instance._load_rqgm_state(state)
 
         # Restore process_rewards
         for skill_name, samples in (state.get("process_rewards") or {}).items():
@@ -1933,6 +1973,7 @@ class SkillRefiner:
             self._session_goal = data.get("session_goal")
             self._goal_call_tally = dict(data.get("goal_call_tally") or {})
             self._autodata_wins = dict(data.get("autodata_wins") or {})
+            self._load_rqgm_state(data)
 
             for skill_name, samples in (data.get("process_rewards") or {}).items():
                 self._process_rewards[skill_name] = deque(samples, maxlen=20)

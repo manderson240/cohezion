@@ -61,7 +61,10 @@ uv run pytest tests/compound/test_loopception.py -q  # LC1-LC3
 
 **SRS** (Durable Spine) — SRS1-SRS3: `to_dict/from_dict/save_state/restore_state` round-trips; CB16 safe defaults
 
-**RQGM** (Red Queen) — epoch rotation via `_goal_epoch`; 3-cycle goal targets
+**RQGM** (Red Queen) — epoch rotation via `_goal_epoch`; 3-cycle goal targets; RQGM3 (2026-10-19) ranks
+targets by Beta-posterior variance of their pass/fail history, never repeating the previous target; its
+outcomes and frozen token-efficiency baseline round-trip through `to_dict/from_dict/restore_state`.
+**DORMANT** (see Known dormant): no production caller of `_auto_update_goal`.
 
 **HO** (Health Oracle) — HO1-HO4: `to_dict/from_dict/save_state/restore_state`; `to_health_dict()` API; cross-session persistence via `~/.cohezion/oracle_state.json`
 
@@ -106,6 +109,13 @@ Before marking anything wired: `grep -n "that_method\|that_field" src/cohezion/c
   - Full suite: `uv run pytest tests/compound/test_aoep_scorecard.py -q` → 28 passed
 
 Known dormant (do not re-close without discriminating test):
+- `SkillRefiner._auto_update_goal` (RQGM1-RQGM3 and SG1's auto-goal path): only tests call it
+  (`grep -rn "\._auto_update_goal(" src/` → 0 hits, 2026-10-20 review). The goal machinery is
+  correct in isolation but never fires in production. Wiring target: `_generate_learning_signal`,
+  after the process-reward accumulation. NOT wired yet, deliberately: an active goal makes
+  `_generate_recommendation` return the goal-aligned string directly (SG1), so wiring changes
+  production recommendations. That needs its own consumption test plus a before/after recommendation
+  diff on real traces, not a one-line call added on the way to landing.
 - `SkillConsensusVoter._inference_provider` — accepted/stored (N5), deliberately NOT wired to a
   consumer (2026-07-06). Vote aggregation (`_vote_majority`/`_vote_weighted`/`_fallback_single_best`)
   is pure deterministic composite scoring over already-structured `AgentVote` objects — there is no

@@ -381,9 +381,14 @@ def self_test() -> int:
             ),
             [hdoc],
         )
+        # Each branch asserted by its OWN message: deleting the "now defined" branch would
+        # otherwise fall through to "cited by no doc" and keep len == 2 (2026-10-20 review).
         good = (
             len(e7) == 2
             and any("test_uncited_xyz" in x and "cited by no doc" in x for x in e7)
+            and any(
+                "test_t2_action_captured_from_tier_used" in x and "is now defined" in x for x in e7
+            )
             and not any("test_still_owed_xyz" in x for x in e7)
         )
         print(f"self-test E7: {'PASS' if good else 'FAIL: ' + str(e7)}")

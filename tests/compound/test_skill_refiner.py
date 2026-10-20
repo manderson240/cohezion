@@ -1940,3 +1940,56 @@ class TestRQGMUncertaintyRankedGoal:
         sr._goal_call_tally[self._SKILL] = sr._goal_auto_threshold - 1
         sr._auto_update_goal(self._SKILL, self._m())
         assert sr._session_goal["target_metric"] == "escalation_count"
+
+    # --- 2026-10-20 review: persistence and robustness of RQGM3 state ---------------------
+
+    def _fed(self):
+        sr = SkillRefiner()
+        for i in range(12):
+            sr._record_goal_outcomes(
+                self._m(quality=0.7 if i % 3 else 0.2, escalation=i % 2, tok_eff=80.0 + i)
+            )
+        return sr
+
+    def test_rqgm3_state_round_trips_through_to_dict(self):
+        """Discriminating: from_dict used to restore goal_epoch but drop the outcomes and
+        the frozen baseline, so a restart re-froze it on cold-start calls."""
+        sr = self._fed()
+        twin = SkillRefiner.from_dict(sr.to_dict())
+        for t, d in sr._goal_outcomes.items():
+            assert list(twin._goal_outcomes[t]) == list(d), t
+        assert list(twin._goal_tok_eff) == list(sr._goal_tok_eff)
+        assert len(twin._goal_tok_eff) == sr._RQGM_TE_BASELINE_N
+
+    def test_rqgm3_state_round_trips_through_save_restore(self, tmp_path):
+        sr = self._fed()
+        path = tmp_path / "state.json"
+        sr.save_state(path)
+        fresh = SkillRefiner()
+        assert fresh.restore_state(path) is True
+        assert {t: list(d) for t, d in fresh._goal_outcomes.items()} == {
+            t: list(d) for t, d in sr._goal_outcomes.items()
+        }
+        assert list(fresh._goal_tok_eff) == list(sr._goal_tok_eff)
+
+    def test_rqgm3_tolerates_none_and_nan_metrics(self):
+        """None quality used to raise on every call; NaN token_efficiency poisoned the
+        frozen baseline (every later comparison False)."""
+        sr = SkillRefiner()
+        bad = self._m()
+        bad.quality_score = None
+        bad.token_efficiency = float("nan")
+        sr._record_goal_outcomes(bad)  # must not raise
+        assert len(sr._goal_outcomes["quality_score"]) == 0
+        assert len(sr._goal_tok_eff) == 0
+
+    def test_rqgm3_zero_token_efficiency_never_enters_baseline(self):
+        """A 0.0 from a zero-duration or cached call froze a baseline every later call passed."""
+        sr = SkillRefiner()
+        for _ in range(sr._RQGM_TE_BASELINE_N):
+            sr._record_goal_outcomes(self._m(tok_eff=0.0))
+        assert len(sr._goal_tok_eff) == 0
+        for _ in range(sr._RQGM_TE_BASELINE_N):
+            sr._record_goal_outcomes(self._m(tok_eff=100.0))
+        sr._record_goal_outcomes(self._m(tok_eff=50.0))
+        assert list(sr._goal_outcomes["token_efficiency"]) == [False]

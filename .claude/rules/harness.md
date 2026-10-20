@@ -275,7 +275,7 @@ Do NOT re-add without actually implementing it + a real discriminating test.
 - **T1 structural**: `LemonadeWorldModel` has `predict_next_state` + `simulate_trajectory`; `build_live_jepa_gate` exists
 - **T2 discriminating** (corrected 2026-10-20: the cited `..._makes_gate_skip` never existed; since the 2026-07-02 Beta(2,2) prior, 0.05 → 0.483 → REROUTE, not SKIP): `test_low_coherence_llm_makes_gate_reroute_not_proceed` (LLM "0.05" → gate REROUTE; a fail-open impl PROCEEDs), `test_high_coherence_llm_makes_gate_proceed`; `test_fallback_when_llm_raises_does_not_force_skip` (baseline ≥0.6, no false SKIP)
 - **T3 wiring**: `test_wires_lemonade_world_model_when_available` / `test_fail_open_when_lemonade_unavailable` (monkeypatched `lemonade_available`)
-- **Verification**: `uv run pytest tests/compound/test_lemonade_world_model.py -q` → 11 passed; LIVE: `build_live_jepa_gate().check(...)` real GAIA k=3 delegation ~0.4s
+- **Verification**: `uv run pytest tests/compound/test_lemonade_world_model.py -q` → 24 passed (re-counted 2026-10-20; was "11" when the file was smaller); LIVE: `build_live_jepa_gate().check(...)` real GAIA k=3 delegation ~0.4s
 
 ### RS1: GIC routing-signal synthesis — JEPA REROUTE actionable (2026-06-29)
 - `executor._resolve_tier(predicted, suggested, jepa_reroute) -> str|None`: combines DifficultyEstimator `predicted_tier` (predictive) + DegradationDetector `suggested_tier` (reactive) by taking the cheaper (conservative); a JepaGate REROUTE verdict then downgrades ONE step toward a cheaper tier via `_TIER_ORDER=("npu","igpu","cpu","cloud")`.
@@ -675,9 +675,17 @@ far better (state, action, next_state) triples than inferred state-pair transiti
 ### RQGM2: _auto_update_goal() advances _goal_epoch and resets _goal_consecutive_hits on each fire
 - Every time the auto-update tally reaches `_goal_auto_threshold`, `_goal_epoch` increments by 1 and `_goal_consecutive_hits` resets to 0
 - Epoch 0: uses original metrics-driven heuristic (quality < 0.5 → quality_score goal)
-- Epoch 1+: uses `_RQGM_GOAL_ROTATION[epoch % 3]` — rotates through quality_score / escalation_count / token_efficiency
+- Epoch 1+: `_RQGM_GOAL_ROTATION[epoch % 3]` rotation (quality_score / escalation_count / token_efficiency) is now only the THIN-DATA FALLBACK; see RQGM3
 - **T2 discriminating**: after 5 calls, `_goal_epoch == 1`; after 10 calls, `second_goal.target_metric != first_goal.target_metric`
 - **Verification**: `uv run pytest tests/compound/test_skill_refiner.py::TestRQGMEpochBoundaryUpdate -q` → 4 passed
+
+### RQGM3: epoch 1+ goal target = most uncertain metric, never the previous one (2026-10-19; hardened 2026-10-20)
+- `_select_rqgm_target()` ranks targets by the Beta-posterior variance of their recorded pass/fail history (R-Zero: train where the solver passes ~50 %), excludes the previous target, and falls back to RQGM2 rotation below `_RQGM_MIN_SAMPLES`
+- `_record_goal_outcomes()` records only finite numbers; token efficiency is judged against a baseline frozen at the median of the first positive values. None, NaN and 0.0 never enter or poison it
+- Outcomes and the frozen baseline round-trip through `to_dict` / `from_dict` / `restore_state` (`_rqgm_state` / `_load_rqgm_state`)
+- **DORMANT**: `_auto_update_goal` has no production caller (only tests). Wiring target and reason it is not wired yet: `src/cohezion/compound/CLAUDE.md` → Known dormant
+- **T2 discriminating**: `test_rqgm3_picks_uncertain_metric_over_rotation_slot`; `test_rqgm3_state_round_trips_through_to_dict` and `test_rqgm3_state_round_trips_through_save_restore` (both FAIL with `_load_rqgm_state` neutralised, mutation-verified 2026-10-20)
+- **Verification**: `uv run pytest tests/compound/test_skill_refiner.py -k rqgm3 -q` → all pass
 
 ## SkillRefiner Durable Loop-State Spine (#154, 2026-06-28)
 
