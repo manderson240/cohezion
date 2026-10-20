@@ -92,7 +92,11 @@ def test_admitted_calls_are_gated_before_every_item(tmp_path):
 
 
 def test_deferral_exits_zero_real_failures_exit_one():
-    deferred = {"failed": {}, "deferred_admission": ["a"], "admission_refused": "x"}
+    deferred = {
+        "failed": {},
+        "deferred_admission": ["a"],
+        "admission_refused": "insufficient RAM: 9.0GB free < 16GB floor",
+    }
     assert summary_exit_code(deferred) == 0
     guard = {"failed": {"b": "Resources constrained"}, "deferred_transient_guard": ["b"]}
     assert summary_exit_code(guard) == 0
@@ -116,7 +120,11 @@ def test_driver_wires_the_admission_gate_and_exit_code(monkeypatch, capsys):
 
     def fake_run_batch(executor, **kw):
         seen.update(kw)
-        return {"failed": {}, "deferred_admission": ["x"], "admission_refused": "floor"}
+        return {
+            "failed": {},
+            "deferred_admission": ["x"],
+            "admission_refused": "insufficient RAM: 9.0GB free < 25GB floor",
+        }
 
     monkeypatch.setattr(engine, "run_batch", fake_run_batch)
     monkeypatch.setattr(engine, "default_chat_fn", lambda model: lambda p: "")
@@ -127,5 +135,5 @@ def test_driver_wires_the_admission_gate_and_exit_code(monkeypatch, capsys):
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     assert module.main() == 0
-    assert seen["admit"] is hotswap.ensure_resident
+    assert seen["admit"] is hotswap.admit_without_eviction  # never evicts (review N2)
     assert "DEFERRED (transient)" in capsys.readouterr().out

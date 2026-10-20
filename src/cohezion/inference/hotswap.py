@@ -36,6 +36,7 @@ from __future__ import annotations
 
 import json
 import logging
+import os
 import re
 import urllib.request
 from dataclasses import dataclass, field
@@ -226,6 +227,39 @@ def unload(model_id: str, timeout: float = 30.0) -> bool:
         return False
     logger.info("hotswap: unloaded %s (verified not resident)", model_id)
     return True
+
+
+def admission_floor_gb() -> float:
+    """The RAM floor the :13305 admission proxy enforces, resolved like its GateConfig.
+
+    COHEZION_ADMISSION_FLOOR_GB -> COHEZION_RESOURCE_FLOOR_GB -> RAM_FLOOR_GB, and never
+    below RAM_FLOOR_GB. One floor for every caller avoids admit-here/refuse-there flapping.
+    """
+    raw = os.environ.get(
+        "COHEZION_ADMISSION_FLOOR_GB", os.environ.get("COHEZION_RESOURCE_FLOOR_GB", "")
+    )
+    try:
+        return max(RAM_FLOOR_GB, float(raw)) if raw else RAM_FLOOR_GB
+    except ValueError:
+        return RAM_FLOOR_GB
+
+
+def admit_without_eviction(model_id: str, **kwargs: object) -> SwapResult:
+    """Admit ``model_id`` only if it is already resident or fits above the admission floor.
+
+    For periodic callers (the 5-minute actioner timer): every currently resident model is
+    protected, so this never unloads another session's model. ``ensure_resident`` alone
+    evicts LRU models below its own 16 GB floor, while the proxy may refuse the follow-up
+    load at a higher floor -- evict, then get refused, every tick (blast-radius review N2,
+    2026-10-20).
+    """
+    protect = tuple(m.get("model_name", "") for m in resident_models())
+    return ensure_resident(
+        model_id,
+        min_free_gb=admission_floor_gb(),
+        protect=protect,
+        **kwargs,  # type: ignore[arg-type]
+    )
 
 
 def ensure_resident(

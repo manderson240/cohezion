@@ -53,7 +53,7 @@ def main() -> int:
         summary_exit_code,
     )
     from cohezion.compound import make_executor
-    from cohezion.inference.hotswap import ensure_resident
+    from cohezion.inference.hotswap import admit_without_eviction
 
     executor = make_executor(_NullMCP())
     summary = run_batch(
@@ -62,7 +62,7 @@ def main() -> int:
         chat_fn=default_chat_fn(args.model),
         batch_size=args.batch,
         dry_run=args.dry_run,
-        admit=ensure_resident,  # 16 GiB floor before the router can load on demand
+        admit=admit_without_eviction,  # resident-or-fits at the proxy floor; never evicts
         model=args.model,
     )
     print(json.dumps(summary, indent=2))
