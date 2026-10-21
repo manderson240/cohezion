@@ -24,12 +24,25 @@ class TestSemanticCache:
         assert cache is not None
         assert cache.similarity_threshold == 0.9
 
-    def test_cache_with_defaults(self):
-        """[P1] Should use default values."""
+    def test_cache_with_defaults(self, monkeypatch):
+        """[P1] Should use default values.
+
+        The default threshold is not a constant: a saved calibration profile wins, otherwise it
+        is calibrated to the active encoder's dimension (768D 0.58, 384D 0.80, 256D 0.45;
+        exp_OOOO2/BBBB/RRRR). Both sources are stubbed so the result does not depend on which
+        encoder or profile this machine happens to have.
+        """
+        monkeypatch.setattr(SemanticCache, "_load_profile_threshold", lambda self: None)
+        monkeypatch.setattr(
+            SemanticCache, "_auto_tune_threshold_for_encoder", staticmethod(lambda: 0.123)
+        )
         cache = SemanticCache()
-        assert cache.similarity_threshold == 0.75
+        assert cache.similarity_threshold == 0.123  # no profile: encoder calibration
         assert cache.max_l1_size == 512
         assert cache.max_l2_size == 1024
+
+        monkeypatch.setattr(SemanticCache, "_load_profile_threshold", lambda self: 0.66)
+        assert SemanticCache().similarity_threshold == 0.66  # a saved profile takes precedence
 
     def test_cache_stats_initially_zero(self, cache):
         """[P1] Should start with zero stats."""

@@ -47,9 +47,10 @@ def test_refuses_when_model_exceeds_available():
 
 
 def test_allows_when_model_fits_with_margin():
-    """2 GB model, 9.2 GB available -> allowed (2 + 2 margin < 9.2)."""
+    """2 GB model, 24 GB available -> allowed (2 + 2 margin leaves 20 GB >= 16 GB floor).
+    9.2 GB until 2026-09-21: that fixture is now refused, correctly, by the post-load floor."""
     g = ResourceGuard()
-    with patch.object(g, "get_vitals", return_value=_vitals(9215)):
+    with patch.object(g, "get_vitals", return_value=_vitals(24576)):
         ok, _reason = g.can_load_model(2048)
         assert ok is True
 
