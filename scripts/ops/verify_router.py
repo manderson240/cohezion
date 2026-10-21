@@ -40,6 +40,11 @@ DEFAULT_POLICY = Path(__file__).resolve().parents[2] / "config/router/cohezion-r
 # A known-answer probe. Deliberately trivial: any model that cannot do this is
 # broken, and no model that can is thereby proven good -- this is a liveness
 # floor, not a quality bar.
+# Every component must fit under lemond's cgroup budget on its own. The admission gate
+# sees only "user.<router>", never the component the router picks, so the policy itself
+# has to be memory-safe (GEMS LESSONS 22: one 26B CPU model throttled the whole fleet).
+MAX_COMPONENT_GB = 8.0
+
 PROBE = "What is 2+2? Answer with just the number."
 EXPECT_IN = "4"
 
@@ -104,6 +109,7 @@ def main() -> int:
     entries = catalog.get("data", catalog)
     ids = {e.get("id") for e in entries}
     downloaded = {e.get("id") for e in entries if e.get("downloaded") is True}
+    sizes = {e.get("id"): e.get("size") for e in entries}
 
     if name not in ids:
         failures.append(f"{name} is NOT REGISTERED (a lemonade upgrade drops this silently)")
@@ -117,6 +123,9 @@ def main() -> int:
             problems.append("not in catalog")
         elif c not in downloaded:
             problems.append("not downloaded")
+        size = sizes.get(c)
+        if isinstance(size, (int, float)) and size > MAX_COMPONENT_GB:
+            problems.append(f"{size:.1f} GB > {MAX_COMPONENT_GB:.0f} GB component budget")
         if problems:
             failures.append(f"candidate {c}: {', '.join(problems)}")
         print(f"  [{'OK ' if not problems else 'BAD'}] {c:42s} {', '.join(problems)}")

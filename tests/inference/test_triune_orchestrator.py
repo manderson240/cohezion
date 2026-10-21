@@ -55,9 +55,16 @@ def test_tr1_omni_orchestrator_tiers_use_model_card_temperature_not_zero():
 
     orch = build_triune_omni_orchestrator()
     temps = [tier[0].agent._temperature for tier in orch.tiers]
-    assert temps == [0.3, 1.0, 1.0]  # llama3.2-1b-FLM (NPU), Gemma-4-E4B (iGPU), Gemma-4-E2B (CPU)
+    # llama3.2-1b-FLM card, then the Qwen3.5 card in non-thinking then thinking mode
+    assert temps == [0.3, 0.7, 1.0]
     assert len(set(temps)) > 1, "not every tier should share one hardcoded temperature"
     igpu_extra = orch.tiers[1][0].agent._extra_sampling
-    # reasoning_format="none" is added for Gemma-4 (a llamacpp thinking model) by the
-    # thinking-model empty-output fix (ae3c1f677) so the tier returns non-empty content.
-    assert igpu_extra == {"top_k": 64, "top_p": 0.95, "reasoning_format": "none"}
+    # Tier 1 is qwen3.5-4b-FLM in non-thinking mode: the Qwen3.5 instruct card plus FLM's
+    # per-request `think` toggle (sent every request because FLM's setting is sticky).
+    assert igpu_extra == {
+        "top_p": 0.8,
+        "top_k": 20,
+        "min_p": 0.0,
+        "presence_penalty": 1.5,
+        "think": False,
+    }

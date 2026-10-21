@@ -126,30 +126,39 @@ def build_triune_orchestrator(
 def build_triune_omni_orchestrator(
     *, base_url: str = "http://localhost:13305/api/v1"
 ) -> TieredOrchestrator:
-    """OmniRouter triune cascade — llama3.2 (NPU) → Gemma-4-E4B (iGPU) → Gemma-4-E2B (CPU),
-    ALL served by the single :13305 OmniRouter via the supported GAIA ``LemonadeClient`` path
-    (:func:`build_gaia_llm_tier`).
+    """OmniRouter triune cascade on FLM (NPU) models, ALL served by the single :13305
+    OmniRouter via the supported GAIA ``LemonadeClient`` path (:func:`build_gaia_llm_tier`).
 
-    N1: :13305 is the only port needed — the dedicated per-port servers (:13306/:13307/:13309) are
-    redundant and often offline, so this OmniRouter variant is the default ``exec_provider`` for the
-    compound loop (``make_executor``). Same gates/escalation as the per-port build.
+    Tiers: llama3.2-1b-FLM → qwen3.5-4b-FLM non-thinking → qwen3.5-4b-FLM thinking.
 
-    2026-07-09 fix: the CPU tier previously used ``Gemma-4-31B-it-GGUF``, which the router
-    places on Vulkan (iGPU) — a FAKE CPU tier (two tiers on one device) that was also too slow
-    (>236s). It now uses ``Gemma-4-E2B-it-GGUF`` loaded with ``llamacpp_backend=cpu`` (persisted
-    via ``save_options``), which measurably runs on the Zen5 cores — verified by CPU busy-time
-    (~195 core-s vs ~51 on iGPU vs ~9 on NPU for the same request). The three tiers now genuinely
-    span three distinct compute substrates, so the cascade parallelises across NPU/iGPU/CPU
-    instead of serialising two tiers on the iGPU.
+    2026-10-21: the two GGUF tiers (Gemma-4-E4B, Gemma-4-E2B on the CPU backend) moved to FLM.
+    CPU-backend weights are charged to lemond's cgroup, and a large CPU GGUF throttled every model
+    past memory.high (GEMS LESSONS 22); the standing directive is NPU + CPU with the iGPU free.
+    Tiers 2 and 3 are ONE model in its two card modes (Qwen3.5 card: thinks by default; instruct
+    mode temp 0.7/top_p 0.8, thinking mode temp 1.0/top_p 0.95, both top_k 20/presence 1.5).
+    Escalating means "think" on the same resident weights: no NPU slot swap, no second load.
+    qwen3.5-4b is unmeasured on our fixtures; its predecessor qwen3-4b-FLM scored reasoning 1.000,
+    synthesis 0.786 (model_performance, n=28-56). The NPU is single-slot, so the cascade runs
+    sequentially; the "npu"/"igpu"/"cpu" names in local_inference._OMNI_TIERS are now cascade
+    POSITIONS, not silicon (index-based routing is unchanged).
+
+    N1: :13305 is the only port needed — this is the default ``exec_provider`` for the compound
+    loop (``make_executor``).
     """
     npu_tier = build_gaia_llm_tier(model_id="llama3.2-1b-FLM", base_url=base_url, silent=True)
-    igpu_tier = build_gaia_llm_tier(model_id="Gemma-4-E4B-it-GGUF", base_url=base_url, silent=True)
-    cpu_tier = build_gaia_llm_tier(model_id="Gemma-4-E2B-it-GGUF", base_url=base_url, silent=True)
+    instruct_tier = build_gaia_llm_tier(
+        model_id="qwen3.5-4b-FLM", base_url=base_url, silent=True, thinking=False, max_tokens=2048
+    )
+    # Thinking needs room for the reasoning AND the answer; FLM returns reasoning in
+    # reasoning_content, and _answer_only falls back to it if the budget runs out mid-thought.
+    thinking_tier = build_gaia_llm_tier(
+        model_id="qwen3.5-4b-FLM", base_url=base_url, silent=True, thinking=True, max_tokens=8192
+    )
     return TieredOrchestrator(
         tiers=[
-            (npu_tier, QualityGate(min_chars=500)),  # NPU must provide a solid start
-            (igpu_tier, QualityGate(min_chars=2000)),  # iGPU for complex synthesis
-            (cpu_tier, QualityGate.TRUST),  # CPU for guaranteed completion
+            (npu_tier, QualityGate(min_chars=500)),  # fast 1B must provide a solid start
+            (instruct_tier, QualityGate(min_chars=2000)),  # direct answer, no thinking
+            (thinking_tier, QualityGate.TRUST),  # same weights, thinking on
         ]
     )
 

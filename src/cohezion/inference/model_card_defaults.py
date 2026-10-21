@@ -33,6 +33,17 @@ _MODEL_DEFAULTS: dict[str, dict[str, Any]] = {
     # defaults at BOTH layers (FLM rejects sampling in flm_args, so the request layer is the
     # only surface it has).
     "deepseek-r1": {"temperature": 0.6, "top_p": 0.95},
+    # Qwen3.5 (huggingface.co/Qwen/Qwen3.5-4B, "Using Qwen3.5 via the Chat Completions API").
+    # Thinks by default, so the default entry is the THINKING general-task card; the
+    # non-thinking card is in _NON_THINKING_DEFAULTS. MUST stay before the generic "qwen3" key,
+    # which matched "qwen3.5" and served Qwen3's card instead.
+    "qwen3.5": {
+        "temperature": 1.0,
+        "top_p": 0.95,
+        "top_k": 20,
+        "min_p": 0.0,
+        "presence_penalty": 1.5,
+    },
     # Generic Qwen3 family (matches e.g. DeepSeek-Qwen3-8B). MUST stay after the
     # qwen3.6-35b-* keys: _match_model takes the first substring hit in insertion order.
     "qwen3": {"temperature": 0.6, "top_p": 0.95, "top_k": 20},
@@ -55,22 +66,40 @@ _MODEL_DEFAULTS: dict[str, dict[str, Any]] = {
 }
 
 
-def _match_model(model_id: str) -> dict[str, Any] | None:
+# Cards whose model publishes a separate recommendation for thinking-off (instruct) mode.
+# Looked up only when a caller asks for thinking=False; the entry above is the default mode.
+_NON_THINKING_DEFAULTS: dict[str, dict[str, Any]] = {
+    "qwen3.5": {
+        "temperature": 0.7,
+        "top_p": 0.8,
+        "top_k": 20,
+        "min_p": 0.0,
+        "presence_penalty": 1.5,
+    },
+}
+
+
+def _match_model(
+    model_id: str, registry: dict[str, dict[str, Any]] = _MODEL_DEFAULTS
+) -> dict[str, Any] | None:
     """Find the matching model-card entry by case-insensitive substring match."""
     model_lower = model_id.lower()
-    for key, defaults in _MODEL_DEFAULTS.items():
+    for key, defaults in registry.items():
         if key in model_lower:
             return defaults
     return None
 
 
-def get_sampling_defaults(model_id: str) -> dict[str, Any]:
+def get_sampling_defaults(model_id: str, *, thinking: bool | None = None) -> dict[str, Any]:
     """Return model-card sampling defaults for *model_id*.
 
-    Returns an empty dict for unknown models.
+    ``thinking=False`` selects the card's non-thinking recommendation when it publishes one;
+    ``None`` or ``True`` returns the default entry. Returns an empty dict for unknown models.
     Returns a copy — mutations do not affect the registry.
     """
-    defaults = _match_model(model_id)
+    defaults = (
+        _match_model(model_id, _NON_THINKING_DEFAULTS) if thinking is False else None
+    ) or _match_model(model_id)
     if defaults is None:
         return {}
     return dict(defaults)
