@@ -144,14 +144,13 @@ class HardwareTelemetry:
         """Collect Vulkan GPU metrics."""
         # Try amdgpu-pro first, then fallback to sysfs
 
-        # Temperature from hwmon
-        try:
-            temp_files = list(Path("/sys/class/hwmon").glob("*/temp1_input"))
-            if temp_files:
-                temp_raw = temp_files[0].read_text().strip()
-                snapshot.temperature_c = int(temp_raw) / 1000
-        except Exception:
-            pass
+        # GPU edge temperature from amdsmi. The previous glob took the first hwmon
+        # temp1_input it found, which on this box is an ACPI zone, not the GPU.
+        from cohezion.platform.amd_telemetry import gpu_metrics
+
+        edge = (gpu_metrics() or {}).get("edge_temp_c")
+        if edge is not None:
+            snapshot.temperature_c = edge
 
         # Memory from /proc/meminfo (UMA shared memory)
         try:
