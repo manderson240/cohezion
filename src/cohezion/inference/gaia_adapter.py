@@ -307,7 +307,7 @@ class _GaiaLLMClientShim:
         *,
         max_tokens: int,
         temperature: float,
-        extra_sampling: dict[str, str | float | int] | None = None,
+        extra_sampling: dict[str, Any] | None = None,
     ):
         self._client = client
         self._model = model_id
@@ -446,8 +446,13 @@ def build_gaia_llm_tier(
     temperature: float | None = None,
     silent: bool = True,
     request_extras: dict[str, Any] | None = None,
+    thinking: bool | None = None,
 ) -> GaiaAgentTier:
     """Wrap GAIA's ``LemonadeClient`` as a tier — the supported GAIA path (0.19.0+).
+
+    ``thinking`` selects the model card's thinking or non-thinking mode: its sampling card and
+    the backend's toggle (FLM ``think``; ``chat_template_kwargs.enable_thinking`` elsewhere).
+    ``None`` sends no toggle and uses the card's default entry.
 
     ``request_extras`` is merged into the request payload AFTER the model-card defaults, so a
     caller can set per-lane request fields the card does not know about — e.g.
@@ -479,11 +484,11 @@ def build_gaia_llm_tier(
     # card sampling defaults (temp + top_k/top_p/min_p) instead of a fixed 0.0 for
     # every model — greedy 0.0 on Gemma-family cards (which want temp 1.0) produces
     # degenerate/empty output. An explicit temperature= still overrides.
-    extra_sampling: dict[str, str | float | int] = {}
+    extra_sampling: dict[str, Any] = {}
     if temperature is None:
         from cohezion.inference.model_card_defaults import get_sampling_defaults
 
-        sampling = get_sampling_defaults(model_id)
+        sampling = get_sampling_defaults(model_id, thinking=thinking)
         # Unknown model: generic NON-ZERO fallback. 0.0-greedy is never a safe guess
         # (degenerate on Gemma-family cards); 0.7 is the least-surprising generic. Family
         # extras (top_k/top_p) are only sent on a real registry match.
@@ -497,6 +502,15 @@ def build_gaia_llm_tier(
     # _LocalRouterClient payload. setdefault is defensive — card defaults never set it today.
     if _is_llamacpp_thinking_model(model_id):
         extra_sampling.setdefault("reasoning_format", "none")
+    # Thinking mode, set the way each backend reads it. FLM's `think` field is sticky on the
+    # loaded model ("The setting sticks", fastflowlm.com/docs/instructions/server/
+    # reasoning_and_tools/), so it rides on EVERY request through extra_sampling; otherwise
+    # one tier's choice leaks into the next request from any tier or session.
+    if thinking is not None:
+        if model_id.lower().endswith("-flm"):
+            extra_sampling["think"] = thinking
+        else:
+            extra_sampling["chat_template_kwargs"] = {"enable_thinking": thinking}
     if request_extras:
         extra_sampling = {**extra_sampling, **request_extras}  # caller wins over the card
 
