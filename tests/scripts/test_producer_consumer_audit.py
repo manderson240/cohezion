@@ -10,21 +10,27 @@ Validates:
 
 from __future__ import annotations
 
+import importlib.util
 import sys
 from pathlib import Path
 
 
-_SCRIPTS_CI_DIR = Path(__file__).resolve().parents[2] / "scripts" / "ci"
-if str(_SCRIPTS_CI_DIR) not in sys.path:
-    sys.path.insert(0, str(_SCRIPTS_CI_DIR))
+# Load by FILE PATH, not by name: scripts/producer_consumer_audit.py (the Lemonade module
+# classifier) shares this module name, and whichever of scripts/ or scripts/ci/ another test put
+# on sys.path first used to win -- an ImportError that aborted collection of the whole
+# integration tier. A unique sys.modules key keeps the two files from shadowing each other.
+_AUDIT_PATH = Path(__file__).resolve().parents[2] / "scripts" / "ci" / "producer_consumer_audit.py"
+_spec = importlib.util.spec_from_file_location("ci_producer_consumer_audit", _AUDIT_PATH)
+assert _spec is not None and _spec.loader is not None
+_audit = importlib.util.module_from_spec(_spec)
+sys.modules[_spec.name] = _audit  # dataclasses resolve their module via sys.modules
+_spec.loader.exec_module(_audit)
 
-from producer_consumer_audit import (
-    AUDIT_PAIRS,
-    AuditPair,
-    execute_audit,
-    format_markdown_report,
-    run_self_test,
-)
+AUDIT_PAIRS = _audit.AUDIT_PAIRS
+AuditPair = _audit.AuditPair
+execute_audit = _audit.execute_audit
+format_markdown_report = _audit.format_markdown_report
+run_self_test = _audit.run_self_test
 
 
 def test_producer_consumer_audit_self_test() -> None:

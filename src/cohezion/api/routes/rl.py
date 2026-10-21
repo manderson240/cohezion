@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import contextlib
 import logging
+import pickle
 import re
 from pathlib import Path
 from typing import Any
@@ -152,7 +153,17 @@ async def get_rl_policy(agent_id: str):
             state_dim=state_dim,
             action_dim=action_dim,
         )
-    except (OSError, KeyError, ValueError, RuntimeError, AttributeError) as e:
+    # UnpicklingError: weights_only=True rejects non-tensor checkpoints (ppo_trainer saves a
+    # config object); EOFError: truncated file. Both still mean "exists but uninspectable" (200).
+    except (
+        OSError,
+        KeyError,
+        ValueError,
+        RuntimeError,
+        AttributeError,
+        pickle.UnpicklingError,
+        EOFError,
+    ) as e:
         logger.warning("Failed to inspect policy checkpoint: %s", e, exc_info=True)
         return RLPolicyResponse(exists=True, checkpoint_path=str(ckpt_path))
 
@@ -190,6 +201,7 @@ async def rl_episode():
     import gymnasium as gym
     import numpy as np
 
+    import cohezion.rl.environment  # noqa: F401 — side-effect import registers FlumeNav-v0 gym env
     from cohezion.api import _get_rl_policy
 
     policy = _get_rl_policy()

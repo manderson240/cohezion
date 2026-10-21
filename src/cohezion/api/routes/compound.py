@@ -68,6 +68,10 @@ class CompoundHealthResponse(BaseModel):
     model_usage: dict[str, int] = {}
     top_refined_skills: list[dict[str, Any]] = []
     compound_score_trend: list[dict[str, Any]] = []
+    # CB6: degradation detector tri-state health (CB6 harness invariant)
+    degradation_health: dict[str, Any] | None = None
+    # HO4: oracle regime + tier synthesis (CompoundHealthOracle)
+    oracle_health: dict[str, Any] | None = None
 
 
 class CompoundHistoryResponse(BaseModel):
@@ -172,11 +176,36 @@ async def compound_feedback(request: CompoundFeedbackRequest):
 
 @compound_router.get("/compound/health", response_model=CompoundHealthResponse)
 async def compound_health():
-    """Return compound system health from the metrics collector."""
+    """Return compound system health from the metrics collector.
+
+    Enriched with the live executor's degradation health (CB6) and the skill refiner's health
+    oracle (HO4) when an executor singleton exists. The pre-#267 inline handler did this; the
+    extraction into this module had dropped both fields.
+    """
+    from cohezion.compound.executor_factory import ExecutorFactory
     from cohezion.compound.metrics import get_collector
 
-    collector = get_collector()
-    return CompoundHealthResponse(**collector.to_health_dict())
+    degradation_health: dict[str, Any] | None = None
+    oracle_health: dict[str, Any] | None = None
+    try:
+        executor = ExecutorFactory._instance
+        if executor is not None:
+            get_health_fn = getattr(executor, "get_health", None)
+            if callable(get_health_fn):
+                health = get_health_fn()
+                degradation_health = health if isinstance(health, dict) else None
+            skill_refiner = getattr(executor, "_skill_refiner", None)
+            oracle = getattr(skill_refiner, "_health_oracle", None)
+            if oracle is not None:
+                oracle_health = oracle.to_health_dict()
+    except Exception:  # best-effort enrichment: base metrics must still be served
+        logger.debug("compound health enrichment unavailable", exc_info=True)
+
+    return CompoundHealthResponse(
+        **get_collector().to_health_dict(),
+        degradation_health=degradation_health,
+        oracle_health=oracle_health,
+    )
 
 
 @compound_router.get(

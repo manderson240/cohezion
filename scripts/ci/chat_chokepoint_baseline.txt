@@ -13,6 +13,7 @@ scripts/arpao_orchestrator.py
 scripts/autoliterature_scanner.py
 scripts/bughunt_loop.py
 scripts/build_dgm_corpus.py
+scripts/ci/local_adversarial_review.py
 scripts/ci/prompt_reliability.py
 scripts/consult_next_steps.py
 scripts/delegate_model_status_and_kanban_sync.py
