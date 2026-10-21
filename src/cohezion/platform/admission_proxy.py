@@ -27,6 +27,7 @@ from starlette.background import BackgroundTask
 from starlette.concurrency import run_in_threadpool
 
 from cohezion.platform.admission_gate import (
+    CGROUP_HIGH_FRACTION,
     DEFAULT_LISTEN_PORT,
     AdmissionGate,
     audit_bypass_paths,
@@ -100,7 +101,7 @@ def build_app(
         return JSONResponse(
             {
                 "config": {
-                    "floor_gb": active_gate.config.floor_gb,
+                    "cgroup_high_fraction": CGROUP_HIGH_FRACTION,
                     "enforce": active_gate.config.enforce,
                     "upstream_base": active_gate.config.upstream_base,
                 },
@@ -145,7 +146,7 @@ def build_app(
 
         # decide() does sync I/O (health fetch, /proc) — run off the event loop so one
         # blocked health call cannot stall every in-flight stream.
-        decision = await run_in_threadpool(active_gate.decide, model)
+        decision = await run_in_threadpool(active_gate.decide, model, path)
         if decision.would_refuse:
             counters["shadow_refusals"] += 1
         if not decision.allow:
@@ -215,11 +216,10 @@ def main() -> int:
     gate = AdmissionGate()
     app = build_app(gate)
     logger.info(
-        "admission gate listening on :%d -> upstream %s (enforce=%s, floor=%.1fGB)",
+        "admission gate listening on :%d -> upstream %s (enforce=%s)",
         port,
         gate.config.upstream_base,
         gate.config.enforce,
-        gate.config.floor_gb,
     )
     uvicorn.run(app, host="127.0.0.1", port=port, log_level="info")
     return 0

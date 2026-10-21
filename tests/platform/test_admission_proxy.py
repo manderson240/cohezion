@@ -17,11 +17,15 @@ from cohezion.platform.admission_proxy import build_app
 
 
 def _gate(available_gb: float, resident: list[str] | None = None, enforce: bool = True):
+    # available_gb now maps to cgroup headroom: below 16 GB free the 16 GB test model
+    # cannot fit under 90% of a 30 GB memory.high; above it, it can.
     entries = [{"model_name": n, "checkpoint": ""} for n in (resident or [])]
+    working_set = 0.0 if available_gb >= 16.0 else 20.0
     return AdmissionGate(
-        config=GateConfig(floor_gb=16.0, enforce=enforce),
-        read_available_gb=lambda: available_gb,
+        config=GateConfig(enforce=enforce),
         read_resident=lambda: entries,
+        read_cgroup=lambda: (working_set, 30.0),
+        read_size_gb=lambda _m: 16.0,
     )
 
 
@@ -46,8 +50,18 @@ class TestRefusalPath:
             )
         assert r.status_code == 503
         assert r.json()["error"]["type"] == "admission_refused"
-        assert "floor" in r.json()["error"]["message"].lower()
+        assert "cgroup" in r.json()["error"]["message"].lower()
         assert seen == []  # the refused request MUST NOT touch lemond
+
+    def test_unload_is_forwarded_even_when_cgroup_is_full(self) -> None:
+        # Live defect 2026-10-21: the proxy refused POST /api/v1/unload for a resident 26B
+        # because the body named a model, so memory could not be freed through :13305.
+        seen: list[httpx.Request] = []
+        app = build_app(_gate(available_gb=10.4), client=_upstream(seen))
+        with TestClient(app) as c:
+            r = c.post("/api/v1/unload", json={"model_name": "Gemma-4-26B-A4B-it-GGUF"})
+        assert r.status_code != 503
+        assert len(seen) == 1 and seen[0].url.path == "/api/v1/unload"
 
     def test_shadow_mode_forwards_but_counts(self) -> None:
         seen: list[httpx.Request] = []
@@ -97,7 +111,7 @@ class TestStatusEndpoint:
         app = build_app(_gate(available_gb=50.0), client=_upstream([]))
         with TestClient(app) as c:
             s = c.get("/admission/status").json()
-        assert s["config"]["floor_gb"] == 16.0
+        assert s["config"]["cgroup_high_fraction"] == 0.9
         assert s["config"]["enforce"] is True
         assert set(s["counters"]) == {"forwarded", "refused", "shadow_refusals"}
 
@@ -168,10 +182,10 @@ class TestSelfProbeRegression:
 
         from cohezion.platform.admission_gate import GateConfig
 
-        cfg = GateConfig(floor_gb=16.0, upstream_base="http://127.0.0.1:13315")
+        cfg = GateConfig(upstream_base="http://127.0.0.1:13315")
         with patch("cohezion.platform.admission_gate.fetch_loaded_models", return_value=[]) as m:
-            g = AdmissionGate(config=cfg, read_available_gb=lambda: 50.0)
-            g.decide("Bonsai-8B-gguf")
+            g = AdmissionGate(config=cfg, read_cgroup=lambda: None)
+            g.decide("Bonsai-8B-gguf", "v1/chat/completions")
         assert m.call_args.kwargs["base_url"] == "http://127.0.0.1:13315"
 
 

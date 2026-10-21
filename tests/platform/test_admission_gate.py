@@ -1,258 +1,170 @@
-"""Discriminating tests for the lemond admission gate (2026-09-01).
+"""Thin admission gate: only the lemond cgroup check, never on non-load requests.
 
-The 08-31 double-freeze trigger was lemond AUTO-LOADING a 35B model into 10.4 GB of
-headroom — no admission control exists in the router, its own config caps counts (not
-bytes) and is ephemeral. The gate is a thin proxy that takes :13305 (clients unchanged),
-forwards to lemond on an internal port, and refuses requests that would trigger a load
-the box cannot afford.
-
-The three anchor tests came from a 3-lane ollama-cloud council (2026-09-01, logged in
-vault research/20260831-ollama-cloud-council-oom-next-steps.md):
-  1. Uncapped-Window / TOCTOU (glm): the gate must enforce from the FIRST request —
-     a wrong impl with lazy warm-up (pass-through until state is initialized) fails.
-  2. Cold-Boot Cap Persistence (deepseek): gate parameters come from persisted config
-     re-read at every construction — a wrong impl carrying caps in mutable runtime
-     state loses them on restart.
-  3. Direct-to-Backend Bypass (gemma4): lemond's spawned backends (:8002...) are
-     reachable around the proxy — an impl claiming full enforcement lies; the gate must
-     AUDIT and surface bypass paths explicitly.
-
-Plus the incident-derived rule the council could not know: the 08-31 killer was an
-FLM/NPU model, so 'NPU is always safe' is falsified AS A GATE RULE — below the hard
-floor, ALL non-resident loads are refused regardless of tier.
+The gate exists for one failure Lemonade cannot see (GEMS LESSONS 22, 2026-10-15): a model
+loaded by lemond is charged to lemond.service's cgroup, and past memory.high the kernel
+throttles every model in it, NPU included, while system RAM looks fine.
 """
 
 from __future__ import annotations
 
+import dataclasses
 from unittest.mock import patch
 
+import pytest
+
+from cohezion.platform import admission_gate as ag
 from cohezion.platform.admission_gate import (
-    DEFAULT_FLOOR_GB,
     AdmissionGate,
     GateConfig,
     audit_bypass_paths,
+    is_load_path,
 )
 
 
-def _entries(names: list[str]) -> list[dict[str, object]]:
-    return [{"model_name": n, "checkpoint": ""} for n in names]
+GiB = 1024**3
+CHAT = "v1/chat/completions"
 
 
 def _gate(
-    floor_gb: float = 16.0,
-    available_gb: float = 50.0,
+    cgroup: tuple[float, float] | None = (17.0, 30.0),
+    size_gb: float | None = 3.0,
     resident: list[str] | None = None,
     enforce: bool = True,
 ) -> AdmissionGate:
-    cfg = GateConfig(floor_gb=floor_gb, enforce=enforce)
+    entries = None if resident is None else [{"model_name": n, "checkpoint": ""} for n in resident]
     return AdmissionGate(
-        config=cfg,
-        read_available_gb=lambda: available_gb,
-        read_resident=lambda: _entries(resident) if resident is not None else None,
-        # GTT muted here: these tests pin the RAM/floor/residency contracts; the
-        # Gate v2 GTT-headroom behavior has its own suite (test_admission_gate_gtt).
-        read_gtt=lambda: None,
+        config=GateConfig(enforce=enforce),
+        read_resident=lambda: entries,
+        read_cgroup=lambda: cgroup,
+        read_size_gb=lambda _m: size_gb,
     )
 
 
-class TestHardFloor:
-    def test_below_floor_refuses_any_nonresident_load_even_npu(self) -> None:
-        # THE 08-31 crash in one test: 10.4 GB available, an FLM/NPU 35B requested.
-        # check_oom_risk clears NPU models (SRAM reasoning) — the box died anyway.
-        # Below the floor the gate refuses EVERYTHING non-resident, tier-blind.
-        g = _gate(available_gb=10.4, resident=[])
-        d = g.decide("qwen3.6-moe-35b-a3b-FLM")
+class TestCgroupHeadroom:
+    def test_incident_load_refused(self) -> None:
+        # 10-15 numbers: memory.high 30 GB, 23 GB in use, a 16 GB CPU model requested.
+        d = _gate(cgroup=(23.0, 30.0), size_gb=16.0, resident=[]).decide(
+            "Gemma-4-26B-A4B-it-GGUF", CHAT
+        )
         assert d.allow is False
-        assert "floor" in d.reason.lower()
+        assert "cgroup" in d.reason
 
-    def test_above_floor_npu_model_budget_checked_not_waved(self) -> None:
-        # Post-08-31 the gate budget-checks FLM/NPU models against a REAL footprint
-        # (npu_exempt=False): a small FLM passes with ample headroom...
-        with patch(
-            "cohezion.compound.oom_guard._catalog_entry",
-            return_value={"id": "deepseek-r1-0528-8b-FLM", "size": 1.3, "recipe": "flm"},
-        ):
-            g = _gate(available_gb=50.0, resident=[])
-            assert g.decide("deepseek-r1-0528-8b-FLM").allow is True
-        # ...and a large FLM MoE is REFUSED when its resolved footprint busts the
-        # budget — the wrong impl (unconditional NPU pass) forwards it, which is
-        # literally the 08-31 crash above the floor.
-        with patch(
-            "cohezion.compound.oom_guard._catalog_entry",
-            return_value={"id": "qwen3.6-moe-35b-a3b-FLM", "size": 20.0, "recipe": "flm"},
-        ):
-            g = _gate(available_gb=18.0, resident=[])
-            assert g.decide("qwen3.6-moe-35b-a3b-FLM").allow is False
-
-    def test_resident_model_allowed_even_below_floor(self) -> None:
-        # Reuse needs no new memory — blocking a resident model deadlocks the queue
-        # (the 2026-07-19 lesson already encoded in check_oom_risk).
-        g = _gate(available_gb=10.4, resident=["Bonsai-8B-gguf"])
-        assert g.decide("Bonsai-8B-gguf").allow is True
-
-
-class TestByteBudget:
-    def test_heavy_model_refused_when_budget_insufficient(self) -> None:
-        # Above the floor but the 23.3 GB model + 8 GB buffer exceeds 20 GB available.
-        g = _gate(available_gb=20.0, resident=[])
-        d = g.decide("Qwen3.6-35B-A3B-GGUF")
+    def test_npu_model_counts_too(self) -> None:
+        # flm runs as a lemond child, so FLM weights hit the same limit.
+        d = _gate(cgroup=(17.0, 30.0), size_gb=22.1, resident=[]).decide(
+            "qwen3.6-moe-35b-a3b-FLM", CHAT
+        )
         assert d.allow is False
 
-    def test_heavy_model_allowed_with_ample_headroom(self) -> None:
-        g = _gate(available_gb=60.0, resident=[])
-        assert g.decide("Qwen3.6-35B-A3B-GGUF").allow is True
+    def test_small_load_with_headroom_admitted(self) -> None:
+        d = _gate(cgroup=(17.0, 30.0), size_gb=5.0, resident=[]).decide("qwen3.5-4b-FLM", CHAT)
+        assert d.allow is True, d.reason
 
-    def test_unknown_model_gated_conservatively(self) -> None:
-        # Unknown never reads as 0 GB — the .get(name, 0.0) class stays dead.
-        with patch("cohezion.compound.oom_guard._catalog_entry", return_value=None):
-            g = _gate(available_gb=12.0, resident=[])
-            assert g.decide("brand-new-mystery-70b").allow is False
+    def test_unknown_cgroup_or_size_fails_open(self) -> None:
+        assert _gate(cgroup=None, resident=[]).decide("x-GGUF", CHAT).allow
+        assert _gate(size_gb=None, resident=[]).decide("x-GGUF", CHAT).allow
 
 
-class TestResidencyMatching:
+class TestNeverGated:
+    @pytest.mark.parametrize("path", ["api/v1/unload", "v1/unload", "api/v1/delete", "api/v1/pull"])
+    def test_non_load_paths_pass_even_when_cgroup_is_full(self, path: str) -> None:
+        # Live defect 2026-10-21: the old guard refused an UNLOAD of the 26B because the
+        # body named a model, blocking the one call that frees memory.
+        d = _gate(cgroup=(29.0, 30.0), size_gb=16.0, resident=[]).decide(
+            "Gemma-4-26B-A4B-it-GGUF", path
+        )
+        assert d.allow is True
+
+    def test_load_paths_are_load_paths(self) -> None:
+        for path in (CHAT, "api/v1/load", "v1/embeddings", "v1/completions"):
+            assert is_load_path(path)
+
+    def test_no_model_named_is_allowed(self) -> None:
+        assert _gate(cgroup=(29.0, 30.0), size_gb=16.0).decide(None, "v1/models").allow
+
+    def test_name_alone_never_refuses(self) -> None:
+        # The removed aperture guard refused any '-GGUF' / '8B' name. Only bytes count now.
+        d = _gate(cgroup=(10.0, 30.0), size_gb=3.1, resident=[]).decide("Gemma-4-E2B-it-GGUF", CHAT)
+        assert d.allow is True
+
+
+class TestResidency:
+    def test_resident_model_passes_even_when_cgroup_is_full(self) -> None:
+        g = _gate(cgroup=(29.0, 30.0), size_gb=16.0, resident=["Bonsai-8B-gguf"])
+        assert g.decide("Bonsai-8B-gguf", CHAT).allow is True
+
     def test_checkpoint_style_name_matches_resident_entry(self) -> None:
-        # HIGH-2 regression (adversarial review 2026-09-01): health reports checkpoint
-        # 'unsloth/Bonsai-8B-gguf:Q4_K_M' while the client sends 'Bonsai-8B-gguf'.
-        # An exact-string residency check reads it non-resident and REFUSES it below
-        # floor — a 503 on a request needing zero new memory, during pressure.
         entries = [{"model_name": "bonsai-8b", "checkpoint": "unsloth/Bonsai-8B-gguf:Q4_K_M"}]
         g = AdmissionGate(
-            config=GateConfig(floor_gb=16.0),
-            read_available_gb=lambda: 10.4,
+            config=GateConfig(),
             read_resident=lambda: entries,
+            read_cgroup=lambda: (29.0, 30.0),
+            read_size_gb=lambda _m: 16.0,
         )
-        assert g.decide("Bonsai-8B-gguf").allow is True
-
-    def test_case_variant_of_resident_id_matches(self) -> None:
-        entries = [{"model_name": "Bonsai-8B-gguf", "checkpoint": ""}]
-        g = AdmissionGate(
-            config=GateConfig(floor_gb=16.0),
-            read_available_gb=lambda: 10.4,
-            read_resident=lambda: entries,
-        )
-        assert g.decide("bonsai-8b-GGUF").allow is True
-
-    def test_available_gb_is_passed_not_reread(self) -> None:
-        # An impl dropping the kwarg lets check_oom_risk re-read real /proc — tests
-        # would then pass or fail with the HOST's memory. Pin the plumbing.
-        with patch("cohezion.platform.admission_gate.check_oom_risk") as m:
-            m.return_value = type("R", (), {"safe": True, "reason": "ok", "footprint_gb": 1.0})()
-            g = _gate(available_gb=33.3, resident=[])
-            g.decide("Qwen3.6-35B-A3B-GGUF")
-        assert m.call_args.kwargs["available_gb"] == 33.3
-        assert m.call_args.kwargs["npu_exempt"] is False
-
-
-class TestCouncilTest1UncappedWindow:
-    def test_gate_enforces_from_the_first_request(self) -> None:
-        # glm's TOCTOU test: no warm-up gap. A wrong impl that passes through until
-        # some lazy state initializes admits the over-cap load in the listen->cap gap.
-        # A FRESHLY constructed gate must refuse immediately — no prior calls needed.
-        g = _gate(available_gb=10.4, resident=[])
-        assert g.decide("Qwen3.6-35B-A3B-GGUF").allow is False  # request #1, no warm-up
+        assert g.decide("Bonsai-8B-gguf", CHAT).allow is True
 
     def test_residency_unreadable_is_not_a_pass(self) -> None:
-        # During a real emergency the health endpoint blocks (residency unknowable).
-        # 'Cannot see' must mean 'assume non-resident', never 'wave through'.
-        g = _gate(available_gb=10.4, resident=None)  # None = health blocked
-        assert g.decide("Bonsai-8B-gguf").allow is False
+        # Health blocks during loads; 'cannot see' falls through to the cgroup check.
+        g = _gate(cgroup=(29.0, 30.0), size_gb=16.0, resident=None)
+        assert g.decide("Bonsai-8B-gguf", CHAT).allow is False
+
+    def test_probes_target_the_upstream_not_the_proxy(self) -> None:
+        cfg = GateConfig(upstream_base="http://127.0.0.1:13315")
+        with patch("cohezion.platform.admission_gate.fetch_loaded_models", return_value=[]) as m:
+            AdmissionGate(config=cfg, read_cgroup=lambda: None).decide("Bonsai-8B-gguf", CHAT)
+        assert m.call_args.kwargs["base_url"] == "http://127.0.0.1:13315"
 
 
-class TestCouncilTest2ColdBootPersistence:
+class TestConfig:
     def test_config_rereads_environment_on_every_construction(self) -> None:
-        # deepseek's persistence test, unit-scale: caps come from the environment
-        # (persisted by the systemd unit), re-read at each construction — never from
-        # state mutated at runtime.
-        with patch.dict("os.environ", {"COHEZION_ADMISSION_FLOOR_GB": "24.0"}):
-            assert GateConfig.from_env().floor_gb == 24.0
-        with patch.dict("os.environ", {}, clear=False):
-            import os
+        with patch.dict("os.environ", {"COHEZION_ADMISSION_ENFORCE": "0"}):
+            assert GateConfig.from_env().enforce is False
+        with patch.dict("os.environ", {"COHEZION_ADMISSION_ENFORCE": "1"}):
+            assert GateConfig.from_env().enforce is True
 
-            os.environ.pop("COHEZION_ADMISSION_FLOOR_GB", None)
-            assert GateConfig.from_env().floor_gb == DEFAULT_FLOOR_GB  # default restored
+    def test_config_is_frozen(self) -> None:
+        cfg = GateConfig()
+        with pytest.raises(dataclasses.FrozenInstanceError):
+            cfg.enforce = False  # type: ignore[misc]
 
-    def test_runtime_mutation_cannot_survive_reconstruction(self) -> None:
-        # GateConfig is frozen: the wrong impl (mutable cap twiddled via an admin
-        # endpoint, lost or half-kept on restart) cannot exist.
-        import dataclasses
-
-        cfg = GateConfig(floor_gb=16.0)
-        try:
-            cfg.floor_gb = 0.0  # type: ignore[misc]
-            mutated = True
-        except dataclasses.FrozenInstanceError:
-            mutated = False
-        assert mutated is False
+    def test_enforce_false_logs_but_allows(self) -> None:
+        d = _gate(cgroup=(29.0, 30.0), size_gb=16.0, resident=[], enforce=False).decide(
+            "Gemma-4-26B-A4B-it-GGUF", CHAT
+        )
+        assert d.allow is True and d.would_refuse is True
 
 
-class TestCouncilTest3BypassAudit:
-    def test_audit_surfaces_backend_ports_as_bypass_paths(self) -> None:
-        # gemma4's test: lemond spawns per-model llama-servers whose ports are
-        # reachable AROUND the proxy. An implementation claiming full enforcement
-        # lies; the gate must name its bypass paths.
+class TestBypassAudit:
+    def test_audit_surfaces_backend_ports(self) -> None:
         health = [
             {"model_name": "Bonsai-8B-gguf", "backend_url": "http://127.0.0.1:8002/v1"},
-            {
-                "model_name": "nomic-embed-text-v2-moe-GGUF",
-                "backend_url": "http://127.0.0.1:8003/v1",
-            },
             {"model_name": "kokoro-v1", "backend_url": ""},
         ]
-        paths = audit_bypass_paths(loaded=health)
-        assert "http://127.0.0.1:8002/v1" in paths
-        assert "http://127.0.0.1:8003/v1" in paths
-        assert len(paths) == 2  # empty backend_url is not a path
+        assert audit_bypass_paths(loaded=health) == ["http://127.0.0.1:8002/v1"]
 
     def test_audit_unreadable_health_reports_unknown_not_empty(self) -> None:
-        # 'No bypass paths found' and 'could not look' are different answers.
         assert audit_bypass_paths(loaded=None) is None
 
 
-class TestEnforceKillSwitch:
-    def test_enforce_false_logs_but_allows(self) -> None:
-        # Shadow mode for the cutover: decisions computed (observable) but not applied.
-        g = _gate(available_gb=10.4, resident=[], enforce=False)
-        d = g.decide("Qwen3.6-35B-A3B-GGUF")
-        assert d.allow is True
-        assert d.would_refuse is True  # the decision is still visible for telemetry
+class TestCgroupReader:
+    def _write(self, tmp_path, current: int, high: str, inactive_file: int) -> None:
+        (tmp_path / "memory.current").write_text(f"{current}\n")
+        (tmp_path / "memory.high").write_text(f"{high}\n")
+        (tmp_path / "memory.stat").write_text(
+            f"anon 1000\nactive_file 5000\ninactive_file {inactive_file}\nshmem 10\n"
+        )
 
-    def test_enforcing_gate_marks_would_refuse_consistently(self) -> None:
-        g = _gate(available_gb=10.4, resident=[])
-        d = g.decide("Qwen3.6-35B-A3B-GGUF")
-        assert d.allow is False and d.would_refuse is True
+    def test_inactive_file_cache_is_not_counted(self, tmp_path, monkeypatch) -> None:
+        # Counting memory.current would refuse routine loads on cold page cache alone.
+        self._write(tmp_path, 25 * GiB, str(30 * GiB), 10 * GiB)
+        monkeypatch.setattr(ag, "LEMOND_CGROUP", tmp_path)
+        assert ag.read_lemond_cgroup_gb() == pytest.approx((15.0, 30.0))
 
+    def test_no_memory_high_means_no_check(self, tmp_path, monkeypatch) -> None:
+        self._write(tmp_path, 5 * GiB, "max", 0)
+        monkeypatch.setattr(ag, "LEMOND_CGROUP", tmp_path)
+        assert ag.read_lemond_cgroup_gb() is None
 
-class TestRequestClassification:
-    def test_no_model_in_request_is_allowed(self) -> None:
-        # GETs, health checks, and bodies without a model field never gate.
-        g = _gate(available_gb=5.0, resident=[])
-        assert g.decide(None).allow is True
-
-    def test_meminfo_read_failure_fails_open_with_flag(self) -> None:
-        # If /proc/meminfo itself is unreadable we cannot reason about memory at all;
-        # refuse-everything would take the whole fleet down on a proc hiccup. Fail
-        # open but mark it, so telemetry can see the gate flying blind.
-        cfg = GateConfig(floor_gb=16.0)
-
-        def boom() -> float:
-            raise OSError("meminfo unreadable")
-
-        g = AdmissionGate(config=cfg, read_available_gb=boom, read_resident=lambda: [])
-        d = g.decide("Qwen3.6-35B-A3B-GGUF")
-        assert d.allow is True
-        assert "blind" in d.reason.lower() or "unreadable" in d.reason.lower()
-
-    def test_blind_path_reachable_with_production_reader(self) -> None:
-        # HIGH-1 regression (adversarial review 2026-09-01): the DEFAULT reader must
-        # RAISE on /proc failure. oom_guard's MemorySnapshot.capture fabricates 20 GB
-        # on any exception — above the floor — so wiring it as the default made the
-        # blind path dead code and silently approved loads on zero information. This
-        # test constructs the gate with NO injected reader and breaks /proc.
-        g = AdmissionGate(config=GateConfig(floor_gb=16.0), read_resident=lambda: [])
-        with patch(
-            "cohezion.platform.admission_gate.pathlib.Path.read_text",
-            side_effect=OSError("proc gone"),
-        ):
-            d = g.decide("Qwen3.6-35B-A3B-GGUF")
-        assert d.allow is True
-        assert "blind" in d.reason.lower()
+    def test_missing_cgroup_returns_none(self, tmp_path, monkeypatch) -> None:
+        monkeypatch.setattr(ag, "LEMOND_CGROUP", tmp_path / "absent")
+        assert ag.read_lemond_cgroup_gb() is None
