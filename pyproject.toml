@@ -111,9 +111,12 @@ name = "pytorch-cpu"
 url = "https://download.pytorch.org/whl/cpu"
 explicit = true
 
-# Local AMD dev still installs ROCm torch explicitly, which overrides this:
-#   uv pip install torch==2.8.0+rocm6.3 torchvision==0.23.0+rocm6.3 \
-#     --index-url https://download.pytorch.org/whl/rocm6.3
+# Local inference on the Strix Halo does NOT use torch: it runs through Lemonade
+# (llama.cpp Vulkan/CPU, FLM on the NPU). For iGPU torch work (finetuning), install
+# AMD's gfx1151 build into a SEPARATE venv -- it lags the locked torch version:
+#   uv pip install torch==2.11.0+rocm7.13.0 --index-url https://repo.amd.com/rocm/whl/gfx1151/
+# (rocm6.3 wheels predate gfx1151 support.) CUDA is for remote targets only
+# (Kaggle/cloud images ship their own CUDA torch) -- see docs/SILICON_TARGETS.md.
 [tool.uv.sources]
 torch = { index = "pytorch-cpu" }
 torchvision = { index = "pytorch-cpu" }
@@ -164,6 +167,8 @@ audio = [
     "torchaudio>=2.0.0",
     "soundfile>=0.12.0",
 ]
+# REMOTE CUDA ONLY (Kaggle/cloud GPU). Pulls bitsandbytes/xformers/triton, which do
+# nothing on the Strix Halo. Never install this extra locally; see docs/SILICON_TARGETS.md.
 unsloth = [
     "unsloth",
 ]
@@ -174,10 +179,8 @@ memory = [
     "mem0ai>=2.0.0",
 ]
 # ROCm-specific packages for AMD GPU acceleration (Strix Halo, MI300X, etc).
-# CI uses plain CPU torch from PyPI; local AMD dev installs ROCm torch via:
-#   uv pip install torch==2.8.0+rocm6.3 torchvision==0.23.0+rocm6.3 \
-#     --index-url https://download.pytorch.org/whl/rocm6.3
-# Then: uv sync --frozen --extra dev --extra rocm
+# CI uses CPU torch from the pytorch-cpu index; for gfx1151 torch see the
+# [tool.uv.sources] comment above and docs/SILICON_TARGETS.md.
 # pytorch-triton-rocm has no CPU counterpart so it lives only here.
 rocm = [
     "pytorch-triton-rocm==3.4.0 ; sys_platform == 'linux'",
