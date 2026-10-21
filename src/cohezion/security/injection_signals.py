@@ -34,6 +34,8 @@ import codecs
 import re
 import unicodedata
 
+from cohezion.security.confusables_latin import CONFUSABLES_TO_LATIN, VERTICAL_STROKES
+
 
 # Instruction-directed phrases. Each requires the loaded verb AND a target that refers to
 # the model's own instructions/constraints -- which is what separates an attack from
@@ -121,16 +123,17 @@ INJECTION_PATTERNS: list[tuple[str, re.Pattern[str]]] = [
 _LEET = str.maketrans(
     {"1": "i", "0": "o", "3": "e", "@": "a", "4": "a", "5": "s", "7": "t", "$": "s"}
 )
-# Cyrillic and Greek letters that render identically to Latin ones (Unicode confusables).
-_CONFUSABLES = str.maketrans(
-    {
-        **dict(zip("аеорсухіјѕԁԛԝАВЕКМНОРСТХІЈЅ", "aeopcyxijsdqwABEKMHOPCTXIJS")),
-        **dict(zip("οιαενρτυχκΑΒΕΖΗΙΚΜΝΟΡΤΥΧ", "oiaevptuxkABEZHIKMNOPTYX")),
-    }
-)
+# Look-alike letters from Unicode UTS #39 (generated table in confusables_latin.py; it
+# replaced a 51-letter hand-written Cyrillic/Greek subset that missed e.g. dotless ı,
+# script ɡ, Cherokee/Lisu forms and Cyrillic small-capital-like к м т п, 2026-10-20).
+_CONFUSABLES = str.maketrans(CONFUSABLES_TO_LATIN)
+# UTS #39 folds every vertical stroke (Cyrillic І, Greek Ι, dandas, box lines) to 'l'.
+# In English attack text such a stroke may stand for 'i' too, so the matcher also tries
+# a variant that reads strokes as 'i' (see normalize_variants).
+_STROKES_AS_I = str.maketrans(dict.fromkeys(VERTICAL_STROKES, "i"))
 _B64 = re.compile(r"[A-Za-z0-9+/_-]{16,}={0,2}")  # standard AND url-safe alphabets
 # Invisible letters that are neither marks nor Cf: Hangul fillers and the braille blank.
-_INVISIBLE_LETTERS = frozenset("ᅟᅠㅤﾠ⠀")
+_INVISIBLE_LETTERS = frozenset(map(chr, (0x115F, 0x1160, 0x3164, 0xFFA0, 0x2800)))
 
 
 def _is_text(decoded: str) -> bool:
@@ -155,7 +158,7 @@ def _decode_base64(text: str) -> str | None:
     return " ".join(out) if out else None
 
 
-def _fold(text: str) -> str:
+def _fold(text: str, strokes_as_i: bool = False) -> str:
     """Unicode fold that defeats invisible-character and homoglyph insertion.
 
     NFKD maps fullwidth/compatibility forms; then drop every mark (category M*: combining,
@@ -176,6 +179,8 @@ def _fold(text: str) -> str:
         and not (unicodedata.category(c) == "Cc" and not c.isspace())
         and c not in _INVISIBLE_LETTERS
     )
+    if strokes_as_i:
+        folded = folded.translate(_STROKES_AS_I)
     return folded.translate(_CONFUSABLES)
 
 
@@ -192,6 +197,10 @@ def normalize_variants(text: str) -> list[str]:
     folded = _fold(text)
     if folded != text:
         variants.append(folded)
+    if any(ord(c) in VERTICAL_STROKES for c in text):
+        folded_i = _fold(text, strokes_as_i=True)
+        if folded_i != folded:
+            variants.append(folded_i)
 
     lowered = folded.lower()
     deleet = lowered.translate(_LEET)
