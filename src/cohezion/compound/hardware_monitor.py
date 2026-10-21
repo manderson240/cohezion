@@ -181,20 +181,10 @@ class HardwareMonitor:
             GPU temperature in °C
         """
         try:
-            # Try amdgpu hwmon interface
-            drm_path = Path("/sys/class/drm")
-            max_temp = self.DEFAULT_GPU_TEMP
+            from cohezion.platform.amd_telemetry import gpu_metrics
 
-            for hwmon_dir in drm_path.glob("card*/device/hwmon/hwmon*"):
-                for temp_file in hwmon_dir.glob("temp*_input"):
-                    try:
-                        temp_millidegree = int(temp_file.read_text().strip())
-                        temp_celsius = temp_millidegree / 1000.0
-                        max_temp = max(max_temp, temp_celsius)
-                    except (ValueError, OSError):
-                        continue
-
-            return max_temp
+            edge = (gpu_metrics() or {}).get("edge_temp_c")
+            return edge if edge is not None else self.DEFAULT_GPU_TEMP
         except Exception as e:
             logger.debug("GPU temp read failed, using default: %s", e)
             return self.DEFAULT_GPU_TEMP

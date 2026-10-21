@@ -39,13 +39,16 @@ class SiliconGuard:
         self.throttle_tps = throttle_tps
 
     def get_temperature(self) -> float:
-        """Read APU temperature from hwmon."""
-        try:
-            # Common path for Ryzen APUs
-            with open("/sys/class/hwmon/hwmon0/temp1_input") as f:
-                return float(f.read()) / 1000.0
-        except OSError:
-            return 45.0  # Baseline if unreadable
+        """APU package temperature (CPU Tctl, the hottest sensor on the die).
+
+        Previously read ``/sys/class/hwmon/hwmon0/temp1_input``. On this box hwmon0 is the
+        AC adapter (``ACAD``), which has no temperature, so the guard always saw its 45.0
+        fallback while the package ran at 67-84 C (measured 2026-10-21).
+        """
+        from cohezion.platform.amd_telemetry import cpu_package_temp_c
+
+        temp = cpu_package_temp_c()
+        return temp if temp is not None else 45.0  # Baseline if unreadable
 
     def get_gpu_memory(self) -> float:
         """Measure GTT pressure (since VRAM is shared in UMA)."""

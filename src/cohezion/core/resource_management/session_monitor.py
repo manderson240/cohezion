@@ -88,23 +88,16 @@ _state = GuardState()
 
 
 def _read_gtt_used_gb() -> float | None:
-    """GTT bytes lent to the iGPU, from sysfs. None when unreadable (fail-soft).
+    """GTT lent to the iGPU, from amdsmi. None when unavailable (fail-soft).
 
     GTT is in NO standard counter — invisible to ps, RSS sums, cgroups, and the kernel's
     own OOM table (the 08-15 forensics' biggest miss was recording only available_gb).
-    The sysfs attribute IS readable from agent shells even when /dev/kfd is not.
+    amdsmi matched sysfs mem_info_gtt_used byte for byte on 2026-10-21. Note: inside the
+    agent sandbox /dev/dri is hidden, so this reads None there; the guard service sees it.
     """
-    total = 0
-    seen = False
-    for p in sorted(pathlib.Path("/sys/class/drm").glob("card*/device/mem_info_gtt_used")):
-        # Per-card try + SUM: GTT is "system RAM lent to GPUs" plural, and one unreadable
-        # card must not blank the reading from the others (adversarial review, 2026-08-31).
-        try:
-            total += int(p.read_text().strip())
-            seen = True
-        except (OSError, ValueError):
-            continue
-    return total / (1024**3) if seen else None
+    from cohezion.platform.amd_telemetry import gpu_metrics
+
+    return (gpu_metrics() or {}).get("gtt_used_gb")
 
 
 def _read_swap_pct() -> float | None:

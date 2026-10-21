@@ -343,14 +343,9 @@ def server_version() -> str:
 
 def telemetry() -> dict[str, float]:
     """SoC temp (k10temp), available RAM GB, 1-min loadavg. Fail-soft zeros."""
-    out = {"temp_c": 0.0, "ram_gb": 0.0, "load1": 0.0}
-    try:
-        for hw in Path("/sys/class/hwmon").iterdir():
-            if (hw / "name").read_text().strip() == "k10temp":
-                out["temp_c"] = int((hw / "temp1_input").read_text()) / 1000.0
-                break
-    except Exception:
-        pass
+    from cohezion.platform.amd_telemetry import cpu_package_temp_c
+
+    out = {"temp_c": cpu_package_temp_c() or 0.0, "ram_gb": 0.0, "load1": 0.0}
     try:
         out["ram_gb"] = round(available_ram_gb(), 1)
         out["load1"] = float(Path("/proc/loadavg").read_text().split()[0])
