@@ -27,6 +27,7 @@ from __future__ import annotations
 from unittest.mock import patch
 
 from cohezion.platform.admission_gate import (
+    DEFAULT_FLOOR_GB,
     AdmissionGate,
     GateConfig,
     audit_bypass_paths,
@@ -168,7 +169,7 @@ class TestCouncilTest2ColdBootPersistence:
             import os
 
             os.environ.pop("COHEZION_ADMISSION_FLOOR_GB", None)
-            assert GateConfig.from_env().floor_gb == 16.0  # default restored
+            assert GateConfig.from_env().floor_gb == DEFAULT_FLOOR_GB  # default restored
 
     def test_runtime_mutation_cannot_survive_reconstruction(self) -> None:
         # GateConfig is frozen: the wrong impl (mutable cap twiddled via an admin
