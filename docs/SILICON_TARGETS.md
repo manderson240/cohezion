@@ -24,7 +24,9 @@ leak into the other.
   pinned to `llamacpp.backend=cpu` + FLM so the iGPU stays free for other work.
 - **iGPU torch (finetuning)** needs AMD's gfx1151 wheels, in a **separate venv**:
   `uv pip install torch==2.11.0+rocm7.13.0 --index-url https://repo.amd.com/rocm/whl/gfx1151/`.
-  The old `torch==2.8.0+rocm6.3` recipe predates gfx1151 support; do not use it.
+  **Untested here:** the wheel exists on that index (checked 2026-10-21), but it
+  has not been installed or run on this iGPU yet. The old `torch==2.8.0+rocm6.3`
+  recipe predates gfx1151 support; do not use it.
 - **Never install the `unsloth` extra locally.** It pulls `bitsandbytes`,
   `xformers` and `triton`, which are CUDA-only.
 
@@ -44,9 +46,10 @@ What does **not** protect the box:
 
 - `MemoryMax` on `lemond.service`. GPU (GTT) memory is not charged to any cgroup.
 - `max_loaded_models`. It caps count, not bytes.
-- Lemonade `auto_evict`. It measures through a GPU/GTT proxy
-  (`get_available_memory_gb: CPU/NPU (AMD iGPU proxy)`), which does not track
-  CPU-backend RAM use. Verify what it measures before relying on it.
+- Lemonade `auto_evict` (currently off), until verified. **Unverified:** the
+  `lemond` binary's strings suggest it measures through a GPU/GTT proxy
+  (`get_available_memory_gb: CPU/NPU (AMD iGPU proxy)`), which may not track
+  CPU-backend RAM use. Test it before relying on it.
 
 On 2026-10-21 the pressure was mostly **not** inference: Chrome ~10 GB, the agy
 daemon ~8 GB, Claude desktop ~7 GB, Konsole ~5 GB, and ~10 GB of agent scratch
@@ -60,9 +63,9 @@ the fleet.
   `device = "cuda" if torch.cuda.is_available() else "cpu"`.
 - Rely on the platform image for torch/CUDA. Add only what is missing
   (`pip install` inside the kernel, or `model_sources`/dataset wheels offline).
-- Match dtype to the card: T4 (sm_75) has no bf16 tensor cores, so use fp16
-  there. Blackwell G4 needs the handshake in the `kaggle-blackwell-handshake`
-  skill.
+- Match dtype and machine shape to the card using the `kaggle-critical-findings`
+  checklist (not this doc). Blackwell G4 needs the handshake in the
+  `kaggle-blackwell-handshake` skill.
 - CUDA-only libraries (`unsloth`, `bitsandbytes`, `xformers`, `flash-attn`) belong
   in the kernel's own install step, not in our lockfile's default set.
 - Use the local box for what it is good at: offline search/simulation on 32 AVX-512
