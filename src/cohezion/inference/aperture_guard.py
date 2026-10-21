@@ -1,15 +1,11 @@
 """Hardware Aperture & Memory Guard for Strix Halo.
 
-Enforces the NPU/CPU local inference policy on facts the guard can actually see:
-- Forbids Vulkan and ROCm/HIP model loads in Tier 1 to protect the GTT UMA
-  aperture from kernel page-table races and host OOM crashes.
-- Refuses non-NPU loads while live GTT usage is above the soft cap.
-
-It does NOT decide by model name. A name says nothing about the backend (the
-fleet runs GGUF on ``llamacpp.backend=cpu``) or the footprint, and FLM weights
-live in shared DRAM, not NPU SRAM. Memory is priced by the admission gate's
-byte budget (weights + KV, floor, swap, PSI, GTT headroom), which runs after
-this guard.
+Enforces the strict NPU/CPU local inference policy:
+- Local inference (Tier 1) is RESTRICTED strictly to NPU (FastFlowLM on XDNA2 SRAM)
+  and lightweight CPU backends (<= 4 GB RAM).
+- Forbids all heavy Vulkan and ROCm/HIP model loads in Tier 1 to protect the
+  120 GB GTT UMA aperture from kernel page-table races and host OOM crashes.
+- Automatically flags heavy requests for rerouting to Tier 2 (Ollama Cloud or Headless Claude).
 """
 
 from __future__ import annotations
@@ -122,8 +118,7 @@ def validate_tier1_request(
         )
         return "reroute_tier2"
 
-    # 2. NPU models draw no GTT. Their DRAM footprint is NOT zero; the admission
-    #    gate prices it (npu_exempt=False).
+    # 2. Check if model is on NPU allowlist (0 UMA footprint on XDNA2 SRAM)
     if model_id in TIER1_NPU_ALLOWLIST or model_id.endswith("-FLM"):
         return "allow"
 
@@ -138,10 +133,16 @@ def validate_tier1_request(
             return "reroute_tier2"
         return "allow"
 
-    # 4. No name-based verdict. A "-GGUF"/"8B" name refused a ~3 GB CPU-backend model
-    #    (Gemma-4-E2B, 2026-10-21) and broke the local cascade past the NPU, while the
-    #    byte gate would have admitted it. Backend is ruled on in step 1; size belongs
-    #    to the byte gate.
+    # 4. Any other GGUF or large model must not run on local GPU/UMA
+    mid_upper = model_id.upper()
+    if "-GGUF" in mid_upper or any(
+        k in mid_upper for k in ("70B", "35B", "31B", "30B", "27B", "26B", "14B", "12B", "8B", "7B")
+    ):
+        logger.info(
+            "Hardware Aperture Guard: Large model '%s' must not run on Tier 1 to protect UMA. Offloading to Tier 2.",
+            model_id,
+        )
+        return "reroute_tier2"
 
     # 5. Check live GTT saturation
     gtt_used = get_current_gtt_used_bytes()

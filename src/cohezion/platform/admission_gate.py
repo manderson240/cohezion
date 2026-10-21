@@ -74,6 +74,12 @@ MAX_SAFE_SWAP_PCT = (
     30.0  # Refuse non-resident loads if swap used > 30% (allows benign cold pages on 39GB swap)
 )
 MAX_SAFE_PSI_PRESSURE = 20.0  # Refuse non-resident loads if PSI some avg10 > 20.0
+# lemond's children (llama-server, flm) are charged to this cgroup. Past memory.high
+# the kernel throttles EVERY model in it, NPU included (GEMS LESSONS 22, 2026-10-15:
+# a 26B CPU probe stalled the fleet while system RAM looked fine). System
+# MemAvailable and GTT cannot see this limit, so it gets its own budget.
+LEMOND_CGROUP = pathlib.Path("/sys/fs/cgroup/system.slice/lemond.service")
+CGROUP_HIGH_FRACTION = 0.9
 # Request-body keys that name a model; presence of any makes a request load-triggering.
 _MODEL_KEYS = ("model", "model_name")
 
@@ -98,6 +104,29 @@ def read_gtt_usage_gb() -> tuple[float, float] | None:
     if total <= 0.0:
         return None
     return used, total
+
+
+def read_lemond_cgroup_gb() -> tuple[float, float] | None:
+    """(working_set_gb, memory_high_gb) for lemond's cgroup, or None.
+
+    Working set = memory.current - inactive_file: cold page cache is dropped before
+    the kernel throttles, so counting it would refuse routine loads on cache alone.
+    None when the cgroup is unreadable or has no memory.high (fail OPEN, like GTT).
+    """
+    try:
+        high_raw = (LEMOND_CGROUP / "memory.high").read_text().strip()
+        if high_raw == "max":
+            return None
+        current = int((LEMOND_CGROUP / "memory.current").read_text().strip())
+        inactive_file = 0
+        for line in (LEMOND_CGROUP / "memory.stat").read_text().splitlines():
+            key, _, value = line.partition(" ")
+            if key == "inactive_file":
+                inactive_file = int(value)
+                break
+    except (OSError, ValueError):
+        return None
+    return max(0, current - inactive_file) / (1024.0**3), int(high_raw) / (1024.0**3)
 
 
 def _npu_like(model_name: str) -> bool:
@@ -229,6 +258,7 @@ class AdmissionGate:
         read_gtt: Callable[[], tuple[float, float] | None] | None = None,
         read_swap: Callable[[], float | None] | None = None,
         read_psi: Callable[[], float | None] | None = None,
+        read_cgroup: Callable[[], tuple[float, float] | None] | None = None,
     ) -> None:
         self._config = config if config is not None else GateConfig.from_env()
         self._read_available = (
@@ -246,6 +276,11 @@ class AdmissionGate:
             read_psi
             if read_psi is not None
             else ((lambda: 0.0) if is_test else read_memory_pressure_psi)
+        )
+        self._read_cgroup = (
+            read_cgroup
+            if read_cgroup is not None
+            else ((lambda: None) if is_test else read_lemond_cgroup_gb)
         )
         # H1 visibility: when the GTT ceiling exceeds physical RAM (live pre-reboot:
         # 128 GiB ceiling on 122.8 GiB), a raw fraction-of-ceiling budget could never
@@ -298,24 +333,22 @@ class AdmissionGate:
         if not model_name:
             return AdmissionDecision(True, False, "no model named — not load-triggering")
 
-        resident = self._resident_entries()
-        if resident is not None and any(
-            model_matches_loaded_entry(model_name, m) for m in resident
-        ):
-            return AdmissionDecision(True, False, "resident — reuse needs no memory", model_name)
-
-        # After the resident check: reusing a loaded model maps nothing new, so no
-        # aperture rule can apply to it.
         if self._config.enforce_aperture_guard:
             from cohezion.inference.aperture_guard import validate_tier1_request
 
             verdict = validate_tier1_request(model_name)
             if verdict == "reroute_tier2":
                 reason = (
-                    f"hardware aperture guard: '{model_name}' would load on a GPU backend or "
-                    f"while GTT is saturated — use a CPU/NPU backend or wait for GTT to drain"
+                    f"hardware aperture guard: model '{model_name}' exceeds Tier 1 CPU/UMA constraints "
+                    f"— offload to Tier 2 (Ollama Cloud or Headless Claude)"
                 )
                 return self._refusal(reason, model_name)
+
+        resident = self._resident_entries()
+        if resident is not None and any(
+            model_matches_loaded_entry(model_name, m) for m in resident
+        ):
+            return AdmissionDecision(True, False, "resident — reuse needs no memory", model_name)
 
         try:
             available = float(self._read_available())
@@ -366,6 +399,20 @@ class AdmissionGate:
         )
         if not risk.safe:
             return self._refusal(f"byte budget: {risk.reason}", model_name)
+
+        # Tier-blind like the floor: FLM runs as a lemond child too.
+        cgroup = self._read_cgroup()
+        if cgroup is not None:
+            working_set, high = cgroup
+            budget = CGROUP_HIGH_FRACTION * high
+            if working_set + risk.footprint_gb > budget:
+                return self._refusal(
+                    f"lemond cgroup headroom: {working_set:.1f}GB working set + "
+                    f"{risk.footprint_gb:.1f}GB load > {budget:.1f}GB "
+                    f"({CGROUP_HIGH_FRACTION:.0%} of memory.high {high:.0f}GB) — past "
+                    f"memory.high the kernel throttles every model in lemond",
+                    model_name,
+                )
 
         # Gate v2 GTT headroom: MemAvailable does not account lent GTT pages, so a load
         # can clear the RAM checks yet push GTT — uncgroupable, invisible to the kernel
