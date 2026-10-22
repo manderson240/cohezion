@@ -3,7 +3,7 @@ type: plan
 title: Branch, worktree and primary-checkout hygiene plan
 date: 2026-10-22
 scope: /home/mike-anderson/dev/cohezion shared .git (origin/main b3342cf18)
-status: sections-A-D-E-executed
+status: sections-A-D-E-executed-B-harvested
 tags: [coherence, repo-hygiene, git]
 ---
 
@@ -96,52 +96,97 @@ Expected after: `git branch --merged origin/main | grep -vE 'main|^\*' | wc -l` 
 
 ## B. Needs a look — 28 merged branches pinned by worktrees (user shell only)
 
-Each branch is fully merged into `origin/main`, but a registered worktree has it checked out,
-so `git branch -d` refuses. Most of these worktrees show "dirty" files that are caches,
-`__pycache__`, or the 22 media files that were raw blobs (they read as modified against an
-LFS smudge) — not unlanded work. Confirm with `git -C <path> status --porcelain` before
-removing; remove the worktree first, then the branch.
+Each branch is fully merged into `origin/main` and has **0 commits** that main lacks; a registered
+worktree holds it, so `git branch -d` refuses until the worktree is removed. `.git/worktrees` is a
+read-only mount for agent sessions (verified again 2026-10-22, with and without the sandbox), so the
+removals below must run from a normal shell.
+
+**Inspected 2026-10-22.** Dirt was classified after excluding caches, compiled files, the 22 media
+files that read as modified against LFS, and sandbox scaffold dotfiles. **Every worktree's remaining
+unstaged diff, staged diff and real untracked files were harvested first** to
+`~/vaults/cohezion-vault/reports/worktree-harvest-20261022/<branch>/` (996 KB), so removal loses nothing.
+
+### B1. Clean — 14 worktrees, no real dirt, nothing ahead of main
 
 | Branch | Worktree |
 |---|---|
+| `agent-1787958482` | `~/dev/cohezion/.worktrees/cohezion-agent-1787958482` |
+| `claude/cosmogony-state-45bef2` | `~/dev/cohezion/.claude/worktrees/cosmogony-state-45bef2` |
+| `claude/fervent-allen-5f2209` | `~/dev/cohezion/.claude/worktrees/fervent-allen-5f2209` |
+| `claude/kaggle-token-efficient-bd1eca` | `~/dev/cohezion/.claude/worktrees/kaggle-token-efficient-bd1eca` |
+| `claude/local-files-google-drive-c6584d` | `~/dev/cohezion/.claude/worktrees/local-files-google-drive-c6584d` |
+| `deploy/services` | `~/dev/cohezion-services` |
+| `feat/codebase-graph-map` | `~/dev/cohezion/.worktrees/graph-map` |
+| `fix/main-code-health` | `~/dev/cohezion/.worktrees/main-health-fix` |
+| `worktree-fancy-cooking-rocket` | `~/dev/cohezion/.claude/worktrees/fancy-cooking-rocket` |
+| `worktree-fluffy-mapping-pebble` | `~/dev/cohezion/.claude/worktrees/fluffy-mapping-pebble` |
+| `worktree-glimmering-floating-canyon` | `~/dev/cohezion/.claude/worktrees/glimmering-floating-canyon` |
+| `worktree-glowing-tinkering-peach` | `~/dev/cohezion/.claude/worktrees/glowing-tinkering-peach` |
+| `worktree-happy-popping-wand` | `~/dev/cohezion/.claude/worktrees/happy-popping-wand` |
+| `worktree-snoopy-foraging-kettle` | `~/dev/cohezion/.claude/worktrees/snoopy-foraging-kettle` |
 
-| `agent-1787957534` | `?` |
-| `agent-1787958482` | `?` |
-| `agent-1788098353` | `?` |
-| `agent-1788098455` | `?` |
-| `agent-1788098546` | `?` |
-| `claude/capabilities-exploration-9e9a8d` | `?` |
-| `claude/consolidate-work-into-main-27b73e` | `?` |
-| `claude/cosmogony-state-45bef2` | `?` |
-| `claude/drivendata-doe-gems-66a1e7` | `?` |
-| `claude/fervent-allen-5f2209` | `?` |
-| `claude/kaggle-token-efficient-bd1eca` | `?` |
-| `claude/local-files-google-drive-c6584d` | `?` |
-| `deploy/services` | `?` |
-| `feat/codebase-graph-map` | `?` |
-| `feat/inference-service-mesh` | `?` |
-| `fix/lemonade-router` | `?` |
-| `fix/main-code-health` | `?` |
-| `worktree-bright-swinging-squirrel` | `?` |
-| `worktree-fancy-cooking-rocket` | `?` |
-| `worktree-fluffy-mapping-pebble` | `?` |
-| `worktree-glimmering-floating-canyon` | `?` |
-| `worktree-glowing-tinkering-peach` | `?` |
-| `worktree-happy-popping-wand` | `?` |
-| `worktree-scalable-humming-pumpkin` | `?` |
-| `worktree-snoopy-foraging-kettle` | `?` |
-| `worktree-splendid-seeking-sonnet` | `?` |
-| `worktree-validated-snuggling-melody` | `?` |
-| `worktree-virtual-soaring-shamir` | `?` |
+### B2. Trivial dirt only — 6 worktrees (harvested; safe to remove with --force)
+
+| Branch | Worktree | Dirt |
+|---|---|---|
+| `agent-1788098353` | `~/dev/cohezion/.worktrees/cohezion-agent-1788098353` | data/compound/cache/token_cache.jsonl only |
+| `agent-1788098455` | `~/dev/cohezion/.worktrees/cohezion-agent-1788098455` | token_cache.jsonl only |
+| `agent-1788098546` | `~/dev/cohezion/.worktrees/cohezion-agent-1788098546` | token_cache.jsonl only |
+| `claude/capabilities-exploration-9e9a8d` | `~/dev/cohezion/.claude/worktrees/capabilities-exploration-9e9a8d` | .claude/scheduled_tasks.lock deleted |
+| `claude/consolidate-work-into-main-27b73e` | `~/dev/cohezion/.claude/worktrees/consolidate-work-into-main-27b73e` | scheduled_tasks.lock + sandbox scaffold dotfiles |
+| `worktree-virtual-soaring-shamir` | `~/dev/cohezion/.claude/worktrees/virtual-soaring-shamir` | one untracked plan doc, already in the vault |
+
+### B3. Real uncommitted work — 8 worktrees (harvested; review the patch before removing)
+
+| Branch | Worktree | What is there |
+|---|---|---|
+| `agent-1787957534` | `~/dev/cohezion/.worktrees/cohezion-agent-1787957534` | token_cache + edits to docs/audits/UNAWAITED_SURREAL_WRITES_2026-08-28.md |
+| `worktree-splendid-seeking-sonnet` | `~/dev/cohezion/.claude/worktrees/splendid-seeking-sonnet` | 2 untracked scripts under scripts/loop/ |
+| `worktree-validated-snuggling-melody` | `~/dev/cohezion/.claude/worktrees/validated-snuggling-melody` | skill_refiner.py + its test (163 KB diff) |
+| `claude/drivendata-doe-gems-66a1e7` | `~/dev/cohezion/.claude/worktrees/drivendata-doe-gems-66a1e7` | STAGED rubric_middleware work + new test |
+| `worktree-scalable-humming-pumpkin` | `~/dev/cohezion/.claude/worktrees/scalable-humming-pumpkin` | degradation_detector/harness + tests (166 KB diff) |
+| `fix/lemonade-router` | `~/dev/cohezion/.worktrees/fix-lemonade-router` | 8 files incl. event_bus, unified_hybrid_router (70 KB diff) |
+| `worktree-bright-swinging-squirrel` | `~/dev/cohezion/.claude/worktrees/bright-swinging-squirrel` | 44 files (231 KB diff) + 19 untracked |
+| `feat/inference-service-mesh` | `~/dev/cohezion/.worktrees/inference-service-mesh` | 60 files (106 KB diff, 9.5 KB staged) + 33 untracked |
 
 ```bash
-# from a NORMAL shell (not an agent session): for each row, after checking its status
-git worktree remove <path>        # refuses if the tree is dirty; add --force only after reading the dirt
-git branch -d <branch>
-# then the two dangling registrations:
-git worktree prune
+# NORMAL SHELL ONLY. B1 + B2 (20 worktrees). Each branch is verified an ancestor of origin/main
+# before deletion; -D is used because -d checks the branch's own upstream, not origin/main.
+cd /home/mike-anderson/dev/cohezion && git fetch -q origin main
+while IFS='|' read -r path branch; do
+  git merge-base --is-ancestor "$branch" origin/main || { echo "SKIP not merged: $branch"; continue; }
+  git worktree remove --force "$path" && git branch -D "$branch"
+done <<'LIST'
+/home/mike-anderson/dev/cohezion/.worktrees/cohezion-agent-1787958482|agent-1787958482
+/home/mike-anderson/dev/cohezion/.claude/worktrees/cosmogony-state-45bef2|claude/cosmogony-state-45bef2
+/home/mike-anderson/dev/cohezion/.claude/worktrees/fervent-allen-5f2209|claude/fervent-allen-5f2209
+/home/mike-anderson/dev/cohezion/.claude/worktrees/kaggle-token-efficient-bd1eca|claude/kaggle-token-efficient-bd1eca
+/home/mike-anderson/dev/cohezion/.claude/worktrees/local-files-google-drive-c6584d|claude/local-files-google-drive-c6584d
+/home/mike-anderson/dev/cohezion-services|deploy/services
+/home/mike-anderson/dev/cohezion/.worktrees/graph-map|feat/codebase-graph-map
+/home/mike-anderson/dev/cohezion/.worktrees/main-health-fix|fix/main-code-health
+/home/mike-anderson/dev/cohezion/.claude/worktrees/fancy-cooking-rocket|worktree-fancy-cooking-rocket
+/home/mike-anderson/dev/cohezion/.claude/worktrees/fluffy-mapping-pebble|worktree-fluffy-mapping-pebble
+/home/mike-anderson/dev/cohezion/.claude/worktrees/glimmering-floating-canyon|worktree-glimmering-floating-canyon
+/home/mike-anderson/dev/cohezion/.claude/worktrees/glowing-tinkering-peach|worktree-glowing-tinkering-peach
+/home/mike-anderson/dev/cohezion/.claude/worktrees/happy-popping-wand|worktree-happy-popping-wand
+/home/mike-anderson/dev/cohezion/.claude/worktrees/snoopy-foraging-kettle|worktree-snoopy-foraging-kettle
+/home/mike-anderson/dev/cohezion/.worktrees/cohezion-agent-1788098353|agent-1788098353
+/home/mike-anderson/dev/cohezion/.worktrees/cohezion-agent-1788098455|agent-1788098455
+/home/mike-anderson/dev/cohezion/.worktrees/cohezion-agent-1788098546|agent-1788098546
+/home/mike-anderson/dev/cohezion/.claude/worktrees/capabilities-exploration-9e9a8d|claude/capabilities-exploration-9e9a8d
+/home/mike-anderson/dev/cohezion/.claude/worktrees/consolidate-work-into-main-27b73e|claude/consolidate-work-into-main-27b73e
+/home/mike-anderson/dev/cohezion/.claude/worktrees/virtual-soaring-shamir|worktree-virtual-soaring-shamir
+LIST
+git worktree prune   # also clears the 2 dangling registrations
+git branch --merged origin/main | grep -vcE 'main|^\*'   # expect 8 (the B3 set)
 ```
 
+B3 stays until someone applies or discards each harvested patch (`git apply`
+`~/vaults/cohezion-vault/reports/worktree-harvest-20261022/<branch>/unstaged.patch` on a fresh
+branch off main, run the tests, land or drop). The two large ones, `worktree-bright-swinging-squirrel`
+and `feat/inference-service-mesh`, overlap the 2026-08-31 harvest campaign and should be checked
+against `reports/worktree-harvest-20260831/` before any effort is spent.
 
 ---
 
@@ -373,7 +418,8 @@ repository rather than a stale branch.
   set of remote branches that are strict ancestors of `origin/main` was recomputed (still 76,
   none from the active coherence stack) and deleted in four pushes of ≤20. Remote branches
   309 → 233; zero of the 76 remain. Merged PR history is unaffected on GitHub.
-- Sections B, C: not executed (B needs a normal shell; C needs per-branch review).
+- **2026-10-22, section B inspected and harvested** (user approved B): 14 clean, 6 trivial, 8 with real work; all 28 worktrees' diffs and untracked files saved to the vault harvest folder. Removal itself is blocked for agent sessions by the read-only `.git/worktrees` mount; the exact script is in B.
+- Section C: not executed (needs per-branch review).
 
 ## Verification after each approved section
 
