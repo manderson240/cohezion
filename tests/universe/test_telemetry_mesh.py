@@ -3,7 +3,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from cohezion.core.journey_worker import get_journey_worker
+from cohezion.core.journey_worker import JourneyWorker
 from cohezion.core.telemetry_bus import get_telemetry_bus
 from cohezion.data_mesh.universe_telemetry import UniverseStateEvent
 from cohezion.universe.engine import AxiomaticState, UniverseJourney, UniverseSimulationEngine
@@ -14,7 +14,10 @@ async def test_journey_worker_processes_universe_event():
     """
     RED PHASE: Verify that JourneyWorker handles UniverseStateEvent.
     """
-    worker = get_journey_worker()
+    # A fresh instance, not the process-wide singleton: under xdist another test in the same
+    # worker can leave the singleton with different collaborators (order-dependent failure
+    # seen 2026-10-22; the test passes alone).
+    worker = JourneyWorker()
 
     # Mock dependencies to avoid real DB/Bridge calls
     worker._db = MagicMock()
