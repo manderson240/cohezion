@@ -8,8 +8,8 @@ from __future__ import annotations
 import logging
 from dataclasses import dataclass
 
-from cohezion.datamesh.ingestion import DatameshIngestion
-from cohezion.datamesh.query import DatameshQuery
+from cohezion.data_mesh.ingestion import DatameshIngestion
+from cohezion.data_mesh.query import DatameshQuery
 
 
 logger = logging.getLogger(__name__)

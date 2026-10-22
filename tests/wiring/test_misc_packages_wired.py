@@ -2,7 +2,9 @@
 
 import cohezion.concurrency
 import cohezion.cost_optimization
-import cohezion.datamesh
+import cohezion.data_mesh.federation
+import cohezion.data_mesh.ingestion
+import cohezion.data_mesh.schema
 import cohezion.deployment
 import cohezion.dogfooding
 import cohezion.eval
@@ -292,10 +294,10 @@ def test_cost_optimization_forecast_engine_wired():
     assert cohezion.cost_optimization.Forecast is not None
 
 
-# --- datamesh (already fully wired) ---
+# --- data_mesh (datamesh/ folded in 2026-10-22) ---
 
 
 def test_datamesh_wired():
-    assert cohezion.datamesh.FederationLayer is not None
-    assert cohezion.datamesh.DatameshIngestion is not None
-    assert cohezion.datamesh.UnifiedRecord is not None
+    assert cohezion.data_mesh.federation.FederationLayer is not None
+    assert cohezion.data_mesh.ingestion.DatameshIngestion is not None
+    assert cohezion.data_mesh.schema.UnifiedRecord is not None

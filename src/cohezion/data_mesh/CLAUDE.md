@@ -4,7 +4,7 @@ This file loads in addition to the root `CLAUDE.md`. Root applies here too.
 
 **Purpose:** Data Mesh architecture for Cohezion's multi-agent system. Maps Zhamak Dehghani's 4 Data Mesh principles to Cohezion: 1. Domain ownership → Each specialist agent owns its data domain 2. Data as product
 
-## Entry points (21 modules)
+## Entry points (27 modules)
 
 | Module | Key class(es) | LOC |
 |---|---|---|
@@ -29,9 +29,15 @@ This file loads in addition to the root `CLAUDE.md`. Root applies here too.
 | `multi_session_sanitization_gateway.py` | `MultiSessionSanitizationGateway` | 168 |
 | `durable_precipitation_bridge.py` | `DurableWitnessMark`, `DurablePrecipitationBridge` | 216 |
 | `recursive_event_mesh.py` | `MeshState`, `CodebaseSweepReport`, `BleedingEdgeReport`, `MeshCycleOutput` | 266 |
+| `schema.py` | `UnifiedRecord`, `RecordType`, `RelationType`, `DataLineage`, `Physics12D` | 304 |
+| `query.py` | `DatameshQuery`, `DatameshResult`, `DatameshFilter` | 359 |
+| `ingestion.py` | `DatameshIngestion`, `IdempotentWriter`, `IngestionConfig` | 195 |
+| `federation.py` | `FederationLayer`, `DomainEndpoint` | 103 |
+| `bidirectional_linkage.py` | `BidirectionalLinkageManager`, `BidirectionalLink`, `LinkDirection`, `LinkStatus` | 550 |
+| `knowledge_graph_layer.py` | `KnowledgeGraphLayer`, `KnowledgeNode`, `KnowledgeEdge` | 563 |
 
 ## Invariants / notes referencing this package (from harness.md / root CLAUDE.md)
 
 - | `src/cohezion/data_mesh/data_product.py` | **DATA MESH** | Typed data products with SLA for 17+ MCP servers. Dehghani (2022) |
 
-_Seeded 2026-07-22, HAND-MAINTAINED since — there is no generator. The original note credited a `gen_nested_claude.py` that exists in no commit and nowhere on disk; corrected 2026-07-31 so nobody hunts for it or assumes a regeneration will clear drift. Update this file in the same commit as the code. Guarded by `scripts/ci/doc_code_consistency.py`: E1/E2 that every path and module reference resolves, E5 that the declared module count matches the package._
+_The last six rows arrived 2026-10-22 when the duplicate `datamesh/` package was folded in (`cohezion.datamesh` is now a deprecation shim, removal 1.29.0). Seeded 2026-07-22, HAND-MAINTAINED since — there is no generator. The original note credited a `gen_nested_claude.py` that exists in no commit and nowhere on disk; corrected 2026-07-31 so nobody hunts for it or assumes a regeneration will clear drift. Update this file in the same commit as the code. Guarded by `scripts/ci/doc_code_consistency.py`: E1/E2 that every path and module reference resolves, E5 that the declared module count matches the package._

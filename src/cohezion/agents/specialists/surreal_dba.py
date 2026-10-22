@@ -48,6 +48,6 @@ class SurrealDBA(PlatformSpecialist):
         canonical_modules=(
             "cohezion.core.persistence.surreal_client",
             "cohezion.knowledge_graph.graphrag_engine",
-            "cohezion.datamesh.schema",
+            "cohezion.data_mesh.schema",
         ),
     )

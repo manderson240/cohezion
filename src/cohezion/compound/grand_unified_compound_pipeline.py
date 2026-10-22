@@ -35,7 +35,7 @@ from cohezion.baml.baml_bridge import (
     GoalSpecification,
     TaskClassificationResult,
 )
-from cohezion.datamesh.kanban_bridge import persist_item
+from cohezion.data_mesh.kanban_bridge import persist_item
 from cohezion.knowledge_graph.bitemporal_sheaf_graph import (
     BiTemporalSheafGraphEngine,
 )

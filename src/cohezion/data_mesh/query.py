@@ -11,7 +11,7 @@ from dataclasses import dataclass, field
 
 import torch
 
-from cohezion.datamesh.schema import (
+from cohezion.data_mesh.schema import (
     DataLineage,
     RecordType,
     RelationType,
