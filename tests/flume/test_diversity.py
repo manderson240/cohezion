@@ -33,7 +33,7 @@ def test_maximizes_spread():
     outliers = [rng.standard_normal(256) for _ in range(100)]
     vectors = cluster_a + cluster_b + outliers
 
-    selected_idx = gvendi_diversity_filter(vectors, target_n=30, seed=42)
+    selected_idx = gvendi_diversity_filter(vectors, target_n=30)
     selected_vecs = [vectors[i] for i in selected_idx]
 
     # Random baseline

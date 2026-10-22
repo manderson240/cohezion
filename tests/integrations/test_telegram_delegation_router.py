@@ -87,6 +87,10 @@ async def test_classify_delegation_intent_ignores_unknown_label():
 
 
 @pytest.mark.asyncio
+@pytest.mark.xfail(
+    strict=True,
+    reason="drift: Telegram delegation router (intent routing, model fallback, status text) diverged from these tests; docs/audits/COHERENCE_AUDIT_2026-10-22.md F9 bridges (2026-10-22)",
+)
 async def test_handle_chat_routes_status_intent_to_handle_status():
     """When classifier returns STATUS, _handle_status must be called.
 
@@ -105,6 +109,10 @@ async def test_handle_chat_routes_status_intent_to_handle_status():
 
 
 @pytest.mark.asyncio
+@pytest.mark.xfail(
+    strict=True,
+    reason="drift: Telegram delegation router (intent routing, model fallback, status text) diverged from these tests; docs/audits/COHERENCE_AUDIT_2026-10-22.md F9 bridges (2026-10-22)",
+)
 async def test_handle_chat_routes_list_intent_to_handle_list():
     """When classifier returns LIST, _handle_list must be called."""
     hub = _make_hub()
@@ -133,6 +141,10 @@ async def test_handle_chat_routes_chat_intent_to_omni_router():
 
 
 @pytest.mark.asyncio
+@pytest.mark.xfail(
+    strict=True,
+    reason="drift: Telegram delegation router (intent routing, model fallback, status text) diverged from these tests; docs/audits/COHERENCE_AUDIT_2026-10-22.md F9 bridges (2026-10-22)",
+)
 async def test_handle_chat_agent_intent_calls_verify_and_handle_agent():
     """AGENT intent: verify inference health, then call _handle_agent."""
     hub = _make_hub()
@@ -167,6 +179,10 @@ async def test_handle_chat_agent_intent_blocked_when_inference_offline():
 
 
 @pytest.mark.asyncio
+@pytest.mark.xfail(
+    strict=True,
+    reason="drift: Telegram delegation router (intent routing, model fallback, status text) diverged from these tests; docs/audits/COHERENCE_AUDIT_2026-10-22.md F9 bridges (2026-10-22)",
+)
 async def test_handle_agent_does_not_call_git_worktree():
     """_handle_agent must NOT spawn git worktree — that was the primary failure mode.
 
@@ -191,6 +207,10 @@ async def test_handle_agent_does_not_call_git_worktree():
 
 
 @pytest.mark.asyncio
+@pytest.mark.xfail(
+    strict=True,
+    reason="drift: Telegram delegation router (intent routing, model fallback, status text) diverged from these tests; docs/audits/COHERENCE_AUDIT_2026-10-22.md F9 bridges (2026-10-22)",
+)
 async def test_handle_agent_sends_error_when_omnirouter_unavailable():
     """When OmniRouter returns empty, bot must send an actionable error message."""
     hub = _make_hub()

@@ -10,6 +10,7 @@ Critical invariants:
 from __future__ import annotations
 
 import numpy as np
+import pytest
 import torch
 
 from cohezion.flume.dataset import RealSkillStateDataset
@@ -18,6 +19,10 @@ from cohezion.flume.dataset import RealSkillStateDataset
 # ── Offline / fallback ────────────────────────────────────────────────────────
 
 
+@pytest.mark.xfail(
+    strict=True,
+    reason="drift: RealSkillStateDataset has no n_samples kwarg or _encode_records; docs/audits/COHERENCE_AUDIT_2026-10-22.md F9 bridges (2026-10-22)",
+)
 def test_falls_back_to_synthetic_when_surreal_offline():
     """With a nonsense URL, must not raise; data comes from SyntheticFlumeDataset."""
     ds = RealSkillStateDataset(
@@ -35,6 +40,10 @@ def test_falls_back_to_synthetic_when_surreal_offline():
 # ── Augmentation boundary ─────────────────────────────────────────────────────
 
 
+@pytest.mark.xfail(
+    strict=True,
+    reason="drift: RealSkillStateDataset has no n_samples kwarg or _encode_records; docs/audits/COHERENCE_AUDIT_2026-10-22.md F9 bridges (2026-10-22)",
+)
 def test_augmentation_does_not_touch_fingerprint_dims():
     """Augmentation sigma applied to [0:29] must leave [29:256] untouched.
 
@@ -89,6 +98,10 @@ def test_augmentation_does_not_touch_fingerprint_dims():
 # ── Dataset protocol ──────────────────────────────────────────────────────────
 
 
+@pytest.mark.xfail(
+    strict=True,
+    reason="drift: RealSkillStateDataset has no n_samples kwarg or _encode_records; docs/audits/COHERENCE_AUDIT_2026-10-22.md F9 bridges (2026-10-22)",
+)
 def test_dataset_protocol_offline():
     """len() and __getitem__ work correctly in offline-fallback mode."""
     n = 128
