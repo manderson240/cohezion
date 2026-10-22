@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed — README leads with the pitch and a ten-minute tour (coherence tranche 6)
+- `README.md` opens with one sentence on what Cohezion is and three commands a reviewer can run, each with the output captured on 2026-10-22. The unbacked "95%+ cache hit rate" figure is replaced by a description; the training table states its provenance (2026-04-01, artifacts not checked in).
+- `make demo` was a 20-line inline `python -c` that failed with a SyntaxError; it now runs `examples/demo_train_eval.py`, which exits 2 with a hint when the RL extra is absent.
+
+### Fixed — test isolation
+- `tests/scripts/test_producer_consumer_audit.py` loaded `scripts/ci/producer_consumer_audit.py` by bare module name after a `sys.path` insert, colliding with `scripts/producer_consumer_audit.py`; a full-suite run failed at collection ("cannot import name AUDIT_PAIRS") while the file passed alone. It now loads the script by path under a unique module name.
+
 ### Changed — datamesh/ folded into data_mesh/ (coherence tranche 4)
 - The duplicate `src/cohezion/datamesh/` package is integrated into the canonical `src/cohezion/data_mesh/`: `schema.py`, `query.py`, `ingestion.py`, `federation.py`, `bidirectional_linkage.py` and `knowledge_graph_layer.py` moved with history; its `kanban_bridge.py` (a stale prefix copy of `src/cohezion/data_mesh/kanban_bridge.py`) is removed. Importers repointed: `src/cohezion/compound/grand_unified_compound_pipeline.py`, `src/cohezion/agents/specialists/surreal_dba.py`, `src/cohezion/wiring/orphan_bridge.py`, tests, and the mypy baseline paths.
 - `cohezion.datamesh` is now a deprecation shim that re-exports every former public name and warns on import. **Removal scheduled for 1.29.0.** Tests: `tests/data_mesh/test_datamesh_shim.py`.
