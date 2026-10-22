@@ -3,7 +3,7 @@ type: plan
 title: Branch, worktree and primary-checkout hygiene plan
 date: 2026-10-22
 scope: /home/mike-anderson/dev/cohezion shared .git (origin/main b3342cf18)
-status: sections-A-E-executed
+status: sections-A-D-E-executed
 tags: [coherence, repo-hygiene, git]
 ---
 
@@ -369,7 +369,11 @@ repository rather than a stale branch.
   checkout and was removed first. Result: `git status` deleted 9 → 0, untracked 687 → 89,
   modified 131 unchanged. The primary checkout is still on `security/codeql-wave2`; moving it
   back to `main` remains with that branch's owner.
-- Sections B, C, D: not executed.
+- **2026-10-22, section D executed** (user approved): after a fresh `git fetch --prune`, the
+  set of remote branches that are strict ancestors of `origin/main` was recomputed (still 76,
+  none from the active coherence stack) and deleted in four pushes of ≤20. Remote branches
+  309 → 233; zero of the 76 remain. Merged PR history is unaffected on GitHub.
+- Sections B, C: not executed (B needs a normal shell; C needs per-branch review).
 
 ## Verification after each approved section
 
