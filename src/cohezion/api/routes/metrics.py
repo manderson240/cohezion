@@ -196,9 +196,9 @@ async def metrics_system():
     # Check Ollama availability
     ollama_available = False
     ollama_models: list[str] = []
-    try:
-        import httpx as _httpx
+    import httpx as _httpx  # outside the try: the except tuple below references it
 
+    try:
         async with _httpx.AsyncClient(timeout=2.0) as client:
             resp = await client.get("http://localhost:11434/api/tags")
             if resp.status_code == 200:

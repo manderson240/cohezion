@@ -15,25 +15,22 @@ import sys
 from pathlib import Path
 
 
-# Load scripts/ci/producer_consumer_audit.py by PATH under a unique module name. A bare
-# `from producer_consumer_audit import ...` after a sys.path insert collides with
-# scripts/producer_consumer_audit.py (same module name, different file): whichever test
-# imported first wins in sys.modules, and the full suite then fails at collection with
-# "cannot import name AUDIT_PAIRS" while this file passes alone.
-_SCRIPT = Path(__file__).resolve().parents[2] / "scripts" / "ci" / "producer_consumer_audit.py"
-_spec = importlib.util.spec_from_file_location("ci_producer_consumer_audit", _SCRIPT)
+# Load by FILE PATH, not by name: scripts/producer_consumer_audit.py (the Lemonade module
+# classifier) shares this module name, and whichever of scripts/ or scripts/ci/ another test put
+# on sys.path first used to win -- an ImportError that aborted collection of the whole
+# integration tier. A unique sys.modules key keeps the two files from shadowing each other.
+_AUDIT_PATH = Path(__file__).resolve().parents[2] / "scripts" / "ci" / "producer_consumer_audit.py"
+_spec = importlib.util.spec_from_file_location("ci_producer_consumer_audit", _AUDIT_PATH)
 assert _spec is not None and _spec.loader is not None
-_mod = importlib.util.module_from_spec(_spec)
-# dataclass resolves `from __future__` annotations via sys.modules[cls.__module__]:
-# register before executing or @dataclass raises AttributeError on NoneType.
-sys.modules[_spec.name] = _mod
-_spec.loader.exec_module(_mod)
+_audit = importlib.util.module_from_spec(_spec)
+sys.modules[_spec.name] = _audit  # dataclasses resolve their module via sys.modules
+_spec.loader.exec_module(_audit)
 
-AUDIT_PAIRS = _mod.AUDIT_PAIRS
-AuditPair = _mod.AuditPair
-execute_audit = _mod.execute_audit
-format_markdown_report = _mod.format_markdown_report
-run_self_test = _mod.run_self_test
+AUDIT_PAIRS = _audit.AUDIT_PAIRS
+AuditPair = _audit.AuditPair
+execute_audit = _audit.execute_audit
+format_markdown_report = _audit.format_markdown_report
+run_self_test = _audit.run_self_test
 
 
 def test_producer_consumer_audit_self_test() -> None:

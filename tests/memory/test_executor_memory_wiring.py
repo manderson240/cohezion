@@ -127,3 +127,18 @@ def test_execute_task_no_memory_when_disabled(monkeypatch):
     _isolate(monkeypatch, ex)
     ex.execute_task("x", "s", "generate", lambda g: ("ok", {}), project="proj")
     assert fake.recall_calls == [] and fake.remember_calls == []
+
+
+def test_enabled_memory_without_injection_resolves_the_real_singleton(monkeypatch):
+    """enable_memory=True with no injected service must load CohezionMemory, not self-disable.
+
+    Every other test injects a fake, so an import path that raises (it did: the class is not
+    re-exported from cohezion.memory) silently turned memory off in production while all
+    tests stayed green.
+    """
+    from cohezion.memory import service
+
+    sentinel = object()
+    monkeypatch.setattr(service.CohezionMemory, "get_instance", classmethod(lambda cls: sentinel))
+    ex = _executor(memory=None, enable_memory=True)
+    assert ex.memory_service is sentinel

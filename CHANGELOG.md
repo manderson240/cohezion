@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.28.1] - 2026-10-22
+
+_Coherence tranches 1–6, merged onto 1.28.0. These entries were drafted as 1.27.2 and 1.27.3 on the coherence branches before the route-restoration branches (1.27.2, 1.28.0) were integrated; none of those numbers shipped, so they are renumbered here._
+
 ### Changed — README leads with the pitch and a ten-minute tour (coherence tranche 6)
 - `README.md` opens with one sentence on what Cohezion is and three commands a reviewer can run, each with the output captured on 2026-10-22. The unbacked "95%+ cache hit rate" figure is replaced by a description; the training table states its provenance (2026-04-01, artifacts not checked in).
 - `make demo` was a 20-line inline `python -c` that failed with a SyntaxError; it now runs `examples/demo_train_eval.py`, which exits 2 with a hint when the RL extra is absent.
@@ -19,14 +23,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `cohezion.datamesh` is now a deprecation shim that re-exports every former public name and warns on import. **Removal scheduled for 1.29.0.** Tests: `tests/data_mesh/test_datamesh_shim.py`.
 - `src/cohezion/data_mesh/CLAUDE.md` declares 27 modules (was 21). The fold recipe for the remaining duplicate pairs is §6 of `docs/audits/COHERENCE_AUDIT_2026-10-22.md`.
 
-## [1.27.3] - 2026-10-22
-
 ### Fixed — Tracked-file hygiene (coherence tranche 2)
 - 22 media files (`.wav`, `.mp3`, `.mp4`, about 10 MB) that `.gitattributes` routes to LFS were committed as raw blobs; a fresh clone warned "files that should have been pointers". They are renormalized to pointers in one commit, with no history rewrite.
 - `scripts/ci/repo_hygiene_ratchet.py` enforces both declared rules that nothing enforced before: an LFS-routed tracked file stored as raw content fails outright, and tracked files matching `.gitignore` may only decrease from the measured baseline in `scripts/ci/ignore_debt_baseline.txt` (188). Wired with `--self-test` into the CI validate job and `scripts/ci/automerge_guard.sh`; tests in `tests/scripts/test_repo_hygiene_ratchet.py` include the consumption check that both gates invoke it.
 - `CLAUDE.md` no longer credits the `lfs-pointer-check` pre-commit hook with enforcement it cannot provide where pre-commit is not installed.
-
-## [1.27.2] - 2026-10-22
 
 ### Security
 - `cloud-vault-mcp/run_mcp.py` no longer carries the vault MCP API key as a literal; configuration comes from the environment. The literal that was committed remains in public git history and must be rotated; see `docs/audits/COHERENCE_AUDIT_2026-10-22.md`.
@@ -39,6 +39,47 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - `docs/audits/COHERENCE_AUDIT_2026-10-22.md`: measured state of the repository against a portfolio-grade coherence standard, ranked findings, and the prioritized remediation plan (secrets, root hygiene, duplicate packages, documentation sprawl, branch and worktree debt, LFS normalization).
+
+## [1.28.0] - 2026-10-07
+
+### Fixed — Lost behaviour restored
+- `CompoundExecutor` again remembers each successful turn in CohezionMemory when `enable_memory=True` (#198's wiring had been dropped in a merge resolution, and `ExecutorFactory` had lost the parameters). Opt-in and non-blocking, as originally designed.
+- `ResourceGuard.can_load_model` enforces the 16 GiB RAM floor *after* the load and the CPU gate; it approved loads that would have left the box below the floor. The OOM hardener no longer loads models it should defer, and `verify_all_bounded` reports failure instead of "all bounded" when the router is unreachable (fix stranded on a side branch since 2026-09-05/21).
+- `MCPHTTPSClient.get_ssl_context` honours an explicit `verify_ssl=False` again (a CodeQL hardening line silently re-enabled verification). The default is unchanged: certificate and hostname verification, TLS >= 1.2.
+- Seven `/api/physics/*` endpoints (LENR, ionic-cluster, dielectric, QGP, Sarfatti) that the tests had pinned since #241, landed from a stranded side branch.
+- Nine packages re-export the names their wiring tests pin (`rl`, `cost_optimization`, `hookify`, `knowledge_graph`, `substrate`, `eval`, `flux.providers`, `vanguard`, `pipeline`); import cost is unchanged.
+- Seven undefined names (ruff F821) that were latent `NameError`s, including an f-string that interpolated a nonexistent `ms`.
+
+### Fixed — From the adversarial review of this release
+- The new physics endpoints validate input: agent ids are bounded (1-64 safe chars), per-agent registries are LRU-capped, LENR history is a bounded window, non-finite and non-physical values return 422. Finite out-of-range coherence is still clamped by the physics.
+- App-wide: a JSON body containing NaN/Infinity returned 500, because the default validation handler could not serialize the rejected input. It now returns the normal 422.
+- `verify_all_bounded` reports a model whose options cannot be read as UNKNOWN instead of bounded.
+- Package `__all__` lists only names whose guarded import succeeded, so star-imports cannot raise.
+- The restored memory wiring imported `CohezionMemory` from a package that does not export it, so it silently disabled itself; caught by the mypy ratchet and fixed.
+
+### Fixed — Tests
+- The suite no longer rewrites tracked files: RL/FLUME checkpoints, `skill_registry.json`, generated agents, the config-sync audit log, the healing log, and a generated mycelium test. A checkpoint left by one run is what made `test_api_integration`'s RL tests fail on the next.
+- Tests updated where they encoded superseded values: Claude pricing per MTok (eda411480 fixed a 1000x overestimate), the encoder-calibrated cache threshold, 18 worldview traditions, the cache novelty gate, the calibration-profile loader's real import site.
+- Integration tier: 212 failures before 1.27.2, 79 after it, 34 on this release (11,326 passed). The rest are tests for features that were never built (listed in the PR).
+
+## [1.27.2] - 2026-10-06
+
+### Fixed — 130 of 169 API routes had been returning 404 since #267
+- #267 moved the inline endpoints out of `src/cohezion/api/__init__.py` and dropped the router mounts with them. Nothing re-mounted them: 11 service routers (research, universe, journey-nexus, genesis, world-model, physics, worldviews, journeys, ouroboros, mycelium, modules) and 9 `routes/*.py` routers holding the extracted inline handlers (written in #89, never mounted). The app served 50 routes; it now serves 180: all 169 pre-#267 routes plus the 11 added since. Measured by diffing the OpenAPI route tables of `8f712a8bd^` and this release; all 169 operations keep identical parameters, security and request bodies.
+- `GET /compound/health` again reports the live executor's degradation health (CB6) and health-oracle synthesis (HO4); the extraction had dropped both fields.
+- `routes/flume_inline.py` (not `routes/flume.py`) is mounted, since its handlers match the ones that were live. A route `main_router` already serves is skipped rather than duplicated, and a router that fails to import is logged instead of silently swallowed.
+- `api/services/physics_extended.py` registered seven endpoints three times each; the two AST-identical duplicate copies are removed (cherry-picked from a fix stranded on a side branch since 2026-09-05).
+- `GET /rl/policy/{agent_id}` returns 200 `{"exists": true}` again for a checkpoint `weights_only` loading rejects (PPO-format or corrupt); the extraction's narrowed except clause had made it a 500. Found by an independent adversarial review, which also confirmed 0 of 1,720 resolved requests changed handler.
+- Guard: `tests/api/test_service_router_mounts.py` dispatches every route of every re-mounted router through the app and asserts its own handler answers (shadowing, unmounting, dedupe and flume-copy mutants each fail it), checks the 169 pre-#267 routes in `tests/api/routes_before_pr267.txt` and the absence of duplicate operation ids; plus `tests/api/test_compound_health_enrichment.py` and `tests/api/test_rl_policy_uninspectable_checkpoint.py`.
+
+### Fixed — The integration test tier was measuring nothing
+- `tests/scripts/test_producer_consumer_audit.py` imported `producer_consumer_audit` by name, and `scripts/` and `scripts/ci/` both contain a module with that name. When another test had put `scripts/` on `sys.path` first, collection raised ImportError and aborted `pytest tests/ --ignore=tests/unit --ignore=tests/inference`: 0 tests executed. It now loads the CI module by path. With collection working the tier runs 11,323 tests; the route restoration alone took it from 212 failures to 79.
+- CI: the integration step still tolerates failing tests (exit 1) but now fails when pytest cannot run (exit 2 or more, including nothing collected), so a collection abort can no longer pass as green.
+- `scripts/ci/local_adversarial_review.py` read only `message.content`. When FLM ignores `enable_thinking` and puts the answer in `reasoning_content`, a real verdict was scored UNKNOWN. It now applies the shared `gaia_adapter._answer_only` contract (the choke-point baseline gains exactly this file).
+- `test_ultra_realistic_agent_env_lifecycle_and_actions` skips, with a stated reason, when bwrap is installed but cannot create namespaces. The production sandbox is unchanged.
+
+### Added
+- `tests/universe/test_physics_core_rust_parity.py`: the Rust `cohezion_physics_core` kernels are compared against the pure-Python fallbacks they replace (all 256 CA rules, 1000 MHD cases): 0 mismatches. It skips when the extension is not built.
 
 ## [1.27.1] - 2026-09-27
 

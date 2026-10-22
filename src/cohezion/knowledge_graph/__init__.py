@@ -42,6 +42,9 @@ with contextlib.suppress(Exception):
         RetrievalResult as RetrievalResult,
     )
 
+    # Inside the guard: listed only when the import above succeeded.
+    __all__ += ["GraphRAGEngine", "GraphRAGResponse", "RetrievalResult"]
+
 with contextlib.suppress(Exception):
     from cohezion.knowledge_graph.query_engine import (
         KnowledgeGraphQueryEngine as KnowledgeGraphQueryEngine,

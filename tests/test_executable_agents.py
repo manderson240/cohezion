@@ -205,7 +205,9 @@ class TestFactoryCreateExecutable:
         result = asyncio.get_event_loop().run_until_complete(agent.process("test input"))
         assert result.skill_name == "FACTORY_TEST_PRIME"
 
-    def test_factory_generate_top_skills(self, tmp_path: Path) -> None:
+    def test_factory_generate_top_skills(
+        self, tmp_path: Path, restore_registration_outputs
+    ) -> None:
         """generate_top_skills() should generate agents for skills with instructions."""
         from cohezion.agents.factory import AgentFactory
 

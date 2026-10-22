@@ -82,8 +82,10 @@ class MCPHTTPSClient:
             logger.warning("SSL certificate verification disabled")
 
         # Enforce strong TLS versions — minimum_version=TLSv1_2 disables all older protocols
+        # (CodeQL py/insecure-protocol). Hostname checking is set per branch above: forcing it
+        # here re-enabled CERT_REQUIRED and silently ignored an explicit verify_ssl=False,
+        # while the requests/aiohttp paths below still honoured it.
         self._ssl_context.minimum_version = ssl.TLSVersion.TLSv1_2
-        self._ssl_context.check_hostname = True
 
         return self._ssl_context
 

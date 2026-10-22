@@ -12,8 +12,9 @@ def mock_scripter():
 
 
 @pytest.fixture
-def loop(mock_scripter):
-    return CoverageLoop(scripter=mock_scripter)
+def loop(mock_scripter, tmp_path):
+    # Default test_output_dir is tests/mycelium, so the loop wrote a tracked file every run.
+    return CoverageLoop(scripter=mock_scripter, test_output_dir=str(tmp_path))
 
 
 @pytest.mark.asyncio

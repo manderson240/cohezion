@@ -62,12 +62,18 @@ __all__ = [
     "BudgetEnforcer",
     "BudgetPolicy",
     "BudgetState",
+    "BudgetStatus",
     "CostAlertManager",
+    "CostBreakdown",
+    "CostDashboard",
     "CostRecord",
     "Forecast",
     "ForecastEngine",
     "ForecastSummary",
     "SessionCostTracker",
+    "SpendRate",
+    "TrendPoint",
+    "get_cost_dashboard",
     "get_current_enforcer",
     "get_current_tracker",
     "get_forecast_engine",
@@ -81,9 +87,16 @@ __all__ = [
 with contextlib.suppress(Exception):
     from cohezion.cost_optimization.cost_dashboard import BudgetStatus as BudgetStatus
     from cohezion.cost_optimization.cost_dashboard import CostBreakdown as CostBreakdown
+    from cohezion.cost_optimization.cost_dashboard import CostDashboard as CostDashboard
     from cohezion.cost_optimization.cost_dashboard import SpendRate as SpendRate
+    from cohezion.cost_optimization.cost_dashboard import TrendPoint as TrendPoint
+    from cohezion.cost_optimization.cost_dashboard import get_cost_dashboard as get_cost_dashboard
 
 with contextlib.suppress(Exception):
     from cohezion.cost_optimization.forecast_engine import Forecast as Forecast
     from cohezion.cost_optimization.forecast_engine import ForecastEngine as ForecastEngine
     from cohezion.cost_optimization.forecast_engine import ForecastSummary as ForecastSummary
+
+# Guarded imports above may fail; list only names that actually bound, so
+# `from <package> import *` cannot raise on a missing optional dependency.
+__all__ = [_name for _name in __all__ if _name in globals()]

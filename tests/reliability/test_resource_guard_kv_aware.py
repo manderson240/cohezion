@@ -13,10 +13,12 @@ from unittest.mock import patch
 from cohezion.reliability.resource_guard import ResourceGuard, SystemVitals
 
 
-# 40 GB free sits between weights-only (20 GB + margin) and weights + full-ctx KV (20 + 64 GB),
-# so the KV cache is exactly what flips the decision.
+# 44 GB free: weights-only (20 + 2 margin) leaves 22 GB and 16k-ctx KV (+4 GB) leaves 18 GB —
+# both above the 16 GB post-load floor — while full 256k-ctx KV (+64 GB) cannot fit at all, so
+# the KV cache is exactly what flips the decision. (Was 40 GB until 2026-09-21, when the gate
+# began enforcing the floor after the load; 40 GB left the bounded case at 14 GB.)
 _VITALS_40GB = SystemVitals(
-    cpu_load_1m=5.0, ram_available_mb=40 * 1024, ram_percent=55.0, swap_used_mb=0
+    cpu_load_1m=5.0, ram_available_mb=44 * 1024, ram_percent=55.0, swap_used_mb=0
 )
 
 
@@ -64,8 +66,10 @@ def test_kv_aware_allows_when_bounded_context_fits():
 def test_kv_aware_q8_cache_flips_a_refuse_to_allow():
     """The A3 lever: halving the KV dtype can turn an OOM refuse into an allow (same model/ctx)."""
     guard = ResourceGuard(min_ram_available_mb=16384, model_load_margin_mb=2048)
+    # 50 GB free: fp16 KV (16 GB) leaves 12 GB after 20 GB weights + 2 GB margin (below the 16 GB
+    # floor -> refuse); q8 KV (8 GB) leaves 20 GB (allow). Was 34 GB before the post-load floor.
     vitals = SystemVitals(
-        cpu_load_1m=5.0, ram_available_mb=34 * 1024, ram_percent=60.0, swap_used_mb=0
+        cpu_load_1m=5.0, ram_available_mb=50 * 1024, ram_percent=60.0, swap_used_mb=0
     )
     common = {
         "weight_mb": 20 * 1024,
