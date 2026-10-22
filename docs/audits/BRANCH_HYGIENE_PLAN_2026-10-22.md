@@ -359,9 +359,10 @@ repository rather than a stale branch.
     against `origin/main`, so 4 of the 25 were refused by `-d` although `git merge-base
     --is-ancestor <b> origin/main` held. They were deleted with `-D` **after** re-running that
     ancestor check per branch. Use the same pair (verify, then `-D`) for sections B and C.
-  - `.git/config` could not be locked from this session (with or without the sandbox), so the
-    deleted branches' `branch.<name>.remote/merge` sections remain. There were already 105
-    such stale sections before today. Cleanup from a normal shell:
+  - `.git/config` could not be locked from this session (with or without the sandbox); git
+    warned but the ref deletions went through, and the stale `branch.<name>.*` section count
+    was 105 before and after, so today's deletions left none behind. The pre-existing 105 are a
+    separate cleanup from a normal shell:
     `git config --get-regexp '^branch\..*\.remote$' | sed -E 's/^branch\.(.*)\.remote .*/\1/' | while read b; do git show-ref -q --verify refs/heads/$b || git config --remove-section branch.$b; done`
 - Sections B, C, D, E: not executed (E was offered and declined for now).
 
