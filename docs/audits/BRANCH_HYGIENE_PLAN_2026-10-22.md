@@ -3,7 +3,7 @@ type: plan
 title: Branch, worktree and primary-checkout hygiene plan
 date: 2026-10-22
 scope: /home/mike-anderson/dev/cohezion shared .git (origin/main b3342cf18)
-status: section-A-executed
+status: sections-A-E-executed
 tags: [coherence, repo-hygiene, git]
 ---
 
@@ -364,7 +364,12 @@ repository rather than a stale branch.
     was 105 before and after, so today's deletions left none behind. The pre-existing 105 are a
     separate cleanup from a normal shell:
     `git config --get-regexp '^branch\..*\.remote$' | sed -E 's/^branch\.(.*)\.remote .*/\1/' | while read b; do git show-ref -q --verify refs/heads/$b || git config --remove-section branch.$b; done`
-- Sections B, C, D, E: not executed (E was offered and declined for now).
+- **2026-10-22, section E executed** (user approved): the nine dotfiles restored from the index.
+  A stale zero-byte `.git/index.lock` dated 2026-09-21 (no git process holding it) blocked the
+  checkout and was removed first. Result: `git status` deleted 9 → 0, untracked 687 → 89,
+  modified 131 unchanged. The primary checkout is still on `security/codeql-wave2`; moving it
+  back to `main` remains with that branch's owner.
+- Sections B, C, D: not executed.
 
 ## Verification after each approved section
 
