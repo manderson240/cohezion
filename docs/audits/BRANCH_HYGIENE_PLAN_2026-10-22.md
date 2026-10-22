@@ -3,7 +3,7 @@ type: plan
 title: Branch, worktree and primary-checkout hygiene plan
 date: 2026-10-22
 scope: /home/mike-anderson/dev/cohezion shared .git (origin/main b3342cf18)
-status: sections-A-D-E-executed-B-harvested
+status: sections-A-B1-B2-D-E-executed
 tags: [coherence, repo-hygiene, git]
 ---
 
@@ -419,7 +419,14 @@ repository rather than a stale branch.
   none from the active coherence stack) and deleted in four pushes of ≤20. Remote branches
   309 → 233; zero of the 76 remain. Merged PR history is unaffected on GitHub.
 - **2026-10-22, section B inspected and harvested** (user approved B): 14 clean, 6 trivial, 8 with real work; all 28 worktrees' diffs and untracked files saved to the vault harvest folder. Removal itself is blocked for agent sessions by the read-only `.git/worktrees` mount; the exact script is in B.
-- Section C: not executed (needs per-branch review).
+- **2026-10-22 (later), section B executed from the user's Terminal panel** (host shell, outside the
+  agent namespace, with the user's explicit permission grant): the B1 + B2 script ran as written.
+  20 worktrees removed, 20 branches deleted, `git worktree prune` cleared the 2 dangling registrations.
+  Worktrees 87 → 65; local branches 162 → 142; `git branch --merged origin/main` now lists exactly
+  the 8 B3 branches. Also found and removed a stale `.git/config.lock` dated 2026-09-26 (zero bytes,
+  no process), which is why every config write had failed for a month; 107 stale `branch.*`
+  sections then cleared (9 remain, all for live branches).
+- Section C: not executed (needs per-branch review). B3 (8 worktrees with real work) untouched.
 
 ## Verification after each approved section
 
