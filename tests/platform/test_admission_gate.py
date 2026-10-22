@@ -149,21 +149,38 @@ class TestBypassAudit:
 
 
 class TestCgroupReader:
-    def _write(self, tmp_path, current: int, high: str, inactive_file: int) -> None:
-        (tmp_path / "memory.current").write_text(f"{current}\n")
+    def _write(self, tmp_path, high: str, **stat: int) -> None:
         (tmp_path / "memory.high").write_text(f"{high}\n")
-        (tmp_path / "memory.stat").write_text(
-            f"anon 1000\nactive_file 5000\ninactive_file {inactive_file}\nshmem 10\n"
-        )
+        fields = {
+            "anon": 0,
+            "file": 0,
+            "shmem": 0,
+            "file_mapped": 0,
+            "active_file": 0,
+            "inactive_file": 0,
+            **stat,
+        }
+        (tmp_path / "memory.stat").write_text("".join(f"{k} {v}\n" for k, v in fields.items()))
 
-    def test_inactive_file_cache_is_not_counted(self, tmp_path, monkeypatch) -> None:
-        # Counting memory.current would refuse routine loads on cold page cache alone.
-        self._write(tmp_path, 25 * GiB, str(30 * GiB), 10 * GiB)
+    def test_unmapped_cache_is_not_counted_even_on_the_active_list(
+        self, tmp_path, monkeypatch
+    ) -> None:
+        # Live 2026-10-21 after the 26B was unloaded: its 16.9 GB stayed on the ACTIVE
+        # file list. Counting it (current - inactive_file = 28.7 GB) refuses every load.
+        self._write(
+            tmp_path,
+            str(30 * GiB),
+            anon=5 * GiB,
+            shmem=7 * GiB,
+            file_mapped=9 * GiB,
+            file=24 * GiB,
+            active_file=17 * GiB,
+        )
         monkeypatch.setattr(ag, "LEMOND_CGROUP", tmp_path)
-        assert ag.read_lemond_cgroup_gb() == pytest.approx((15.0, 30.0))
+        assert ag.read_lemond_cgroup_gb() == pytest.approx((21.0, 30.0))
 
     def test_no_memory_high_means_no_check(self, tmp_path, monkeypatch) -> None:
-        self._write(tmp_path, 5 * GiB, "max", 0)
+        self._write(tmp_path, "max", anon=5 * GiB)
         monkeypatch.setattr(ag, "LEMOND_CGROUP", tmp_path)
         assert ag.read_lemond_cgroup_gb() is None
 

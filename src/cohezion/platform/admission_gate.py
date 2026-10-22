@@ -65,24 +65,27 @@ _NON_LOAD_PATH_SUFFIXES = ("unload", "delete", "pull")
 def read_lemond_cgroup_gb() -> tuple[float, float] | None:
     """(working_set_gb, memory_high_gb) for lemond's cgroup, or None.
 
-    Working set = memory.current - inactive_file: cold page cache is dropped before the
-    kernel throttles, so counting it would refuse routine loads on cache alone. None when
-    the cgroup is unreadable or has no memory.high (fail open).
+    Working set = anon + shmem + file_mapped: memory the kernel cannot drop to stay under
+    memory.high. Unmapped file cache is excluded whichever LRU list it sits on: after a
+    model is unloaded its weights stay on the ACTIVE file list (16.9 GB measured
+    2026-10-21), so ``memory.current - inactive_file`` read 28.7 GB and would have refused
+    every load while only 21.2 GB was in use. Measured on the same day: lemond's processes
+    map 0 MB of shmem, so shmem and file_mapped do not overlap. None when the cgroup is
+    unreadable or has no memory.high (fail open).
     """
     try:
         high_raw = (LEMOND_CGROUP / "memory.high").read_text().strip()
         if high_raw == "max":
             return None
-        current = int((LEMOND_CGROUP / "memory.current").read_text().strip())
-        inactive_file = 0
+        stat: dict[str, int] = {}
         for line in (LEMOND_CGROUP / "memory.stat").read_text().splitlines():
             key, _, value = line.partition(" ")
-            if key == "inactive_file":
-                inactive_file = int(value)
-                break
-    except (OSError, ValueError):
+            if key in ("anon", "shmem", "file_mapped"):
+                stat[key] = int(value)
+        working_set = stat["anon"] + stat["shmem"] + stat["file_mapped"]
+    except (OSError, ValueError, KeyError):
         return None
-    return max(0, current - inactive_file) / (1024.0**3), int(high_raw) / (1024.0**3)
+    return working_set / (1024.0**3), int(high_raw) / (1024.0**3)
 
 
 def is_load_path(path: str) -> bool:
