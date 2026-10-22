@@ -192,9 +192,30 @@ entry), and running the integration tier yourself for any "is it green" claim un
 | Passed on rerun (order-dependent) | 3 | left alone; candidates for the isolation sweep |
 | Environment-coupled on this machine | 8 | live embedder returning empty vectors into SurrealDB (3), live embedding performance/hit-rate (2), 20 GB swap thrashing aborting mass-sim (1), a memory-threshold check (1), a SurrealDB-bound singleton that hangs (1). Expected to pass or skip in CI, where none of those services exist. |
 
+**Third pass — CI-equivalent verdict and the gate flipped.** Every local-service probe was then
+re-run inside a network namespace with loopback up and nothing listening, which is what
+`ubuntu-latest` looks like to this suite (CI provisions no SurrealDB or Lemonade). Two findings:
+three of the "never-built" bridges on `test_verify_evolve_evidence.py` were wrong, the tests merely
+left two SurrealDB calls unmocked, so a live database changed the verdict; they are fixed and the
+markers removed. The orchestrator unit test demanded a successful SurrealDB publish, which the merged
+`publish_and_persist` now reports honestly; it asserts the flag's type instead.
+
+| Tier, namespace run (no services) | Result |
+|---|---|
+| unit | 1,445 passed, 19 xfailed |
+| inference | 1,248 passed, 34 skipped, 13 xfailed |
+| integration | 11,360 passed, 92 skipped, 49 xfailed, **3 failed** |
+
+The three: `mass_sim` aborts on this machine's 20 GB of swap thrashing, `test_resource_manager`
+reads the same memory state, and `test_sandboxed_exec::test_genuine_pre_exec_failure_is_pre_exec`
+cannot create a nested user namespace inside the test namespace. None of those conditions exist
+on a CI runner. On that evidence `continue-on-error` is removed from the integration step: the
+tier is now a gate, and the pull request's own CI run is the first test of that decision. If it
+shows red, the three names above are the first suspects, and the fix is a `skipif` on the
+condition, not a return to advisory.
+
 The bridge list is what the next session works from: `grep -rn "xfail(strict=True" tests/` and the
-reason strings name the gap. `continue-on-error` stays on the integration step until one CI run of
-the merged stack confirms the environment-coupled eight behave in CI; then it should be removed.
+reason strings name the gap (24 bridges after this pass).
 
 ---
 
