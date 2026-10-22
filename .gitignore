@@ -367,3 +367,28 @@ run_stats.csv
 scorer_pkg/
 secondary_seed_weights/
 
+
+# Root hygiene (2026-10-22 sweep): the repository root carries no loose code, data,
+# results or JS tooling. Tracked exceptions are listed explicitly. Loose artifacts
+# belong in scratch space, docs/archive/, submissions/ or the owning package.
+/*.py
+!/autoresearch_store.py
+/*.json
+!/mcp_config.json
+!/mcp_servers.json
+!/pyrightconfig.json
+!/skills-lock.json
+/*.txt
+!/mypy_baseline.txt
+/*.csv
+/*.parquet
+/*.zip
+/*.jpeg
+/*.jpg
+/*.png
+/package.json
+/package-lock.json
+/pnpm-lock.yaml
+/yarn.lock
+/bunfig.toml
+/node_modules/
