@@ -216,7 +216,8 @@ class SemanticCache:
 
         # Vectorized L2 scan: pre-stacked embedding matrix for BLAS dot
         self._l2_keys: list[str] = []
-        self._l2_matrix: np.ndarray | None = None  # shape (n, 384)
+        self._l2_matrix: np.ndarray | None = None  # shape (n, _l2_dim)
+        self._l2_dim: int | None = None  # embedding width the active L2 view holds
 
         # Stats
         self.hits_l1 = 0
@@ -324,6 +325,32 @@ class SemanticCache:
         dot_product = np.dot(a, b)
         return float(dot_product)
 
+    def _select_dimension(self, dim: int) -> None:
+        """Point the L2 similarity view at entries whose embedding width is ``dim``.
+
+        The encoder ladder (nomic 768D / MiniLM 384D / FLUME 256D / hash 384D) changes
+        availability at runtime, and one stacked matrix cannot hold mixed widths (np.dot
+        raised "shapes not aligned" in the api). Entries of other widths stay in
+        ``l2_cache``; only the active view (``_l2_keys`` / ``_l2_matrix``) changes. So a
+        transient fallback (768D -> 256D -> 768D) costs misses while it lasts, but does
+        not destroy the store. L1 exact-key entries are width-agnostic.
+        """
+        if self._l2_dim == dim:
+            return
+        self._l2_keys = [k for k, e in self.l2_cache.items() if e.embedding.shape[0] == dim]
+        self._l2_matrix = (
+            np.stack([self.l2_cache[k].embedding for k in self._l2_keys]) if self._l2_keys else None
+        )
+        if self._l2_dim is not None:
+            logger.info(
+                "Encoder width %dD -> %dD: L2 view now %d entries (%d of other widths kept)",
+                self._l2_dim,
+                dim,
+                len(self._l2_keys),
+                len(self.l2_cache) - len(self._l2_keys),
+            )
+        self._l2_dim = dim
+
     def _is_novel(self, embedding: np.ndarray) -> bool:
         """Check if embedding is novel relative to existing L2 entries.
 
@@ -337,6 +364,7 @@ class SemanticCache:
         Returns:
             True if novel (should insert), False if near-duplicate (skip).
         """
+        self._select_dimension(embedding.shape[0])
         if self._l2_matrix is None or len(self._l2_keys) == 0:
             return True
         sims = np.dot(self._l2_matrix, embedding)
@@ -456,6 +484,7 @@ class SemanticCache:
         best_similarity = 0.0
         current_threshold = self._get_adaptive_threshold()
 
+        self._select_dimension(query_embedding.shape[0])
         if self._l2_matrix is not None and len(self._l2_keys) > 0:
             sims = np.dot(self._l2_matrix, query_embedding)
             best_idx = int(np.argmax(sims))
@@ -514,6 +543,7 @@ class SemanticCache:
         embed_text = full_prompt if card_signature is not None else prompt
         query_embedding = self._text_to_embedding(embed_text)
         current_threshold = self._get_adaptive_threshold()
+        self._select_dimension(query_embedding.shape[0])
         if self._l2_matrix is not None and len(self._l2_keys) > 0:
             sims = np.dot(self._l2_matrix, query_embedding)
             best_idx = int(np.argmax(sims))
@@ -630,13 +660,17 @@ class SemanticCache:
         if self.max_l2_size <= 0:
             return
 
+        self._select_dimension(entry.embedding.shape[0])
+
         if len(self.l2_cache) >= self.max_l2_size and self.l2_lfu_counts:
             get_fn = self.l2_lfu_counts.get
             lfu_key = min(self.l2_lfu_counts, key=get_fn)  # type: ignore
             del self.l2_cache[lfu_key]
             del self.l2_lfu_counts[lfu_key]
             # Rebuild matrix after eviction (infrequent — only when L2 is full)
-            self._l2_keys = list(self.l2_cache.keys())
+            self._l2_keys = [
+                k for k, e in self.l2_cache.items() if e.embedding.shape[0] == self._l2_dim
+            ]
             if self._l2_keys:
                 self._l2_matrix = np.stack([self.l2_cache[k].embedding for k in self._l2_keys])
             else:
@@ -833,6 +867,7 @@ class SemanticCache:
         self.l2_lfu_counts.clear()
         self._l2_keys.clear()
         self._l2_matrix = None
+        self._l2_dim = None
         self.hits_l1 = 0
         self.hits_l2 = 0
         self.hits_l3 = 0

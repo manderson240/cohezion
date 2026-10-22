@@ -65,7 +65,7 @@ uv run pytest tests/compound/test_loopception.py -q  # LC1-LC3
 
 **HO** (Health Oracle) — HO1-HO4: `to_dict/from_dict/save_state/restore_state`; `to_health_dict()` API; cross-session persistence via `~/.cohezion/oracle_state.json`
 
-**OC** (Oracle Consumption) — OC1-OC5: `oracle_tier` 4th signal in `_resolve_tier()`; STUCK→floor escalation; CHAOTIC→cpu; MAX-CAPABILITY (oracle never lowers a confident prediction); backward-compatible default None
+**OC** (Oracle Consumption) — OC1-OC5: `oracle_tier` 4th signal in `_resolve_tier()`; the oracle's alert and tier come from window quality statistics (level/trend/dispersion), not the FD regime: DEGRADING/COLLAPSED → critical + escalate one tier, STEADY-POOR (mean < 0.70) or UNSTABLE (sd > 0.15) → warn + escalate one tier, healthy → ok at the detector's tier; the FD regime (STUCK/HIHO/CHAOTIC) is reported as context only, and windows < 3 samples fall back to the legacy FD rule; MAX-CAPABILITY (oracle never lowers a confident prediction); backward-compatible default None
 
 **SX** (Sandboxed Exec, H5 durable half, 2026-09-13)
 - SX1 (CONSUMPTION): LLM-generated code runs via `sandboxed_exec.run_untrusted` — child process under

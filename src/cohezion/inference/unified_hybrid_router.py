@@ -7,6 +7,7 @@ gated by Expected Value of Intervention (EVI > 0.75).
 from __future__ import annotations
 
 # reconcile 2026-08-26: imports needed by branch-preserved code
+import asyncio
 import json
 import logging
 import os
@@ -17,6 +18,8 @@ from typing import Any
 
 from cohezion.core.event_bus import Event, EventBus, get_event_bus
 from cohezion.inference.delegation_logger import DelegationEvent, DelegationLogger
+from cohezion.inference.hotswap import MAX_CTX as HOTSWAP_MAX_CTX
+from cohezion.inference.hotswap import ensure_resident
 from cohezion.inference.lemonade_health import probe_lemonade
 from cohezion.inference.transports.base import BaseInferenceTransport
 from cohezion.inference.transports.lemonade import LemonadeTransport
@@ -36,6 +39,22 @@ OLLAMA_URL = "http://localhost:11434/api/generate"
 
 
 VRAM_SATURATION_THRESHOLD: float = 0.90
+
+
+def _load_ctx_size(prompt: str, max_tokens: int) -> int:
+    """ctx_size for a gated cold load: room for the prompt AND the reply, bounded.
+
+    A load fixes the context window for every later caller of that model, so sizing it
+    from ``max_tokens`` alone (the first port of this gate) loaded e.g. a 2048 window for a
+    5000-word prompt. ~3 chars/token is a deliberately generous estimate (English averages
+    ~4). Rounded up to a power of two from 4096, never 0 (the GTT 120GB-mapping crasher)
+    and never above hotswap's N3 cap.
+    """
+    needed = len(prompt) // 3 + max_tokens + 256
+    ctx = 4096
+    while ctx < needed and ctx < HOTSWAP_MAX_CTX:
+        ctx *= 2
+    return min(ctx, HOTSWAP_MAX_CTX)
 
 
 class TaskClass(StrEnum):
@@ -733,6 +752,12 @@ class UnifiedHybridRouter:
     async def aquery_lemonade_local(self, prompt: str, model: str) -> str | None:
         """Attempt local NPU/iGPU inference via Lemonade (:13305) asynchronously with model-aligned options.
 
+        Model-load safety gate: before POSTing the chat completion (which would make the
+        Lemonade server auto-load ``model`` blind), ``hotswap.ensure_resident`` runs the
+        fleet weight-fit gate. A refusal is a SUCCESSFUL gate outcome — it means "do not
+        load this model right now" — so this method returns ``None`` and the caller's
+        existing fallback path (Tier-2 cloud / Tier-0 synthetic) takes over.
+
         Parameters
         ----------
         prompt : str
@@ -780,6 +805,22 @@ class UnifiedHybridRouter:
             "temperature": temp,
             "top_p": top_p,
         }
+
+        # --- hotswap safety gate (never raises; refusal == fall back to Tier 2) ----
+        # ensure_resident is a module-level import (patch target: patch WHERE USED).
+        gate = await asyncio.to_thread(
+            ensure_resident,
+            model,
+            ctx_size=_load_ctx_size(prompt, max_tokens),
+        )
+        if not gate.ok:
+            logger.warning(
+                "Hotswap gate refused %s (reason: %s); falling back to Tier-2 cloud",
+                model,
+                gate.reason,
+            )
+            return None
+
         try:
             async with httpx.AsyncClient(timeout=45.0) as client:
                 res = await client.post(self._lemonade_url, json=payload)
@@ -800,6 +841,11 @@ class UnifiedHybridRouter:
     ) -> list[float] | None:
         """Fetch real embedding vector via Lemonade /v1/embeddings endpoint.
 
+        Model-load safety gate: ``/v1/embeddings`` can auto-load ``model`` exactly like
+        the chat-completions endpoint can, so ``hotswap.ensure_resident`` runs first.
+        A refusal is a SUCCESSFUL gate outcome — the embedding attempt is skipped and
+        the caller's existing fallback (Tier-2 embedding) takes over.
+
         Parameters
         ----------
         text : str
@@ -813,6 +859,16 @@ class UnifiedHybridRouter:
             Embedding float vector, or None on failure.
         """
         import httpx
+
+        # --- hotswap safety gate (never raises; refusal == fall back to Tier 2) ----
+        gate = await asyncio.to_thread(ensure_resident, model, ctx_size=1024, kind="embedding")
+        if not gate.ok:
+            logger.warning(
+                "Hotswap gate refused embedding model %s (reason: %s); skipping Tier-1 embedding",
+                model,
+                gate.reason,
+            )
+            return None
 
         payload = {"model": model, "input": text}
         try:

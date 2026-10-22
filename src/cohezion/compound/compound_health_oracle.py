@@ -6,7 +6,10 @@ Synthesizes two independent monitoring signals into a single actionable
 1. ``RollingRegimeTracker`` — Higuchi FD regime (STUCK / HIHO / CHAOTIC)
    measures the *texture* of the quality-score time series.  HIHO is the
    target Brownian equilibrium; STUCK means the loop is over-exploiting;
-   CHAOTIC means quality is oscillating wildly.
+   CHAOTIC means quality is oscillating wildly.  The FD regime is reported
+   as context; the ALERT level is derived from quality statistics (level,
+   trend, dispersion) instead — FD is amplitude-invariant and mis-reads
+   bounded, stationary quality signals (see ``_quality_stats``).
 
 2. ``DegradationDetector`` (optional) — metric-based tier suggestion derived
    from cache-hit-rate, coherence, and token-efficiency trends.  When wired,
@@ -86,7 +89,9 @@ class HealthAssessment:
         HIHO deviation: ``max(0.0, 1.0 - 2.0 * deviation)``.  Low confidence
         during warm-up (< min_samples) or when quality is far from 0.5.
     alert_level : str
-        "ok" (HIHO), "warn" (STUCK), or "critical" (CHAOTIC).
+        "ok" (healthy level/trend/dispersion), "warn" (steady-poor or unstable),
+        or "critical" (materially falling quality).  Driven by window statistics,
+        not by the FD regime — see :meth:`CompoundHealthOracle._synthesize`.
     alerts : list[str]
         Human-readable alert strings.  Empty list when alert_level is "ok".
     """
@@ -185,9 +190,94 @@ class CompoundHealthOracle:
     # ── Internal helpers ───────────────────────────────────────────────────
 
     def _synthesize(self, regime: FractalRegime, confidence: float) -> HealthAssessment:
-        """Produce a HealthAssessment from a confirmed regime + deviation-confidence."""
-        detector_tier: str | None = self._read_detector_tier()
+        """Produce a HealthAssessment from quality statistics over the rolling window.
 
+        The ALERT is driven by quality statistics — level, trend, dispersion — per the
+        2026-08-16 production measurement recorded in :meth:`_quality_stats`.  The FD
+        ``regime`` no longer decides severity; it rides along as texture context.
+        """
+        detector_tier: str | None = self._read_detector_tier()
+        scores = list(getattr(self._tracker, "_scores", []) or [])
+        stats = self._quality_stats()
+
+        # Tiny windows (< 3 samples): fall back to the legacy FD-driven synthesis.
+        if stats is None:
+            return self._synthesize_from_regime(regime, detector_tier, confidence)
+
+        mean, slope, stdev = stats
+
+        if self._is_degrading(scores, slope):
+            n = len(scores)
+            # Collapse = a STEP: recent level sits materially BELOW the regression
+            # trend.  A steady decline tracks the trend (excess ≈ 0) and stays DEGRADING.
+            x_mean = (n - 1) / 2.0
+            intercept = mean - slope * x_mean
+            k = max(1, n // 4)
+            recent_idx = range(n - k, n)
+            expected_recent = intercept + slope * (sum(recent_idx) / k)
+            actual_recent = sum(scores[n - k :]) / k
+            kind = (
+                "COLLAPSED" if (actual_recent - expected_recent) < -_MIN_TOTAL_DROP else "DEGRADING"
+            )
+            base_tier = detector_tier if detector_tier is not None else "npu"
+            escalated = _escalate_tier(base_tier)
+            return HealthAssessment(
+                regime=regime,
+                tier_recommendation=escalated,
+                confidence=confidence,
+                alert_level="critical",
+                alerts=[
+                    f"{kind}: quality window fell materially "
+                    f"(mean {mean:.2f}, slope {slope:+.4f}/sample). "
+                    f"Escalating tier {base_tier!r} → {escalated!r}."
+                ],
+            )
+
+        if mean < _HEALTHY_MEAN:
+            base_tier = detector_tier if detector_tier is not None else "npu"
+            escalated = _escalate_tier(base_tier)
+            return HealthAssessment(
+                regime=regime,
+                tier_recommendation=escalated,
+                confidence=confidence,
+                alert_level="warn",
+                alerts=[
+                    f"STEADY-POOR: mean quality {mean:.2f} below healthy floor "
+                    f"{_HEALTHY_MEAN:.2f}. Escalating tier {base_tier!r} → {escalated!r}."
+                ],
+            )
+
+        if stdev > _STEADY_STDEV:
+            base_tier = detector_tier if detector_tier is not None else "npu"
+            escalated = _escalate_tier(base_tier)
+            return HealthAssessment(
+                regime=regime,
+                tier_recommendation=escalated,
+                confidence=confidence,
+                alert_level="warn",
+                alerts=[
+                    f"UNSTABLE: dispersion {stdev:.2f} exceeds steady band "
+                    f"{_STEADY_STDEV:.2f} despite acceptable mean {mean:.2f}. "
+                    f"Escalating tier {base_tier!r} → {escalated!r}."
+                ],
+            )
+
+        base_tier = detector_tier if detector_tier is not None else "npu"
+        return HealthAssessment(
+            regime=regime,
+            tier_recommendation=base_tier,
+            confidence=confidence,
+            alert_level="ok",
+            alerts=[],
+        )
+
+    def _synthesize_from_regime(
+        self,
+        regime: FractalRegime,
+        detector_tier: str | None,
+        confidence: float,
+    ) -> HealthAssessment:
+        """Legacy FD-driven synthesis — kept as the fallback for tiny windows."""
         if regime is FractalRegime.HIHO:
             tier = detector_tier if detector_tier is not None else "npu"
             return HealthAssessment(

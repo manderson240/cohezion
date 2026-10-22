@@ -198,3 +198,309 @@ class TestHotswap:
         monkeypatch.setattr(hotswap, "_post", lambda *a, **k: (200, "ok"))
         r = hotswap.ensure_resident("M")
         assert r.ok is False and "not resident" in r.reason
+
+
+class TestResidentCap:
+    """The count-side twin of the RAM floor (2026-09-14 OOM spiral).
+
+    The fit gate bounds each load's SIZE; nothing bounded the COUNT. Seven models resident
+    at once, every load individually "fitting", and the LRU loop never fired because
+    nothing asked it to — the fatal straw was one more auto-load. The cap gives eviction
+    a second trigger, and gives the gate a refusal reason that is count-shaped.
+    """
+
+    def test_cap10_at_cap_evicts_lru_oldest_first(self, monkeypatch):
+        """HS10 (discriminating): 3 resident, cap 3 => the OLDEST model is evicted.
+
+        A RAM-only impl (or one that counts but picks an arbitrary victim) fails: the
+        victim must be the least-recently-used resident, and the target must load.
+        """
+        monkeypatch.setattr(
+            hotswap,
+            "resident_models",
+            lambda: [_model("new", 300), _model("mid", 200), _model("old", 100)],
+        )
+        monkeypatch.setattr(
+            hotswap, "_catalog_sizes", lambda: {"TARGET": 5.0, "new": 1.0, "mid": 1.0, "old": 1.0}
+        )
+        freed = {"n": 0}
+        monkeypatch.setattr(hotswap, "free_gb", lambda: 90.0 + 10.0 * freed["n"])
+
+        def _unload(mid, timeout=30.0):
+            freed["n"] += 1
+            return True
+
+        monkeypatch.setattr(hotswap, "unload", _unload)
+        monkeypatch.setattr(hotswap, "_post", lambda *a, **k: (200, "ok"))
+        calls = {"n": 0}
+
+        def _resident():
+            calls["n"] += 1
+            base = [_model("new", 300), _model("mid", 200), _model("old", 100)]
+            # call #2 is the post-load verification: 'old' gone, TARGET resident
+            return base if calls["n"] == 1 else [*base, _model("TARGET", 400)]
+
+        monkeypatch.setattr(hotswap, "resident_models", _resident)
+        r = hotswap.ensure_resident("TARGET")
+        assert r.ok, r.reason
+        assert r.evicted == ["old"], f"LRU victim must be 'old', got {r.evicted}"
+
+    def test_cap11_cap_unreachable_even_with_full_teardown_is_refused(self, monkeypatch):
+        """HS11 (discriminating): at cap with NO evictable model => REFUSE before evicting.
+
+        An impl that loads anyway hits the boom-stub. This is the count-shaped twin of
+        HS3: busy/protected models hold the fleet, the target's slot can never open, and
+        the gate must refuse rather than push the count past the cap.
+        """
+        monkeypatch.setattr(
+            hotswap,
+            "resident_models",
+            lambda: [_model("busy1", 300, busy=True), _model("keep", 200)],
+        )
+        monkeypatch.setattr(hotswap, "_catalog_sizes", lambda: {"T": 5.0})
+        unloaded: list[str] = []
+        monkeypatch.setattr(
+            hotswap, "unload", lambda mid, timeout=30.0: unloaded.append(mid) or True
+        )
+        r = hotswap.ensure_resident("T", protect=("keep",), max_resident=2)
+        assert r.ok is False
+        assert "cap" in r.reason.lower(), f"reason must be cap-shaped: {r.reason}"
+        assert unloaded == [], "must not evict anything when the cap is unreachable"
+        assert r.evicted == []
+
+    def test_cap12_already_resident_bypasses_the_cap(self, monkeypatch):
+        """HS12 (discriminating): the 3rd resident target must short-circuit, not evict.
+
+        The cap bounds COLD loads; a model the server already holds is exactly what the
+        caller asked for, and evicting neighbours to 'make room' for it would churn the
+        fleet for nothing.
+        """
+        monkeypatch.setattr(
+            hotswap,
+            "resident_models",
+            lambda: [_model("A", 300), _model("B", 200), _model("T", 100)],
+        )
+        unloaded: list[str] = []
+        monkeypatch.setattr(
+            hotswap, "unload", lambda mid, timeout=30.0: unloaded.append(mid) or True
+        )
+        r = hotswap.ensure_resident("T", max_resident=2)
+        assert r.ok and r.already_resident and r.evicted == []
+        assert unloaded == [], "already-resident must bypass the cap entirely"
+
+    def test_cap13_env_var_overrides_the_default(self, monkeypatch):
+        """HS13 (discriminating): the env var replaces the built-in default cap.
+
+        2 resident + default cap 3 => no eviction; the same fleet with the env cap at 1
+        must evict BOTH residents, oldest first, before the load. Asserts both directions
+        so a stub that ignored the env var in EITHER direction is caught.
+        """
+        monkeypatch.setenv(hotswap.ENV_MAX_RESIDENT, "1")
+        monkeypatch.setattr(hotswap, "_catalog_sizes", lambda: {"TARGET": 5.0})
+        monkeypatch.setattr(hotswap, "free_gb", lambda: 90.0)
+        monkeypatch.setattr(hotswap, "unload", lambda mid, timeout=30.0: True)
+        monkeypatch.setattr(hotswap, "_post", lambda *a, **k: (200, "ok"))
+        calls = {"n": 0}
+
+        def _resident():
+            calls["n"] += 1
+            if calls["n"] == 1:
+                return [_model("new", 300), _model("old", 100)]  # newest-first, as /health
+            return [_model("TARGET", 400)]  # both evicted, target loaded
+
+        monkeypatch.setattr(hotswap, "resident_models", _resident)
+        r = hotswap.ensure_resident("TARGET")
+        assert r.ok, r.reason
+        assert r.evicted == ["old", "new"], (
+            f"env cap of 1 must empty the fleet LRU-first, got {r.evicted}"
+        )
+
+    def test_cap13b_param_wins_over_env_and_default(self, monkeypatch):
+        monkeypatch.setenv(hotswap.ENV_MAX_RESIDENT, "99")
+        monkeypatch.setattr(hotswap, "_catalog_sizes", lambda: {"TARGET": 5.0})
+        monkeypatch.setattr(hotswap, "free_gb", lambda: 90.0)
+        monkeypatch.setattr(hotswap, "unload", lambda mid, timeout=30.0: True)
+        monkeypatch.setattr(hotswap, "_post", lambda *a, **k: (200, "ok"))
+        calls = {"n": 0}
+
+        def _resident():
+            calls["n"] += 1
+            if calls["n"] == 1:
+                return [_model("new", 300), _model("old", 100)]  # newest-first, as /health
+            return [_model("TARGET", 400)]
+
+        monkeypatch.setattr(hotswap, "resident_models", _resident)
+        r = hotswap.ensure_resident("TARGET", max_resident=1)
+        assert r.ok, r.reason
+        assert r.evicted == ["old", "new"], "param cap must win over the env var"
+
+    def test_cap14_cap_drives_eviction_even_when_bytes_alone_would_fit(self, monkeypatch):
+        """HS14 (discriminating): the cap check must run BEFORE the fit gate.
+
+        RAM is plentiful, so a byte-only impl would load immediately with zero evictions;
+        only the count cap can force the LRU eviction here. This is the exact shape the
+        2026-09-14 spiral lacked (7 models, every load individually fitting).
+        """
+        monkeypatch.setattr(
+            hotswap,
+            "resident_models",
+            lambda: [_model("a", 300), _model("b", 200), _model("old", 100)],
+        )
+        monkeypatch.setattr(hotswap, "_catalog_sizes", lambda: {"T": 1.0, "old": 30.0})
+        monkeypatch.setattr(hotswap, "free_gb", lambda: 100.0)
+        monkeypatch.setattr(hotswap, "unload", lambda mid, timeout=30.0: True)
+        monkeypatch.setattr(hotswap, "_post", lambda *a, **k: (200, "ok"))
+        calls = {"n": 0}
+
+        def _resident():
+            calls["n"] += 1
+            base = [_model("a", 300), _model("b", 200), _model("old", 100)]
+            # call #2 is the post-load verification: 'old' gone, T resident
+            return base if calls["n"] == 1 else [*base, _model("T", 400)]
+
+        monkeypatch.setattr(hotswap, "resident_models", _resident)
+        r = hotswap.ensure_resident("T")
+        assert r.ok, r.reason
+        assert r.evicted == ["old"], (
+            f"the count cap must trigger eviction regardless of free RAM, got {r.evicted}"
+        )
+
+    def test_cap15_cap_refusal_interacts_with_the_weights_fit_refusal(self, monkeypatch):
+        """HS15 (discriminating): at cap AND too big even after every eviction => refuse.
+
+        The cap adds evictions the byte math alone would not have asked for; the fit gate
+        must evaluate its reachable-pool against the CAPPED eviction set, not the original
+        one. Both gates refuse together, with the fit reason (bytes) winning because it is
+        the harder constraint — and crucially the refusal must happen BEFORE any eviction,
+        not after tearing down the fleet.
+        """
+        monkeypatch.setattr(
+            hotswap,
+            "resident_models",
+            lambda: [_model("a", 300), _model("b", 200), _model("c", 100)],
+        )
+        # T is huge: even with a + b + c gone (100 - 16 + 90 = 174 < 300 + 3 = 303) it
+        # cannot fit. `evicted` must stay empty — the pre-eviction shortcut fires first.
+        monkeypatch.setattr(
+            hotswap,
+            "_catalog_sizes",
+            lambda: {"HUGE": 300.0, "a": 30.0, "b": 30.0, "c": 30.0},
+        )
+        monkeypatch.setattr(hotswap, "free_gb", lambda: 100.0)
+        unloaded: list[str] = []
+        monkeypatch.setattr(
+            hotswap, "unload", lambda mid, timeout=30.0: unloaded.append(mid) or True
+        )
+        r = hotswap.ensure_resident("HUGE")
+        assert r.ok is False
+        assert "insufficient RAM" in r.reason, f"fit gate must refuse: {r.reason}"
+        assert unloaded == [], "refusal must happen BEFORE evicting the fleet"
+        assert r.evicted == []
+
+
+_REAL_RESIDENT_MODELS = hotswap.resident_models
+
+
+def _typed(name, last_use, mtype, busy=False):
+    return {**_model(name, last_use, busy), "type": mtype}
+
+
+class TestCapIsPerTypeAndBlindnessRefuses:
+    """Adversarial-review findings on the ported cap (2026-10-22).
+
+    S2: /health tags each resident with ``type``. Counting TTS / Whisper / SD-Turbo as cap
+    slots made the first gated LLM load evict the voice and image models other services
+    hold. B1: with /health down the cap saw an empty fleet and POSTed a blind 300s load.
+    """
+
+    def _wire(self, monkeypatch, fleet, sizes, after_load=None):
+        calls = {"n": 0}
+
+        def _resident():
+            calls["n"] += 1
+            return list(fleet) if calls["n"] == 1 else list(after_load or [])
+
+        unloaded: list[str] = []
+        posts: list[str] = []
+        monkeypatch.setattr(hotswap, "resident_models", _resident)
+        monkeypatch.setattr(hotswap, "_catalog_sizes", lambda: sizes)
+        monkeypatch.setattr(hotswap, "free_gb", lambda: 90.0)
+        monkeypatch.setattr(
+            hotswap, "unload", lambda mid, timeout=30.0: unloaded.append(mid) or True
+        )
+        monkeypatch.setattr(
+            hotswap, "_post", lambda path, *a, **k: posts.append(path) or (200, "ok")
+        )
+        return unloaded, posts
+
+    def test_non_llm_residents_do_not_count_toward_the_cap(self, monkeypatch):
+        """The live fleet shape: 2 LLMs + embedder + TTS + image + STT, cap 3, 1 slot free."""
+        fleet = [
+            _typed("nomic", 600, "embedding"),
+            _typed("qwen", 500, "llm"),
+            _typed("kokoro", 400, "tts"),
+            _typed("bonsai", 300, "llm"),
+            _typed("sd", 200, "image"),
+            _typed("whisper", 100, "transcription"),
+        ]
+        unloaded, posts = self._wire(
+            monkeypatch, fleet, {"T": 5.0}, after_load=[*fleet, _typed("T", 700, "llm")]
+        )
+        r = hotswap.ensure_resident("T", max_resident=3)
+        assert r.ok, r.reason
+        assert unloaded == [], f"nothing should be evicted for a free LLM slot, got {unloaded}"
+        assert posts == ["/api/v1/load"]
+
+    def test_cap_evicts_the_oldest_llm_never_a_non_llm(self, monkeypatch):
+        fleet = [
+            _typed("llm_new", 500, "llm"),
+            _typed("llm_mid", 400, "llm"),
+            _typed("llm_old", 300, "llm"),
+            _typed("kokoro", 100, "tts"),  # least recently used overall
+        ]
+        unloaded, _ = self._wire(
+            monkeypatch,
+            fleet,
+            {"T": 5.0, "llm_new": 1.0, "llm_mid": 1.0, "llm_old": 1.0, "kokoro": 0.3},
+            after_load=[_typed("T", 600, "llm")],
+        )
+        r = hotswap.ensure_resident("T", max_resident=3)
+        assert r.ok, r.reason
+        assert unloaded == ["llm_old"], f"cap victim must be the oldest LLM, got {unloaded}"
+
+    def test_non_llm_target_is_not_cap_gated(self, monkeypatch):
+        fleet = [_typed("a", 300, "llm"), _typed("b", 200, "llm"), _typed("c", 100, "llm")]
+        unloaded, _posts = self._wire(
+            monkeypatch,
+            fleet,
+            {"embedder": 0.5},
+            after_load=[*fleet, _typed("embedder", 400, "embedding")],
+        )
+        r = hotswap.ensure_resident("embedder", ctx_size=1024, max_resident=3, kind="embedding")
+        assert r.ok, r.reason
+        assert unloaded == []
+
+    def test_unreachable_health_without_ledger_refuses_before_any_load(self, monkeypatch):
+        """B1: no catalog read, no /load POST, a residency-unknown reason."""
+        monkeypatch.setattr(hotswap, "resident_models_or_none", lambda: None)
+        # The module's autouse fixture stubs resident_models; restore the real one so the
+        # unreachable /health actually flows through it.
+        monkeypatch.setattr(hotswap, "resident_models", _REAL_RESIDENT_MODELS)
+
+        def boom(*_a, **_k):
+            raise AssertionError("gate must not touch the catalog or POST a load")
+
+        monkeypatch.setattr(hotswap, "_catalog_sizes", boom)
+        monkeypatch.setattr(hotswap, "_post", boom)
+        r = hotswap.ensure_resident("T")
+        assert not r.ok
+        assert "residency unknown" in r.reason
+
+    def test_reachable_empty_fleet_still_loads(self, monkeypatch):
+        """Discriminating against refusing on any empty list: an EMPTY fleet is not unknown."""
+        _unloaded, posts = self._wire(
+            monkeypatch, [], {"T": 5.0}, after_load=[_typed("T", 1, "llm")]
+        )
+        r = hotswap.ensure_resident("T")
+        assert r.ok, r.reason
+        assert posts == ["/api/v1/load"]
