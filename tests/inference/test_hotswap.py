@@ -396,3 +396,111 @@ class TestResidentCap:
         assert "insufficient RAM" in r.reason, f"fit gate must refuse: {r.reason}"
         assert unloaded == [], "refusal must happen BEFORE evicting the fleet"
         assert r.evicted == []
+
+
+_REAL_RESIDENT_MODELS = hotswap.resident_models
+
+
+def _typed(name, last_use, mtype, busy=False):
+    return {**_model(name, last_use, busy), "type": mtype}
+
+
+class TestCapIsPerTypeAndBlindnessRefuses:
+    """Adversarial-review findings on the ported cap (2026-10-22).
+
+    S2: /health tags each resident with ``type``. Counting TTS / Whisper / SD-Turbo as cap
+    slots made the first gated LLM load evict the voice and image models other services
+    hold. B1: with /health down the cap saw an empty fleet and POSTed a blind 300s load.
+    """
+
+    def _wire(self, monkeypatch, fleet, sizes, after_load=None):
+        calls = {"n": 0}
+
+        def _resident():
+            calls["n"] += 1
+            return list(fleet) if calls["n"] == 1 else list(after_load or [])
+
+        unloaded: list[str] = []
+        posts: list[str] = []
+        monkeypatch.setattr(hotswap, "resident_models", _resident)
+        monkeypatch.setattr(hotswap, "_catalog_sizes", lambda: sizes)
+        monkeypatch.setattr(hotswap, "free_gb", lambda: 90.0)
+        monkeypatch.setattr(
+            hotswap, "unload", lambda mid, timeout=30.0: unloaded.append(mid) or True
+        )
+        monkeypatch.setattr(
+            hotswap, "_post", lambda path, *a, **k: posts.append(path) or (200, "ok")
+        )
+        return unloaded, posts
+
+    def test_non_llm_residents_do_not_count_toward_the_cap(self, monkeypatch):
+        """The live fleet shape: 2 LLMs + embedder + TTS + image + STT, cap 3, 1 slot free."""
+        fleet = [
+            _typed("nomic", 600, "embedding"),
+            _typed("qwen", 500, "llm"),
+            _typed("kokoro", 400, "tts"),
+            _typed("bonsai", 300, "llm"),
+            _typed("sd", 200, "image"),
+            _typed("whisper", 100, "transcription"),
+        ]
+        unloaded, posts = self._wire(
+            monkeypatch, fleet, {"T": 5.0}, after_load=[*fleet, _typed("T", 700, "llm")]
+        )
+        r = hotswap.ensure_resident("T", max_resident=3)
+        assert r.ok, r.reason
+        assert unloaded == [], f"nothing should be evicted for a free LLM slot, got {unloaded}"
+        assert posts == ["/api/v1/load"]
+
+    def test_cap_evicts_the_oldest_llm_never_a_non_llm(self, monkeypatch):
+        fleet = [
+            _typed("llm_new", 500, "llm"),
+            _typed("llm_mid", 400, "llm"),
+            _typed("llm_old", 300, "llm"),
+            _typed("kokoro", 100, "tts"),  # least recently used overall
+        ]
+        unloaded, _ = self._wire(
+            monkeypatch,
+            fleet,
+            {"T": 5.0, "llm_new": 1.0, "llm_mid": 1.0, "llm_old": 1.0, "kokoro": 0.3},
+            after_load=[_typed("T", 600, "llm")],
+        )
+        r = hotswap.ensure_resident("T", max_resident=3)
+        assert r.ok, r.reason
+        assert unloaded == ["llm_old"], f"cap victim must be the oldest LLM, got {unloaded}"
+
+    def test_non_llm_target_is_not_cap_gated(self, monkeypatch):
+        fleet = [_typed("a", 300, "llm"), _typed("b", 200, "llm"), _typed("c", 100, "llm")]
+        unloaded, _posts = self._wire(
+            monkeypatch,
+            fleet,
+            {"embedder": 0.5},
+            after_load=[*fleet, _typed("embedder", 400, "embedding")],
+        )
+        r = hotswap.ensure_resident("embedder", ctx_size=1024, max_resident=3, kind="embedding")
+        assert r.ok, r.reason
+        assert unloaded == []
+
+    def test_unreachable_health_without_ledger_refuses_before_any_load(self, monkeypatch):
+        """B1: no catalog read, no /load POST, a residency-unknown reason."""
+        monkeypatch.setattr(hotswap, "resident_models_or_none", lambda: None)
+        # The module's autouse fixture stubs resident_models; restore the real one so the
+        # unreachable /health actually flows through it.
+        monkeypatch.setattr(hotswap, "resident_models", _REAL_RESIDENT_MODELS)
+
+        def boom(*_a, **_k):
+            raise AssertionError("gate must not touch the catalog or POST a load")
+
+        monkeypatch.setattr(hotswap, "_catalog_sizes", boom)
+        monkeypatch.setattr(hotswap, "_post", boom)
+        r = hotswap.ensure_resident("T")
+        assert not r.ok
+        assert "residency unknown" in r.reason
+
+    def test_reachable_empty_fleet_still_loads(self, monkeypatch):
+        """Discriminating against refusing on any empty list: an EMPTY fleet is not unknown."""
+        _unloaded, posts = self._wire(
+            monkeypatch, [], {"T": 5.0}, after_load=[_typed("T", 1, "llm")]
+        )
+        r = hotswap.ensure_resident("T")
+        assert r.ok, r.reason
+        assert posts == ["/api/v1/load"]

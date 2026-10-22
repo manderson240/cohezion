@@ -76,25 +76,31 @@ class DynamicModelEvaluator:
         """Query model on Lemonade with direct fallback, measuring latency and tokens/sec.
 
         The Lemonade attempt is gated through ``hotswap.ensure_resident`` BEFORE any chat
-        completion is POSTed to :13305: the server auto-loads any model named in the
-        request, so a raw POST here would otherwise bypass the fleet's weight-fit safety
-        gate entirely (the Sep-14 OOM spiral). A gate refusal is a SUCCESSFUL gate
-        outcome — it means "fall back to another lane", so we skip the Lemonade lane.
-        Direct-port lanes (``DIRECT_PORTS``) host the SAME model on their own servers and
-        would auto-load the exact footprint the gate just refused, so they are skipped
-        too rather than used as a blind bypass; the error-return shape (measured
-        latency, zero tps) is unchanged.
+        completion is POSTed to :13305: the router auto-loads any model named in the
+        request, so a raw POST here would otherwise bypass the fleet's weight-fit and
+        resident-cap gate (the Sep-14 OOM spiral). A gate refusal is a SUCCESSFUL gate
+        outcome meaning "do not use the :13305 lane".
+
+        A ``DIRECT_PORTS`` lane is still tried after a refusal: it is an already-running
+        backend server (Lemonade's own per-model llama-server ports), which serves what it
+        holds and cannot load anything, so it is not a bypass of the gate. When the gate
+        refuses and there is no direct lane, the error-return shape (measured latency,
+        zero tps) is unchanged.
         """
         t0 = time.perf_counter()
 
-        # --- hotswap safety gate (never raises; refusal == "skip all local lanes") ---
+        # --- hotswap safety gate (never raises; refusal == "skip the :13305 lane") ---
         gate = ensure_resident(model, ctx_size=EVAL_CTX_SIZE)
-        if not gate.ok:
+        endpoints: list[str] = []
+        if gate.ok:
+            endpoints.append(self.endpoint)
+        else:
             logger.warning(
-                "Hotswap gate refused %s (reason: %s); skipping Lemonade AND direct-port lanes",
-                model,
-                gate.reason,
+                "Hotswap gate refused %s (reason: %s); skipping :13305", model, gate.reason
             )
+        if model in self.DIRECT_PORTS:
+            endpoints.append(f"http://127.0.0.1:{self.DIRECT_PORTS[model]}/v1/chat/completions")
+        if not endpoints:
             elapsed = time.perf_counter() - t0
             return f"ERROR: gate refused {model}: {gate.reason}", elapsed * 1000.0, 0.0
         # The gate is a precondition, not part of the measured operation: a cold load it
@@ -108,9 +114,6 @@ class DynamicModelEvaluator:
             "max_tokens": max_tokens,
             "temperature": 0.1,
         }
-        endpoints = [self.endpoint]
-        if model in self.DIRECT_PORTS:
-            endpoints.append(f"http://127.0.0.1:{self.DIRECT_PORTS[model]}/v1/chat/completions")
 
         last_exc: Exception | None = None
         for ep in endpoints:

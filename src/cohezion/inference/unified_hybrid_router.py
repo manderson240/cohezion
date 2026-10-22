@@ -41,6 +41,22 @@ OLLAMA_URL = "http://localhost:11434/api/generate"
 VRAM_SATURATION_THRESHOLD: float = 0.90
 
 
+def _load_ctx_size(prompt: str, max_tokens: int) -> int:
+    """ctx_size for a gated cold load: room for the prompt AND the reply, bounded.
+
+    A load fixes the context window for every later caller of that model, so sizing it
+    from ``max_tokens`` alone (the first port of this gate) loaded e.g. a 2048 window for a
+    5000-word prompt. ~3 chars/token is a deliberately generous estimate (English averages
+    ~4). Rounded up to a power of two from 4096, never 0 (the GTT 120GB-mapping crasher)
+    and never above hotswap's N3 cap.
+    """
+    needed = len(prompt) // 3 + max_tokens + 256
+    ctx = 4096
+    while ctx < needed and ctx < HOTSWAP_MAX_CTX:
+        ctx *= 2
+    return min(ctx, HOTSWAP_MAX_CTX)
+
+
 class TaskClass(StrEnum):
     """Hard-pinned task classes for lane routing."""
 
@@ -791,13 +807,11 @@ class UnifiedHybridRouter:
         }
 
         # --- hotswap safety gate (never raises; refusal == fall back to Tier 2) ----
-        # Bounded, non-zero ctx_size: ctx_size=0 is the documented GTT 120GB-mapping
-        # crasher, and MAX_CTX is the N3 cap ensure_resident itself enforces.
         # ensure_resident is a module-level import (patch target: patch WHERE USED).
         gate = await asyncio.to_thread(
             ensure_resident,
             model,
-            ctx_size=min(max(1024, max_tokens * 2), HOTSWAP_MAX_CTX),
+            ctx_size=_load_ctx_size(prompt, max_tokens),
         )
         if not gate.ok:
             logger.warning(
@@ -847,7 +861,7 @@ class UnifiedHybridRouter:
         import httpx
 
         # --- hotswap safety gate (never raises; refusal == fall back to Tier 2) ----
-        gate = await asyncio.to_thread(ensure_resident, model, ctx_size=1024)
+        gate = await asyncio.to_thread(ensure_resident, model, ctx_size=1024, kind="embedding")
         if not gate.ok:
             logger.warning(
                 "Hotswap gate refused embedding model %s (reason: %s); skipping Tier-1 embedding",

@@ -138,9 +138,32 @@ def resident_models_or_none() -> list[dict] | None:
     return out
 
 
+class _HealthUnreachable(list[dict]):
+    """An empty resident list that also records WHY it is empty: /health did not answer.
+
+    It is still ``[]`` to every consumer that only iterates, so callers written against
+    "empty on failure" are unchanged. ``ensure_resident`` checks the type, because an empty
+    fleet and an unobservable fleet must not be gated the same way.
+    """
+
+
 def resident_models() -> list[dict]:
-    """Loaded models from the server, newest-used first. Empty on any failure."""
-    return resident_models_or_none() or []
+    """Loaded models from the server, newest-used first.
+
+    Empty on any failure; on failure the empty list is a :class:`_HealthUnreachable`.
+    """
+    out = resident_models_or_none()
+    return _HealthUnreachable() if out is None else out
+
+
+def _counts_toward_cap(model: dict) -> bool:
+    """Only text-generation models count toward (and are evicted for) the resident cap.
+
+    /health reports ``type`` (llm, embedding, tts, transcription, image). The 2026-09-14
+    spiral was LLMs; the TTS / Whisper / SD models other services hold are small and are
+    still covered by the RAM fit gate. An entry with no type counts, which is conservative.
+    """
+    return (model.get("type") or "llm") == "llm"
 
 
 def _catalog_sizes() -> dict[str, float]:
@@ -277,6 +300,7 @@ def ensure_resident(
     load_timeout: float = 300.0,
     ledger: object | None = None,
     max_resident: int | None = None,
+    kind: str = "llm",
 ) -> SwapResult:
     """Make ``model_id`` resident, evicting least-recently-used models if needed.
 
@@ -290,6 +314,14 @@ def ensure_resident(
     is open AND the weights+KV fit check passes; if that cannot be satisfied, the gate
     refuses — refusing is success for the gate, and callers fall back to another lane.
     The cap check runs BEFORE the fit gate so eviction decisions account for it.
+    The cap counts and evicts only ``type == "llm"`` residents (see ``_counts_toward_cap``)
+    and applies only when ``kind == "llm"``; pass ``kind="embedding"`` (etc.) for other
+    targets so they are byte-gated without evicting an LLM for a slot they do not use.
+
+    When /health does not answer and no ``ledger`` is supplied, residency is UNKNOWN: the
+    gate refuses before touching the catalog or POSTing a load. A blind load there could
+    exceed the cap it cannot see, and its own post-load verification reads the same dead
+    endpoint, so it would report failure after paying for the load anyway.
 
     ``ledger`` (a :class:`~cohezion.inference.residency_ledger.ResidencyLedger`) is the
     degraded-mode fallback. ``resident_models()`` reads ``/api/v1/health``, which stops
@@ -302,6 +334,13 @@ def ensure_resident(
     ctx_size = max(1024, min(int(ctx_size), MAX_CTX))
 
     loaded = resident_models()
+    if isinstance(loaded, _HealthUnreachable) and ledger is None:
+        return SwapResult(
+            False,
+            model_id,
+            "residency unknown: /api/v1/health unreachable and no ledger — refusing "
+            "(the resident cap and fit gate cannot be evaluated)",
+        )
     if ledger is not None:
         from cohezion.inference.residency_ledger import resident_view
 
@@ -348,20 +387,25 @@ def ensure_resident(
     # Only victims (non-busy, non-protected) can be evicted: when the non-evictable set
     # alone already holds the fleet at/over the cap, `over` stays positive, the loop
     # cannot satisfy it, and the post-loop check refuses with the cap reason.
-    over = max(0, len(loaded) - (max_resident - 1))
+    cap_loaded = [m for m in loaded if _counts_toward_cap(m)] if kind == "llm" else []
+    cap_victims = [m for m in victims if _counts_toward_cap(m)]
+    over = max(0, len(cap_loaded) - (max_resident - 1)) if kind == "llm" else 0
 
     # Refuse BEFORE evicting when even a full teardown of the evictables cannot get the
     # count under the cap. Eviction is destructive and slow; discovering the cap refusal
     # afterwards costs every unloadable model its slot for nothing. (The byte-side twin of
     # this shortcut is the fit check below — same philosophy, count instead of bytes.)
-    if over > 0 and len(victims) < over:
+    if over > 0 and len(cap_victims) < over:
         return SwapResult(
             False,
             model_id,
-            f"resident model cap reached ({max_resident}): {len(loaded)} resident but only "
-            f"{len(victims)} evictable (busy/protected models are never evicted) — "
-            f"refusing load of {model_id}",
+            f"resident model cap reached ({max_resident}): {len(cap_loaded)} LLMs resident "
+            f"but only {len(cap_victims)} evictable (busy/protected models are never "
+            f"evicted) — refusing load of {model_id}",
         )
+    # The cap's victims go first (oldest LLMs), then any victim as the byte gate demands.
+    cap_first = cap_victims[:over]
+    victims = cap_first + [m for m in victims if m not in cap_first]
 
     # Refuse BEFORE evicting when even a full teardown provably cannot fit the target.
     # Eviction is destructive and slow; discovering the refusal afterwards costs the whole
@@ -384,7 +428,7 @@ def ensure_resident(
         known = [s for s in victim_sizes if s is not None]
         budget = free_gb() - min_free_gb
         cap_bytes = sum(known[:over])
-        remaining = needed - budget
+        remaining = needed - budget - cap_bytes
         byte_bytes = 0.0
         for s in known[over:]:
             if remaining <= 0:
@@ -406,13 +450,16 @@ def ensure_resident(
     while (over > 0 or (free_gb() - min_free_gb) < needed) and victims:
         victim = victims.pop(0)
         vid = victim.get("model_name", "")
+        frees_slot = kind == "llm" and _counts_toward_cap(victim)
+        if not frees_slot and (free_gb() - min_free_gb) >= needed:
+            continue  # only the cap is unmet, and this victim does not hold a cap slot
         if unload(vid):
             evicted.append(vid)
             if ledger is not None:
                 # Write-through on the VERIFIED postcondition, not on the status code —
                 # `unload` already refuses to report success for a phantom unload.
                 ledger.record_unload(vid)  # type: ignore[attr-defined]
-            if over > 0:
+            if over > 0 and frees_slot:
                 over -= 1
         else:
             logger.debug("hotswap: could not evict %s; trying next", vid)
@@ -434,8 +481,8 @@ def ensure_resident(
         return SwapResult(
             False,
             model_id,
-            f"resident model cap reached ({max_resident}): {len(loaded)} resident, "
-            f"{len(loaded) - len(evicted)} remain after evicting {len(evicted)}, "
+            f"resident model cap reached ({max_resident}): {len(cap_loaded)} LLMs resident, "
+            f"{over} still over the cap after evicting {len(evicted)}, "
             f"all busy/protected or unload-failed — refusing load of {model_id}",
             evicted=evicted,
         )

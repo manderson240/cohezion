@@ -81,17 +81,40 @@ class TestEvaluatorGate:
         assert tps == 0.0
         assert latency_ms >= 0.0
 
-    def test_refusal_on_direct_port_model_skips_direct_port_too(self, evaluator, no_network):
-        """A direct-port lane hosts the SAME model — it is not a blind bypass around a refusal."""
+    def test_refusal_skips_13305_but_still_tries_the_running_direct_port(
+        self, evaluator, no_network
+    ):
+        """A refusal closes only the :13305 lane (the one that auto-loads).
+
+        DIRECT_PORTS are Lemonade's own already-running per-model backends; a request there
+        cannot load anything. Skipping them after a refusal (the first port of this fix)
+        made every DIRECT_PORTS-only model unreachable, e.g. one missing from the catalog.
+        """
         ev = DynamicModelEvaluator()
-        assert "Bonsai-8B-gguf" in ev.DIRECT_PORTS  # the blind-bypass vector itself
-        with patch(
-            "cohezion.inference.dynamic_model_evaluator.ensure_resident",
-            return_value=_refuse("Bonsai-8B-gguf"),
+        assert "Bonsai-8B-gguf" in ev.DIRECT_PORTS
+        urls: list[str] = []
+        body = json.dumps({"choices": [{"message": {"content": "hi"}}]}).encode()
+
+        def fake_urlopen(req, timeout=None):
+            urls.append(req.full_url)
+            return _Ctx(body)
+
+        with (
+            patch(
+                "cohezion.inference.dynamic_model_evaluator.ensure_resident",
+                return_value=_refuse("Bonsai-8B-gguf"),
+            ),
+            patch(
+                "cohezion.inference.dynamic_model_evaluator.urllib.request.urlopen",
+                side_effect=fake_urlopen,
+            ),
         ):
             out, _latency_ms, tps = ev.query_model("Bonsai-8B-gguf", "say hi")
 
-        assert "gate refused" in out and tps == 0.0
+        port = ev.DIRECT_PORTS["Bonsai-8B-gguf"]
+        assert urls == [f"http://127.0.0.1:{port}/v1/chat/completions"]
+        assert ":13305" not in "".join(urls)
+        assert out == "hi" and tps > 0.0
 
     def test_ok_proceeds_and_measures_latency_and_tps(self, evaluator, no_network):
         """Gate ok => the POST happens; latency/tps semantics unchanged."""
@@ -318,6 +341,44 @@ class TestHybridRouterGate:
             await router.aquery_lemonade_local("hello", "M")
 
         assert 0 < seen["ctx_size"] <= hotswap.MAX_CTX
+
+    @pytest.mark.asyncio
+    async def test_gate_ctx_size_covers_a_long_prompt(self, no_network):
+        """A load fixes the window for every later caller: it must hold prompt + reply.
+
+        Sizing from max_tokens alone gave 2048 for a ~5000-word prompt (review S4).
+        """
+        router = UnifiedHybridRouter(prefer_local=True)
+        prompt = "word " * 5000  # 25,000 chars, ~6-8k tokens
+        seen: dict = {}
+
+        def fake_gate(model, *, ctx_size=hotswap.MAX_CTX):
+            seen["ctx_size"] = ctx_size
+            return _refuse(model)
+
+        with patch(
+            "cohezion.inference.unified_hybrid_router.ensure_resident", side_effect=fake_gate
+        ):
+            await router.aquery_lemonade_local(prompt, "llama3.2-1b-FLM")
+
+        assert seen["ctx_size"] >= len(prompt) // 4 + 1024
+        assert seen["ctx_size"] <= hotswap.MAX_CTX
+
+    @pytest.mark.asyncio
+    async def test_embedding_gate_is_not_llm_cap_gated(self, no_network):
+        seen: dict = {}
+
+        def fake_gate(model, **kw):
+            seen.update(kw)
+            return _refuse(model)
+
+        router = UnifiedHybridRouter(prefer_local=True)
+        with patch(
+            "cohezion.inference.unified_hybrid_router.ensure_resident", side_effect=fake_gate
+        ):
+            await router.aquery_embedding("hi", "nomic-embed-text-v2-moe-GGUF")
+
+        assert seen.get("kind") == "embedding"
 
     def test_sync_route_query_gates_through_async_path(self, no_network):
         """route_query -> query_lemonade_local -> aquery_lemonade_local: refusal => Tier-2."""
