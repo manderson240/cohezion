@@ -182,6 +182,20 @@ phase-4 wiring) plus live-service checks, and are the next tranche. Two instrume
 entry), and running the integration tier yourself for any "is it green" claim until the
 `continue-on-error` is removed, which should happen once the 43 reach zero.
 
+**Second pass, same day (commits `ba72b0b64`, `3b47b700f`):** the 43 were classified one by one.
+
+| Class | Count | Disposition |
+|---|---|---|
+| Never-built features or drifted APIs | 26 | strict-xfail bridges (body unchanged, reason + pointer here): health-oracle thresholds (6), MD2 `transition_controller` wiring (4), `RealSkillStateDataset` API (3), verify-lane SurrealDB evidence (3), Telegram delegation router (10). `strict=True` turns each red the moment the feature lands. |
+| Tests that were wrong | 4 | fixed: diversity filter called with a `seed` the deterministic function never had; two MCP tests mocked the async lookup while production calls the sync one; the marimo e2e now skips when its notebook is absent |
+| Repo-health import policy | 2 | fixed at the source: 200 I001/F401 violations removed repo-wide (ruff baseline 875 → 658) |
+| Passed on rerun (order-dependent) | 3 | left alone; candidates for the isolation sweep |
+| Environment-coupled on this machine | 8 | live embedder returning empty vectors into SurrealDB (3), live embedding performance/hit-rate (2), 20 GB swap thrashing aborting mass-sim (1), a memory-threshold check (1), a SurrealDB-bound singleton that hangs (1). Expected to pass or skip in CI, where none of those services exist. |
+
+The bridge list is what the next session works from: `grep -rn "xfail(strict=True" tests/` and the
+reason strings name the gap. `continue-on-error` stays on the integration step until one CI run of
+the merged stack confirms the environment-coupled eight behave in CI; then it should be removed.
+
 ---
 
 ## 3. Landed in this change
