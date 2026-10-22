@@ -188,7 +188,11 @@ class FlumeVAEEncoder:
             # enabled: every text would embed to ~the same vector and the semantic
             # cache would match everything to everything. Measured 2026-10-22 on
             # flume_vae_ep20.pt: mean off-diagonal cosine 0.999 on these inputs
-            # (the raw hash inputs themselves sit at ~0.77).
+            # (the raw hash inputs themselves sit at ~0.77). The metric is deliberately the
+            # UNCENTERED cosine: SemanticCache compares raw cosine against a fixed threshold,
+            # so an encoder whose unrelated texts score 0.99 makes it match everything. A
+            # random-init trunk also scores ~0.99 (its text-dependent spread is ~25x smaller
+            # than the input's), and refusing it is correct for that consumer.
             probes = [self._hash_encode(f"vae-degeneracy-probe:{i}") for i in range(16)]
             with torch.no_grad():
                 probe_tensor = torch.from_numpy(np.stack(probes)).float().to(self.device)

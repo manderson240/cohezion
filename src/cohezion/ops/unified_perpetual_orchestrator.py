@@ -537,7 +537,13 @@ class UnifiedPerpetualLoopDaemon:
         # those publishes were dropped ("bus not running") and nothing reached SurrealDB.
         # Startup is inside the try so a partial start still gets the bounded teardown.
         try:
-            await self.start_event_bus()
+            try:
+                await self.start_event_bus()
+            except Exception as exc:
+                # Degrade to the pre-bus behaviour (cycles run, events are not delivered)
+                # rather than let event plumbing stop the daemon. CancelledError is not an
+                # Exception, so a shutdown signal still propagates.
+                logger.error(f"EventBus start failed; running without it: {exc}", exc_info=True)
             while self._running:
                 try:
                     await self.execute_master_cycle(cycle)

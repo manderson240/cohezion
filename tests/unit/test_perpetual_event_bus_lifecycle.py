@@ -342,3 +342,21 @@ async def test_run_forever_delivers_cycle_events_to_subscribers(mock_daemon):
     assert published == [True]
     assert [e.source for e in received] == ["probe"]
     assert mock_daemon.event_bus._running is False  # stopped (and drained) on exit
+
+
+@pytest.mark.asyncio
+async def test_bridge_init_failure_does_not_stop_the_daemon(mock_daemon):
+    """Review N3: a failing bridge subscription must not cost the daemon its cycles."""
+    with (
+        patch.object(
+            mock_daemon.event_bridge, "initialize", side_effect=RuntimeError("bridge init boom")
+        ),
+        patch.object(
+            mock_daemon, "execute_master_cycle", new=AsyncMock(return_value=MagicMock(success=True))
+        ) as mock_exec,
+        patch("asyncio.sleep", new_callable=AsyncMock),
+    ):
+        await mock_daemon.run_forever(max_cycles=2)
+
+    assert mock_exec.call_count == 2
+    assert mock_daemon.event_bus._running is False  # still torn down
