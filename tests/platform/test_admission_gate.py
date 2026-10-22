@@ -209,15 +209,20 @@ class TestSizeUnknownFailsClosed:
 
     def test_unknown_size_refuses(self) -> None:
         g = self._gate_with_catalog([None])  # catalog stalled, never read
-        d = g.decide("Gemma-4-26B-A4B-it-GGUF", CHAT)
+        d = g.decide("never-curated-model-GGUF", CHAT)  # not in oom_guard's curated table
         assert d.allow is False
         assert "size unknown" in d.reason
 
-    def test_cached_size_survives_a_stalled_catalog(self) -> None:
-        g = self._gate_with_catalog([{"Gemma-4-26B-A4B-it-GGUF": 16.9}, None])
-        assert g.decide("qwen3.5-4b-FLM", CHAT).allow is False  # first fetch: name absent
-        d = g.decide("Gemma-4-26B-A4B-it-GGUF", CHAT)  # served from cache, no refetch
+    def test_curated_size_prices_a_model_even_without_the_catalog(self) -> None:
+        g = self._gate_with_catalog([None])
+        d = g.decide("Gemma-4-26B-A4B-it-GGUF", CHAT)
         assert d.allow is False and "cgroup" in d.reason
+
+    def test_name_missing_from_a_fresh_catalog_is_forwarded(self) -> None:
+        # Review H3: a permanent "not a model" must not become a 503-retry loop.
+        g = self._gate_with_catalog([{"Gemma-4-26B-A4B-it-GGUF": 16.9}])
+        d = g.decide("qwen3.5-4b-FLM-typo", CHAT)
+        assert d.allow is True and "not in lemonade's catalog" in d.reason
 
     def test_small_cached_model_admitted(self) -> None:
         g = self._gate_with_catalog([{"qwen3.5-4b-FLM": 5.0}])
@@ -307,3 +312,64 @@ class TestDynamicCoordination:
         )
         footprint = g._read_size_gb("x-GGUF")
         assert footprint is not None and footprint > 5.0  # weights alone under-price the load
+
+
+class TestReviewFindings:
+    def test_models_named_finds_every_shape(self) -> None:
+        from cohezion.platform.admission_gate import models_named
+
+        batch = [
+            {"method": "tools/call", "params": {"arguments": {"model": "A"}}},
+            {"params": {"arguments": {"image_model": "B", "messages": [{"content": "C-GGUF"}]}}},
+            {"checkpoint": "D"},
+        ]
+        # keys select, not values: a message mentioning a model is not a load
+        assert sorted(models_named(batch)) == ["A", "B", "D"]
+
+    def test_exact_routes_only_skip_gating(self) -> None:
+        assert not is_load_path("api/v1/unload") and not is_load_path("/v1/pull/")
+        assert is_load_path("api/v1/preload") and is_load_path("v1/reload")
+
+    def test_release_frees_a_reservation(self) -> None:
+        g = AdmissionGate(
+            config=GateConfig(),
+            read_resident=lambda: [],
+            read_cgroup=lambda: (10.0, 30.0),
+            read_size_gb=lambda _m: 10.0,
+        )
+        assert g.decide("a-GGUF", CHAT).allow
+        g.release("a-GGUF")
+        assert g.decide("b-GGUF", CHAT).allow
+
+    def test_same_model_twice_is_not_repriced(self) -> None:
+        g = AdmissionGate(
+            config=GateConfig(),
+            read_resident=lambda: [],
+            read_cgroup=lambda: (10.0, 30.0),
+            read_size_gb=lambda _m: 10.0,
+        )
+        assert g.decide("a-GGUF", CHAT).allow
+        assert g.decide("a-GGUF", CHAT).allow  # still loading; lemond dedupes
+
+    def test_last_known_residency_survives_a_health_stall(self) -> None:
+        answers = iter([[{"model_name": "big-GGUF", "checkpoint": ""}], None])
+        g = AdmissionGate(
+            config=GateConfig(),
+            read_resident=lambda: next(answers),
+            read_cgroup=lambda: (29.0, 30.0),
+            read_size_gb=lambda _m: 16.0,
+        )
+        assert g.decide("big-GGUF", CHAT).allow
+        g._resident_cache = None  # health now blocks
+        assert g.decide("big-GGUF", CHAT).allow
+
+    def test_residency_never_matches_by_substring(self) -> None:
+        g = AdmissionGate(
+            config=GateConfig(),
+            read_resident=lambda: [
+                {"model_name": "x", "checkpoint": "org/Qwen3.6-35B-A3B-GGUF:Q4"}
+            ],
+            read_cgroup=lambda: (29.0, 30.0),
+            read_size_gb=lambda _m: 16.0,
+        )
+        assert not g.decide("GGUF", CHAT).allow

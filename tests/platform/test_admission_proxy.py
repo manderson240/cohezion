@@ -237,3 +237,39 @@ class TestClientIdentity:
                 "/v1/chat/completions", json={"model": "Qwen3.6-35B-A3B-GGUF", "messages": []}
             )
         assert r.status_code == 503 and r.headers.get("retry-after") == "15"
+
+
+class TestReviewProxyFindings:
+    def test_large_vision_body_is_still_gated(self) -> None:
+        seen: list[httpx.Request] = []
+        app = build_app(_gate(available_gb=10.4), client=_upstream(seen))
+        big = {"model": "Qwen3.6-35B-A3B-GGUF", "messages": [{"content": "x" * 2_000_000}]}
+        with TestClient(app) as c:
+            r = c.post("/v1/chat/completions", json=big)
+        assert r.status_code == 503 and seen == []
+
+    def test_mcp_tool_call_is_gated(self) -> None:
+        seen: list[httpx.Request] = []
+        app = build_app(_gate(available_gb=10.4), client=_upstream(seen))
+        call = {
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": "tools/call",
+            "params": {"name": "lemonade_chat", "arguments": {"model": "Qwen3.6-35B-A3B-GGUF"}},
+        }
+        with TestClient(app) as c:
+            r = c.post("/mcp", json=call)
+        assert r.status_code == 503 and seen == []
+
+    def test_upstream_error_releases_the_reservation(self) -> None:
+        gate = _gate(available_gb=50.0)
+
+        def fail(request: httpx.Request) -> httpx.Response:
+            return httpx.Response(500, json={"error": "boom"})
+
+        app = build_app(
+            gate, client=httpx.AsyncClient(transport=httpx.MockTransport(fail), base_url="http://u")
+        )
+        with TestClient(app) as c:
+            c.post("/v1/chat/completions", json={"model": "Qwen3.6-35B-A3B-GGUF", "messages": []})
+        assert gate._reserved == {}
