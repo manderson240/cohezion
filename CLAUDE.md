@@ -33,13 +33,16 @@ uv venv && source .venv/bin/activate && uv pip install -e .  # New project setup
 
 ### ⚡ Git LFS & Repo Health (L333-L337, Session 101)
 ```bash
-# Git LFS is active — .gitattributes tracks: *.so, *.whl, *.pt, *.pth, *.pkl, *.tar.gz, *.bundle, *.jsonl
-# LFS files are POINTERS in git (~130 bytes), actual content in .git/lfs/objects/
-# Bundle size: 182MB (was 14GB before LFS migration)
+# Git LFS is active — the authoritative pattern list is .gitattributes (binaries, archives,
+# *.jsonl, *.csv, *.mp3/*.mp4/*.wav, ...). LFS files are POINTERS in git (~130 bytes),
+# actual content in .git/lfs/objects/
 # Remote: git@github.com:manderson240/cohezion.git
 
 # MANDATORY: Never commit large binaries without LFS
-# Pre-commit hook `lfs-pointer-check` enforces this automatically
+# Enforced by scripts/ci/repo_hygiene_ratchet.py (CI validate job + automerge_guard.sh):
+# any LFS-routed tracked file stored as raw content fails the gate, and tracked files that
+# match .gitignore may only decrease (baseline: scripts/ci/ignore_debt_baseline.txt).
+# The pre-commit hook `lfs-pointer-check` runs only where pre-commit is installed.
 # If LFS breaks: git lfs install && git add --renormalize .
 
 # MANDATORY: Run monthly — entire/ shadow branches accumulate fast

@@ -110,6 +110,16 @@ jobs:
       - name: Dormancy scan (gating)
         run: uv run python scripts/ci/dormancy_scan.py
 
+      # Tracked-file hygiene (2026-10-22): .gitignore and .gitattributes are rules the
+      # repo declares; nothing enforced them (pre-commit is not installed in CI). Ignore
+      # debt is a ratchet against scripts/ci/ignore_debt_baseline.txt; an LFS-routed file
+      # stored as raw content fails outright. --self-test FIRST, as for the other scanners.
+      - name: Repo hygiene ratchet self-test
+        run: uv run python scripts/ci/repo_hygiene_ratchet.py --self-test
+
+      - name: Repo hygiene ratchet (gating)
+        run: uv run python scripts/ci/repo_hygiene_ratchet.py
+
       # Doc↔code drift (sibling to dormancy_scan): dormancy_scan checks that code
       # has consumers; this checks that CLAUDE.md/harness.md tell the truth about the
       # code — every referenced file-path and cohezion.* module must resolve. Fails on
