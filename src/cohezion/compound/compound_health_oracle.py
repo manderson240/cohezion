@@ -235,26 +235,30 @@ class CompoundHealthOracle:
 
         if mean < _HEALTHY_MEAN:
             base_tier = detector_tier if detector_tier is not None else "npu"
+            escalated = _escalate_tier(base_tier)
             return HealthAssessment(
                 regime=regime,
-                tier_recommendation=base_tier,
+                tier_recommendation=escalated,
                 confidence=confidence,
                 alert_level="warn",
                 alerts=[
-                    f"STEADY-POOR: mean quality {mean:.2f} below healthy floor {_HEALTHY_MEAN:.2f}."
+                    f"STEADY-POOR: mean quality {mean:.2f} below healthy floor "
+                    f"{_HEALTHY_MEAN:.2f}. Escalating tier {base_tier!r} → {escalated!r}."
                 ],
             )
 
         if stdev > _STEADY_STDEV:
             base_tier = detector_tier if detector_tier is not None else "npu"
+            escalated = _escalate_tier(base_tier)
             return HealthAssessment(
                 regime=regime,
-                tier_recommendation=base_tier,
+                tier_recommendation=escalated,
                 confidence=confidence,
                 alert_level="warn",
                 alerts=[
                     f"UNSTABLE: dispersion {stdev:.2f} exceeds steady band "
-                    f"{_STEADY_STDEV:.2f} despite acceptable mean {mean:.2f}."
+                    f"{_STEADY_STDEV:.2f} despite acceptable mean {mean:.2f}. "
+                    f"Escalating tier {base_tier!r} → {escalated!r}."
                 ],
             )
 

@@ -1131,10 +1131,11 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
                     _tier_hints["predicted_tier"] = _estimator.predict_tier(
                         skill_name, operation_type
                     )
-        # (d) OC1-OC3: CompoundHealthOracle.last_assessment.tier_recommendation — regime-driven,
-        # rolling Higuchi-FD window (cross-session persistent). Reflects the PREVIOUS executions'
-        # quality texture (HIHO/STUCK/CHAOTIC). STUCK (FD < 1.3) escalates the recommended tier
-        # to break out of over-exploitation; CHAOTIC forces cpu (maximum reasoning depth, slow down).
+        # (d) OC1-OC3: CompoundHealthOracle.last_assessment.tier_recommendation, from the oracle's
+        # rolling quality window (cross-session persistent) over the PREVIOUS executions. A
+        # degrading, steadily poor (mean < 0.70) or unstable (sd > 0.15) window escalates the
+        # recommended tier one step; a healthy window keeps the detector's tier. The Higuchi-FD
+        # regime (HIHO/STUCK/CHAOTIC) is carried as context and no longer drives the tier.
         # Reading _last_assessment (not calling assess()) is intentional: assess() is called POST-
         # execution inside SkillRefiner._generate_learning_signal, so the current execution uses the
         # oracle's accumulated knowledge from all previous executions as a forward-looking hint.

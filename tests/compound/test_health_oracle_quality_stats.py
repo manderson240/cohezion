@@ -98,3 +98,26 @@ class TestRegimeIsStillReported:
         rng = np.random.default_rng(5)
         a = _drive(list(np.clip(0.85 + rng.normal(0, 0.01, 100), 0.0, 1.0)))
         assert a.regime is not None
+
+
+class TestPoorLanesStillEscalate:
+    """Adversarial review S5: the first port of the new rule warned on steady-poor and
+    unstable lanes but left the tier unchanged, so a consistently bad lane never got the
+    capability bump the old STUCK/CHAOTIC rules gave it."""
+
+    def test_steady_poor_lane_escalates(self) -> None:
+        rng = np.random.default_rng(3)
+        a = _drive(list(np.clip(0.30 + rng.normal(0, 0.01, 100), 0.0, 1.0)))
+        assert a.alert_level == "warn"
+        assert a.tier_recommendation in {"igpu", "cpu"}, a.tier_recommendation
+
+    def test_unstable_lane_escalates(self) -> None:
+        a = _drive([0.95 if i % 2 == 0 else 0.55 for i in range(100)])
+        assert a.alert_level == "warn" and "UNSTABLE" in " ".join(a.alerts)
+        assert a.tier_recommendation in {"igpu", "cpu"}, a.tier_recommendation
+
+    def test_healthy_lane_is_not_escalated(self) -> None:
+        """Discriminating against escalate-always."""
+        rng = np.random.default_rng(5)
+        a = _drive(list(np.clip(0.85 + rng.normal(0, 0.01, 100), 0.0, 1.0)))
+        assert a.alert_level == "ok" and a.tier_recommendation == "npu"
