@@ -155,6 +155,9 @@ async def run_demo() -> int:
             prompt=prompt,
             task_class=TaskClass.CODING,
         )
+        if inf_result.get("error"):
+            print(f"[!] Model inference delegation failed: {inf_result['error']}")
+            raise RuntimeError(inf_result["error"])
         print(f"    - Servicing Tier : {inf_result['tier_used']}")
         print(f"    - Servicing Model: {inf_result['model_name']}")
         print(f"    - Latency        : {inf_result['latency_ms']:.1f} ms")

@@ -494,6 +494,7 @@ class BioelectricSwarm:
         if self._router is None:
             self._router = UnifiedHybridRouter(lemonade_port=13305)
 
+        start = time.perf_counter()
         try:
             response = await asyncio.wait_for(
                 self._router.route_by_capability(
@@ -509,16 +510,18 @@ class BioelectricSwarm:
                 "tier_used": response.tier_used,
                 "latency_ms": response.latency_ms,
                 "verified": response.verified,
+                "error": None,
             }
-        except (TimeoutError, Exception) as err:
-            logger.warning("Inference delegation fallback triggered: %s", err)
+        except Exception as err:
+            # No fabricated output: a failed delegation is reported as a failure. The previous
+            # fallback returned canned policy text attributed to a local model, which callers
+            # could not tell apart from a real answer.
+            logger.warning("Inference delegation failed: %s", err)
             return {
-                "content": (
-                    "Synthetic bioelectric morphogenesis policy output: "
-                    "Maintain gap-junction coupling kappa >= 0.5 for light cone expansion."
-                ),
-                "model_name": "Qwen3-Coder-30B (Simulated Fallback)",
-                "tier_used": "Tier 1 (NPU/iGPU Local Silicon)",
-                "latency_ms": 1.2,
+                "content": "",
+                "model_name": None,
+                "tier_used": None,
+                "latency_ms": (time.perf_counter() - start) * 1000.0,
                 "verified": False,
+                "error": f"{type(err).__name__}: {err}",
             }

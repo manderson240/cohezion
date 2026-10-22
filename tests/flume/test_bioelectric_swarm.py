@@ -109,3 +109,46 @@ class TestBioelectricSwarm:
         assert swarm.nodes[5].is_healthy is True
         assert np.all(np.isfinite(swarm.nodes[2].state_vector))
         assert np.all(np.isfinite(swarm.nodes[5].state_vector))
+
+
+class _FailingRouter:
+    async def route_by_capability(self, **_kwargs):
+        raise ConnectionError("router :13305 unreachable")
+
+
+class _OkResponse:
+    content = "real policy text"
+    model_name = "real-model"
+    tier_used = "Tier 1"
+    latency_ms = 42.0
+    verified = True
+
+
+class _OkRouter:
+    async def route_by_capability(self, **_kwargs):
+        return _OkResponse()
+
+
+class TestDelegateInferenceHonesty:
+    """A failed delegation must be reported as a failure, never as fabricated model output."""
+
+    def _swarm(self, router):
+        swarm = BioelectricSwarm(n_nodes=4)
+        swarm._router = router
+        return swarm
+
+    @pytest.mark.asyncio
+    async def test_failure_returns_no_content_and_names_no_model(self):
+        result = await self._swarm(_FailingRouter()).delegate_inference("plan")
+        assert result["content"] == ""
+        assert result["model_name"] is None
+        assert result["tier_used"] is None
+        assert result["verified"] is False
+        assert "ConnectionError" in result["error"]
+
+    @pytest.mark.asyncio
+    async def test_success_passes_router_output_through(self):
+        result = await self._swarm(_OkRouter()).delegate_inference("plan")
+        assert result["content"] == "real policy text"
+        assert result["model_name"] == "real-model"
+        assert result["error"] is None
