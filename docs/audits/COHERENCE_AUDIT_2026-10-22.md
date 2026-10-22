@@ -104,7 +104,7 @@ name pairs. Proposed canonical targets (integration, never deletion; verify cons
 
 | Keep (canonical) | Fold in | Files | Note |
 |---|---|---|---|
-| `data_mesh/` (23) | `datamesh/` (8) | 31 | same concept, two spellings |
+| `data_mesh/` (23) | `datamesh/` (8) | 31 | **folded 2026-10-22** (branch `chore/fold-datamesh`): six modules moved, stale `kanban_bridge` copy removed, old path is a deprecation shim until 1.29.0 |
 | `sandbox/` (7) | `sandboxing/` (2) | 9 | |
 | `simulation/` (13) | `simulations/` (5) | 18 | `simulations/` is already matched by an ignore rule — its files are tracked by accident |
 | `benchmarks/` (9) | `benchmark/` (1) | 10 | |
@@ -187,7 +187,7 @@ in worktrees or clones (see F6).
 | T1 | this PR | F2 sweep, F3 counts, ignore rules, launcher fix | merged |
 | T2 | done (branch `chore/lfs-ignore-debt`) | F7: 22 media files renormalized; hygiene ratchet gates ignore debt + LFS pointers | fresh clone reports 0 non-pointer LFS files; ignore-debt baseline 188 measured and gated |
 | T3 | agent session | F6: delete merged locals, prune worktrees, restore dotfiles in the main checkout | `git branch --merged origin/main` lists only main; `git worktree list` has no dangling entries |
-| T4 | agent session per pair | F4: one PR per duplicate pair, integrate-then-empty, consumers re-pointed, tests green | package count ≤ 95; no name-pair duplicates; `src/cohezion-archive/` gone from `src/` |
+| T4 | first pair done (`chore/fold-datamesh`); one PR per remaining pair | F4: integrate-then-empty, consumers re-pointed, tests green; recipe in §6 | package count ≤ 95; no name-pair duplicates; `src/cohezion-archive/` gone from `src/` |
 | T5 | agent session | F5: merge the acknowledged duplicate docs; move session residue under `docs/archive/`; cap living top-level docs at ~25 | `ls docs/*.md \| wc -l` ≤ 25 and `docs/README.md` indexes all of them |
 | T6 | user + agent | Portfolio narrative: README leads with the three things a reviewer can run in ten minutes (`examples/quickstart.py`, `make validate`, `make train`), each with the exact expected output; attach the artifact behind every remaining quantitative claim | every number in the README links to a file or command that reproduces it |
 
@@ -204,3 +204,33 @@ orchestration loop that runs end-to-end on consumer AMD silicon at zero marginal
 with a physics-grounded RL environment and a reproducible benchmark behind it.** The 105 packages,
 302 skills and 2,100 documents are evidence of effort, not of that story. A reviewer should meet the
 story first, run it second, and discover the breadth third. Every tranche above serves that order.
+
+---
+
+## 6. How to fold a duplicate package pair (the recipe, from `datamesh/` → `data_mesh/`)
+
+1. **Map before moving.** For every module in the duplicate, find its twin in the canonical
+   package by class/function names and consumers (`git grep` over `src/ scripts/ tests/
+   cloud-vault-mcp/ .claude/ docs/`). A twin that is a byte-identical prefix of the canonical
+   file (as `kanban_bridge.py` was) is a stale copy: nothing to port. A module with no twin
+   moves whole.
+2. **Move with history.** `git mv` the unique modules into the canonical package; rewrite
+   their internal imports (`cohezion.<dup>.` → `cohezion.<canonical>.`). Never copy-paste.
+3. **Repoint every importer**, including string module names (agent `canonical_modules`
+   tuples, the orphan bridge, mypy baseline paths, tests). The old package becomes a shim:
+   re-export every public name from the canonical modules, `warnings.warn(DeprecationWarning)`
+   at import, removal version named in the docstring and CHANGELOG.
+4. **Keep the ratchets honest.** `scripts/ci/mypy_baseline.txt` is keyed by path: rewrite the
+   moved files' prefix rather than letting the same errors reappear as "new". The ruff ratchet
+   needs nothing. `data_mesh/CLAUDE.md`'s declared module count must equal the new count (E5).
+5. **Prove the fold is complete** with a test that fails if it regresses: the old directory
+   holds only `__init__.py`; `git grep` finds no production importer of the old path; the shim
+   objects are the canonical objects (identity, not copies); the shim warns.
+6. **Gates:** `pytest tests/<canonical> tests/wiring tests/unit`, import smoke,
+   `doc_code_consistency.py`, `dormancy_scan.py`, ruff + mypy ratchets, `version_governance.py`.
+   `refactor:` implies no bump; record the fold under `[Unreleased]`.
+
+Remaining pairs, in suggested order: `sandboxing/`→`sandbox/`, `benchmark/`→`benchmarks/`,
+`simulations/`→`simulation/`, `agent/`→`agents/`, `infra/`+`infrastructure/`, `research/`+
+`researcher/` (decide first), `competition/`+`competitions/` (largest; audit both first),
+`api.py` beside `api/`, then `src/cohezion-archive/` out of `src/`.

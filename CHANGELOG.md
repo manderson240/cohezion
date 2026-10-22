@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed — datamesh/ folded into data_mesh/ (coherence tranche 4)
+- The duplicate `src/cohezion/datamesh/` package is integrated into the canonical `src/cohezion/data_mesh/`: `schema.py`, `query.py`, `ingestion.py`, `federation.py`, `bidirectional_linkage.py` and `knowledge_graph_layer.py` moved with history; its `kanban_bridge.py` (a stale prefix copy of `src/cohezion/data_mesh/kanban_bridge.py`) is removed. Importers repointed: `src/cohezion/compound/grand_unified_compound_pipeline.py`, `src/cohezion/agents/specialists/surreal_dba.py`, `src/cohezion/wiring/orphan_bridge.py`, tests, and the mypy baseline paths.
+- `cohezion.datamesh` is now a deprecation shim that re-exports every former public name and warns on import. **Removal scheduled for 1.29.0.** Tests: `tests/data_mesh/test_datamesh_shim.py`.
+- `src/cohezion/data_mesh/CLAUDE.md` declares 27 modules (was 21). The fold recipe for the remaining duplicate pairs is §6 of `docs/audits/COHERENCE_AUDIT_2026-10-22.md`.
+
 ## [1.27.3] - 2026-10-22
 
 ### Fixed — Tracked-file hygiene (coherence tranche 2)
