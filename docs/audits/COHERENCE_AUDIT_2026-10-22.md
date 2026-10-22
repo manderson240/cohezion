@@ -189,7 +189,7 @@ in worktrees or clones (see F6).
 | T3 | agent session | F6: delete merged locals, prune worktrees, restore dotfiles in the main checkout | `git branch --merged origin/main` lists only main; `git worktree list` has no dangling entries |
 | T4 | first pair done (`chore/fold-datamesh`); one PR per remaining pair | F4: integrate-then-empty, consumers re-pointed, tests green; recipe in §6 | package count ≤ 95; no name-pair duplicates; `src/cohezion-archive/` gone from `src/` |
 | T5 | agent session | F5: merge the acknowledged duplicate docs; move session residue under `docs/archive/`; cap living top-level docs at ~25 | `ls docs/*.md \| wc -l` ≤ 25 and `docs/README.md` indexes all of them |
-| T6 | user + agent | Portfolio narrative: README leads with the three things a reviewer can run in ten minutes (`examples/quickstart.py`, `make validate`, `make train`), each with the exact expected output; attach the artifact behind every remaining quantitative claim | every number in the README links to a file or command that reproduces it |
+| T6 | first pass done (`chore/readme-tour`) | README opens with the pitch and a ten-minute tour: `examples/quickstart.py` and `make validate` with captured output; `make demo` repaired (was a SyntaxError) and pointed at `examples/demo_train_eval.py`; the unbacked cache figure removed; training table carries its provenance. Open: run and capture the demo on a machine with the RL extra; check the training artifacts in under `docs/benchmarks/` | every number in the README links to a file or command that reproduces it |
 
 The order is deliberate: T0 and T1 remove disqualifiers; T2–T3 stop the bleeding; T4–T5 are the
 structural work that makes the codebase legible; T6 is the presentation layer and only pays off once
