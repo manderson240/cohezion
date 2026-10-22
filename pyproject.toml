@@ -173,6 +173,14 @@ unsloth = [
 memory = [
     "mem0ai>=2.0.0",
 ]
+# Intel oneDAL-accelerated scikit-learn (sklearnex). OPTIONAL CPU speed-up for
+# classic-ML work (KMeans/PCA/LogReg/RandomForest/kNN); no effect on LLM inference.
+# Opt in: `uv sync --extra ml-cpu`, then `from sklearnex import patch_sklearn;
+# patch_sklearn()` BEFORE importing sklearn estimators. Parity is checked by
+# tests/ml/test_sklearnex_parity.py (skips when not installed).
+ml-cpu = [
+    "scikit-learn-intelex>=2026.2.0",
+]
 # ROCm-specific packages for AMD GPU acceleration (Strix Halo, MI300X, etc).
 # CI uses plain CPU torch from PyPI; local AMD dev installs ROCm torch via:
 #   uv pip install torch==2.8.0+rocm6.3 torchvision==0.23.0+rocm6.3 \
