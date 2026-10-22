@@ -905,3 +905,19 @@ webpack-bundle-analyzer dist/stats.json
 
 **Last Updated**: 2026-02-10
 **Version**: 0.1.0-alpha
+
+## Optional CPU speed-up: sklearnex (`ml-cpu` extra)
+
+Opt in with `uv sync --extra ml-cpu`, then patch **before** importing sklearn estimators:
+
+```python
+from sklearnex import patch_sklearn
+patch_sklearn()
+from sklearn.cluster import KMeans  # now oneDAL-backed
+```
+
+Helps classic CPU sklearn work (KMeans, PCA, LogisticRegression, RandomForest, kNN) and Kaggle
+feature pipelines (3-14x measured on Zen 5 / AVX-512). Does nothing for LLM inference
+(llama.cpp / FLM / torch). Parity vs stock is checked by `tests/ml/test_sklearnex_parity.py`
+(skips when the extra is absent). RandomForest differs by RNG/binning (accuracy-level parity only),
+so treat it as "approximately equal", not bit-identical.

@@ -918,6 +918,9 @@ ml = [
     { name = "torch", version = "2.14.0+cpu", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "sys_platform != 'darwin'" },
     { name = "transformers" },
 ]
+ml-cpu = [
+    { name = "scikit-learn-intelex" },
+]
 rl = [
     { name = "stable-baselines3" },
 ]
@@ -996,6 +999,7 @@ requires-dist = [
     { name = "respx", marker = "extra == 'dev'", specifier = ">=0.23.0" },
     { name = "ruff", marker = "extra == 'dev'", specifier = ">=0.8.0" },
     { name = "scikit-learn", specifier = ">=1.3.0" },
+    { name = "scikit-learn-intelex", marker = "extra == 'ml-cpu'", specifier = ">=2026.2.0" },
     { name = "sentence-transformers", specifier = ">=2.2.0" },
     { name = "soundfile", marker = "extra == 'audio'", specifier = ">=0.12.0" },
     { name = "stable-baselines3", marker = "extra == 'rl'", specifier = ">=2.3.0" },
@@ -1010,7 +1014,7 @@ requires-dist = [
     { name = "unsloth", marker = "extra == 'unsloth'" },
     { name = "uvicorn", specifier = ">=0.24.0" },
 ]
-provides-extras = ["dev", "ml", "rl", "agentjet", "cockpit", "audio", "unsloth", "memory", "rocm"]
+provides-extras = ["dev", "ml", "rl", "agentjet", "cockpit", "audio", "unsloth", "memory", "ml-cpu", "rocm"]
 
 [package.metadata.requires-dev]
 dev = [
@@ -1269,6 +1273,18 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/16/8f/6caec9cf291ba294a0d0669b0388e5676d8887d8b75a8c3ad0a2dc2eeed9/cyclopts-4.25.2.tar.gz", hash = "sha256:0776bc1fa796cd351646c345b7420279e58d6c2c4a8f5d5dd54dea85bdb2de8f", size = 202467, upload-time = "2026-09-08T16:58:04.426Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/2c/0e/eadf712ca776fd96982c09348dd8f141ae6f96746a4eabc3e3fb54dea738/cyclopts-4.25.2-py3-none-any.whl", hash = "sha256:51b42513eea5e4ba6a08b68acf187b81f1191032cf77b9631086cfa2c88fa7a4", size = 242400, upload-time = "2026-09-08T16:58:02.696Z" },
+]
+
+[[package]]
+name = "daal"
+version = "2026.2.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "tbb" },
+]
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/aa/d2/68ae36dcd260eb75c3b138b994200c0c46b61b1ed6806e84ee2e90c28e52/daal-2026.2.0-py2.py3-none-manylinux_2_28_x86_64.whl", hash = "sha256:2c400b35643544a45a06f9d418164bbe096ea6f2476876d968fc5435c535dc72", size = 31793322, upload-time = "2026-10-16T12:35:28.97Z" },
+    { url = "https://files.pythonhosted.org/packages/aa/a5/6bf4430b45c3a7e517bdaf6b3f3c5387c1ed6818f64b3f10c83e516d3ef8/daal-2026.2.0-py2.py3-none-win_amd64.whl", hash = "sha256:400c759f56ad579b60cda82e35c1974abe1128344eea41f99b051d6ccd7c90b2", size = 25210178, upload-time = "2026-10-16T12:32:22.767Z" },
 ]
 
 [[package]]
@@ -4880,6 +4896,28 @@ wheels = [
 ]
 
 [[package]]
+name = "scikit-learn-intelex"
+version = "2026.2.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "daal" },
+    { name = "numpy" },
+    { name = "scikit-learn" },
+]
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/9f/0d/9f59c3d00b6d76b68e1083a174e0ab31a26af76875e287fa676910a38702/scikit_learn_intelex-2026.2.0-py310-none-manylinux_2_28_x86_64.whl", hash = "sha256:0f41d41da8a9e6539a084a204611219222b6be62b16618cfad529bb669f1763e", size = 2791197, upload-time = "2026-10-16T12:35:43.021Z" },
+    { url = "https://files.pythonhosted.org/packages/f1/27/d466654edc79d4eec262cec340a8123fd8a85f6097d37fc651d94a994f77/scikit_learn_intelex-2026.2.0-py310-none-win_amd64.whl", hash = "sha256:59de65ea7029a50103c78f5dd2fe92e8db8e4af138a7c4529e2eb9fa29837646", size = 1971795, upload-time = "2026-10-16T12:32:41.153Z" },
+    { url = "https://files.pythonhosted.org/packages/8e/56/109ad97f8162d88c8add8ac53673c1d58a5378bc1d6193d9fe1d651e1c4c/scikit_learn_intelex-2026.2.0-py311-none-manylinux_2_28_x86_64.whl", hash = "sha256:c80198883dc8ecb349ca3200ae3deafbb269c09db3633e752462ef0eb7c7321f", size = 2765102, upload-time = "2026-10-16T12:35:45.743Z" },
+    { url = "https://files.pythonhosted.org/packages/a9/ad/54fdd49b405fd56aca174909f9878e30276c83b5499ed192d321a517f99f/scikit_learn_intelex-2026.2.0-py311-none-win_amd64.whl", hash = "sha256:fbd377a294f9c03938284b51ddf0770e90f85b1f0f61dce8384a2382842bf173", size = 1972752, upload-time = "2026-10-16T12:32:43.508Z" },
+    { url = "https://files.pythonhosted.org/packages/5c/1a/a926ee01294348b4e1c117e8d44d7be6f0ec03d0400291bf4c8e67e213f5/scikit_learn_intelex-2026.2.0-py312-none-manylinux_2_28_x86_64.whl", hash = "sha256:6be4527302973bdf6f08b543619cde49cbc3725c54e8b9621e697cb8941ae843", size = 2746908, upload-time = "2026-10-16T12:35:48.335Z" },
+    { url = "https://files.pythonhosted.org/packages/77/2c/f9ed3889bee1b151a6aed56d26e14ed023779909930098716b41f11d97c5/scikit_learn_intelex-2026.2.0-py312-none-win_amd64.whl", hash = "sha256:06a75ced846010ce8d56bfc2b2515e193a353d2240a7e6589e4b2c5b40304413", size = 1951723, upload-time = "2026-10-16T12:32:45.519Z" },
+    { url = "https://files.pythonhosted.org/packages/e6/03/462a080c37a5f2b56f783b400f19c8042e8fe5420e5de7b3662c3335f415/scikit_learn_intelex-2026.2.0-py313-none-manylinux_2_28_x86_64.whl", hash = "sha256:3fd6a853414702c5b431cd6e9232991642e7c3acb31b5b5113874d9cbbb28eb2", size = 2743535, upload-time = "2026-10-16T12:35:50.439Z" },
+    { url = "https://files.pythonhosted.org/packages/98/99/5de6eec737ae508c6a3e961bf678e573c6a00188a75baa0a290f9b8ff867/scikit_learn_intelex-2026.2.0-py313-none-win_amd64.whl", hash = "sha256:dd0cd1f14aa7d7245dd4543d0a79ee761a61fdfd6bfa61438f1c4605dc4c4313", size = 1951303, upload-time = "2026-10-16T12:32:47.822Z" },
+    { url = "https://files.pythonhosted.org/packages/c3/2c/3038656aa26bd5f24ffedd1d10a0637313eb61844a802665d41100ce4b68/scikit_learn_intelex-2026.2.0-py314-none-manylinux_2_28_x86_64.whl", hash = "sha256:4a4ee9dc67f48f634f11f114c07e1196592f57d6868398284e0d1080c2fa245d", size = 2750249, upload-time = "2026-10-16T12:35:52.606Z" },
+    { url = "https://files.pythonhosted.org/packages/47/40/7e5fc7d7e6c295ec38ee1aac303a8d095d913b52eebf4a84660551816bf4/scikit_learn_intelex-2026.2.0-py314-none-win_amd64.whl", hash = "sha256:f2440d97f84945c202c2cb9bcfa9811fa07df2e6b7b9a31c15f2be6a7540b3eb", size = 1954048, upload-time = "2026-10-16T12:32:49.78Z" },
+]
+
+[[package]]
 name = "scipy"
 version = "1.18.1"
 source = { registry = "https://pypi.org/simple" }
@@ -5286,6 +5324,27 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/0d/94/f49475ac7c33beb19a7067ffa9faad21a9b1a4afbcadac22476a9e143783/tavily_python-0.8.1.tar.gz", hash = "sha256:f00d1ecfe9a7ad82a7d6b84427faefe7448e9f16a8115ece3f5fbadc35752c4b", size = 31270, upload-time = "2026-09-03T13:20:33.15Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/34/33/30bf2dcbd36f0591aa0b0a9bcf6b1d45c5c2223730557abdecf282cef72d/tavily_python-0.8.1-py3-none-any.whl", hash = "sha256:21392e47f28e6024405d5616e1e3228eed1d15a3b3d9d9e523c150e628f13a5e", size = 22177, upload-time = "2026-09-03T13:20:32.21Z" },
+]
+
+[[package]]
+name = "tbb"
+version = "2023.2.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "tcmlib" },
+]
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/59/fd/8ca476c7b2513b1e64e08d3f5404c8ed19b34d0213000b5e23b3a91676c2/tbb-2023.2.0-py2.py3-none-manylinux_2_28_x86_64.whl", hash = "sha256:7d80615b6e970f11671fa05b6eaa9483ac864fbfe525ac280271a78b37870b7c", size = 6864088, upload-time = "2026-10-16T12:38:06.333Z" },
+    { url = "https://files.pythonhosted.org/packages/d0/41/2aeac799ab57e81898c8cc24f503fe301e12f19758bb1fe34d522764d3bb/tbb-2023.2.0-py3-none-win_amd64.whl", hash = "sha256:b39121cbdaff350fc61a448766cbb26807c523491d66e364838c9feeb3c6a0eb", size = 430857, upload-time = "2026-10-16T12:34:41.635Z" },
+]
+
+[[package]]
+name = "tcmlib"
+version = "1.6.0"
+source = { registry = "https://pypi.org/simple" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/a4/95/d2616129c971d989c1f5ec2ea697a6885165570c69d9fa50bfbde8195d26/tcmlib-1.6.0-py2.py3-none-manylinux_2_28_x86_64.whl", hash = "sha256:46c2491988bfd18c4733eeb08aca6a386706a497b92cc51d155f37ddea003c14", size = 2802717, upload-time = "2026-10-16T12:38:19.821Z" },
+    { url = "https://files.pythonhosted.org/packages/d7/a5/996458475dcc65f20ec20c0e3d4bbc175c87750ff9bb703908c373b2497a/tcmlib-1.6.0-py2.py3-none-win_amd64.whl", hash = "sha256:7f65c0a6d56f2b1383b3022e873175f5025db00a5c7d0aaeb019300c25f5d482", size = 371933, upload-time = "2026-10-16T12:34:53.372Z" },
 ]
 
 [[package]]
