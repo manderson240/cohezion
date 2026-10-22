@@ -1,3 +1,12 @@
+---
+type: audit
+title: Coherence Audit 2026-10-22
+date: 2026-10-22
+scope: origin/main b3342cf18 (1.27.1)
+status: tranche-1-landed
+tags: [coherence, portfolio, security, repo-hygiene]
+---
+
 # Coherence Audit — 2026-10-22
 
 **Standard:** a senior reviewer with five minutes and no context should be able to tell what
@@ -19,7 +28,7 @@ duplicates are proposed for integration into a canonical sibling.
 | Dimension | Measured | Where the number came from |
 |---|---|---|
 | Source | 448,696 lines of Python under `src/cohezion/` | `find … \| xargs cat \| wc -l` |
-| Top-level packages | 105 tracked (120 directories in the working checkout, 4 of them empty and untracked) | `ls -d src/cohezion/*/` |
+| Top-level packages | 105 tracked; the working checkout shows 120 directories, 15 of them untracked (4 empty) | `ls -d src/cohezion/*/` |
 | Tests | 13,905 collected in 29 s | `uv run pytest tests/ --collect-only -q` |
 | CI on main | last 6 runs green, 9–12 min each; CodeQL green | `gh run list --workflow ci.yml --branch main` |
 | Skills | 302 PRIME skill files in `src/cohezion/skills/` | `ls src/cohezion/skills/*.md \| wc -l` |
@@ -47,10 +56,10 @@ duplicates are proposed for integration into a canonical sibling.
   it on 2026-09-08 did not remove it from history. Every one of those keys is compromised until rotated.
 - `.secrets.baseline` dates from 2026-02-09 and allowlists the `run_mcp.py` finding, which is why
   `detect-secrets` never objected. The baseline needs regenerating after rotation.
-- The vault MCP server itself (`cloud-vault-mcp/src/mcp_server/main.py`) still *warns* rather than
-  refuses when `MCP_API_KEY` is unset. Given that this server was reachable from the internet with no
-  auth on 2026-10-20, failing closed there is the right default. Behaviour change, so it is proposed,
-  not applied.
+- The vault MCP server itself (`cloud-vault-mcp/src/mcp_server/main.py`) used to *warn* rather than
+  refuse when `MCP_API_KEY` was unset. Given that this server was reachable from the internet with no
+  auth on 2026-10-20, it now fails closed at every entrypoint (**fixed in this change**, with
+  `MCP_ALLOW_UNAUTHENTICATED=1` as the explicit opt-out for isolated development hosts).
 
 **Action (user only):** rotate every key named above; then regenerate `.secrets.baseline`. A history
 rewrite is optional and does not un-leak anything; it only shrinks the attack surface for future clones.
@@ -65,7 +74,7 @@ a stray vault fragment and scenario fixtures. None of them had a consumer in `sr
 (competition submissions, `*_response.json`, analysis scripts, logs, a zip) plus three files whose
 names are shell accidents (`--nets`, `**2026-10-15`, and one named after a Python fragment).
 
-**Landed:** the ten tracked items moved to `docs/archive/root-sweep-2026-10-22/`; `EOF` removed;
+**Landed:** the nine tracked items moved to `docs/archive/root-sweep-2026-10-22/`; `EOF` removed;
 root-anchored ignore rules added so this class cannot recur. Root count 69 → 59.
 **Remaining to reach the guard's target (<50):** candidates with no code consumer are
 `tests_mycelium/`, `onnx_models/`, `AGENT_COORDINATION.md`, `AGENT-SURFACES.md`,
@@ -81,11 +90,11 @@ the working checkout are untracked and should simply be deleted by the owner.
 | "12,000+ test suite" | README | 13,905 collected |
 | "6,133 tests collected" | CLAUDE.md | 13,905 collected |
 | "95%+ hit rates in internal runs" | README (semantic cache) | no artifact in the repo reproduces it |
-| "50+ checks" for `make validate` | README | CLAUDE.md says 23; neither was re-measured here |
+| "50+ checks" for `make validate` | README, Makefile | 27 steps (CLAUDE.md said 23); corrected in all three |
 
-**Landed:** skill and test counts corrected in README and CLAUDE.md. The cache hit-rate and
-`make validate` claims are left in place and flagged: either attach the run that produced them
-under `docs/benchmarks/` or soften the wording.
+**Landed:** skill, test and validator counts corrected in README, CLAUDE.md and the Makefile. The
+cache hit-rate claim is left in place and flagged: either attach the run that produced it under
+`docs/benchmarks/` or soften the wording.
 
 ### F4 — Package-level duplication (medium, structural)
 
@@ -156,13 +165,13 @@ main and commit it with the next release.
 
 ## 3. Landed in this change
 
-1. `cloud-vault-mcp/run_mcp.py` reads `MCP_API_KEY` from the environment and refuses to start without it.
+1. `cloud-vault-mcp/run_mcp.py` carries no key; `cloud-vault-mcp/src/mcp_server/main.py` refuses to start without `MCP_API_KEY` (every entrypoint).
 2. Root sweep: `EOF` removed; `satus/`, `spdd/`, `status_update/`, `runs/`, `reports/`, `vaults/`,
    `knowledge/`, `particles-casberry.jpeg`, `skill_density_experiment.py` moved to
    `docs/archive/root-sweep-2026-10-22/`.
 3. Root-anchored `.gitignore` rules for loose code, data, results and JS tooling (verified to hide
    no currently tracked file).
-4. README and CLAUDE.md counts corrected to measured values.
+4. README, CLAUDE.md and Makefile counts corrected to measured values (302 skills, 13,905 tests, 27 validator steps).
 5. Version 1.27.1 → 1.27.2 with a CHANGELOG entry.
 
 ---
@@ -171,7 +180,7 @@ main and commit it with the next release.
 
 | Tranche | Owner | Content | Done when |
 |---|---|---|---|
-| T0 | user | Rotate every key in F1; regenerate `.secrets.baseline`; decide on fail-closed vault auth | no literal in `run_mcp.py` matches a live key; baseline has no `run_mcp.py` entry |
+| T0 | user | Rotate every key in F1; regenerate `.secrets.baseline` | no literal in `run_mcp.py` matches a live key; baseline has no `run_mcp.py` entry |
 | T1 | this PR | F2 sweep, F3 counts, ignore rules, launcher fix | merged |
 | T2 | agent session | F7: renormalize the 22 media files; CI step for ignore debt; install pre-commit | fresh clone reports 0 non-pointer LFS files; ignore-debt count is pinned |
 | T3 | agent session | F6: delete merged locals, prune worktrees, restore dotfiles in the main checkout | `git branch --merged origin/main` lists only main; `git worktree list` has no dangling entries |

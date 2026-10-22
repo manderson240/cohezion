@@ -47,7 +47,7 @@ uv sync  # installs all deps
 # 60-second tour: step an agent through the 12D manifold (no network, no GPU)
 uv run python examples/quickstart.py
 
-# Validate the compound engineering loop (50+ checks, seconds)
+# Validate the compound engineering loop (27 checks, ~10 s)
 make validate
 
 # Train a PPO agent on the 12D manifold (20K steps, ~5 min)
@@ -239,7 +239,7 @@ The full agent contract, specialist routing table, and coding standards live in
 make format      # ruff format
 make lint        # ruff check + auto-fix
 make test        # 13,900+ test suite
-make validate    # 50+ compound loop invariant checks
+make validate    # 27 compound loop invariant checks (measured 2026-10-22)
 make train       # Train PPO on ManifoldEnv (20K steps; uv sync --extra rl)
 make evaluate    # Evaluate trained model vs baselines
 make benchmark   # Full 100K training + comparisons

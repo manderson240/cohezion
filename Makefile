@@ -163,7 +163,7 @@ ci: coherence-check async-guard routing-guard a2a-guard agent-guard mcp-guard kg
 	uv run python src/cohezion/healing/scripts/trajectory_guard.py
 	@echo "✓ All CI checks passed"
 # Compound Loop Validation
-validate:  ## Validate compound engineering loop end-to-end (50+ checks, seconds)
+validate:  ## Validate compound engineering loop end-to-end (27 checks, seconds)
 	.venv/bin/python scripts/validate_compound_loop.py
 	@echo "✓ Compound loop validated"
 
