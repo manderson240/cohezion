@@ -7,7 +7,9 @@ ONE stacked similarity matrix, so the first lookup or insert after the switch ca
 ``np.dot(matrix_768, query_384)`` and raised ``ValueError: shapes not aligned`` inside
 the api's request path.
 
-The fix flushes L2 rows whose width differs from the incoming embedding. These tests
+The fix points the L2 similarity view at entries of the incoming width and keeps the
+others, so a transient fallback costs misses but does not destroy the store (adversarial
+review S3: a flush-on-read version wiped 20 entries on one degraded ``get``). These tests
 drive the real ``get``/``put`` path with a scripted encoder; the only seam patched is
 ``_text_to_embedding`` (where the width comes from).
 """
@@ -56,23 +58,44 @@ async def test_lookup_after_encoder_width_change_does_not_crash(cache):
         result = await cache.get("a completely different prompt")
 
     assert result is None  # a miss, not a ValueError
-    # The incompatible 768D rows are gone; nothing of the old width survives.
-    assert cache._l2_matrix is None or cache._l2_matrix.shape[1] == 384
+    assert len(cache.l2_cache) == 1  # the 768D entry survives the degraded lookup
 
 
-async def test_insert_after_encoder_width_change_keeps_only_new_width(cache):
+async def test_insert_after_encoder_width_change_indexes_the_new_width(cache):
     with patch.object(SemanticCache, "_text_to_embedding", side_effect=_encoder([768, 384])):
         await cache.put("first prompt", "first response")
         await cache.put("second prompt", "second response")
 
-    assert cache._l2_matrix is not None
-    assert cache._l2_matrix.shape == (1, 384)
-    assert all(e.embedding.shape == (384,) for e in cache.l2_cache.values())
+    assert cache._l2_matrix is not None and cache._l2_matrix.shape == (1, 384)
+    widths = sorted(e.embedding.shape[0] for e in cache.l2_cache.values())
+    assert widths == [384, 768]  # both kept; only the 384D one is in the active view
     assert set(cache.l2_lfu_counts) <= set(cache.l2_cache)
 
 
+async def test_transient_fallback_does_not_destroy_the_store(cache):
+    """768D store, one degraded 256D lookup, then 768D again: the original entry still hits."""
+    stored = _unit(768, 0)
+    calls = iter([stored, _unit(256, 1), stored])
+    with patch.object(SemanticCache, "_text_to_embedding", side_effect=lambda _t: next(calls)):
+        await cache.put("what is the capital of france", "Paris")
+        assert await cache.get("a degraded lookup") is None
+        assert await cache.get("capital of france?") == "Paris"
+
+
+async def test_eviction_after_a_width_change_does_not_stack_mixed_widths():
+    small = SemanticCache(similarity_threshold=0.5, enable_adaptive_threshold=False, max_l2_size=2)
+    with patch.object(SemanticCache, "_text_to_embedding", side_effect=_encoder([768, 768, 384])):
+        # The third put evicts one 768D entry; the other 768D entry must stay out of the
+        # rebuilt 384D view, or stacking mixed widths raises.
+        for i in range(3):
+            await small.put(f"prompt {i}", f"response {i}")
+
+    assert small._l2_matrix is not None and small._l2_matrix.shape[1] == 384
+    assert len(small.l2_cache) <= 2
+
+
 async def test_same_width_entries_are_not_flushed(cache):
-    """Discriminating: a flush-everything implementation would empty L2 here."""
+    """Discriminating: a drop-everything implementation would empty L2 here."""
     with patch.object(SemanticCache, "_text_to_embedding", side_effect=_encoder([384, 384])):
         await cache.put("first prompt", "first response")
         await cache.put("second prompt", "second response")
