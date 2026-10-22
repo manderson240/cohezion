@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.27.3] - 2026-10-22
+
+### Fixed — Tracked-file hygiene (coherence tranche 2)
+- 22 media files (`.wav`, `.mp3`, `.mp4`, about 10 MB) that `.gitattributes` routes to LFS were committed as raw blobs; a fresh clone warned "files that should have been pointers". They are renormalized to pointers in one commit, with no history rewrite.
+- `scripts/ci/repo_hygiene_ratchet.py` enforces both declared rules that nothing enforced before: an LFS-routed tracked file stored as raw content fails outright, and tracked files matching `.gitignore` may only decrease from the measured baseline in `scripts/ci/ignore_debt_baseline.txt` (188). Wired with `--self-test` into the CI validate job and `scripts/ci/automerge_guard.sh`; tests in `tests/scripts/test_repo_hygiene_ratchet.py` include the consumption check that both gates invoke it.
+- `CLAUDE.md` no longer credits the `lfs-pointer-check` pre-commit hook with enforcement it cannot provide where pre-commit is not installed.
+
 ## [1.27.2] - 2026-10-22
 
 ### Security

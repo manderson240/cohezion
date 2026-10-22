@@ -185,7 +185,7 @@ in worktrees or clones (see F6).
 |---|---|---|---|
 | T0 | user | Rotate every key in F1; regenerate `.secrets.baseline` | no literal in `run_mcp.py` matches a live key; baseline has no `run_mcp.py` entry |
 | T1 | this PR | F2 sweep, F3 counts, ignore rules, launcher fix | merged |
-| T2 | agent session | F7: renormalize the 22 media files; CI step for ignore debt; install pre-commit | fresh clone reports 0 non-pointer LFS files; ignore-debt count is pinned |
+| T2 | done (branch `chore/lfs-ignore-debt`) | F7: 22 media files renormalized; hygiene ratchet gates ignore debt + LFS pointers | fresh clone reports 0 non-pointer LFS files; ignore-debt baseline 188 measured and gated |
 | T3 | agent session | F6: delete merged locals, prune worktrees, restore dotfiles in the main checkout | `git branch --merged origin/main` lists only main; `git worktree list` has no dangling entries |
 | T4 | agent session per pair | F4: one PR per duplicate pair, integrate-then-empty, consumers re-pointed, tests green | package count ≤ 95; no name-pair duplicates; `src/cohezion-archive/` gone from `src/` |
 | T5 | agent session | F5: merge the acknowledged duplicate docs; move session residue under `docs/archive/`; cap living top-level docs at ~25 | `ls docs/*.md \| wc -l` ≤ 25 and `docs/README.md` indexes all of them |
