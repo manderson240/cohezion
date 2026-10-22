@@ -54,7 +54,8 @@ if TORCH_AVAILABLE:
             )
 
         def forward(self, x: torch.Tensor) -> torch.Tensor:
-            return self.layers(x)
+            out: torch.Tensor = self.layers(x)
+            return out
 else:
 
     class _CheckpointSequentialEncoder:  # type: ignore[no-redef]
@@ -66,9 +67,11 @@ else:
 
         def load_state_dict(self, state_dict: Any) -> Any: ...
 
-        def to(self, device: Any) -> _CheckpointSequentialEncoder: ...
+        def to(self, device: Any) -> _CheckpointSequentialEncoder:
+            return self
 
-        def eval(self) -> _CheckpointSequentialEncoder: ...
+        def eval(self) -> _CheckpointSequentialEncoder:
+            return self
 
 
 class FlumeVAEEncoder:
