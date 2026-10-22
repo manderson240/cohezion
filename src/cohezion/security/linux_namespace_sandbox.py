@@ -11,7 +11,6 @@ Provides zero-root, unprivileged kernel isolation across:
 
 from __future__ import annotations
 
-import asyncio
 import logging
 import os
 import shutil
@@ -19,8 +18,7 @@ import subprocess
 import tempfile
 import time
 from dataclasses import dataclass
-from pathlib import Path
-from typing import Any
+
 
 logger = logging.getLogger("cohezion.sandbox.namespaces")
 _BWRAP = shutil.which("bwrap") or "/usr/bin/bwrap"

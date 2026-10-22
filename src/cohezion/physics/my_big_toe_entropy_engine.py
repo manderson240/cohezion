@@ -22,9 +22,10 @@ from typing import Any, Sequence
 
 import numpy as np
 
-from cohezion.agi.autoharness_policy import ActionPolicyResult, AutoHarnessPolicy
+from cohezion.agi.autoharness_policy import AutoHarnessPolicy
 from cohezion.contracts import PoincarePoint
 from cohezion.physics.poincare_manifold import PoincareManifoldND
+
 
 logger = logging.getLogger("my_big_toe_entropy_engine")
 

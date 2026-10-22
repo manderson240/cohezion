@@ -7,16 +7,16 @@ Generates hundreds of randomized inputs to test fundamental system invariants:
 """
 
 import math
-import numpy as np
+
 import pytest
-from hypothesis import given, settings, strategies as st
+from hypothesis import given, settings
+from hypothesis import strategies as st
 
 from cohezion.physics.my_big_toe_entropy_engine import MyBigTOEEntropyEngine
 from cohezion.physics.orch_or_runtime_service import (
     OrchORRuntimeService,
-    SuperposedPolicyBranch,
 )
-from cohezion.security.secret_scrubber import scrub_text, contains_unredacted_credentials
+from cohezion.security.secret_scrubber import contains_unredacted_credentials, scrub_text
 
 
 @pytest.mark.property

@@ -1,6 +1,7 @@
 """Pure NumPy Minimal Chaos & Information Theory Engine (Karpathy Standard)."""
 
 from __future__ import annotations
+
 import numpy as np
 
 

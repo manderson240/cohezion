@@ -7,8 +7,10 @@ Models ARC grid and decision state phase transitions:
 """
 
 from __future__ import annotations
+
+from typing import List, Tuple
+
 import numpy as np
-from typing import List, Tuple, Optional
 
 
 class SymmetryBreakingEngine:

@@ -7,8 +7,10 @@ $$E(x, y, a) = \|s_y - g(s_x, a)\|^2$$
 """
 
 from __future__ import annotations
+
+from typing import Callable, List, Tuple
+
 import numpy as np
-from typing import List, Tuple, Dict, Any, Callable
 
 
 class ARCJEPAWorldModel:

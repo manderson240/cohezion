@@ -1,13 +1,10 @@
 import json
-import pytest
 from pathlib import Path
+
 from cohezion.memory.autopoietic_memory_fabric import (
-    AutopoieticMemoryFabric,
-    AutopoieticHealthReport,
     POINCARE_DIM,
-    COHESION_THRESHOLD,
+    AutopoieticMemoryFabric,
 )
-from cohezion.agi.autoharness_policy import AutoHarnessPolicy
 
 
 def test_poincare_2048d_embedding():

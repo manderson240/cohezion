@@ -14,10 +14,10 @@ Guarantees assertion strength and eliminates vacuous green tests.
 from __future__ import annotations
 
 import ast
-import copy
 import logging
 from dataclasses import dataclass, field
 from typing import Any, Callable
+
 
 logger = logging.getLogger("mutation_tester")
 

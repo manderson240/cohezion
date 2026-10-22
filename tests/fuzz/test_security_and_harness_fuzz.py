@@ -6,15 +6,16 @@ with randomized adversarial bitstreams, pathological token trees, and malformed 
 
 import string
 import time
-import pytest
-from hypothesis import given, settings, strategies as st
 
+import pytest
+from hypothesis import given, settings
+from hypothesis import strategies as st
+
+from cohezion.agi.autoharness_policy import AutoHarnessPolicy
 from cohezion.security.secret_scrubber import (
     scrub_text,
-    contains_unredacted_credentials,
     verify_command_safety,
 )
-from cohezion.agi.autoharness_policy import AutoHarnessPolicy
 
 
 @pytest.mark.fuzz

@@ -2,21 +2,20 @@
 
 from __future__ import annotations
 
-import cmath
-import math
-import pytest
 from pathlib import Path
-from cohezion.physics.orch_or_runtime_service import (
-    OrchORRuntimeService,
-    SuperposedPolicyBranch,
-    HIHO_EQUILIBRIUM_TARGET,
-)
-from cohezion.physics.twistor_orch_or import OrchOREngine
+
+import pytest
+
+from cohezion.agi.autoharness_policy import AutoHarnessPolicy
 from cohezion.data_mesh.durable_precipitation_bridge import (
     DurablePrecipitationBridge,
     DurableWitnessMark,
 )
-from cohezion.agi.autoharness_policy import AutoHarnessPolicy
+from cohezion.physics.orch_or_runtime_service import (
+    OrchORRuntimeService,
+    SuperposedPolicyBranch,
+)
+from cohezion.physics.twistor_orch_or import OrchOREngine
 
 
 def test_edge_case_zero_separation_distance():

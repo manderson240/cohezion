@@ -15,9 +15,8 @@ from __future__ import annotations
 
 import json
 import logging
-import math
 import time
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Any
 
 import numpy as np
@@ -34,6 +33,7 @@ from cohezion.worldviews.tradition_data import (
     Tradition,
     get_traditions,
 )
+
 
 logger = logging.getLogger("twistor_worldview_functor")
 

@@ -5,8 +5,10 @@ higher-order relational primitives for solving ARC-AGI puzzles.
 """
 
 from __future__ import annotations
-from typing import Dict, Any, List, Tuple, Set, Optional
+
 from collections import deque
+from typing import List, Set, Tuple
+
 import numpy as np
 
 

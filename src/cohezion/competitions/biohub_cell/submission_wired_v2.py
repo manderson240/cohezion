@@ -74,6 +74,7 @@ DIVISION_RADIUS_UM = 6.0  # tight radius for a conservative 2nd-daughter (divisi
 # Overridable via env for local smoke tests; NEVER set in the Kaggle kernel.
 import os as _os  # noqa: E402
 
+
 MAX_FRAMES: int | None = (
     int(_os.environ["COHEZION_BIOHUB_MAX_FRAMES"])
     if _os.environ.get("COHEZION_BIOHUB_MAX_FRAMES")

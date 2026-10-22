@@ -10,12 +10,11 @@ Bridges:
 from __future__ import annotations
 
 import hashlib
-import json
 import logging
 import math
 import time
 from dataclasses import dataclass, field
-from typing import Any, Sequence
+from typing import Any
 
 import numpy as np
 
@@ -31,6 +30,7 @@ from cohezion.physics.twistor_orch_or import (
     PenroseTwistorEngine,
     TwistorState,
 )
+
 
 logger = logging.getLogger("twistor_bundle_bridge")
 

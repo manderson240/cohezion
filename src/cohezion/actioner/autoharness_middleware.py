@@ -8,16 +8,17 @@ Wraps any harness execution with standard:
 """
 
 from __future__ import annotations
+
 import asyncio
 import functools
 import inspect
 import logging
 import time
-from typing import Any, Callable, Dict, Optional, Tuple
+from typing import Callable
 
 from cohezion.core.event_bus import Event, EventType, get_event_bus
-from cohezion.data_mesh.kanban_bridge import persist_item
-from cohezion.inference.smart_oom_governor import SmartOOMGovernor, CrossSessionFleetLock
+from cohezion.inference.smart_oom_governor import CrossSessionFleetLock, SmartOOMGovernor
+
 
 logger = logging.getLogger("autoharness_middleware")
 

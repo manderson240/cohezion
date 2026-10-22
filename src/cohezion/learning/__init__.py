@@ -26,7 +26,11 @@ from cohezion.learning.skill_acquisition import (
 )
 from cohezion.learning.vault_neuron_reader import (
     ExperientialPrior as ExperientialPrior,
+)
+from cohezion.learning.vault_neuron_reader import (
     VaultNeuronGraph as VaultNeuronGraph,
+)
+from cohezion.learning.vault_neuron_reader import (
     VaultNeuronWriter as VaultNeuronWriter,
 )
 

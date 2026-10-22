@@ -1,8 +1,10 @@
+from unittest.mock import MagicMock, patch
+
 import pytest
-from unittest.mock import patch, MagicMock
+
 from cohezion.data_mesh.recursive_event_mesh import (
-    DynamicRecursiveDataMesh,
     AdaptiveMeshMarkovChain,
+    DynamicRecursiveDataMesh,
     MeshState,
 )
 from cohezion.reliability.oom_guard import MemoryState

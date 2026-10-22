@@ -1,7 +1,7 @@
-import pytest
-from unittest.mock import patch, MagicMock
 from pathlib import Path
-from cohezion.core.compound_graph_engine import CompoundGraphEngine, LearningRecall
+from unittest.mock import patch
+
+from cohezion.core.compound_graph_engine import CompoundGraphEngine
 
 
 def test_read_before_reasoning_hit():

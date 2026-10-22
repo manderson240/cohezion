@@ -6,7 +6,8 @@ and proving that our test suite kills the mutants.
 """
 
 import pytest
-from cohezion.testing.mutation_tester import MutationTestingEngine, MutationReport
+
+from cohezion.testing.mutation_tester import MutationReport, MutationTestingEngine
 
 
 @pytest.mark.mutation

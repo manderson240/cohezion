@@ -8,18 +8,15 @@ Refactors agentic execution into formal:
 
 from __future__ import annotations
 
-import asyncio
+import inspect
+import logging
+import time
 from dataclasses import dataclass, field
 from enum import Enum
-import inspect
-import json
-import logging
-import os
-import time
 from typing import Any, Callable, Coroutine
 
 from cohezion.actioner.autoharness_verifier import AutoHarnessVerifier
-from cohezion.contracts import VerificationResult
+
 
 logger = logging.getLogger(__name__)
 

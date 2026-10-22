@@ -9,6 +9,7 @@ Implements 5 core geometric & topological primitives for 2D ARC grids (<= 30x30)
 """
 
 from __future__ import annotations
+
 import numpy as np
 
 

@@ -16,12 +16,12 @@ import json
 import logging
 import time
 from dataclasses import dataclass, field
-from typing import Any, List, Optional
+from typing import List, Optional
 
 from cohezion.actioner.autoharness_verifier import AutoHarnessVerifier
 from cohezion.inference.unified_hybrid_router import TaskClass, UnifiedHybridRouter
-from cohezion.physics.poincare_manifold import PoincareManifoldND
 from cohezion.reliability.oom_guard import OOMGuard
+
 
 logger = logging.getLogger("never_idle_engine")
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [SEAMS] %(message)s")

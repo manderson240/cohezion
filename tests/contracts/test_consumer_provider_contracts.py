@@ -5,13 +5,12 @@ Synthetically mutates contracts (fields, status codes, payload schemas) and veri
 verification tests strictly detect and reject contract drift.
 """
 
-import copy
 import pytest
 from pydantic import ValidationError
 
-from cohezion.data_mesh.durable_precipitation_bridge import DurableWitnessMark
-from cohezion.storage.gdrive_offloader import StorageHealth, OffloadJob
 from cohezion.agi.autoharness_policy import ActionPolicyResult
+from cohezion.data_mesh.durable_precipitation_bridge import DurableWitnessMark
+from cohezion.storage.gdrive_offloader import StorageHealth
 
 
 class TestConsumerProviderContracts:

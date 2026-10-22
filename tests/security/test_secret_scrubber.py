@@ -1,11 +1,8 @@
-import pytest
-from pathlib import Path
-
 from cohezion.security.secret_scrubber import (
-    scrub_text,
-    contains_unredacted_credentials,
-    verify_command_safety,
     auto_heal_scrub_file,
+    contains_unredacted_credentials,
+    scrub_text,
+    verify_command_safety,
 )
 
 
