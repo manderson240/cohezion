@@ -185,6 +185,22 @@ class AdmissionGate:
                 self._sizes.update(fresh)
         return self._sizes.get(key)
 
+    def _npu_slot_credit_gb(
+        self, model_name: str, path: str, resident: list[dict[str, object]] | None
+    ) -> float:
+        """Size of the resident FLM llm that loading *model_name* will evict, else 0.
+
+        Only for an FLM model on a chat/completions path (an llm load); embeddings and
+        other model types use different slots.
+        """
+        if not model_name.lower().endswith("-flm") or "embedding" in path.lower():
+            return 0.0
+        credit = 0.0
+        for entry in resident or []:
+            if entry.get("recipe") == "flm" and entry.get("type") == "llm":
+                credit += self._read_size_gb(str(entry.get("model_name", ""))) or 0.0
+        return credit
+
     def _resident_entries(self) -> list[dict[str, object]] | None:
         now = time.monotonic()
         if (
@@ -223,6 +239,8 @@ class AdmissionGate:
                 model_name,
             )
         working_set, high = cgroup
+        # The NPU holds ONE FLM llm: loading another evicts it and frees its weights.
+        working_set -= self._npu_slot_credit_gb(model_name, path, resident)
         budget = CGROUP_HIGH_FRACTION * high
         if working_set + size > budget:
             return self._refusal(

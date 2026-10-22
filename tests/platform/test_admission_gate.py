@@ -218,3 +218,36 @@ class TestSizeUnknownFailsClosed:
     def test_small_cached_model_admitted(self) -> None:
         g = self._gate_with_catalog([{"qwen3.5-4b-FLM": 5.0}])
         assert g.decide("qwen3.5-4b-FLM", CHAT).allow is True
+
+
+class TestNpuSlotSwap:
+    """Live 2026-10-21 22:00: the NPU holds ONE FLM llm. Loading another evicts it, but the
+    gate added the new model on top and refused even the 1.3 GB llama3.2-1b-FLM at a 27.8 GB
+    working set, blocking every NPU swap."""
+
+    def _gate(self, resident: list[dict[str, object]], sizes: dict[str, float]):
+        return AdmissionGate(
+            config=GateConfig(),
+            read_resident=lambda: resident,
+            read_cgroup=lambda: (27.8, 30.0),
+            read_size_gb=lambda m: sizes.get(m),
+        )
+
+    FLM_RESIDENT = [{"model_name": "deepseek-r1-0528-8b-FLM", "recipe": "flm", "type": "llm"}]
+    SIZES = {"deepseek-r1-0528-8b-FLM": 5.6, "llama3.2-1b-FLM": 1.3, "x-GGUF": 1.3}
+
+    def test_flm_swap_credits_the_evicted_flm_model(self) -> None:
+        d = self._gate(self.FLM_RESIDENT, self.SIZES).decide("llama3.2-1b-FLM", CHAT)
+        assert d.allow is True, d.reason
+
+    def test_gguf_load_gets_no_npu_credit(self) -> None:
+        d = self._gate(self.FLM_RESIDENT, self.SIZES).decide("x-GGUF", CHAT)
+        assert d.allow is False
+
+    def test_no_credit_when_no_flm_is_resident(self) -> None:
+        d = self._gate([], self.SIZES).decide("llama3.2-1b-FLM", CHAT)
+        assert d.allow is False
+
+    def test_embedding_path_gets_no_llm_slot_credit(self) -> None:
+        d = self._gate(self.FLM_RESIDENT, self.SIZES).decide("llama3.2-1b-FLM", "v1/embeddings")
+        assert d.allow is False
