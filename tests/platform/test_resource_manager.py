@@ -192,7 +192,19 @@ class TestResourceClientFallback:
         client = self._make_client_no_daemon()
         state = PlatformMemoryState(ollama_used_gb=0.0)
         client.check_memory = AsyncMock(return_value=state)
-        assert await client.can_load_model("phi4-mini", 5.0) is True
+        # can_load_model also consults two HOST readers: the shared memory-pressure monitor
+        # (guard 0) and the hard real-memory + swap gate oom_safe_to_load (guard 2). A unit
+        # test of the budget guard must not depend on this machine's swap pressure.
+        calm_monitor = MagicMock()
+        calm_monitor.loads_blocked.return_value = False
+        with (
+            patch(
+                "cohezion.platform.memory_pressure.get_pressure_monitor",
+                return_value=calm_monitor,
+            ),
+            patch("cohezion.platform.resource_manager.oom_safe_to_load", return_value=(True, "ok")),
+        ):
+            assert await client.can_load_model("phi4-mini", 5.0) is True
 
     @pytest.mark.asyncio
     async def test_can_load_model_false_when_tight(self) -> None:

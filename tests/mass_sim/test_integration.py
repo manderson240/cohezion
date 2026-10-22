@@ -10,7 +10,9 @@ from cohezion.mass_sim.orchestrator import MassSimOrchestrator
 def _swap_too_high() -> bool:
     try:
         swap = psutil.swap_memory()
-        return swap.used > 30 * 1024**3  # >30GB swap = thrashing
+        # Same threshold as cohezion.mass_sim.system_monitor, which ABORTS the run above
+        # 20 GB of swap; a higher skip threshold here let the test run into that abort.
+        return swap.used > 20 * 1024**3
     except Exception:
         return False
 
