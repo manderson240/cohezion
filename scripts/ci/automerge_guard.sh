@@ -240,6 +240,10 @@ step "false-contract scan" uv run python scripts/ci/false_contract_scan.py
 # Ratchet against scripts/ci/surreal_http_baseline.txt: new unchecked writer = red; shrink only.
 step "surreal-http self-test" uv run python scripts/ci/surreal_http_scan.py --self-test
 step "surreal-http scan" uv run python scripts/ci/surreal_http_scan.py
+# Ratchet against scripts/ci/hardcoded_model_baseline.txt: a new frozen model default = red.
+# Request defaults resolve via fleet_roles.ROSTER.select(role) (memory-aware, 2026-10-22).
+step "hardcoded-model self-test" uv run python scripts/ci/hardcoded_model_scan.py --self-test
+step "hardcoded-model scan" uv run python scripts/ci/hardcoded_model_scan.py
 
 # Step 6c-decies (ADVISORY): local multi-lens adversarial review of the landing range --
 # three lenses on three model families via :13305 ($0). Prose is UNKNOWN, never approval;

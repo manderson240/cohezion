@@ -160,6 +160,13 @@ jobs:
           uv run python scripts/ci/surreal_http_scan.py --self-test
           uv run python scripts/ci/surreal_http_scan.py
 
+      # Hardcoded-model ratchet: request defaults must resolve via fleet_roles.ROSTER.select
+      # (memory- and residency-aware). Frozen choices loaded a 26B/35B into a full cgroup.
+      - name: Hardcoded-model ratchet (gating)
+        run: |
+          uv run python scripts/ci/hardcoded_model_scan.py --self-test
+          uv run python scripts/ci/hardcoded_model_scan.py
+
       # Declared-field scan: a dataclass persisted by a CREATE/INSERT/UPSERT literal must
       # write every field it declares (TrajectoryPoint.action: 21,635 NULL rows). Ratchet.
       - name: Declared-field ratchet (gating)

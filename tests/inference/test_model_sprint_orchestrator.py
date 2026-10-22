@@ -163,7 +163,10 @@ class TestModelSprintOrchestrator:
 
         # Replace roster with one containing an FLM model with no size
         r = FleetRoster()
-        r._cache = [{"id": "deepseek-r1-8b-FLM", "labels": [], "size": None, "recipe": "flm"}]
+        r._cache = [
+            {"id": "deepseek-r1-8b-FLM", "labels": ["reasoning"], "size": None, "recipe": "flm"}
+        ]
+        r.memory = lambda _catalog: None  # rank only; the gate under test is pre_load_gate
         r._cache_at = 1e12
         r._perf = {}
         orchestrator.roster = r
