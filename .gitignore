@@ -391,3 +391,6 @@ secondary_seed_weights/
 /pnpm-lock.yaml
 /yarn.lock
 /bunfig.toml
+
+# .gitmodules is tracked (submodule registration); a broader rule above matched it (caught by repo_hygiene_ratchet 2026-10-22).
+!.gitmodules
