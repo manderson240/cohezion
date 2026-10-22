@@ -324,6 +324,36 @@ class SemanticCache:
         dot_product = np.dot(a, b)
         return float(dot_product)
 
+    def _flush_dimension_mismatch(self, dim: int) -> None:
+        """Drop L2 matrix rows whose embedding dim differs from `dim`.
+
+        The encoder ladder (nomic 768D / MiniLM 384D / FLUME 256D / hash 384D)
+        can change availability at runtime; mixing dimensions in one similarity
+        matrix would crash np.dot (or silently compare incompatible spaces).
+        Keeps same-dim entries, drops the rest; L1 exact-key entries are dim-
+        agnostic and stay.
+        """
+        if self._l2_matrix is None or self._l2_matrix.shape[1] == dim:
+            return
+        old_dim = self._l2_matrix.shape[1]
+        keep_keys = [k for k in self._l2_keys if self.l2_cache[k].embedding.shape[0] == dim]
+        dropped = len(self._l2_keys) - len(keep_keys)
+        for k in self._l2_keys:
+            if k not in keep_keys:
+                self.l2_cache.pop(k, None)
+                self.l2_lfu_counts.pop(k, None)
+        self._l2_keys = keep_keys
+        self._l2_matrix = (
+            np.stack([self.l2_cache[k].embedding for k in keep_keys]) if keep_keys else None
+        )
+        logger.info(
+            "Encoder dim change %dD -> %dD: dropped %d incompatible L2 entries, kept %d",
+            old_dim,
+            dim,
+            dropped,
+            len(keep_keys),
+        )
+
     def _is_novel(self, embedding: np.ndarray) -> bool:
         """Check if embedding is novel relative to existing L2 entries.
 
@@ -337,6 +367,7 @@ class SemanticCache:
         Returns:
             True if novel (should insert), False if near-duplicate (skip).
         """
+        self._flush_dimension_mismatch(embedding.shape[0])
         if self._l2_matrix is None or len(self._l2_keys) == 0:
             return True
         sims = np.dot(self._l2_matrix, embedding)
@@ -456,6 +487,7 @@ class SemanticCache:
         best_similarity = 0.0
         current_threshold = self._get_adaptive_threshold()
 
+        self._flush_dimension_mismatch(query_embedding.shape[0])
         if self._l2_matrix is not None and len(self._l2_keys) > 0:
             sims = np.dot(self._l2_matrix, query_embedding)
             best_idx = int(np.argmax(sims))
@@ -514,6 +546,7 @@ class SemanticCache:
         embed_text = full_prompt if card_signature is not None else prompt
         query_embedding = self._text_to_embedding(embed_text)
         current_threshold = self._get_adaptive_threshold()
+        self._flush_dimension_mismatch(query_embedding.shape[0])
         if self._l2_matrix is not None and len(self._l2_keys) > 0:
             sims = np.dot(self._l2_matrix, query_embedding)
             best_idx = int(np.argmax(sims))
@@ -629,6 +662,8 @@ class SemanticCache:
         """Add entry to L2 cache, maintaining the vectorized embedding matrix."""
         if self.max_l2_size <= 0:
             return
+
+        self._flush_dimension_mismatch(entry.embedding.shape[0])
 
         if len(self.l2_cache) >= self.max_l2_size and self.l2_lfu_counts:
             get_fn = self.l2_lfu_counts.get
