@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.27.2] - 2026-10-22
+
+### Security
+- `cloud-vault-mcp/run_mcp.py` no longer carries the vault MCP API key as a literal. It reads `MCP_API_KEY` from the environment and refuses to start (exit 2) when the variable is unset, so a manual launch can no longer bring up an unauthenticated vault server. The literal that was committed remains in public git history and must be rotated; see `docs/audits/COHERENCE_AUDIT_2026-10-22.md`.
+
+### Changed — Repository coherence, tranche 1
+- Root sweep: the empty `EOF` file is removed and ten consumer-less root artifacts (stray config, prompt drafts, a tracked SQLite file, a tracked image, a one-off experiment script, a vault fragment, scenario fixtures and two reports) move under `docs/archive/root-sweep-2026-10-22/`. Nothing in `src/`, `scripts/`, `tests/`, the Makefile or CI referenced any of them (checked with `git grep` against main). Root item count: 69 to 59.
+- `.gitignore` gains root-anchored rules so loose code, data, results and JS tooling cannot be committed at the repository root again; the tracked exceptions are listed explicitly.
+- `README.md` and `CLAUDE.md` state measured counts: 302 skill definitions (README said 182) and 13,905 collected tests (README said 12,000+, CLAUDE.md said 6,133).
+
+### Added
+- `docs/audits/COHERENCE_AUDIT_2026-10-22.md`: measured state of the repository against a portfolio-grade coherence standard, ranked findings, and the prioritized remediation plan (secrets, root hygiene, duplicate packages, documentation sprawl, branch and worktree debt, LFS normalization).
+
 ## [1.27.1] - 2026-09-27
 
 ### Performance — Lazy package facades (dynamic modularity audit R1/R2)

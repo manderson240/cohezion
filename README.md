@@ -13,7 +13,7 @@
 
 **The compound AI engine that gets smarter every session.**
 
-Cohezion is an open-source platform for compound AI orchestration — a self-improving loop where 182 version-controlled skills compound across sessions, agents learn inside a physics-grounded 12D manifold, and the entire inference stack runs locally on AMD hardware with **no per-token API costs**.
+Cohezion is an open-source platform for compound AI orchestration — a self-improving loop where 300+ version-controlled skills compound across sessions, agents learn inside a physics-grounded 12D manifold, and the entire inference stack runs locally on AMD hardware with **no per-token API costs**.
 
 [Quick Start](#quick-start) · [Architecture](#architecture) · [Local Inference](#local-inference-stack) · [Benchmarks](#training-results) · [Contributing](#contributing)
 
@@ -25,7 +25,7 @@ Cohezion is an open-source platform for compound AI orchestration — a self-imp
 
 | Other AI Frameworks | Cohezion |
 |---|---|
-| Each session starts fresh | **182 skills compound** — session N+1 builds on session N |
+| Each session starts fresh | **300+ skills compound** — session N+1 builds on session N |
 | Assumes NVIDIA GPU | **AMD-first**: XDNA2 NPU (42 TPS) + iGPU + CPU, no CUDA |
 | Cloud API = cost per token | **No per-token API fees** — local inference via the Lemonade router at `:13305` |
 | Safety = penalty terms in reward | **Safety = physics** — the Lagrangian attractor makes unsafe actions fight the dynamics |
@@ -73,7 +73,7 @@ Execute (CompoundExecutor 11-step pipeline)
   → Compound (better skill → smarter next execution)
 ```
 
-182 PRIME skill definitions in [`src/cohezion/skills/`](src/cohezion/skills/) are the accumulated output of 100+ development sessions — version-controlled, keyword-indexed, and auto-discoverable. Run the cycle: `uv run python scripts/drivers/compound_cycle.py`
+300+ PRIME skill definitions in [`src/cohezion/skills/`](src/cohezion/skills/) are the accumulated output of 100+ development sessions — version-controlled, keyword-indexed, and auto-discoverable. Run the cycle: `uv run python scripts/drivers/compound_cycle.py`
 
 ---
 
@@ -220,7 +220,7 @@ This convergence is not a coincidence — it is the mathematical structure of st
 
 ## Agentic-First Development
 
-Cohezion is built **by** agents, not just **for** agents. The 182 PRIME skill definitions are the compounded output of 100+ agentic development sessions.
+Cohezion is built **by** agents, not just **for** agents. The 300+ PRIME skill definitions are the compounded output of 100+ agentic development sessions.
 
 The [CLAUDE.md](CLAUDE.md) agent contract is inherited by every sub-agent spawned on this repo. It encodes patterns discovered in production:
 - **Deferred tool loading** — load `SendMessage` schema before calling it, or it raises `InputValidationError`
@@ -238,7 +238,7 @@ The full agent contract, specialist routing table, and coding standards live in
 ```bash
 make format      # ruff format
 make lint        # ruff check + auto-fix
-make test        # 12,000+ test suite
+make test        # 13,900+ test suite
 make validate    # 50+ compound loop invariant checks
 make train       # Train PPO on ManifoldEnv (20K steps; uv sync --extra rl)
 make evaluate    # Evaluate trained model vs baselines
