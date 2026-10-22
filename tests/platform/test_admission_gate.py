@@ -200,7 +200,11 @@ class TestSizeUnknownFailsClosed:
             config=GateConfig(),
             read_resident=lambda: [],
             read_cgroup=lambda: (11.1, 30.0),
-            read_catalog=lambda: next(calls),
+            read_catalog=lambda: (
+                None
+                if (c := next(calls)) is None
+                else {k: {"size": v, "recipe": "flm"} for k, v in c.items()}
+            ),
         )
 
     def test_unknown_size_refuses(self) -> None:
@@ -251,3 +255,55 @@ class TestNpuSlotSwap:
     def test_embedding_path_gets_no_llm_slot_credit(self) -> None:
         d = self._gate(self.FLM_RESIDENT, self.SIZES).decide("llama3.2-1b-FLM", "v1/embeddings")
         assert d.allow is False
+
+
+class TestDynamicCoordination:
+    def test_mcp_tools_call_names_its_model(self) -> None:
+        # Live 2026-10-21: lemonade's MCP tools (lemonade_chat, lemonade_omni, ...) take a
+        # `model` argument and load it on demand; the gate read only top-level keys.
+        from cohezion.platform.admission_gate import extract_model_name
+
+        body = {
+            "jsonrpc": "2.0",
+            "method": "tools/call",
+            "params": {"name": "lemonade_chat", "arguments": {"model": "Gemma-4-26B-A4B-it-GGUF"}},
+        }
+        assert extract_model_name(body) == "Gemma-4-26B-A4B-it-GGUF"
+        assert extract_model_name({"jsonrpc": "2.0", "method": "tools/list"}) is None
+
+    def test_concurrent_loads_cannot_share_the_same_headroom(self) -> None:
+        # Two 10 GB loads at 10 GB working set (budget 27): only one may pass until the first
+        # shows up as resident -- each seeing the same headroom is the race.
+        g = AdmissionGate(
+            config=GateConfig(),
+            read_resident=lambda: [],
+            read_cgroup=lambda: (10.0, 30.0),
+            read_size_gb=lambda _m: 10.0,
+        )
+        assert g.decide("a-FLMX", CHAT).allow is True
+        second = g.decide("b-FLMX", CHAT)
+        assert second.allow is False and "reserved" in second.reason
+
+    def test_reservation_released_once_the_model_is_resident(self) -> None:
+        resident: list[dict[str, object]] = []
+        g = AdmissionGate(
+            config=GateConfig(),
+            read_resident=lambda: resident,
+            read_cgroup=lambda: (10.0, 30.0),
+            read_size_gb=lambda _m: 10.0,
+        )
+        assert g.decide("a-GGUF", CHAT).allow
+        resident.append({"model_name": "a-GGUF", "checkpoint": ""})
+        g._resident_cache = None  # skip the 1.5 s TTL
+        assert g.decide("b-GGUF", CHAT).allow
+
+    def test_footprint_includes_kv_reservation(self) -> None:
+        entry = {"size": 5.0, "recipe": "llamacpp", "recipe_options": {"ctx_size": 32768}}
+        g = AdmissionGate(
+            config=GateConfig(),
+            read_resident=lambda: [],
+            read_cgroup=lambda: (20.0, 30.0),
+            read_catalog=lambda: {"x-GGUF": entry},
+        )
+        footprint = g._read_size_gb("x-GGUF")
+        assert footprint is not None and footprint > 5.0  # weights alone under-price the load

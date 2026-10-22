@@ -35,6 +35,7 @@ from __future__ import annotations
 import logging
 import os
 import pathlib
+import threading
 import time
 from collections.abc import Callable
 from dataclasses import dataclass
@@ -42,6 +43,7 @@ from dataclasses import dataclass
 import httpx
 
 from cohezion.compound.oom_guard import (
+    _kv_reservation_gb,
     fetch_loaded_models,
     model_matches_loaded_entry,
     normalize_model_name,
@@ -53,6 +55,10 @@ logger = logging.getLogger(__name__)
 DEFAULT_UPSTREAM = "http://127.0.0.1:13315"
 DEFAULT_LISTEN_PORT = 13305
 RESIDENT_CACHE_TTL_S = 1.5  # bound per-request health fetches on the hot path
+# An admitted load holds its footprint until the model shows up as resident (its memory is
+# then in the cgroup reading) or this expires. Without it, concurrent requests each see the
+# same headroom and all pass.
+RESERVATION_TTL_S = 180.0
 LEMOND_CGROUP = pathlib.Path("/sys/fs/cgroup/system.slice/lemond.service")
 CGROUP_HIGH_FRACTION = 0.9
 # Request-body keys that name a model.
@@ -137,7 +143,7 @@ class AdmissionGate:
         read_resident: Callable[[], list[dict[str, object]] | None] | None = None,
         read_cgroup: Callable[[], tuple[float, float] | None] | None = None,
         read_size_gb: Callable[[str], float | None] | None = None,
-        read_catalog: Callable[[], dict[str, float] | None] | None = None,
+        read_catalog: Callable[[], dict[str, dict[str, object]] | None] | None = None,
     ) -> None:
         self._config = config if config is not None else GateConfig.from_env()
         # Probes target the UPSTREAM router: the module default :13305 is this proxy.
@@ -148,17 +154,19 @@ class AdmissionGate:
             )
         )
         self._read_cgroup = read_cgroup or read_lemond_cgroup_gb
-        self._read_catalog = read_catalog or self._fetch_catalog_sizes
-        self._read_size_gb = read_size_gb or self._cached_size_gb
-        self._sizes: dict[str, float] = {}
+        self._read_catalog = read_catalog or self._fetch_catalog
+        self._read_size_gb = read_size_gb or self._cached_footprint_gb
+        self._catalog: dict[str, dict[str, object]] = {}
+        self._reserved: dict[str, tuple[float, float]] = {}  # model -> (gb, expires_at)
+        self._lock = threading.Lock()  # proxy calls decide() from a threadpool
         self._resident_cache: tuple[float, list[dict[str, object]] | None] | None = None
 
     @property
     def config(self) -> GateConfig:
         return self._config
 
-    def _fetch_catalog_sizes(self) -> dict[str, float] | None:
-        """{normalized id: size_gb} from lemonade's catalog, or None if it does not answer."""
+    def _fetch_catalog(self) -> dict[str, dict[str, object]] | None:
+        """{normalized id: catalog entry} from lemonade, or None if it does not answer."""
         try:
             r = httpx.get(
                 f"{self._config.upstream_base}/api/v1/models",
@@ -170,20 +178,25 @@ class AdmissionGate:
         except (httpx.HTTPError, ValueError, AttributeError) as exc:
             logger.warning("admission gate: catalog unreadable: %s", exc)
             return None
-        return {
-            normalize_model_name(str(e.get("id", ""))): float(e["size"])
-            for e in entries
-            if isinstance(e.get("size"), (int, float)) and e["size"] > 0
-        }
+        return {normalize_model_name(str(e.get("id", ""))): e for e in entries}
 
-    def _cached_size_gb(self, model_name: str) -> float | None:
-        """Catalog size, cached: sizes are static, the catalog stalls under load."""
+    def _cached_footprint_gb(self, model_name: str) -> float | None:
+        """Weights + KV reservation from the cached catalog entry, or None if unknown.
+
+        Entries are static; the catalog stalls under load, so it is fetched only for a name
+        not seen before. Weights alone under-price a load: llama-server also reserves KV
+        cache for its context (oom_guard's pricing).
+        """
         key = normalize_model_name(model_name)
-        if key not in self._sizes:
+        if key not in self._catalog:
             fresh = self._read_catalog()
             if fresh:
-                self._sizes.update(fresh)
-        return self._sizes.get(key)
+                self._catalog.update(fresh)
+        entry = self._catalog.get(key)
+        size = entry.get("size") if entry else None
+        if not isinstance(size, (int, float)) or size <= 0:
+            return None
+        return float(size) + _kv_reservation_gb(model_name, float(size), entry)
 
     def _npu_slot_credit_gb(
         self, model_name: str, path: str, resident: list[dict[str, object]] | None
@@ -219,7 +232,20 @@ class AdmissionGate:
     def decide(self, model_name: str | None, path: str = "") -> AdmissionDecision:
         if not model_name or not is_load_path(path):
             return AdmissionDecision(True, False, "not load-triggering", model_name)
+        with self._lock:  # one load decision at a time; see RESERVATION_TTL_S
+            return self._decide_load(model_name, path)
 
+    def _reserved_gb(self, resident: list[dict[str, object]] | None, now: float) -> float:
+        """GB held by admitted loads not yet visible as resident; prunes settled ones."""
+        for key, (_gb, expires) in list(self._reserved.items()):
+            landed = resident is not None and any(
+                model_matches_loaded_entry(key, m) for m in resident
+            )
+            if landed or now > expires:
+                del self._reserved[key]
+        return sum(gb for gb, _ in self._reserved.values())
+
+    def _decide_load(self, model_name: str, path: str) -> AdmissionDecision:
         resident = self._resident_entries()
         if resident is not None and any(
             model_matches_loaded_entry(model_name, m) for m in resident
@@ -239,19 +265,27 @@ class AdmissionGate:
                 model_name,
             )
         working_set, high = cgroup
+        now = time.monotonic()
+        key = normalize_model_name(model_name)
+        reserved = self._reserved_gb(resident, now) - self._reserved.get(key, (0.0, 0.0))[0]
         # The NPU holds ONE FLM llm: loading another evicts it and frees its weights.
-        working_set -= self._npu_slot_credit_gb(model_name, path, resident)
+        credit = self._npu_slot_credit_gb(model_name, path, resident)
+        total = working_set + reserved - credit + size
         budget = CGROUP_HIGH_FRACTION * high
-        if working_set + size > budget:
+        detail = (
+            f"{working_set:.1f}GB working set + {reserved:.1f}GB reserved - {credit:.1f}GB "
+            f"NPU swap + {size:.1f}GB '{model_name}' = {total:.1f}GB"
+        )
+        if total > budget:
             return self._refusal(
-                f"lemond cgroup headroom: {working_set:.1f}GB working set + {size:.1f}GB "
-                f"'{model_name}' > {budget:.1f}GB ({CGROUP_HIGH_FRACTION:.0%} of memory.high "
-                f"{high:.0f}GB) — past memory.high the kernel throttles every model in lemond",
+                f"lemond cgroup headroom: {detail} > {budget:.1f}GB ({CGROUP_HIGH_FRACTION:.0%} "
+                f"of memory.high {high:.0f}GB) — past memory.high the kernel throttles every "
+                "model in lemond",
                 model_name,
             )
-        return AdmissionDecision(
-            True, False, f"fits: {working_set + size:.1f}GB <= {budget:.1f}GB", model_name
-        )
+        self._reserved[key] = (size, now + RESERVATION_TTL_S)
+        logger.info("admission gate ADMIT: %s <= %.1fGB", detail, budget)
+        return AdmissionDecision(True, False, f"fits: {detail} <= {budget:.1f}GB", model_name)
 
     def _refusal(self, reason: str, model_name: str) -> AdmissionDecision:
         if not self._config.enforce:
@@ -289,6 +323,12 @@ def extract_model_name(body: object) -> str | None:
     """The model a JSON request body names, if any. Non-dict bodies name nothing."""
     if not isinstance(body, dict):
         return None
+    # MCP JSON-RPC (lemonade's /mcp: lemonade_chat, lemonade_omni, ...) carries the model in
+    # params.arguments, and those tools load it on demand.
+    if body.get("method") == "tools/call":
+        params = body.get("params")
+        args = params.get("arguments") if isinstance(params, dict) else None
+        return extract_model_name(args) if isinstance(args, dict) else None
     for key in _MODEL_KEYS:
         value = body.get(key)
         if isinstance(value, str) and value:

@@ -18,6 +18,7 @@ from __future__ import annotations
 import json
 import logging
 import os
+import pathlib
 from contextlib import asynccontextmanager
 
 import httpx
@@ -36,6 +37,47 @@ from cohezion.platform.admission_gate import (
 
 
 logger = logging.getLogger(__name__)
+
+RETRY_AFTER_S = 15  # refused clients back off instead of retrying in a tight loop
+
+
+def client_identity(
+    client_port: int, server_port: int, proc: pathlib.Path = pathlib.Path("/proc")
+) -> str:
+    """'<systemd unit> pid=<pid>' for the local process on the far end of a connection.
+
+    Maps the client's TCP source port to its socket inode via /proc/net/tcp{,6}, then the
+    inode to the process holding it. The gate runs as the same user as the cohezion services,
+    so their fds are readable; anything else reports 'unknown'.
+    """
+    inodes: set[str] = set()
+    for table in ("net/tcp", "net/tcp6"):
+        try:
+            lines = (proc / table).read_text().splitlines()[1:]
+        except OSError:
+            continue
+        for line in lines:
+            f = line.split()
+            if (
+                len(f) > 9
+                and int(f[1].rsplit(":", 1)[1], 16) == client_port
+                and int(f[2].rsplit(":", 1)[1], 16) == server_port
+            ):
+                inodes.add(f"socket:[{f[9]}]")
+    if not inodes:
+        return "unknown"
+    for pid_dir in proc.iterdir():
+        if not pid_dir.name.isdigit():
+            continue
+        try:
+            for fd in (pid_dir / "fd").iterdir():
+                if os.readlink(fd) in inodes:
+                    unit = (pid_dir / "cgroup").read_text().strip().rsplit("/", 1)[-1]
+                    return f"{unit} pid={pid_dir.name}"
+        except OSError:
+            continue
+    return "unknown"
+
 
 # JSON bodies above this size are forwarded without model-hunting: no lemonade
 # load-triggering request carries a model key in a multi-MB JSON payload, and parsing
@@ -147,12 +189,25 @@ def build_app(
         # decide() does sync I/O (health fetch, /proc) — run off the event loop so one
         # blocked health call cannot stall every in-flight stream.
         decision = await run_in_threadpool(active_gate.decide, model, path)
+        if model and decision.reason != "not load-triggering" and request.client is not None:
+            who = await run_in_threadpool(
+                client_identity, request.client.port, request.url.port or 0
+            )
+            logger.info(
+                "admission %s client=%s model=%s path=/%s: %s",
+                "ADMIT" if decision.allow else "REFUSE",
+                who,
+                model,
+                path,
+                decision.reason,
+            )
         if decision.would_refuse:
             counters["shadow_refusals"] += 1
         if not decision.allow:
             counters["refused"] += 1
             return JSONResponse(
                 status_code=503,
+                headers={"Retry-After": str(RETRY_AFTER_S)},
                 content={
                     "error": {
                         "type": "admission_refused",

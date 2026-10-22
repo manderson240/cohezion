@@ -212,3 +212,28 @@ class TestMultipartGating:
             )
         assert r.status_code == 503
         assert seen == []
+
+
+class TestClientIdentity:
+    def test_maps_source_port_to_systemd_unit(self, tmp_path) -> None:
+        from cohezion.platform.admission_proxy import client_identity
+
+        (tmp_path / "net").mkdir()
+        # client 127.0.0.1:41000 (0xA028) -> server :13305 (0x33F9), inode 777
+        row = "   0: 0100007F:A028 0100007F:33F9 01 00000000:00000000 00:00000000 00000000  1000 0 777 1"
+        (tmp_path / "net/tcp").write_text("header\n" + row + "\n")
+        pid = tmp_path / "4242"
+        (pid / "fd").mkdir(parents=True)
+        (pid / "fd" / "5").symlink_to("socket:[777]")
+        (pid / "cgroup").write_text("0::/user.slice/app.slice/cohezion-actioner.service\n")
+        assert client_identity(41000, 13305, proc=tmp_path) == "cohezion-actioner.service pid=4242"
+        assert client_identity(41001, 13305, proc=tmp_path) == "unknown"
+
+    def test_refusal_carries_retry_after(self) -> None:
+        seen: list[httpx.Request] = []
+        app = build_app(_gate(available_gb=10.4), client=_upstream(seen))
+        with TestClient(app) as c:
+            r = c.post(
+                "/v1/chat/completions", json={"model": "Qwen3.6-35B-A3B-GGUF", "messages": []}
+            )
+        assert r.status_code == 503 and r.headers.get("retry-after") == "15"
