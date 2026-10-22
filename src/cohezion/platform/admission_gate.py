@@ -13,8 +13,11 @@ Decision rules (in order):
   3. lemond working set + the model's catalog size > 90% of memory.high -> refuse.
   4. Otherwise forward; Lemonade decides the rest.
 
-Fail open when the cgroup or the model's size is unreadable: Lemonade's own limits still
-apply, and a probe hiccup must not take the fleet down.
+Fail open when the cgroup is unreadable (a static sysfs read that does not stall). Fail
+CLOSED when the model's size is unknown: lemonade's /api/v1/models stalls while a model is
+loading, which is exactly when other loads arrive. On 2026-10-21 a fail-open size lookup let
+a 16.9 GB CPU model through and throttle events rose 3,237 -> 4,558. Catalog sizes are static,
+so they are cached and a stalled catalog only matters for a model never seen before.
 
 TRUST BOUNDARY: lemond's per-model backends listen on their own localhost ports, reachable
 around this proxy. The gate bounds well-behaved clients (everything on :13305) and makes
@@ -36,10 +39,12 @@ import time
 from collections.abc import Callable
 from dataclasses import dataclass
 
+import httpx
+
 from cohezion.compound.oom_guard import (
-    _catalog_entry,
     fetch_loaded_models,
     model_matches_loaded_entry,
+    normalize_model_name,
 )
 
 
@@ -129,6 +134,7 @@ class AdmissionGate:
         read_resident: Callable[[], list[dict[str, object]] | None] | None = None,
         read_cgroup: Callable[[], tuple[float, float] | None] | None = None,
         read_size_gb: Callable[[str], float | None] | None = None,
+        read_catalog: Callable[[], dict[str, float] | None] | None = None,
     ) -> None:
         self._config = config if config is not None else GateConfig.from_env()
         # Probes target the UPSTREAM router: the module default :13305 is this proxy.
@@ -139,17 +145,42 @@ class AdmissionGate:
             )
         )
         self._read_cgroup = read_cgroup or read_lemond_cgroup_gb
-        self._read_size_gb = read_size_gb or self._catalog_size_gb
+        self._read_catalog = read_catalog or self._fetch_catalog_sizes
+        self._read_size_gb = read_size_gb or self._cached_size_gb
+        self._sizes: dict[str, float] = {}
         self._resident_cache: tuple[float, list[dict[str, object]] | None] | None = None
 
     @property
     def config(self) -> GateConfig:
         return self._config
 
-    def _catalog_size_gb(self, model_name: str) -> float | None:
-        entry = _catalog_entry(model_name, base_url=self._config.upstream_base)
-        size = entry.get("size") if entry else None
-        return float(size) if isinstance(size, (int, float)) and size > 0 else None
+    def _fetch_catalog_sizes(self) -> dict[str, float] | None:
+        """{normalized id: size_gb} from lemonade's catalog, or None if it does not answer."""
+        try:
+            r = httpx.get(
+                f"{self._config.upstream_base}/api/v1/models",
+                params={"show_all": "true"},
+                timeout=10.0,
+            )
+            r.raise_for_status()
+            entries = r.json().get("data", [])
+        except (httpx.HTTPError, ValueError, AttributeError) as exc:
+            logger.warning("admission gate: catalog unreadable: %s", exc)
+            return None
+        return {
+            normalize_model_name(str(e.get("id", ""))): float(e["size"])
+            for e in entries
+            if isinstance(e.get("size"), (int, float)) and e["size"] > 0
+        }
+
+    def _cached_size_gb(self, model_name: str) -> float | None:
+        """Catalog size, cached: sizes are static, the catalog stalls under load."""
+        key = normalize_model_name(model_name)
+        if key not in self._sizes:
+            fresh = self._read_catalog()
+            if fresh:
+                self._sizes.update(fresh)
+        return self._sizes.get(key)
 
     def _resident_entries(self) -> list[dict[str, object]] | None:
         now = time.monotonic()
@@ -177,10 +208,16 @@ class AdmissionGate:
             return AdmissionDecision(True, False, "resident — reuse needs no memory", model_name)
 
         cgroup = self._read_cgroup()
-        size = self._read_size_gb(model_name)
-        if cgroup is None or size is None:
+        if cgroup is None:
             return AdmissionDecision(
-                True, False, "cgroup or model size unknown — Lemonade decides", model_name
+                True, False, "cgroup unreadable — Lemonade decides", model_name
+            )
+        size = self._read_size_gb(model_name)
+        if size is None:
+            return self._refusal(
+                f"model size unknown for '{model_name}': not in lemonade's catalog, or the "
+                "catalog did not answer (it stalls while a load is in progress) — retry shortly",
+                model_name,
             )
         working_set, high = cgroup
         budget = CGROUP_HIGH_FRACTION * high

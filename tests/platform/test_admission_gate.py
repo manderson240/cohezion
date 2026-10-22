@@ -60,9 +60,11 @@ class TestCgroupHeadroom:
         d = _gate(cgroup=(17.0, 30.0), size_gb=5.0, resident=[]).decide("qwen3.5-4b-FLM", CHAT)
         assert d.allow is True, d.reason
 
-    def test_unknown_cgroup_or_size_fails_open(self) -> None:
+    def test_unknown_cgroup_fails_open(self) -> None:
         assert _gate(cgroup=None, resident=[]).decide("x-GGUF", CHAT).allow
-        assert _gate(size_gb=None, resident=[]).decide("x-GGUF", CHAT).allow
+
+    def test_unknown_size_fails_closed(self) -> None:
+        assert not _gate(size_gb=None, resident=[]).decide("x-GGUF", CHAT).allow
 
 
 class TestNeverGated:
@@ -168,3 +170,34 @@ class TestCgroupReader:
     def test_missing_cgroup_returns_none(self, tmp_path, monkeypatch) -> None:
         monkeypatch.setattr(ag, "LEMOND_CGROUP", tmp_path / "absent")
         assert ag.read_lemond_cgroup_gb() is None
+
+
+class TestSizeUnknownFailsClosed:
+    """Live defect 2026-10-21 20:22: lemonade's /api/v1/models stalls while a model loads,
+    the 2 s size lookup timed out, the gate read 'size unknown' as 'Lemonade decides', and a
+    16.9 GB CPU model loaded past the cgroup budget (throttle events 3,237 -> 4,558)."""
+
+    def _gate_with_catalog(self, fetches):
+        calls = iter(fetches)
+        return AdmissionGate(
+            config=GateConfig(),
+            read_resident=lambda: [],
+            read_cgroup=lambda: (11.1, 30.0),
+            read_catalog=lambda: next(calls),
+        )
+
+    def test_unknown_size_refuses(self) -> None:
+        g = self._gate_with_catalog([None])  # catalog stalled, never read
+        d = g.decide("Gemma-4-26B-A4B-it-GGUF", CHAT)
+        assert d.allow is False
+        assert "size unknown" in d.reason
+
+    def test_cached_size_survives_a_stalled_catalog(self) -> None:
+        g = self._gate_with_catalog([{"Gemma-4-26B-A4B-it-GGUF": 16.9}, None])
+        assert g.decide("qwen3.5-4b-FLM", CHAT).allow is False  # first fetch: name absent
+        d = g.decide("Gemma-4-26B-A4B-it-GGUF", CHAT)  # served from cache, no refetch
+        assert d.allow is False and "cgroup" in d.reason
+
+    def test_small_cached_model_admitted(self) -> None:
+        g = self._gate_with_catalog([{"qwen3.5-4b-FLM": 5.0}])
+        assert g.decide("qwen3.5-4b-FLM", CHAT).allow is True
