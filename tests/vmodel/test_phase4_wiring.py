@@ -27,6 +27,17 @@ SURREAL_URL = "http://localhost:8001/sql"
 SURREAL_AUTH = "root:root"
 
 
+def _surreal_reachable() -> bool:
+    """CI provisions no SurrealDB; the table checks below are only meaningful against one."""
+    import socket
+
+    try:
+        with socket.create_connection(("localhost", 8001), timeout=1.0):
+            return True
+    except OSError:
+        return False
+
+
 class TestTransitionControllerWired:
     @pytest.mark.xfail(
         strict=True,
@@ -83,6 +94,7 @@ class TestTransitionControllerWired:
         assert first_passage(sequence, "nonexistent") is None
 
 
+@pytest.mark.skipif(not _surreal_reachable(), reason="SurrealDB :8001 not reachable (none in CI)")
 class TestSurrealDBTables:
     """Verify the SurrealDB tables for compound-loop telemetry exist."""
 

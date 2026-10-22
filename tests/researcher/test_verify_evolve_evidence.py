@@ -36,10 +36,6 @@ import pytest
 
 
 @pytest.mark.asyncio
-@pytest.mark.xfail(
-    strict=True,
-    reason="never-built: verify lane does not query SurrealDB execution evidence; docs/audits/COHERENCE_AUDIT_2026-10-22.md F9 bridges (2026-10-22)",
-)
 async def test_verify_queries_surreal_for_execution_evidence():
     """A synthesis is verified iff ≥ 3 card-aligned executions back
     the claim in SurrealDB. The query looks for executions whose
@@ -61,6 +57,8 @@ async def test_verify_queries_surreal_for_execution_evidence():
     # 5 backings → verified
     with (
         patch.object(lane, "_read_pending_syntheses", new=AsyncMock(return_value=[synthesis])),
+        patch.object(lane, "_query_mycelium_patterns", new=AsyncMock(return_value=[])),
+        patch.object(lane, "_query_ouroboros_healing_events", new=AsyncMock(return_value=[])),
         patch.object(
             lane,
             "_query_surreal_executions",
@@ -80,10 +78,6 @@ async def test_verify_queries_surreal_for_execution_evidence():
 
 
 @pytest.mark.asyncio
-@pytest.mark.xfail(
-    strict=True,
-    reason="never-built: verify lane does not query SurrealDB execution evidence; docs/audits/COHERENCE_AUDIT_2026-10-22.md F9 bridges (2026-10-22)",
-)
 async def test_verify_disputes_synthesis_below_evidence_threshold():
     """A synthesis backed by < 3 card-aligned executions is
     'disputed_by_evidence' — never auto-promoted, but the synthesis
@@ -104,6 +98,8 @@ async def test_verify_disputes_synthesis_below_evidence_threshold():
     # Only 1 backing
     with (
         patch.object(lane, "_read_pending_syntheses", new=AsyncMock(return_value=[synthesis])),
+        patch.object(lane, "_query_mycelium_patterns", new=AsyncMock(return_value=[])),
+        patch.object(lane, "_query_ouroboros_healing_events", new=AsyncMock(return_value=[])),
         patch.object(
             lane,
             "_query_surreal_executions",
@@ -124,10 +120,6 @@ async def test_verify_disputes_synthesis_below_evidence_threshold():
 
 
 @pytest.mark.asyncio
-@pytest.mark.xfail(
-    strict=True,
-    reason="never-built: verify lane does not query SurrealDB execution evidence; docs/audits/COHERENCE_AUDIT_2026-10-22.md F9 bridges (2026-10-22)",
-)
 async def test_mycelium_pattern_boosts_synthesis_to_verified():
     """A MYCELIUM_PATTERN event whose (family, task) matches the
     synthesis's recommendation boosts the synthesis to verified
@@ -148,6 +140,7 @@ async def test_mycelium_pattern_boosts_synthesis_to_verified():
     # 2 backings (below the 3-threshold) but a MYCELIUM pattern exists
     with (
         patch.object(lane, "_read_pending_syntheses", new=AsyncMock(return_value=[synthesis])),
+        patch.object(lane, "_query_ouroboros_healing_events", new=AsyncMock(return_value=[])),
         patch.object(
             lane,
             "_query_surreal_executions",
