@@ -146,7 +146,7 @@ async def is_lemonade_alive(port: int = 13305, timeout: float = 1.0) -> bool:
 
 async def probe_lemonade(
     port: int = 13305,
-    timeout: float = 5.0,
+    timeout: float = 15.0,  # /health stalls 10-20 s during a model load (2026-10-22)
     probe_recipes: list[str] | None = None,
 ) -> LemonadeHealth:
     """Probe the OmniRouter and return a full health snapshot."""
