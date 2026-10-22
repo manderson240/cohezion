@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.28.1] - 2026-10-22
 
+### Fixed — the integration tier is measured, not ignored
+- `fix/green-sweep` and `fix/restore-lost-regressions` (route restoration, lost-behaviour restore, physics endpoints; pushed 2026-10-07, never landed) are merged onto the coherence stack as a true merge. Measured on 2026-10-22 with live local services: the `continue-on-error` integration tier goes from 216 failures to 43 (11,356 passed); the unit tier is 1,441/1,441; 111 API and wiring tests that returned 404 pass. Finding F9 in `docs/audits/COHERENCE_AUDIT_2026-10-22.md`.
+- `.gitignore` no longer matches the tracked `.gitmodules` (the first real catch by `scripts/ci/repo_hygiene_ratchet.py`); ruff debt baseline lowered 892 → 875 by the merged branches.
+
 _Coherence tranches 1–6, merged onto 1.28.0. These entries were drafted as 1.27.2 and 1.27.3 on the coherence branches before the route-restoration branches (1.27.2, 1.28.0) were integrated; none of those numbers shipped, so they are renumbered here._
 
 ### Changed — README leads with the pitch and a ten-minute tour (coherence tranche 6)

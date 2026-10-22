@@ -164,6 +164,24 @@ commits behind main and five minor versions old, so anything measured there abou
 measured against a stale branch. **Proposed:** keep the primary checkout on main; do branch work
 in worktrees or clones (see F6).
 
+### F9 — The green badge never looked at 80% of the tests (critical, fixed on this stack)
+
+`.github/workflows/ci.yml` runs the unit and inference tiers as gates, but the third step, `pytest
+tests/ --ignore=tests/unit/ --ignore=tests/inference/` (11,322 tests, 80% of the suite), has
+`continue-on-error: true`. Measured on 2026-10-22 on the tranche-1 base: **216 failures** in that
+tier, dominated by 404s because PR #267 (8f712a8bd) had dropped 20 router mounts (130 of 169 API
+routes). The repair existed since 2026-10-07 on two pushed branches, `fix/green-sweep` and
+`fix/restore-lost-regressions`, whose pull requests were never opened because `gh` was already
+unauthenticated. **Landed on this stack** (`chore/land-green-sweep`, a real merge, version 1.28.1):
+the tier now reports **43 failures, 11,356 passed**; the unit tier is 1,441/1,441; 111 API and
+wiring tests that returned 404 pass. The 43 that remain are tests for features that were never
+built (Telegram delegation router, health-oracle thresholds, `RealSkillStateDataset` API, V-model
+phase-4 wiring) plus live-service checks, and are the next tranche. Two instruments to keep:
+`tests/api/test_service_router_mounts.py` or `app.openapi()["paths"]` as the route oracle
+(`len(app.routes)` undercounts on current FastAPI, which stores each included router as one
+entry), and running the integration tier yourself for any "is it green" claim until the
+`continue-on-error` is removed, which should happen once the 43 reach zero.
+
 ---
 
 ## 3. Landed in this change
@@ -175,7 +193,8 @@ in worktrees or clones (see F6).
 3. Root-anchored `.gitignore` rules for loose code, data, results and JS tooling (verified to hide
    no currently tracked file).
 4. README, CLAUDE.md and Makefile counts corrected to measured values (302 skills, 13,905 tests, 27 validator steps).
-5. Version 1.27.1 → 1.27.2 with a CHANGELOG entry.
+5. Version 1.27.1 → 1.28.1 across the stack with CHANGELOG entries.
+6. `chore/land-green-sweep`: the 2026-10-07 route-restoration branches merged in; integration tier 216 → 43 failures (F9).
 
 ---
 
