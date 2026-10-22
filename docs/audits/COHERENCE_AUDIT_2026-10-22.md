@@ -204,12 +204,14 @@ markers removed. The orchestrator unit test demanded a successful SurrealDB publ
 |---|---|
 | unit | 1,445 passed, 19 xfailed |
 | inference | 1,248 passed, 34 skipped, 13 xfailed |
-| integration | 11,360 passed, 92 skipped, 49 xfailed, **3 failed** |
+| integration | 11,360 passed, 92 skipped, 49 xfailed, **3 failed**; after the fixes below, a fourth full run: 11,361 passed, 93 skipped, 1 order-dependent failure (singleton), fixed |
 
 The three: `mass_sim` aborts on this machine's 20 GB of swap thrashing, `test_resource_manager`
 reads the same memory state, and `test_sandboxed_exec::test_genuine_pre_exec_failure_is_pre_exec`
 cannot create a nested user namespace inside the test namespace. None of those conditions exist
-on a CI runner. On that evidence `continue-on-error` is removed from the integration step: the
+on a CI runner. All three now declare their preconditions: the mass-sim skip uses the monitor's own
+20 GB threshold, the resource test mocks both host readers, and the pre-exec probe is pinned to the
+rlimit path. On that evidence `continue-on-error` is removed from the integration step: the
 tier is now a gate, and the pull request's own CI run is the first test of that decision. If it
 shows red, the three names above are the first suspects, and the fix is a `skipif` on the
 condition, not a return to advisory.
