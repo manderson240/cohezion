@@ -39,7 +39,7 @@ duplicates are proposed for integration into a canonical sibling.
 | Worktrees | 87 registered, 2 pointing at directories that no longer exist | `git worktree list` |
 | LFS | 22 media files (`.wav`, `.mp3`, `.mp4`, about 10 MB) committed raw where `.gitattributes` says they should be pointers | clone output: "22 files that should have been pointers" |
 | Ignore debt | 188 tracked files match existing `.gitignore` rules (`*.log`, `run_*`, `overnight*`, `team_*`, `conductor/`, …) | `git ls-files -i -c --exclude-standard` |
-| Lock drift | `uv.lock` records the project at 1.22.3 while `pyproject.toml` says 1.27.x | `awk` on `uv.lock` |
+| Lock drift | none on main (`uv.lock` and `pyproject.toml` both 1.27.1); the main *checkout* sits on a branch at 1.22.3 | `awk` on `uv.lock` at both refs |
 
 ---
 
@@ -154,12 +154,15 @@ were added with `-f` or before the rule existed, and nothing re-checks. **Propos
 install pre-commit in the main checkout, and add a CI step that fails when `git ls-files -i -c
 --exclude-standard` grows.
 
-### F8 — Version and lock drift (low)
+### F8 — Version drift between main and the working checkout (low)
 
-`uv.lock` pins the project at 1.22.3 while `pyproject.toml` is 1.27.x; the main checkout's branch
-is on 1.22.3 as well. The semver gate in CI checks the bump against the base ref, so this does not
-fail CI, but it means `uv sync` and the declared version disagree. **Proposed:** `uv lock` once on
-main and commit it with the next release.
+An earlier draft of this audit reported `uv.lock` pinned at 1.22.3 against a 1.27.x
+`pyproject.toml`. That reading came from the main *checkout*, which sits on `security/codeql-wave2`
+at version 1.22.3; on `origin/main` the lock and the project file agree (1.27.1, now 1.27.2 with
+the lock updated in this change). The real finding is the one in F6: the primary checkout is 56
+commits behind main and five minor versions old, so anything measured there about "the repo" is
+measured against a stale branch. **Proposed:** keep the primary checkout on main; do branch work
+in worktrees or clones (see F6).
 
 ---
 
