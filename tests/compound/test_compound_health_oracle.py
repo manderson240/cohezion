@@ -84,7 +84,13 @@ class TestCH2HihoOk:
             scores.append(val)
         return scores
 
-    def test_hiho_regime_gives_ok_alert_level(self) -> None:
+    def test_hiho_texture_does_not_veto_a_falling_window(self) -> None:
+        """The FD regime is context, not the alert (see test_health_oracle_quality_stats).
+
+        This seeded walk ends HIHO-textured, but its last 20 samples fall from ~0.55 to
+        ~0.29 (mean 0.44, slope -0.014/sample). The old FD-driven rule reported "ok" here.
+        A lane whose quality halved is not ok, so the quality-statistics rule says critical.
+        """
         oracle = CompoundHealthOracle(window_size=20, degradation_detector=None)
         scores = self._make_hiho_scores(40)
 
@@ -92,11 +98,10 @@ class TestCH2HihoOk:
         for s in scores:
             last = oracle.assess(s)
 
-        # May not be HIHO on every run (depends on FD) — only assert if regime is HIHO
-        if last and last.regime is FractalRegime.HIHO:
-            assert last.alert_level == "ok"
-            assert last.alerts == []
-        # else: regime depends on the random walk — not every 40-score sequence hits HIHO
+        assert last is not None
+        assert last.regime is FractalRegime.HIHO  # texture still reported as context
+        assert last.alert_level == "critical"
+        assert last.alerts and last.alerts[0].startswith(("DEGRADING", "COLLAPSED"))
 
     def test_ok_assessment_direct_synthesis(self) -> None:
         """Force HIHO via _synthesize() directly to validate the branch without FD luck."""
