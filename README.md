@@ -11,11 +11,11 @@
 [![License](https://img.shields.io/badge/license-AGPL--3.0-blue.svg)](LICENSE)
 [![AMD Native](https://img.shields.io/badge/inference-AMD%20NPU%20%2F%20iGPU%20%2F%20CPU-red)](https://www.amd.com/en/products/processors/consumer/ryzen/ai.html)
 
-**The compound AI engine that gets smarter every session.**
+**A self-improving agent orchestration loop that runs end to end on consumer AMD silicon at zero marginal inference cost, with a physics-grounded RL environment and reproducible benchmarks behind it.**
 
-Cohezion is an open-source platform for compound AI orchestration — a self-improving loop where 300+ version-controlled skills compound across sessions, agents learn inside a physics-grounded 12D manifold, and the entire inference stack runs locally on AMD hardware with **no per-token API costs**.
+Every execution is reflected on and folded back into the skill definitions the next run uses (300+ version-controlled skills so far). Routing is tiered across the local NPU, iGPU and CPU behind one Lemonade endpoint, so a 10k-token loop costs $0.00. The RL layer stands alone: a Gymnasium environment on a 12D Riemannian manifold where unsafe actions fight the dynamics instead of a penalty term.
 
-[Quick Start](#quick-start) · [Architecture](#architecture) · [Local Inference](#local-inference-stack) · [Benchmarks](#training-results) · [Contributing](#contributing)
+[Ten-minute tour](#ten-minute-tour) · [Architecture](#architecture) · [Local Inference](#local-inference-stack) · [Benchmarks](#training-results) · [Contributing](#contributing)
 
 </div>
 
@@ -34,25 +34,54 @@ Cohezion is an open-source platform for compound AI orchestration — a self-imp
 
 ---
 
-## Quick Start
+## Ten-minute tour
 
-At its core Cohezion ships a [Gymnasium](https://gymnasium.farama.org/)-compatible training
-environment plus the tooling to train, evaluate, and reproduce agents in it — all of
-it CPU-friendly and CUDA-free:
+Three commands, each with the output you should see. Nothing here needs a GPU, a network
+connection, credentials or a running inference server.
 
 ```bash
 git clone https://github.com/manderson240/cohezion.git && cd cohezion
-uv sync  # installs all deps
-
-# 60-second tour: step an agent through the 12D manifold (no network, no GPU)
-uv run python examples/quickstart.py
-
-# Validate the compound engineering loop (27 checks, ~10 s)
-make validate
-
-# Train a PPO agent on the 12D manifold (20K steps, ~5 min)
-uv sync --extra rl && make train
+uv sync
 ```
+
+**1. Step an agent through the 12D manifold** (seconds):
+
+```bash
+uv run python examples/quickstart.py
+```
+```
+reset -> obs.shape=(19,)  coherence=0.8563
+step  1  coherence=0.8559  hiho_deviation=0.1699  reward=-0.0854  stage=1
+...
+step 10  coherence=0.8516  hiho_deviation=0.1727  reward=-0.0868  stage=1
+
+episode summary: 11 positions visited, episode_reward=-0.8609
+
+Quickstart complete. No network, credentials, or local inference were used.
+```
+
+**2. Validate the compound loop end to end** (27 steps, about 10 s):
+
+```bash
+make validate
+```
+```
+[10/11] Routing Orchestrator (Unified Entry)
+  [PASS] RoutingOrchestrator creation
+  [PASS] Unified routing decision — model=..., confidence=0.71
+VALIDATION RESULT: 27/27 steps passed
+```
+
+**3. Train a small PPO agent and compare it with a random policy** (5K steps, a few minutes on CPU;
+needs the RL extra):
+
+```bash
+uv sync --extra rl && make demo      # examples/demo_train_eval.py
+make train                           # 20K steps, ~5 min; results in results/training/
+```
+
+The outputs above were captured on 2026-10-22 from the commands as written. If what you see
+differs materially, that is a bug worth an issue.
 
 **Requires**: Python 3.13+, [uv](https://github.com/astral-sh/uv).
 Installs from source only (not yet on PyPI); GPU extras pin AMD ROCm wheels — see
@@ -105,7 +134,7 @@ executor = make_executor(mcp_client)  # wires Lemonade → SemanticCache → Com
 result = await executor.execute_task("Your task here")
 ```
 
-Semantic cache (L1 hash + L2 cosine + L3 vault) has reached **95%+ hit rates in internal runs** on repeat workloads, dramatically reducing repeat inference cost.
+A three-tier semantic cache (L1 exact hash, L2 cosine similarity, L3 vault) sits in front of inference so repeat and near-repeat work is served without a model call. Hit rates depend on the workload; the cache reports its own counters, and this README makes no claim beyond that until a benchmark is checked in under `docs/benchmarks/`.
 
 ---
 
@@ -138,7 +167,7 @@ graph TD
 |---|---|---|
 | **Compound Loop** | `compound/` — Executor, SkillRefiner, RetrospectionEngine, JourneyTracker | `CompoundExecutor` |
 | **Swarm** | `swarm/` — TeamOrchestrator, CostAwareRouter, OI-MAS scoring | `CostAwareRouter` |
-| **Semantic Cache** | `cache/` — L1 hash + L2 cosine + L3 vault, 95%+ hit rate | `SemanticCache` |
+| **Semantic Cache** | `cache/` — L1 hash + L2 cosine + L3 vault | `SemanticCache` |
 | **Physics Engine** | `physics/` — SU(2) spinors, Lagrangian, fiber bundles, gauge theory, cosmogony | `SpinorState` |
 | **RL Environments** | `environments/` — ManifoldEnv (19D obs), SwarmEnv (multi-agent gauge coupling) | `gym.make('Cohezion/ManifoldEnv-v0')` |
 
@@ -199,6 +228,8 @@ touching the compound loop. An 8-run diagnostic across the 2×2 algorithm-reward
 
 **Best**: SAC + dense reward, 100K steps. SAC's off-policy replay cooperates with the Lagrangian attractor; dense reward gives simpler gradients than curriculum at scale.
 
+Provenance: this table was recorded on 2026-04-01 from a local run; the raw results are not checked into the repository, so treat it as a reported result and `make benchmark` as the way to reproduce it. Checking the run artifacts in under `docs/benchmarks/` is open work.
+
 Checkpoint: `data/rl/checkpoints/policy_final.pt`
 
 ---
@@ -243,7 +274,7 @@ make validate    # 27 compound loop invariant checks (measured 2026-10-22)
 make train       # Train PPO on ManifoldEnv (20K steps; uv sync --extra rl)
 make evaluate    # Evaluate trained model vs baselines
 make benchmark   # Full 100K training + comparisons
-make demo        # Quick 5K demo with evaluation
+make demo        # 5K-step PPO vs random (examples/demo_train_eval.py; needs --extra rl)
 ```
 
 ```bash
