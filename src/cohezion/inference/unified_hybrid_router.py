@@ -7,6 +7,7 @@ gated by Expected Value of Intervention (EVI > 0.75).
 from __future__ import annotations
 
 # reconcile 2026-08-26: imports needed by branch-preserved code
+import asyncio
 import json
 import logging
 import os
@@ -17,6 +18,8 @@ from typing import Any
 
 from cohezion.core.event_bus import Event, EventBus, get_event_bus
 from cohezion.inference.delegation_logger import DelegationEvent, DelegationLogger
+from cohezion.inference.hotswap import MAX_CTX as HOTSWAP_MAX_CTX
+from cohezion.inference.hotswap import ensure_resident
 from cohezion.inference.lemonade_health import probe_lemonade
 from cohezion.inference.transports.base import BaseInferenceTransport
 from cohezion.inference.transports.lemonade import LemonadeTransport
@@ -733,6 +736,12 @@ class UnifiedHybridRouter:
     async def aquery_lemonade_local(self, prompt: str, model: str) -> str | None:
         """Attempt local NPU/iGPU inference via Lemonade (:13305) asynchronously with model-aligned options.
 
+        Model-load safety gate: before POSTing the chat completion (which would make the
+        Lemonade server auto-load ``model`` blind), ``hotswap.ensure_resident`` runs the
+        fleet weight-fit gate. A refusal is a SUCCESSFUL gate outcome — it means "do not
+        load this model right now" — so this method returns ``None`` and the caller's
+        existing fallback path (Tier-2 cloud / Tier-0 synthetic) takes over.
+
         Parameters
         ----------
         prompt : str
@@ -780,6 +789,24 @@ class UnifiedHybridRouter:
             "temperature": temp,
             "top_p": top_p,
         }
+
+        # --- hotswap safety gate (never raises; refusal == fall back to Tier 2) ----
+        # Bounded, non-zero ctx_size: ctx_size=0 is the documented GTT 120GB-mapping
+        # crasher, and MAX_CTX is the N3 cap ensure_resident itself enforces.
+        # ensure_resident is a module-level import (patch target: patch WHERE USED).
+        gate = await asyncio.to_thread(
+            ensure_resident,
+            model,
+            ctx_size=min(max(1024, max_tokens * 2), HOTSWAP_MAX_CTX),
+        )
+        if not gate.ok:
+            logger.warning(
+                "Hotswap gate refused %s (reason: %s); falling back to Tier-2 cloud",
+                model,
+                gate.reason,
+            )
+            return None
+
         try:
             async with httpx.AsyncClient(timeout=45.0) as client:
                 res = await client.post(self._lemonade_url, json=payload)
@@ -800,6 +827,11 @@ class UnifiedHybridRouter:
     ) -> list[float] | None:
         """Fetch real embedding vector via Lemonade /v1/embeddings endpoint.
 
+        Model-load safety gate: ``/v1/embeddings`` can auto-load ``model`` exactly like
+        the chat-completions endpoint can, so ``hotswap.ensure_resident`` runs first.
+        A refusal is a SUCCESSFUL gate outcome — the embedding attempt is skipped and
+        the caller's existing fallback (Tier-2 embedding) takes over.
+
         Parameters
         ----------
         text : str
@@ -813,6 +845,16 @@ class UnifiedHybridRouter:
             Embedding float vector, or None on failure.
         """
         import httpx
+
+        # --- hotswap safety gate (never raises; refusal == fall back to Tier 2) ----
+        gate = await asyncio.to_thread(ensure_resident, model, ctx_size=1024)
+        if not gate.ok:
+            logger.warning(
+                "Hotswap gate refused embedding model %s (reason: %s); skipping Tier-1 embedding",
+                model,
+                gate.reason,
+            )
+            return None
 
         payload = {"model": model, "input": text}
         try:
