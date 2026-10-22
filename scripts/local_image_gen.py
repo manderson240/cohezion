@@ -6,14 +6,14 @@ Lightweight, runs entirely locally
 """
 
 import sys
+from pathlib import Path
 
 
-sys.path.insert(0, "/home/mike-anderson/dev/cohezion/src")
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
 import json
 import time
 from datetime import datetime
-from pathlib import Path
 
 import matplotlib
 

@@ -16,11 +16,13 @@ import math
 import sys
 import time
 
+# Ensure src is on sys.path
+from pathlib import Path
+
 import numpy as np
 
 
-# Ensure src is on sys.path
-sys.path.insert(0, "/home/mike-anderson/dev/cohezion/src")
+sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "src"))
 
 from cohezion.actioner.autoharness_verifier import AutoHarnessVerifier
 from cohezion.flume.bayesian_metaplasticity_engine import BayesianMetaplasticityEngine

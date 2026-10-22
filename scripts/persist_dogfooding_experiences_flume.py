@@ -8,7 +8,7 @@ import numpy as np
 
 
 # Ensure path is set
-sys.path.insert(0, "/home/mike-anderson/dev/cohezion/src")
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
 # Escape hatch for local dev credentials
 os.environ["COHEZION_ALLOW_INSECURE_SURREAL"] = "1"

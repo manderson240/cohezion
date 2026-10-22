@@ -6,11 +6,13 @@ from __future__ import annotations
 import base64
 import sys
 
+# Add src to path
+from pathlib import Path
+
 import httpx
 
 
-# Add src to path
-sys.path.insert(0, "/home/mike-anderson/dev/cohezion/src")
+sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "src"))
 
 
 def evaluate_screenshot_with_vlm(screenshot_path: str) -> None:

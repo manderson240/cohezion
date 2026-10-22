@@ -20,7 +20,7 @@ import httpx
 
 
 # Add src to path
-sys.path.insert(0, "/home/mike-anderson/dev/cohezion/src")
+sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "src"))
 
 
 REVIEW_PROMPT = """You are acting as a World-Class Adversarial Reviewer, Experimental Plasma Physicist, and Frontier Systems Architect.

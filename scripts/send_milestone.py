@@ -5,9 +5,10 @@ Milestone emailer using existing working email_notifier
 
 import asyncio
 import sys
+from pathlib import Path
 
 
-sys.path.insert(0, "/home/mike-anderson/dev/cohezion/src")
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
 from cohezion.mcp.email_notifier import EmailNotifier
 

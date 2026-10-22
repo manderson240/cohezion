@@ -17,7 +17,10 @@ os.environ["WATCHER_ENABLED"] = (
 )
 
 # Add current directory to path
-sys.path.insert(0, "/home/mike-anderson/dev/cohezion/cloud-vault-mcp")
+from pathlib import Path
+
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 # Import and run main
 from src.mcp_server.main import main

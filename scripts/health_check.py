@@ -7,9 +7,11 @@ Called by cron every hour
 import sys
 from datetime import datetime
 
-
 # Add src to path
-sys.path.insert(0, "/home/mike-anderson/dev/cohezion/src")
+from pathlib import Path
+
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
 
 def main():

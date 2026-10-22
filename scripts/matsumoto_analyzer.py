@@ -6,15 +6,15 @@ Runs overnight to extract key insights
 """
 
 import sys
+from pathlib import Path
 
 
-sys.path.insert(0, "/home/mike-anderson/dev/cohezion/src")
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
 import json
 import re
 import time
 from datetime import datetime
-from pathlib import Path
 
 
 worker_id = sys.argv[1] if len(sys.argv) > 1 else "1"

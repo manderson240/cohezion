@@ -1,9 +1,11 @@
 import asyncio
 import sys
 
-
 # Add src to path for cohezion imports
-sys.path.append("/home/mike-anderson/dev/cohezion/src")
+from pathlib import Path
+
+
+sys.path.append(str(Path(__file__).resolve().parents[2] / "src"))
 
 from cohezion.mcp.email_notifier import EmailNotifier
 

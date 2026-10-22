@@ -5,14 +5,14 @@ Saves key overnight mission artifacts to SurrealDB for long-term retrieval
 """
 
 import sys
+from pathlib import Path
 
 
-sys.path.insert(0, "/home/mike-anderson/dev/cohezion/src")
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
 import asyncio
 import json
 from datetime import datetime
-from pathlib import Path
 
 from surrealdb import AsyncSurreal
 

@@ -6,11 +6,12 @@ Generates itonic clusters based on Matsumoto's experimental method
 
 import sys
 from dataclasses import dataclass
+from pathlib import Path
 
 import numpy as np
 
 
-sys.path.insert(0, "/home/mike-anderson/dev/cohezion/src")
+sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "src"))
 
 # Simplified: Use NumPy directly instead of importing HihoVectorEngine
 # (which may not exist yet)

@@ -24,7 +24,7 @@ import numpy as np
 
 
 # Add src to path
-sys.path.insert(0, "/home/mike-anderson/dev/cohezion/src")
+sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "src"))
 
 from cohezion.actioner.autoharness_verifier import AutoHarnessVerifier
 from cohezion.core.resource_management.write_budget_governor import WriteBudgetGovernor

@@ -19,7 +19,7 @@ import httpx
 
 
 # Add src to path
-sys.path.insert(0, "/home/mike-anderson/dev/cohezion/src")
+sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "src"))
 
 from cohezion.core.resource_management.write_budget_governor import WriteBudgetGovernor
 
