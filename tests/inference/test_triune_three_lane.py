@@ -18,7 +18,8 @@ from cohezion.inference.orchestrator import QualityGate
 from cohezion.inference.triune_orchestrator import build_triune_omni_orchestrator
 
 
-pytestmark = pytest.mark.usefixtures("_clean_tier_env")
+# no_network: building the cascade must not touch the live router (refused AND recorded).
+pytestmark = pytest.mark.usefixtures("_clean_tier_env", "no_network")
 
 _E2B = "Gemma-4-E2B-it-GGUF"
 _E4B = "Gemma-4-E4B-it-GGUF"

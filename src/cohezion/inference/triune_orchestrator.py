@@ -154,8 +154,11 @@ def build_triune_omni_orchestrator(
     env var to add one. Whatever tier ends up last carries the TRUST gate, so the cascade always
     completes (tasks complete > quality > speed).
 
-    Note: ``local_inference._engine_for`` still maps cascade index 2 to "cpu"; with two tiers an
-    entry/escalation at index >= 1 reports "igpu" (clamped), which matches the iGPU E4B.
+    KNOWN FOLLOW-UP (engine attribution): ``local_inference._engine_for`` clamps to its own
+    3-entry ``_OMNI_TIERS``, not to this cascade's length. With the default two tiers a
+    confident "cpu" prediction (entry index 2) runs on E4B -- the orchestrator clamps the entry
+    to the last tier -- but ``_engine_for(2, 0)`` still reports "cpu", so DifficultyEstimator
+    attributes those E4B runs to "cpu". Fix by clamping with the real tier count.
     """
     # Gemma-4-E2B is a thinking model: with reasoning_format="none" (set by build_gaia_llm_tier)
     # the CoT is inline in content, so the 512 default truncates before the answer and the
