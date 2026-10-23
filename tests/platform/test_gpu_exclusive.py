@@ -50,7 +50,7 @@ class FakeLemonade:
                 "whispercpp": {
                     "backends": {"cpu": {"state": "installed"}, "vulkan": {"state": "installed"}}
                 },
-                "vllm": {"backends": {"rocm": {"state": "not_installed"}}},  # inert
+                "vllm": {"backends": {"rocm": {"state": "unsupported"}}},  # inert
                 "flm": {"backends": {"npu": {"state": "installed"}}},
             }
         }
@@ -222,7 +222,7 @@ def test_settings_saved_before_change_and_restored_exactly(fake):
         assert fake.config["llamacpp"]["backend"] == "cpu"
         assert fake.config["whispercpp"]["backend"] == "cpu"
         assert fake.config["sdcpp"]["backend"] == "cpu"
-        # ... a recipe with no backend installed at all cannot load: inert, left alone
+        # ... a recipe whose every backend is unsupported cannot load: inert, left alone
         assert fake.config["vllm"]["backend"] == "auto"
         assert info["unguarded"] == []
         # ... and every downloaded cpu-capable model now resolves to cpu
@@ -566,7 +566,7 @@ def test_watcher_never_reflips_after_restore(fake):
 
 
 def test_unguarded_gpu_only_recipe_refuses_by_default(fake):
-    fake.sysinfo["recipes"]["sd-cpp"]["backends"]["cpu"]["state"] = "update_required"
+    fake.sysinfo["recipes"]["sd-cpp"]["backends"]["cpu"]["state"] = "unsupported"
     cfg0, _ = _baseline(fake)
     with pytest.raises(gx.GpuExclusiveRefusedError, match="sdcpp"), gx.gpu_exclusive("t", 1):
         pass
@@ -575,7 +575,7 @@ def test_unguarded_gpu_only_recipe_refuses_by_default(fake):
 
 
 def test_unguarded_recipe_granted_only_with_explicit_opt_in(fake):
-    fake.sysinfo["recipes"]["sd-cpp"]["backends"]["cpu"]["state"] = "update_required"
+    fake.sysinfo["recipes"]["sd-cpp"]["backends"]["cpu"]["state"] = "unsupported"
     with gx.gpu_exclusive("t", 1, allow_unguarded=True) as info:
         assert info["unguarded"] == ["sdcpp"]
         assert fake.config["sdcpp"]["backend"] == "auto"
@@ -672,3 +672,24 @@ def test_released_event_reports_minimum_memory_seen(fake, monkeypatch):
         mem["gb"] = 5.0
         assert _wait_until(lambda: info["watch"]["min_mem_available_gb"] == 5.0)
     assert _events(fake, "gpu_exclusive_released")[0]["min_mem_available_gb"] == 5.0
+
+
+@pytest.mark.parametrize("state", ["update_required", "update_available", "installable"])
+def test_cpu_backend_present_or_installable_on_load_is_guarded(fake, state):
+    # lemonade installs the resolved backend on load and counts update_required as present.
+    fake.sysinfo["recipes"]["sd-cpp"]["backends"]["cpu"]["state"] = state
+    with gx.gpu_exclusive("t", 1) as info:
+        assert fake.config["sdcpp"]["backend"] == "cpu" and info["unguarded"] == []
+
+
+def test_gpu_backend_installable_on_load_is_not_inert(fake):
+    # No backend installed yet, but a load would install rocm and run on the iGPU.
+    fake.sysinfo["recipes"]["vllm"]["backends"]["rocm"]["state"] = "installable"
+    with pytest.raises(gx.GpuExclusiveRefusedError, match="vllm"), gx.gpu_exclusive("t", 1):
+        pass
+
+
+def test_config_section_unknown_to_system_info_fails_closed(fake):
+    fake.config["mystery"] = {"backend": "auto"}
+    with pytest.raises(gx.GpuExclusiveRefusedError, match="mystery"), gx.gpu_exclusive("t", 1):
+        pass

@@ -30,11 +30,13 @@ semantics), recording the exact saved value first; restore re-POSTs that value, 
 Pins are discovered over ``GET /api/v1/models?show_all=true`` (registry entries too: a
 pinned model downloaded on demand mid-job would otherwise load on the GPU).
 
-Sections: GUARDED (cpu backend installed -> flipped), INERT (no backend installed, cannot
-load anything) and UNGUARDED (a GPU backend installed but no cpu one, e.g. sd-cpp whose
-cpu backend is ``update_required``). Unguarded sections are REFUSED unless the caller
-passes ``allow_unguarded`` (``--allow-unguarded``): their loads would land on the iGPU.
-llamacpp must always be guarded (fail closed).
+Sections: a load INSTALLS its resolved backend if missing (llamacpp_server.cpp:295,
+sdcpp_server.cpp:207) and lemonade treats installed/update_available/update_required as
+present (system_info.cpp:659), so any backend not ``unsupported`` is loadable. GUARDED: cpu
+loadable -> flipped. UNGUARDED: a GPU backend loadable but no cpu one, or a config section
+with no matching recipe in system-info (unknown -> fail closed). INERT: every backend
+unsupported. Unguarded sections are REFUSED unless the caller passes ``allow_unguarded``
+(``--allow-unguarded``): their loads would land on the iGPU. llamacpp must be guarded.
 
 Busy residents (``is_busy``) are never force-unloaded (that would abort fleet requests);
 they are skipped and retried each poll, and still-busy at ``DEADLINE_S`` refuses. The census
@@ -94,6 +96,7 @@ EVENT_TYPES = (
     "gpu_exclusive_released",
 )
 CPU = "cpu"
+_LOADABLE = {"installed", "update_available", "update_required", "installable"}
 DEADLINE_S = 180.0
 POLL_S = 2.0
 SETTLE_S = 20.0  # census must stay clean this long (in-flight loads land late)
@@ -208,13 +211,13 @@ def _apply_cpu_mode(state: dict, state_path: Path, allow_unguarded: bool) -> Non
     for section, val in cfg.items():
         if not (isinstance(val, dict) and "backend" in val):
             continue
-        recipe = next((r for r in recipes if r.replace("-", "") == section), section)
-        backends = recipes.get(recipe, {}).get("backends", {})
-        installed = {b for b, i in backends.items() if i.get("state") == "installed"}
-        if CPU in installed:
+        recipe = next((r for r in recipes if r.replace("-", "") == section), None)
+        backends = recipes.get(recipe, {}).get("backends", {}) if recipe else {}
+        loadable = {b for b, i in backends.items() if i.get("state") in _LOADABLE}
+        if CPU in loadable:
             guarded[section] = val["backend"]
             cpu_recipes.add(recipe)
-        elif installed:  # loadable, but only onto a GPU backend
+        elif loadable or recipe is None:  # GPU-only, or unknown to system-info
             unguarded.append(section)
     if "llamacpp" not in guarded:
         # Unexpected config shape or no installed cpu backend: a grant would let the fleet
@@ -300,6 +303,7 @@ def _watch(stop: threading.Event, guarded: list[str], stats: dict) -> None:
             if late:
                 logger.warning("gpu_exclusive: late GPU residents %s", late)
                 stats["late_unloads"] += _unload_idle(late)
+                stats["late_busy"] += sum(1 for m in late if m.get("is_busy"))
             mem = hotswap.free_gb_or_none()
             if mem is not None:
                 cur = stats["min_mem_available_gb"]
@@ -399,7 +403,7 @@ def gpu_exclusive(holder: str, need_gb: float, allow_unguarded: bool = False) ->
         logger.info("gpu_exclusive: granted %s", info)
         emit("gpu_exclusive_granted", info)
         stop = threading.Event()
-        stats = {"late_unloads": 0, "reapplied": 0, "min_mem_available_gb": None}
+        stats = {"late_unloads": 0, "late_busy": 0, "reapplied": 0, "min_mem_available_gb": None}
         watcher = threading.Thread(
             target=_watch, args=(stop, list(state["globals"]), stats), daemon=True
         )
