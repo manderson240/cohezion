@@ -162,97 +162,13 @@ def test_tier0_gguf_admission_admits_at_bounded_ctx(monkeypatch):
     assert risk.footprint_gb == pytest.approx(0.78 + 0.125)
 
 
-# ── Tier-0 context bound (COHEZION_TIER0_CTX, default 4096) ──────────────────────
-
-
-def test_tier0_ctx_default_and_override(monkeypatch):
-    from cohezion.config.defaults import DEFAULT_TIER0_CTX, tier0_ctx
-
-    monkeypatch.delenv("COHEZION_TIER0_CTX", raising=False)
-    assert DEFAULT_TIER0_CTX == 4096
-    assert tier0_ctx() == 4096
-    monkeypatch.setenv("COHEZION_TIER0_CTX", "8192")
-    assert tier0_ctx() == 8192
-
-
-@pytest.mark.parametrize("raw", ["0", "-1", "abc", ""])
-def test_tier0_ctx_rejects_unbounded_or_garbage(raw, monkeypatch):
-    """0 means 'native window' to lemonade (the N3 OOM hazard) -- never pass it through."""
-    from cohezion.config.defaults import tier0_ctx
-
-    monkeypatch.setenv("COHEZION_TIER0_CTX", raw)
-    assert tier0_ctx() == 4096
-
-
-def test_tier0_ctx_clamped_to_bounded_ceiling(monkeypatch):
-    from cohezion.config.defaults import tier0_ctx
-
-    monkeypatch.setenv("COHEZION_TIER0_CTX", "262144")
-    assert tier0_ctx() == 32768
-
-
-def test_omni_cascade_pins_ctx_on_tier0_only(monkeypatch):
-    from cohezion.inference import triune_orchestrator
-
-    monkeypatch.setenv("COHEZION_TIER0_CTX", "6144")
-    calls: list[dict] = []
-
-    def _fake_tier(**kw):
-        calls.append(kw)
-        return MagicMock(label=f"gaia:{kw['model_id']}")
-
-    with patch.object(triune_orchestrator, "build_gaia_llm_tier", side_effect=_fake_tier):
-        triune_orchestrator.build_triune_omni_orchestrator()
-    assert calls[0]["ctx_size"] == 6144
-    assert all(c.get("ctx_size") is None for c in calls[1:]), "only tier 0 is pinned"
-
-
-def test_gaia_tier_passes_ctx_to_client_load_path():
-    """GAIA's LemonadeClient issues the /api/v1/load itself; ctx_size_override is how a
-    client pins that load. Without it, an unregistered GGUF loads at GAIA's 32768 floor."""
-    from cohezion.inference.gaia_adapter import build_gaia_llm_tier
-
-    with patch("gaia.llm.lemonade_client.LemonadeClient") as client_cls:
-        build_gaia_llm_tier(model_id="Llama-3.2-1B-Instruct-GGUF", ctx_size=4096)
-        assert client_cls.call_args.kwargs["ctx_size_override"] == 4096
-        client_cls.reset_mock()
-        build_gaia_llm_tier(model_id="Gemma-4-E4B-it-GGUF")
-        assert "ctx_size_override" not in client_cls.call_args.kwargs
-
-
-def test_local_router_fallback_accepts_ctx_pin():
-    from cohezion.inference.gaia_adapter import _LocalRouterClient
-
-    _LocalRouterClient(base_url="http://x/api/v1", model="m", ctx_size_override=4096)
-
-
-def test_clr_gate_pins_tier0_ctx_on_its_gaia_client(monkeypatch):
-    from cohezion.compound.clr_quality_gate import CLRQualityGate
-
-    monkeypatch.delenv("COHEZION_TIER0_CTX", raising=False)
-    with patch("gaia.llm.lemonade_client.LemonadeClient") as client_cls:
-        CLRQualityGate()
-        assert client_cls.call_args.kwargs["ctx_size_override"] == 4096
-        client_cls.reset_mock()
-        CLRQualityGate(model="Gemma-4-E4B-it-GGUF")  # not the tier-0 lane: never re-pinned
-        assert "ctx_size_override" not in client_cls.call_args.kwargs
-
-
-def test_world_model_lazy_client_pins_tier0_ctx(monkeypatch):
-    from cohezion.compound.lemonade_world_model import FlumeWorldModel
-
-    monkeypatch.delenv("COHEZION_TIER0_CTX", raising=False)
-    with patch("gaia.llm.lemonade_client.LemonadeClient") as client_cls:
-        client_cls.return_value.chat_completions.return_value = {
-            "choices": [{"message": {"content": "0.5"}}]
-        }
-        FlumeWorldModel()._chat("x")
-        assert client_cls.call_args.kwargs["ctx_size_override"] == 4096
+# ── Tier-0 context: ONE authority, the saved recipe (no client-side pins) ─────────
+# Consumption test against a recording fake lemonade: test_tier0_single_ctx_authority.py
 
 
 def test_base_recipe_bounds_tier0_ctx():
-    """Raw-HTTP tier-0 callers (tri_silicon, router auto-load) cannot carry ctx in a chat
-    request; the bound reaches them through the saved recipe (scripts/apply_lemonade_recipes.py)."""
+    """No caller pins or loads tier 0; the router auto-loads it at this saved recipe ctx
+    (written by scripts/apply_lemonade_recipes.py)."""
     from cohezion.compound.lemonade_recipes import BASE_RECIPES
 
     assert BASE_RECIPES["Llama-3.2-1B-Instruct-GGUF"]["ctx_size"] == 4096

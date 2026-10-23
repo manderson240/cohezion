@@ -375,18 +375,7 @@ class _LocalRouterClient:
     stdlib-only transport idiom of :class:`~cohezion.inference.direct_tier.DirectLemonadeTier`.
     """
 
-    def __init__(
-        self,
-        base_url: str,
-        model: str,
-        *,
-        verbose: bool = False,
-        ctx_size_override: int | None = None,
-    ):
-        # ctx_size_override is accepted for surface parity with GAIA's LemonadeClient and
-        # deliberately unused: this client only POSTs chat completions, which cannot carry a
-        # ctx, and never issues /load (the router auto-loads at the model's saved recipe ctx).
-        del ctx_size_override
+    def __init__(self, base_url: str, model: str, *, verbose: bool = False):
         self._url = f"{base_url.rstrip('/')}/chat/completions"
         self._model = model
 
@@ -457,7 +446,6 @@ def build_gaia_llm_tier(
     temperature: float | None = None,
     silent: bool = True,
     request_extras: dict[str, Any] | None = None,
-    ctx_size: int | None = None,
 ) -> GaiaAgentTier:
     """Wrap GAIA's ``LemonadeClient`` as a tier — the supported GAIA path (0.19.0+).
 
@@ -471,9 +459,7 @@ def build_gaia_llm_tier(
     (router :13305) so GAIA does NOT spawn a second lemonade (OOM-safe on the shared box).
     Note: GAIA may reload the target model to its expected ctx (32768) on first call,
     which mutates shared fleet state — pin a model the fleet already serves at that ctx,
-    or accept the one-time reload. ``ctx_size`` pins that load instead (GAIA's
-    ``ctx_size_override``: exact-pin, reloads on any other loaded ctx) — the tier-0 lane
-    passes ``config.defaults.tier0_ctx()`` so its KV reservation stays bounded.
+    or accept the one-time reload.
     """
     try:
         from gaia.llm.lemonade_client import LemonadeClient  # type: ignore[import-not-found]
@@ -514,8 +500,7 @@ def build_gaia_llm_tier(
     if request_extras:
         extra_sampling = {**extra_sampling, **request_extras}  # caller wins over the card
 
-    pin = {"ctx_size_override": ctx_size} if ctx_size is not None else {}
-    client = client_factory(base_url=base_url, model=model_id, verbose=not silent, **pin)
+    client = client_factory(base_url=base_url, model=model_id, verbose=not silent)
     shim = _GaiaLLMClientShim(
         client,
         model_id,

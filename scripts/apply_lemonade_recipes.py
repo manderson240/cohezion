@@ -51,6 +51,7 @@ _MODEL_SIZE_GB: dict[str, float] = {
     "nomic-embed-text-v2-moe-GGUF": 1.0,
     "Qwen3-Embedding-0.6B-GGUF": 1.0,
     "Qwen3-0.6B-GGUF": 1.5,
+    "Llama-3.2-1B-Instruct-GGUF": 1.0,  # tier 0: 0.78 GB weights + 0.125 GB KV at ctx 4096
     "Bonsai-1.7B-gguf": 1.5,
     "Bonsai-4B-gguf": 3.0,
     "Gemma-4-E2B-it-GGUF": 6.0,

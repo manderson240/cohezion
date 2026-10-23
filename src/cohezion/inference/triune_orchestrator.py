@@ -8,7 +8,7 @@ from __future__ import annotations
 import logging
 from typing import TYPE_CHECKING
 
-from cohezion.config.defaults import tier0_ctx, tier0_model
+from cohezion.config.defaults import tier0_model
 from cohezion.inference.gaia_adapter import build_gaia_llm_tier, build_gaia_native_tier
 from cohezion.inference.orchestrator import (
     QualityGate,
@@ -142,15 +142,13 @@ def build_triune_omni_orchestrator(
     (~195 core-s vs ~51 on iGPU vs ~9 on NPU for the same request).
 
     2026-10-23: tier 0 moved OFF the NPU (``config.defaults.tier0_model``, default
-    ``Llama-3.2-1B-Instruct-GGUF`` on Vulkan, load pinned to ``tier0_ctx()``) because the
+    ``Llama-3.2-1B-Instruct-GGUF`` on Vulkan, ctx from its saved lemonade recipe only) because the
     single-slot NPU thrashed against other FLM workloads. Tiers 0 and 1 now BOTH run on the
     iGPU, so the cascade spans two substrates (iGPU, CPU), not three — the 07-09 "three
     distinct substrates" property no longer holds while tier 0 is a GGUF.
     """
     # Tier 0 is no longer pinned to the NPU (2026-10-23): see config.defaults.tier0_model.
-    npu_tier = build_gaia_llm_tier(
-        model_id=tier0_model(), base_url=base_url, silent=True, ctx_size=tier0_ctx()
-    )
+    npu_tier = build_gaia_llm_tier(model_id=tier0_model(), base_url=base_url, silent=True)
     igpu_tier = build_gaia_llm_tier(model_id="Gemma-4-E4B-it-GGUF", base_url=base_url, silent=True)
     cpu_tier = build_gaia_llm_tier(model_id="Gemma-4-E2B-it-GGUF", base_url=base_url, silent=True)
     return TieredOrchestrator(

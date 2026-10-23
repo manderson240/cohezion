@@ -28,33 +28,10 @@ def tier0_model() -> str:
     return os.environ.get("COHEZION_TIER0_MODEL") or DEFAULT_TIER0_MODEL
 
 
-# Tier-0 context window. Routing/classify prompts are short; every extra token of ctx is
-# KV reserved at load (Llama-3.2-1B: 32 KiB/token, so 4096 -> 0.125 GB vs 4.0 GB native).
-DEFAULT_TIER0_CTX: int = 4096
-_TIER0_CTX_CEILING: int = 32768  # the N3 bound every BASE_RECIPES ctx_size respects
-
-
-def tier0_ctx() -> int:
-    """Tier-0 ctx_size; ``COHEZION_TIER0_CTX`` overrides. Read at call time.
-
-    Non-positive or unparseable values fall back to the default: ctx_size 0 means "native
-    window" to lemonade (the N3 OOM hazard), so it is never passed through. Clamped to 32768.
-    """
-    try:
-        ctx = int(os.environ.get("COHEZION_TIER0_CTX", ""))
-    except ValueError:
-        return DEFAULT_TIER0_CTX
-    if ctx <= 0:
-        return DEFAULT_TIER0_CTX
-    return min(ctx, _TIER0_CTX_CEILING)
-
-
-def tier0_client_kwargs(model: str) -> dict[str, int]:
-    """GAIA ``LemonadeClient`` kwargs that pin the tier-0 lane's load to ``tier0_ctx()``.
-
-    Empty for any other model: re-pinning a shared non-tier-0 model would force a reload.
-    """
-    return {"ctx_size_override": tier0_ctx()} if model == tier0_model() else {}
+# Tier-0 ctx has exactly ONE authority: lemonade's saved per-model option, written from
+# compound.lemonade_recipes.BASE_RECIPES by scripts/apply_lemonade_recipes.py. No client
+# pins it per load -- a second authority makes lemond unload/reload the model whenever two
+# callers disagree (the slot thrash this move off the NPU exists to remove).
 
 
 # ── SurrealDB ─────────────────────────────────────────────────────────────────

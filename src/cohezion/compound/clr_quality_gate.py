@@ -12,7 +12,7 @@ from __future__ import annotations
 import logging
 from typing import Any
 
-from cohezion.config.defaults import tier0_client_kwargs, tier0_model
+from cohezion.config.defaults import tier0_model
 
 
 logger = logging.getLogger(__name__)
@@ -66,12 +66,7 @@ class CLRQualityGate:
         try:
             from gaia.llm.lemonade_client import LemonadeClient  # type: ignore[import]
 
-            return LemonadeClient(
-                base_url=self._gaia_router_url,
-                model=self._model,
-                verbose=False,
-                **tier0_client_kwargs(self._model),  # bounded tier-0 ctx on GAIA's own load
-            )
+            return LemonadeClient(base_url=self._gaia_router_url, model=self._model, verbose=False)
         except Exception as exc:
             logger.debug("CLRQualityGate: GAIA unavailable (%s), using httpx fallback", exc)
             return None
@@ -109,6 +104,10 @@ class CLRQualityGate:
                     messages=[{"role": "user", "content": prompt}],
                     max_tokens=8,
                     temperature=0.0,
+                    # Never let GAIA /load the model: its ensure-loaded path reloads at GAIA's
+                    # own expected ctx (32768 floor), a second ctx authority competing with the
+                    # saved recipe. The router auto-loads at the recipe ctx instead.
+                    auto_download=False,
                 )
                 text = result["choices"][0]["message"].get("content", "").strip()
                 return text or None

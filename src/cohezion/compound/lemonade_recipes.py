@@ -24,8 +24,6 @@ from __future__ import annotations
 
 from typing import TypedDict
 
-from cohezion.config.defaults import DEFAULT_TIER0_CTX
-
 
 # ── Shared constants from lemonade-sdk/recipes ───────────────────────────────
 
@@ -101,11 +99,12 @@ BASE_RECIPES: dict[str, RecipeOptions] = {
     },
     # ── Tiny LLMs (always-warm routing, classification, short QA) ────────────
     "Llama-3.2-1B-Instruct-GGUF": {
-        # Cascade tier 0 (off the NPU 2026-10-23). ctx = config.defaults.DEFAULT_TIER0_CTX:
-        # GAIA clients pin it per load; this saved recipe covers raw-HTTP callers and the
-        # router's auto-load. -np 1: lemonade divides ctx_size across slots, and 4096 split
-        # four ways would truncate routing prompts.
-        "ctx_size": DEFAULT_TIER0_CTX,
+        # Cascade tier 0 (off the NPU 2026-10-23). This saved recipe is the ONLY tier-0 ctx
+        # authority: callers never /load it (GAIA paths pass auto_download=False), so the
+        # router auto-loads it at this ctx. Routing prompts are short; Llama-3.2-1B KV is
+        # 32 KiB/token, so 4096 -> 0.125 GB vs 4.0 GB at the 131072 native window.
+        # -np 1: lemonade divides ctx_size across slots; 4096 split four ways truncates.
+        "ctx_size": 4096,
         "llamacpp_backend": _BACKEND,
         "llamacpp_args": f"{_BATCH_SMALL} -np 1",
     },

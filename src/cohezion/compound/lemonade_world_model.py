@@ -25,7 +25,7 @@ from typing import Any
 
 import numpy as np
 
-from cohezion.config.defaults import tier0_client_kwargs, tier0_model
+from cohezion.config.defaults import tier0_model
 
 
 logger = logging.getLogger(__name__)
@@ -85,8 +85,8 @@ class FlumeWorldModel:
 
     Args:
         chat_fn: Optional ``prompt(text) -> str`` callable. Injected in tests; when None, a GAIA
-            ``LemonadeClient`` shim is built lazily on first use (router :13305, tier-0 model,
-            load pinned to config.defaults.tier0_ctx).
+            ``LemonadeClient`` shim is built lazily on first use (router :13305, tier-0 model;
+            the shim never /loads, so the router auto-loads at the saved recipe ctx).
         model_id: lemonade model id for the default GAIA path.
     """
 
@@ -127,10 +127,7 @@ class FlumeWorldModel:
             from cohezion.inference.gaia_adapter import _GaiaLLMClientShim
 
             client = LemonadeClient(
-                base_url="http://localhost:13305/api/v1",
-                model=self._model_id,
-                verbose=False,
-                **tier0_client_kwargs(self._model_id),  # bounded tier-0 ctx on GAIA's load
+                base_url="http://localhost:13305/api/v1", model=self._model_id, verbose=False
             )
             self._chat_fn = _GaiaLLMClientShim(
                 client, self._model_id, max_tokens=8, temperature=0.0
