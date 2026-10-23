@@ -14,8 +14,15 @@ from cohezion.compound.post_execution import PostExecutionOrchestrator
 
 
 @pytest.mark.asyncio
-async def test_post_execution_orchestrator_run_success():
+@pytest.mark.usefixtures("no_network")
+async def test_post_execution_orchestrator_run_success(monkeypatch):
     """[P0] Should run post-execution orchestrator with no errors."""
+    # CLRQualityGate chats with the tier-0 model on :13305; via GAIA that POSTs
+    # /api/v1/load for it. Mock the client layer at source so no load is triggered.
+    from cohezion.compound.clr_quality_gate import CLRQualityGate
+
+    monkeypatch.setattr(CLRQualityGate, "_init_gaia_client", lambda self: None)
+    monkeypatch.setattr(CLRQualityGate, "_call_inference", lambda self, prompt: "YES")
     mock_executor = MagicMock()
     mock_executor._enable_alignment_analysis = True
     mock_executor._degradation_mode = False

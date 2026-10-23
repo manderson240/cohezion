@@ -134,6 +134,41 @@ def mock_surreal():
 
 
 @pytest.fixture
+def no_network(monkeypatch):
+    """Opt-in hermetic guard: refuse AND record every outbound INET/INET6 connect.
+
+    Raising alone is not enough -- production code with a bare ``except Exception`` would
+    swallow the refusal and stay green -- so teardown fails the test if any attempt was
+    recorded. Yields the attempt list so a self-test can inspect and clear it.
+    """
+    import socket
+
+    attempts: list[object] = []
+    orig_connect = socket.socket.connect
+    orig_connect_ex = socket.socket.connect_ex
+
+    def _is_inet(sock: socket.socket) -> bool:
+        return sock.family in (socket.AF_INET, socket.AF_INET6)
+
+    def _connect(sock, address):
+        if _is_inet(sock):
+            attempts.append(address)
+            raise ConnectionRefusedError(f"no_network: hermetic test tried {address!r}")
+        return orig_connect(sock, address)
+
+    def _connect_ex(sock, address):
+        if _is_inet(sock):
+            attempts.append(address)
+            raise ConnectionRefusedError(f"no_network: hermetic test tried {address!r}")
+        return orig_connect_ex(sock, address)
+
+    monkeypatch.setattr(socket.socket, "connect", _connect)
+    monkeypatch.setattr(socket.socket, "connect_ex", _connect_ex)
+    yield attempts
+    assert not attempts, f"hermetic test attempted network connects: {attempts}"
+
+
+@pytest.fixture
 def tmp_workdir(tmp_path: Path):
     """Provide a temporary working directory that auto-cleans after the test."""
     workdir = tmp_path / "workdir"

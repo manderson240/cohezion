@@ -2,11 +2,54 @@
 
 from __future__ import annotations
 
-from unittest.mock import patch
+import io
+import json
+from unittest.mock import MagicMock, patch
 
 import pytest
 
-from cohezion.autopoiesis import TriSiliconAutopoiesisEngine, TriSiliconCycleResult
+from cohezion.autopoiesis import (
+    TriSiliconAutopoiesisEngine,
+    TriSiliconCycleResult,
+    tri_silicon_engine,
+)
+from cohezion.config.defaults import tier0_model
+
+
+# Hermetic: execute_npu_phase POSTs the tier-0 model id to :13305, which makes the live
+# router auto-load it. Every connect is refused and recorded; a recorded attempt fails.
+pytestmark = pytest.mark.usefixtures("no_network")
+
+
+@pytest.fixture(autouse=True)
+def fake_urlopen(monkeypatch, tmp_path):
+    """Mock every HTTP boundary the engine reaches, at source.
+
+    The engine, TripartiteGoalLoop and the SurrealDB ``_sql`` helper all call
+    ``urllib.request.urlopen`` through the module attribute, so one patch covers them.
+    Chat requests get a canned completion; SurrealDB ``/sql`` gets an empty OK result.
+    Also keeps the vault retro file and VaultNeuronWriter off the real stores.
+    """
+    requests: list[tuple[str, dict | str]] = []
+
+    def _urlopen(req, timeout=None):
+        url = req.full_url
+        body = req.data.decode() if req.data else ""
+        if url.endswith("/sql"):
+            requests.append((url, body))
+            payload: object = [{"status": "OK", "result": []}]
+        else:
+            requests.append((url, json.loads(body) if body else {}))
+            payload = {"choices": [{"message": {"content": "Focus on ARC invariants."}}]}
+        return io.BytesIO(json.dumps(payload).encode())
+
+    monkeypatch.setattr("urllib.request.urlopen", _urlopen)
+    monkeypatch.setattr(tri_silicon_engine, "VAULT_LEARNINGS_DIR", tmp_path / "learnings")
+    monkeypatch.setattr(
+        "cohezion.learning.vault_neuron_reader.VaultNeuronWriter.get_instance",
+        lambda *a, **k: MagicMock(),
+    )
+    return requests
 
 
 @pytest.fixture
@@ -48,8 +91,10 @@ def test_tri_silicon_igpu_phase_skipped(engine: TriSiliconAutopoiesisEngine):
     assert latency_ms == 0.0
 
 
-def test_tri_silicon_execute_cycle_end_to_end(engine: TriSiliconAutopoiesisEngine):
+def test_tri_silicon_execute_cycle_end_to_end(engine: TriSiliconAutopoiesisEngine, fake_urlopen):
     result = engine.execute_cycle(cycle=2)
+    npu_calls = [b for u, b in fake_urlopen if u == tri_silicon_engine.LEMONADE_URL]
+    assert npu_calls and npu_calls[0]["model"] == tier0_model()
     assert isinstance(result, TriSiliconCycleResult)
     assert result.cycle == 2
     assert isinstance(result.npu_guidance, str)
