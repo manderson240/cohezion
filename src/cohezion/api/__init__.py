@@ -127,10 +127,31 @@ _SERVICE_ROUTERS: tuple[tuple[str, str, str], ...] = (
 )
 
 
+# Extracted replacements for the 33 INLINE routes the same refactor deleted from this module
+# (/flume/*, /rl/*, /templates/parse, /journeys/*, /compare/*, /skills/*, /query/*, /metrics/*,
+# /knowledge/query, /swarm/execute, /compound/*). The extracted routers existed in
+# api/routes/ but were only re-exported, never mounted. Mounted AFTER main_router so the few
+# paths both define (knowledge/search, swarm/debate, ...) keep resolving to main_router.
+# flume_inline (not routes/flume.py) is the one mounted: it resolves cohezion.api._get_vae at
+# call time, so the conftest singleton resets and patch("cohezion.api._get_vae") still apply;
+# routes/flume.py carries a private _get_vae copy (rival, left unmounted).
+_INLINE_REPLACEMENT_ROUTERS: tuple[tuple[str, str, str], ...] = (
+    ("cohezion.api.routes.flume_inline", "flume_inline_router", ""),
+    ("cohezion.api.routes.templates", "templates_router", ""),
+    ("cohezion.api.routes.rl", "rl_router", ""),
+    ("cohezion.api.routes.journeys_legacy", "journeys_legacy_router", ""),
+    ("cohezion.api.routes.skills", "skills_router", ""),
+    ("cohezion.api.routes.metrics", "metrics_router", ""),
+    ("cohezion.api.routes.knowledge", "knowledge_router", ""),
+    ("cohezion.api.routes.swarm", "swarm_router", ""),
+    ("cohezion.api.routes.compound", "compound_router", ""),
+)
+
+
 def _mount_service_routers() -> None:
     import importlib
 
-    for module_name, attr, prefix in _SERVICE_ROUTERS:
+    for module_name, attr, prefix in _INLINE_REPLACEMENT_ROUTERS + _SERVICE_ROUTERS:
         try:
             router = getattr(importlib.import_module(module_name), attr)
         except ImportError as exc:
