@@ -13,6 +13,7 @@ def _roster_with(catalog: list[dict]) -> FleetRoster:
     r._cache = catalog
     r._cache_at = time.monotonic() + 1e6  # far future => never re-fetches
     r._perf = {}
+    r.memory = lambda _catalog: None  # rank only: no live cgroup/residency in unit tests
     return r
 
 
@@ -36,9 +37,14 @@ _CATALOG = [
         "recipe": "llamacpp",
     },
     {"id": "Bonsai-1.7B-gguf", "labels": ["tool-calling"], "size": 0.231, "recipe": "llamacpp"},
-    {"id": "deepseek-r1-0528-8b-FLM", "labels": [], "size": None, "recipe": "flm"},
+    {
+        "id": "deepseek-r1-0528-8b-FLM",
+        "labels": ["reasoning", "chat"],
+        "size": None,
+        "recipe": "flm",
+    },
     {"id": "gemma3-1b-FLM", "labels": [], "size": None, "recipe": "flm"},
-    {"id": "embed-gemma-300m-FLM", "labels": [], "size": None, "recipe": "flm"},
+    {"id": "embed-gemma-300m-FLM", "labels": ["embeddings"], "size": None, "recipe": "flm"},
     {"id": "nomic-embed-text-v2-moe-GGUF", "labels": [], "size": 0.5, "recipe": "llamacpp"},
     {"id": "Flux-2-Klein-9B-GGUF", "labels": ["image-generation"], "size": 9.0, "recipe": "sd-cpp"},
     {"id": "TRELLIS-3D", "labels": ["3d"], "size": 15.4, "recipe": "trellis"},
@@ -110,3 +116,96 @@ def test_deep_loadable_uses_load_safety_guard(monkeypatch):
     # Tight RAM => the load-safety guard refuses; nothing heavy fits.
     monkeypatch.setattr(fr, "available_ram_gb", lambda: 40.0)
     assert r.select("deep", loadable=True) is None
+
+
+# -- memory-aware allocation (2026-10-22) -------------------------------------------------
+# Live 2026-10-21: interactive -> a 22 GB Qwen3.6-35B CPU model and bbq -> a 16.9 GB
+# Gemma-4-26B, chosen by capability alone; the daemons asking for them throttled lemond.
+
+from cohezion.inference.fleet_roles import MemoryState
+
+
+_ALLOC = [
+    {
+        "id": "Big-35B-GGUF",
+        "labels": ["reasoning", "tool-calling"],
+        "size": 22.0,
+        "recipe": "llamacpp",
+    },
+    {
+        "id": "Mid-12B-GGUF",
+        "labels": ["reasoning", "tool-calling"],
+        "size": 9.0,
+        "recipe": "llamacpp",
+    },
+    {"id": "small-4b-FLM", "labels": ["reasoning", "tool-calling"], "size": 5.0, "recipe": "flm"},
+]
+
+
+def _alloc(memory: MemoryState) -> FleetRoster:
+    r = _roster_with(_ALLOC)
+    r.memory = lambda _catalog: memory
+    return r
+
+
+def test_without_memory_the_biggest_wins():  # the old behaviour, kept for rank-only callers
+    assert _roster_with(_ALLOC).select("bbq") == "Big-35B-GGUF"
+
+
+def test_resident_model_in_the_best_tier_is_chosen():
+    mem = MemoryState(headroom_gb=50.0, resident=frozenset({"mid-12b-gguf"}))
+    assert _alloc(mem).select("bbq") == "Mid-12B-GGUF"  # loaded: costs nothing
+
+
+def test_best_candidate_that_fits_the_headroom():
+    # Mid-12B costs 9 GB weights + 5 GB KV = 14 GB: footprints include the KV cache.
+    assert (
+        _alloc(MemoryState(headroom_gb=15.0, resident=frozenset())).select("bbq") == "Mid-12B-GGUF"
+    )
+    assert (
+        _alloc(MemoryState(headroom_gb=12.0, resident=frozenset())).select("bbq") == "small-4b-FLM"
+    )
+
+
+def test_npu_swap_credit_lets_an_flm_model_fit():
+    mem = MemoryState(headroom_gb=1.0, resident=frozenset({"other-flm"}), flm_llm_resident_gb=5.0)
+    assert _alloc(mem).select("bbq") == "small-4b-FLM"  # replaces the resident FLM
+
+
+def test_nothing_fits_returns_the_cheapest_not_none():
+    # Callers fall back to a hardcoded big model on None; never hand them that excuse.
+    mem = MemoryState(headroom_gb=0.0, resident=frozenset())
+    assert _alloc(mem).select("bbq") == "small-4b-FLM"
+
+
+def test_measured_quality_beats_residency_of_a_worse_tier():
+    r = _alloc(MemoryState(headroom_gb=50.0, resident=frozenset({"mid-12b-gguf"})))
+    r._perf = {("Big-35B-GGUF", "reasoning"): 0.9, ("Mid-12B-GGUF", "reasoning"): 0.0}
+    assert r.select("bbq") == "Big-35B-GGUF"  # proven-good beats a resident proven-bad
+
+
+def test_specs_carry_no_big_model_name_hints():
+    for role in ("interactive", "bbq", "review"):
+        hints = " ".join(ROLE_SPECS[role].name_hint)
+        assert "26B" not in hints and "35B" not in hints and "A3B" not in hints
+    assert "FLM" not in ROLE_SPECS["interactive"].exclude and "FLM" not in ROLE_SPECS["bbq"].exclude
+
+
+def test_when_nothing_fits_a_resident_model_beats_a_new_load():
+    # Live 2026-10-22: 1 GB headroom, a proven-good model existed but did not fit, and the
+    # cheapest-new-load fallback picked an untested preview runtime while two eligible
+    # models sat resident.
+    r = _alloc(MemoryState(headroom_gb=1.0, resident=frozenset({"mid-12b-gguf"})))
+    r._perf = {("Big-35B-GGUF", "reasoning"): 0.9}  # best tier is proven-good, and too big
+    assert r.select("bbq") == "Mid-12B-GGUF"
+
+
+def test_resident_proven_bad_is_not_preferred():
+    r = _alloc(MemoryState(headroom_gb=1.0, resident=frozenset({"mid-12b-gguf"})))
+    r._perf = {("Mid-12B-GGUF", "reasoning"): 0.0}
+    assert r.select("bbq") == "small-4b-FLM"
+
+
+def test_preview_runtime_excluded_from_chat_roles():
+    for role in ("interactive", "bbq", "review", "draft"):
+        assert any(x.lower() == "hrx" for x in ROLE_SPECS[role].exclude), role

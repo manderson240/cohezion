@@ -221,3 +221,13 @@ class TestOOMPreflight:
         monkeypatch.setattr(session_digest, "OMNIROUTER", "http://127.0.0.1:9/none")
         with pytest.raises(OSError):
             session_digest.lemonade_chat("hi", timeout=1.0)
+
+
+def test_default_model_comes_from_the_roster(monkeypatch):
+    """Consumption: neutralising the roster must change the model the digest sends."""
+    from cohezion.inference import fleet_roles
+
+    monkeypatch.setattr(fleet_roles.ROSTER, "select", lambda role, **_: f"sentinel-for-{role}")
+    assert session_digest.resolve_digest_model() == "sentinel-for-interactive"
+    monkeypatch.setattr(fleet_roles.ROSTER, "select", lambda role, **_: None)
+    assert session_digest.resolve_digest_model() == session_digest.FALLBACK_MODEL

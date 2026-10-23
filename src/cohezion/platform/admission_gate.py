@@ -163,6 +163,24 @@ def extract_model_name(body: object) -> str | None:
     return names[0] if names else None
 
 
+def load_footprint_gb(model_name: str, entry: dict[str, object] | None) -> float | None:
+    """Weights + KV reservation a load of *model_name* will add, or None when unknown.
+
+    Weights are the larger of lemonade's catalog size and oom_guard's curated
+    MODEL_FOOTPRINT_GB: the catalog has under-reported (a 35B at 1.68 GB, harness RS7), and
+    a wrong small size is more dangerous than a missing one. Shared by this gate and the
+    fleet roster so the two can never disagree about what fits.
+    """
+    key = normalize_model_name(model_name)
+    size = entry.get("size") if entry else None
+    catalog_gb = float(size) if isinstance(size, (int, float)) and size > 0 else 0.0
+    curated_gb = MODEL_FOOTPRINT_GB.get(key, 0.0)
+    weights = max(catalog_gb, curated_gb)
+    if weights <= 0.0:
+        return None
+    return weights + _kv_reservation_gb(model_name, weights, entry)
+
+
 def _resident_match(model_name: str, entry: dict[str, object]) -> bool:
     """Exact match on the entry's name or its checkpoint stem; never a substring."""
     want = normalize_model_name(model_name).lower()
@@ -295,29 +313,7 @@ class AdmissionGate:
         return age is not None and age < CATALOG_FRESH_S
 
     def _cached_footprint_gb(self, model_name: str) -> float | None:
-        """Weights + KV reservation for *model_name*, or None when its size is unknown.
-
-        Weights are the larger of lemonade's catalog size and oom_guard's curated
-        MODEL_FOOTPRINT_GB: the catalog has under-reported (a 35B at 1.68 GB, harness RS7),
-        and a wrong small size is more dangerous than a missing one.
-        """
-        key = normalize_model_name(model_name)
-        entry = self._catalog.get(key)
-        size = entry.get("size") if entry else None
-        catalog_gb = float(size) if isinstance(size, (int, float)) and size > 0 else 0.0
-        curated_gb = MODEL_FOOTPRINT_GB.get(key, 0.0)
-        weights = max(catalog_gb, curated_gb)
-        if weights <= 0.0:
-            return None
-        if curated_gb and catalog_gb and abs(curated_gb - catalog_gb) > 0.5 * curated_gb:
-            logger.info(
-                "admission gate: size for %s: catalog %.1f vs curated %.1f GB, using %.1f",
-                model_name,
-                catalog_gb,
-                curated_gb,
-                weights,
-            )
-        return weights + _kv_reservation_gb(model_name, weights, entry)
+        return load_footprint_gb(model_name, self._catalog.get(normalize_model_name(model_name)))
 
     # -- residency ------------------------------------------------------------------------
 
@@ -427,6 +423,21 @@ class AdmissionGate:
             self._reserved[key] = (size, now + RESERVATION_TTL_S)
         logger.info("admission gate ADMIT: %s <= %.1fGB", detail, budget)
         return AdmissionDecision(True, False, f"fits: {detail} <= {budget:.1f}GB", model_name)
+
+    def memory_state(self) -> dict[str, float | None]:
+        """Read-only snapshot for /admission/status and the fleet roster."""
+        cgroup = self._read_cgroup()
+        with self._lock:
+            now = time.monotonic()
+            reserved = sum(gb for gb, exp in self._reserved.values() if exp > now)
+        if cgroup is None:
+            return {"working_set_gb": None, "budget_gb": None, "reserved_gb": reserved}
+        working_set, high = cgroup
+        return {
+            "working_set_gb": round(working_set, 2),
+            "budget_gb": round(CGROUP_HIGH_FRACTION * high, 2),
+            "reserved_gb": round(reserved, 2),
+        }
 
     def release(self, model_name: str) -> None:
         """Drop an admitted load's reservation (the upstream request failed)."""

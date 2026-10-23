@@ -30,9 +30,22 @@ from cohezion.observability.session_salvage import SessionArtifacts, is_ephemera
 
 
 OMNIROUTER = "http://localhost:13305/api/v1/chat/completions"
-# Gemma-4-26B-A4B: the loaded reasoning tier. Summarization is genuine multi-step work,
-# so this is the right rung — not the 0.6B router model, not a cloud call.
-DEFAULT_MODEL = "Gemma-4-26B-A4B-it-GGUF"
+# Summarization is genuine multi-step work, so it uses the roster's "interactive" role,
+# resolved at call time against what is loaded and what fits lemond's memory (was a
+# hardcoded Gemma-4-26B-A4B: a 16.9 GB CPU load whether or not it fit).
+DIGEST_ROLE = "interactive"
+FALLBACK_MODEL = "qwen3.5-4b-FLM"  # NPU, 5 GB; used only if the roster cannot answer
+
+
+def resolve_digest_model() -> str:
+    """The model to summarize with right now (roster role, memory-aware)."""
+    try:
+        from cohezion.inference.fleet_roles import ROSTER
+
+        return ROSTER.select(DIGEST_ROLE) or FALLBACK_MODEL
+    except Exception:  # roster unavailable (trimmed install, server down)
+        return FALLBACK_MODEL
+
 
 # Thinking models need room for the reasoning phase BEFORE the answer; a frugal cap
 # truncates mid-thought and yields empty content. Local tokens are free — be generous.
@@ -124,7 +137,7 @@ def lemonade_chat(
     prompt: str,
     max_tokens: int = DEFAULT_MAX_TOKENS,
     *,
-    model: str = DEFAULT_MODEL,
+    model: str | None = None,
     timeout: float = 180.0,
 ) -> dict:
     """I/O edge: one local chat completion via the :13305 OmniRouter.
@@ -139,6 +152,7 @@ def lemonade_chat(
     # trusting the constant to still be what it looks like.
     if not OMNIROUTER.startswith(("http://", "https://")):
         raise ValueError(f"refusing non-HTTP inference endpoint: {OMNIROUTER!r}")
+    model = model or resolve_digest_model()
 
     # OOM preflight. A request naming an unloaded model makes the router LOAD it, so this
     # is a model-load path even though it reads like a chat call -- exactly the case

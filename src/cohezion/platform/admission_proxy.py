@@ -159,6 +159,7 @@ def build_app(
                 "counters": dict(counters),
                 "cgroup_readable": active_gate.cgroup_readable,
                 "catalog_age_s": active_gate.catalog_age_s(),
+                "memory": await run_in_threadpool(active_gate.memory_state),
                 "bypass_paths": bypass,
             }
         )
