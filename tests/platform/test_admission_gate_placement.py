@@ -259,11 +259,14 @@ class TestF6F11FollowLemonadeDefault:
         assert d.allow is False and "MemAvailable" in d.reason
 
     def test_injected_catalog_without_system_info_reader_makes_no_network_call(self) -> None:
-        def boom() -> dict[str, object]:
-            raise AssertionError("must not fetch system-info when the catalog is injected")
+        fetched: list[bool] = []
+
+        def record(self: AdmissionGate) -> dict[str, object]:
+            fetched.append(True)
+            return SYSTEM_INFO
 
         with pytest.MonkeyPatch.context() as mp:
-            mp.setattr(AdmissionGate, "_fetch_system_info", lambda self: boom())
+            mp.setattr(AdmissionGate, "_fetch_system_info", record)
             g = AdmissionGate(
                 config=GateConfig(),
                 read_resident=lambda: [],
@@ -271,7 +274,32 @@ class TestF6F11FollowLemonadeDefault:
                 read_catalog=lambda: CATALOG,
                 read_system=lambda: HEALTHY_GTT,
             )
+            g.refresh_catalog()
             assert g.decide("deepseek-r1-0528-8b-FLM", CHAT).allow is True
+        assert fetched == []
+
+
+class TestCatalogMissCuratedSize:
+    """Advisor check after F5: during a catalog stall the curated MODEL_FOOTPRINT_GB still
+    knows the size of GPU-recipe models (Flux-2-Klein-9B-GGUF and SD-Turbo on sd-cpp,
+    Whisper-Large-v3-Turbo on whispercpp, measured resident on the GPU 2026-10-23). Without
+    the catalog's recipe they must not be priced as cgroup llama.cpp loads."""
+
+    @pytest.mark.parametrize("model", ["Flux-2-Klein-9B-GGUF", "SD-Turbo"])
+    def test_curated_gpu_model_during_catalog_stall_faces_the_system_check(
+        self, model: str
+    ) -> None:
+        probe = _Probe(SystemMemory(5.0, 122.8, 0.84, 96.0))
+        g = AdmissionGate(
+            config=GateConfig(),
+            read_resident=lambda: [],
+            read_cgroup=lambda: (2.0, 30.0),
+            read_catalog=lambda: None,  # stalled: no entry, so no recipe
+            read_system_info=lambda: SYSTEM_INFO,
+            read_system=probe,
+        )
+        d = g.decide(model, "api/v1/images/generations")
+        assert d.allow is False and "MemAvailable" in d.reason, d.reason
 
 
 class TestF3F7HostShare:

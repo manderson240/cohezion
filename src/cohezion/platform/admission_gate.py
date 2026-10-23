@@ -691,13 +691,10 @@ class AdmissionGate:
         resident = self._resident_entries()
         if self._is_resident(model_name, resident):
             return AdmissionDecision(True, False, "resident — reuse needs no memory", model_name)
-        placement = model_placement(
-            model_name,
-            self._catalog.get(normalize_model_name(model_name)),
-            self._config,
-            self._recipes,
-            options,
-        )
+        entry = self._catalog.get(normalize_model_name(model_name))
+        placement = model_placement(model_name, entry, self._config, self._recipes, options)
+        if entry is None and not self._custom_size and placement == "cgroup":
+            placement = _catalog_miss_placement(model_name, self._config, options)
         cgroup = self._read_cgroup()
         if cgroup is None:
             self.cgroup_readable = False
@@ -853,6 +850,30 @@ class AdmissionGate:
             return AdmissionDecision(True, True, f"shadow mode: {reason}", model_name)
         logger.warning("admission gate REFUSED: %s", reason)
         return AdmissionDecision(False, True, reason, model_name)
+
+
+def _catalog_miss_placement(
+    model_name: str, config: GateConfig, options: dict[str, object] | None
+) -> str:
+    """Placement for a model the (stalled) catalog does not list, priced from the curated
+    footprint table: without the catalog's recipe the backend is unknown, so it fails
+    closed to 'gtt' unless it is FLM or the request or an override names a cgroup backend.
+    The curated table sizes GPU-recipe models too (Flux-2-Klein-9B-GGUF and SD-Turbo on
+    sd-cpp, Whisper-Large-v3-Turbo on whispercpp), so assuming llama.cpp-on-cpu here would
+    reopen review finding F5 during every catalog stall.
+    """
+    name = normalize_model_name(model_name).lower()
+    if name.endswith("-flm"):
+        return "cgroup"
+    explicit = [
+        b
+        for k, v in (options or {}).items()
+        if k.endswith("_backend") and (b := _backend_value(v)) is not None
+    ]
+    override = dict(config.backend_overrides).get(name)
+    if override is not None:
+        explicit.append(override)
+    return "cgroup" if explicit and all(b in _CGROUP_BACKENDS for b in explicit) else "gtt"
 
 
 def _cgroup_charge(gb: float, placement: str) -> float:
