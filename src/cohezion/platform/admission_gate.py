@@ -84,17 +84,23 @@ _NON_LOAD_ROUTES = frozenset(
 def read_lemond_cgroup_gb() -> tuple[float, float] | None:
     """(working_set_gb, memory_high_gb) for lemond's cgroup, or None.
 
-    Working set = anon + max(shmem, file_mapped): memory the kernel cannot drop to stay
-    under memory.high. ``file_mapped`` counts MAPPED shmem as well as mapped file pages, so
-    adding the two double-counts every mapped shmem buffer. Measured 2026-10-22 with an FLM
-    model resident on the NPU: its 7.2 GB of buffers sat in both fields, the sum read
-    22.6 GB against a whole-cgroup charge of 20.1 GB, and unloading it dropped shmem,
-    file_mapped and memory.current together. max() is exact when shmem is fully mapped
-    (lemond's model buffers) and still counts unmapped shmem, which cannot be dropped
-    either. Unmapped file cache is excluded whichever LRU list it sits on: after a model
-    is unloaded its weights stay on the ACTIVE file list (16.9 GB measured 2026-10-21), so
-    ``memory.current - inactive_file`` would refuse every load. The result never exceeds
-    ``memory.current`` (when readable): memory the cgroup is not charged for is not in use.
+    Working set = anon + min(shmem + file_mapped, file): an upper bound on memory the
+    kernel cannot drop to stay under memory.high. That set is anon + shmem + mapped regular
+    file pages. ``file_mapped`` counts mapped shmem too, and ``file`` counts all shmem, so
+    mapped regular pages are at most min(file_mapped, file - shmem). memory.stat has no field
+    for mapped shmem, so this bound is the tightest one it allows.
+    It is exact when no unmapped cache sits in ``file`` beside the mapped pages, and safe when it is
+    not. ``amdxdna`` pins NPU buffers with drm_gem_shmem_pin whether or not anything maps
+    them, so anon + max(shmem, file_mapped) would under-count pinned NPU shmem beside
+    mmap'd GGUF weights and admit a load that throttles every model.
+    Measured 2026-10-22 with an FLM model resident: anon 6.25, shmem 7.21, file_mapped 9.13,
+    file 13.79 GB. The old anon + shmem + file_mapped read 22.6 GB against a whole-cgroup
+    charge of 20.12 GB and refused a 6.8 GB load that fit; this reads 20.04 GB.
+    Unmapped file cache is excluded whichever LRU list it sits on: after a model is unloaded
+    its weights stay on the ACTIVE file list (16.9 GB measured 2026-10-21), so
+    ``memory.current - inactive_file`` would refuse every load. The result is clamped to
+    ``memory.current`` (read separately, so an unload between the two reads cannot leave
+    the figure above the charge).
     None when the cgroup is unreadable or has no memory.high (fail open).
     """
     try:
@@ -104,9 +110,9 @@ def read_lemond_cgroup_gb() -> tuple[float, float] | None:
         stat: dict[str, int] = {}
         for line in (LEMOND_CGROUP / "memory.stat").read_text().splitlines():
             key, _, value = line.partition(" ")
-            if key in ("anon", "shmem", "file_mapped"):
+            if key in ("anon", "shmem", "file_mapped", "file"):
                 stat[key] = int(value)
-        working_set = stat["anon"] + max(stat["shmem"], stat["file_mapped"])
+        working_set = stat["anon"] + min(stat["shmem"] + stat["file_mapped"], stat["file"])
     except (OSError, ValueError, KeyError):
         return None
     # No readable charge to clamp against: the stat-based figure stands.
