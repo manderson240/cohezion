@@ -114,6 +114,12 @@ def evaluate(output: str, output_type: str, task_description: str = "") -> Quali
     except ImportError:
         pass  # security_spec not available — degrade gracefully, don't block
 
+    # Degenerate repetition (a local model stuck in a loop) passed every length gate at
+    # score 1.0: "I cannot help with that request. " * 40 -> long_generation, score=1.0.
+    # A gate that a repetition loop maximises cannot register a quality failure.
+    if output_type != "code" and _is_degenerate_repetition(lower):
+        return QualityVerdict.reject_output("degenerate repetition: output is a loop")
+
     if output_type in ("categorical", "short_categorical"):
         return _eval_categorical(text, lower)
     elif output_type in ("short_answer", "short_factual"):
@@ -129,6 +135,22 @@ def evaluate(output: str, output_type: str, task_description: str = "") -> Quali
         if len(text) < 10:
             return QualityVerdict.reject_output(f"too short for unknown type: {len(text)} chars")
         return QualityVerdict.accept_output(score=0.7, reason="unknown type, length gate passed")
+
+
+_MIN_WORDS_FOR_REPETITION = 30
+_MIN_DISTINCT_TRIGRAM_RATIO = 0.2
+
+
+def _is_degenerate_repetition(lower: str) -> bool:
+    """True when >= 30 words and under 20% of word trigrams are distinct.
+
+    Ordinary prose sits well above 0.7; a phrase repeated N times sits near k/N.
+    """
+    words = lower.split()
+    if len(words) < _MIN_WORDS_FOR_REPETITION:
+        return False
+    trigrams = list(zip(words, words[1:], words[2:]))
+    return len(set(trigrams)) / len(trigrams) < _MIN_DISTINCT_TRIGRAM_RATIO
 
 
 def _eval_categorical(text: str, lower: str) -> QualityVerdict:
