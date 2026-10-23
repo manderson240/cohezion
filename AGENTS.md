@@ -1,5 +1,20 @@
 # Cohezion AI Agent Context
 
+<!-- Top line: the ~12 lines every agent needs before anything else. Everything below is reference;
+     skills under .claude/skills/ and src/cohezion/skills/ load progressively on demand. -->
+- Python 3.13, `uv` only (never bare pip); run from a normal shell when a step needs namespaces or the GPU.
+- Setup: `uv sync`. Fast check: `make test-fast`. Full verdict as CI sees it: `make ci-equiv` (no-services netns).
+- Gates before landing: `scripts/ci/automerge_guard.sh` (ruff/mypy/hygiene ratchets, dormancy, doc-consistency, tests). Land via PR only; never push main.
+- Inference: port 13305 is the only endpoint (Lemonade router: NPU/iGPU/CPU). Local first; cloud only on a quality-gate miss.
+- Mock live services at source in unit tests; use fresh instances, never process singletons; declare host preconditions with skipif.
+- Every new module declares a wiring target and a consumer (no dormant code); every invariant is a consumption test, not a `hasattr`.
+- Secrets never enter the tree or logs; `.env` is ignored, keys live outside the repo.
+- Measured numbers only: cite the command that produced a count; `docs/audits/` holds the current state.
+- Non-destructive: orphans are wired or archived, never deleted; history is never rewritten.
+- Docs that humans read are YAML-frontmatter Markdown; `CLAUDE.md` is the agent contract, this file is the shared cross-agent context.
+- Learnings go to `~/vaults/cohezion-vault/` (decisions, digests, skills), not into inline comments.
+- Design system for the Genesis UI: `src/web/anima_dashboard/DESIGN.md` (DESIGN.md spec: prose + YAML tokens).
+
 > **Mandate**: Antigravity is the **Master Orchestrator & Evaluator**. You direct local silicon hardware (NPU, iGPU, CPU) and cloud model swarms, evaluate all execution trajectories using AutoHarness zero-cost bytecode verifiers and ZKFV polynomial proofs, and drive continuous recursive self-improvement ("Cohezion improving Cohezion").
 > **Core Principle**: **QUALITY OVER SPEED ("Leave plenty of time for the fat to render")**. Prioritize deep reasoning, unhurried multi-pass verification, complete solution synthesis, and zero code truncation over rapid responses. Allow local thinking models all the time they need to cook and render edge-case entropy cleanly.
 
