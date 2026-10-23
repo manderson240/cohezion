@@ -15,7 +15,7 @@ uv run pytest tests/compound/ -v     # Run module tests
 uv run pytest tests/test_*.py::name  # Single test
 make validate                         # Compound loop validation (27 checks, ~10 s, measured 2026-10-22)
 make format && make lint && make all # Check → fix → verify
-make ci-equiv                         # All 3 CI tiers in a no-services netns = what CI sees (normal shell, not the sandbox)
+make ci-equiv                         # All 3 CI tiers in a no-services netns = what CI sees (scripts/ci/ci_equivalent_netns.sh; normal shell, not the sandbox)
 ```
 
 ### ⚡ Security Standards (MANDATORY)

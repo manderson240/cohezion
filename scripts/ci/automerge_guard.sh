@@ -203,6 +203,15 @@ step "dormancy scan" uv run python scripts/ci/dormancy_scan.py
 step "repo hygiene self-test" uv run python scripts/ci/repo_hygiene_ratchet.py --self-test
 step "repo hygiene ratchet" uv run python scripts/ci/repo_hygiene_ratchet.py
 
+# Step 6c-quater: CI-equivalent integration tier — the tests run in a user+network namespace
+# with no local services, which is what the runner sees. Advisory here because the agent sandbox
+# cannot create namespaces (the script then exits 3); from a normal shell it is the real answer
+# to "is the integration tier green" and takes ~5 min with 6 workers. Skip with
+# AUTOMERGE_SKIP_CI_EQUIV=1 when a fresh run already exists in .cache/ci_equiv.log.
+if [ "${AUTOMERGE_SKIP_CI_EQUIV:-0}" != "1" ]; then
+  step_advisory "ci-equivalent netns (integration)" bash scripts/ci/ci_equivalent_netns.sh integration
+fi
+
 # Step 6c-bis: Doc↔code drift — the sibling of 6c. dormancy_scan asks "does this code have a
 # consumer?"; this asks "do the docs tell the truth about the code?". Already gating in
 # ci.yml; added here 2026-07-29 so the LOCAL landing gate matches CI rather than discovering
