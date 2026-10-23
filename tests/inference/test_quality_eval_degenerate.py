@@ -40,3 +40,13 @@ def test_varied_prose_of_similar_length_still_passes(output_type: str) -> None:
 def test_code_is_exempt_from_the_repetition_check() -> None:
     table = "x = [\n" + "    0,\n" * 60 + "]\n"
     assert evaluate(table, "code").accept is True
+
+
+def test_production_consumer_autodqa_rejects_the_loop() -> None:
+    """CONSUMPTION: the executor reaches quality_eval through AutoDQA, so test it there."""
+    from cohezion.compound.autodqa import AutoDQA
+
+    dqa = AutoDQA(persist=False, notify_on_reject=False)
+    result = dqa.evaluate(_LOOP, "Write a detailed essay explaining how the compound loop works")
+    assert result.verdict.accept is False
+    assert "repetition" in result.verdict.reason
