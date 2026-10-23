@@ -34,6 +34,8 @@ Resolution rules (enforced by `scripts/ci/check_agent_surfaces.py`):
 | `config/**` | @ops-fleet |
 | `src/cohezion/__main__.py` | @ops-fleet |
 | `scripts/kaggle/**` | @research-daemon |
+| `src/cohezion/competitions/**` | @research-daemon |
+| `submissions/**` | @research-daemon |
 | `scripts/lanes/**` | @research-daemon |
 | `scripts/stealthskater_ingest.py` | @research-daemon |
 | `src/cohezion/researcher/**` | @research-daemon |
