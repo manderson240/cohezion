@@ -8,7 +8,11 @@ and past its ``memory.high`` the kernel throttles EVERY model in it, NPU include
 fine). This gate refuses a load that would cross that line, and nothing else.
 
 Decision rules (in order):
-  1. Request names no model, or is not load-triggering (unload/delete/pull) -> forward.
+  1. Not load-triggering (unload/delete/pull) -> forward, always.
+  1b. GPU lease held (a kernel flock, see gpu_lease.py) -> refuse everything except
+      read-only requests and FLM (NPU) models with a fresh catalog and no backend override.
+      Those then continue through the rules below: the lease only ever tightens.
+  1c. Request names no model -> forward.
   2. Model already resident -> forward (reuse maps nothing new).
   3. lemond working set + the model's catalog size > 90% of memory.high -> refuse.
   4. Otherwise forward; Lemonade decides the rest.
@@ -33,6 +37,9 @@ curated byte budget, replaced by Lemonade's catalog size.
 from __future__ import annotations
 
 import contextlib
+import errno
+import fcntl
+import json
 import logging
 import os
 import pathlib
@@ -40,7 +47,7 @@ import threading
 import time
 from collections import deque
 from collections.abc import Callable
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 import httpx
 
@@ -50,6 +57,7 @@ from cohezion.compound.oom_guard import (
     fetch_loaded_models,
     normalize_model_name,
 )
+from cohezion.platform.gpu_lease import lease_path, sidecar_path
 
 
 logger = logging.getLogger(__name__)
@@ -126,6 +134,54 @@ def read_lemond_cgroup_gb() -> tuple[float, float] | None:
     return working_set / (1024.0**3), int(high_raw) / (1024.0**3)
 
 
+_LEASE_OVERRIDE_SUFFIXES = ("_backend", "_args", "_device")
+_READ_METHODS = frozenset({"GET", "HEAD", "OPTIONS"})
+LEASE_HELD = "held"
+LEASE_FREE = "free"
+
+
+def probe_gpu_lease(path: pathlib.Path) -> str:
+    """HELD or FREE for the GPU lease flock at *path*. Never blocks, never creates it.
+
+    A shared non-blocking flock succeeds only when nobody holds LOCK_EX. ENOENT is FREE (no
+    lease was ever taken); any other OSError is HELD: an unreadable lease must tighten.
+    """
+    try:
+        fd = os.open(path, os.O_RDONLY)
+    except FileNotFoundError:
+        return LEASE_FREE
+    except OSError:
+        return LEASE_HELD
+    try:
+        fcntl.flock(fd, fcntl.LOCK_SH | fcntl.LOCK_NB)
+        fcntl.flock(fd, fcntl.LOCK_UN)
+        return LEASE_FREE
+    except OSError as exc:
+        if exc.errno not in (errno.EWOULDBLOCK, errno.EAGAIN):
+            logger.warning("admission gate: gpu lease probe error %s -- treating as held", exc)
+        return LEASE_HELD
+    finally:
+        os.close(fd)
+
+
+def has_backend_override(body: object) -> bool:
+    """True when a parsed body sets any ``*_backend`` / ``*_args`` / ``*_device`` key."""
+    queue: deque[object] = deque([body])
+    seen = 0
+    while queue and seen < _WALK_MAX_NODES:
+        node = queue.popleft()
+        seen += 1
+        if isinstance(node, dict):
+            for key, value in node.items():
+                if str(key).lower().endswith(_LEASE_OVERRIDE_SUFFIXES):
+                    return True
+                if isinstance(value, (dict, list)):
+                    queue.append(value)
+        elif isinstance(node, list):
+            queue.extend(node)
+    return False
+
+
 def is_load_path(path: str) -> bool:
     """False only for the exact routes that name a model but cannot load one."""
     return path.strip("/").lower() not in _NON_LOAD_ROUTES
@@ -178,6 +234,8 @@ class GateConfig:
     enforce: bool = True
     upstream_base: str = DEFAULT_UPSTREAM
     health_timeout_s: float = 2.0
+    # Read at construction (not import) so tests and the unit's env both take effect.
+    gpu_lease_path: pathlib.Path = field(default_factory=lease_path)
 
     @classmethod
     def from_env(cls) -> GateConfig:
@@ -203,6 +261,7 @@ class AdmissionDecision:
     would_refuse: bool
     reason: str
     model: str | None = None
+    kind: str = ""  # "gpu_lease" for a lease refusal; the proxy holds those instead of 503
 
 
 class AdmissionGate:
@@ -366,10 +425,87 @@ class AdmissionGate:
         ]
         return max(sizes, default=0.0)
 
+    # -- GPU lease ------------------------------------------------------------------------
+
+    def gpu_lease_held(self) -> bool:
+        return probe_gpu_lease(self._config.gpu_lease_path) == LEASE_HELD
+
+    def lease_status(self) -> dict[str, object]:
+        """{held, holder, pid, since} -- holder fields from the sidecar, when readable."""
+        held = self.gpu_lease_held()
+        info: dict[str, object] = {}
+        if held:
+            with contextlib.suppress(OSError, ValueError):
+                raw = json.loads(sidecar_path(self._config.gpu_lease_path).read_text())
+                info = raw if isinstance(raw, dict) else {}
+        return {
+            "held": held,
+            "holder": info.get("holder"),
+            "pid": info.get("pid"),
+            "since": info.get("since"),
+        }
+
+    def reserved_models(self) -> list[str]:
+        """Admitted loads not yet seen resident (the lease drains these before unloading)."""
+        with self._lock:
+            now = time.monotonic()
+            return sorted(k for k, (_gb, exp) in self._reserved.items() if exp >= now)
+
+    def recipe_of(self, model_name: str) -> str | None:
+        entry = self._catalog.get(normalize_model_name(model_name))
+        recipe = entry.get("recipe") if entry else None
+        return str(recipe) if recipe else None
+
+    def _lease_refusal(
+        self, model_name: str | None, method: str, body: object
+    ) -> AdmissionDecision | None:
+        """A refusal while the GPU lease is held, else None. Only ever TIGHTENS.
+
+        Allowed under a held lease: read-only requests that name no model, and FLM (NPU)
+        requests with a fresh catalog and no backend override. An allowed request still
+        faces every normal check after this one.
+        """
+        if not self.gpu_lease_held():
+            return None
+        if not model_name:
+            if method.upper() in _READ_METHODS:
+                return None
+            reason = "GPU lease held: unnamed request on a load-capable path"
+        elif not self._catalog_is_fresh():
+            reason = f"GPU lease held: catalog stale, cannot prove '{model_name}' is NPU"
+        elif self.recipe_of(model_name) != "flm":
+            reason = f"GPU lease held: '{model_name}' is not an FLM (NPU) model"
+        elif has_backend_override(body):
+            reason = f"GPU lease held: '{model_name}' request overrides its backend"
+        else:
+            return None
+        decision = self._refusal(reason, model_name or "")
+        return AdmissionDecision(
+            decision.allow, decision.would_refuse, decision.reason, model_name, kind="gpu_lease"
+        )
+
     # -- decision -------------------------------------------------------------------------
 
-    def decide(self, model_name: str | None, path: str = "") -> AdmissionDecision:
-        if not model_name or not is_load_path(path):
+    def decide(
+        self,
+        model_name: str | None,
+        path: str = "",
+        *,
+        method: str = "POST",
+        body: object = None,
+        lease_exempt: bool = False,
+    ) -> AdmissionDecision:
+        if not is_load_path(path):  # unload/delete/pull: freeing memory is never refused
+            return AdmissionDecision(True, False, "not load-triggering", model_name)
+        # The lease check runs BEFORE the resident shortcut: under a held lease a resident
+        # GPU model must not keep serving a steady client, or its unload can hang behind
+        # lemond's eviction lock. ``lease_exempt`` is only for the proxy's CPU fallback,
+        # whose body it has itself rewritten to llamacpp_backend=cpu.
+        if not lease_exempt:
+            lease = self._lease_refusal(model_name, method, body)
+            if lease is not None:
+                return lease
+        if not model_name:
             return AdmissionDecision(True, False, "not load-triggering", model_name)
 
         # Slow reads first, outside the lock.

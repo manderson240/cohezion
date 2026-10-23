@@ -15,6 +15,7 @@ scripts/cohezion-admission-gate.service and docs/ops/admission-gate-cutover.md).
 
 from __future__ import annotations
 
+import asyncio
 import contextlib
 import json
 import logging
@@ -34,6 +35,8 @@ from cohezion.platform.admission_gate import (
     AdmissionDecision,
     AdmissionGate,
     audit_bypass_paths,
+    has_backend_override,
+    is_load_path,
     models_named,
 )
 
@@ -41,6 +44,25 @@ from cohezion.platform.admission_gate import (
 logger = logging.getLogger(__name__)
 
 RETRY_AFTER_S = 15  # refused clients back off instead of retrying in a tight loop
+# Under a held GPU lease a refused GPU-placed request WAITS (displaced fleet work must wait
+# or fall back, not fail), polling the lease, then gets a 503 only when the hold expires.
+LEASE_HOLD_S_DEFAULT = 120.0
+LEASE_POLL_S = 1.0
+_CPU_FALLBACK_ROUTES = frozenset({"v1/load", "api/v1/load"})
+_READ_METHODS = frozenset({"GET", "HEAD", "OPTIONS"})
+
+
+def cpu_fallback_body(gate: AdmissionGate, path: str, parsed: object, name: str) -> bytes | None:
+    """The load body rewritten to run on the CPU, or None when fallback does not apply.
+
+    Only an explicit load (lemonade honours ``*_backend`` on load routes only) of a llamacpp
+    (GGUF) model whose body sets no backend override of its own.
+    """
+    if path.strip("/").lower() not in _CPU_FALLBACK_ROUTES or not isinstance(parsed, dict):
+        return None
+    if gate.recipe_of(name) != "llamacpp" or has_backend_override(parsed):
+        return None
+    return json.dumps({**parsed, "llamacpp_backend": "cpu"}).encode()
 
 
 def client_identity(
@@ -118,6 +140,8 @@ def build_app(
     *,
     client: httpx.AsyncClient | None = None,
     background_catalog: bool = False,
+    lease_hold_s: float | None = None,
+    lease_poll_s: float = LEASE_POLL_S,
 ) -> FastAPI:
     """Assemble the proxy app. ``client`` is injectable so tests supply a MockTransport."""
     # A distinct, annotated local so the route closures capture a name pyright can
@@ -139,7 +163,13 @@ def build_app(
     app = FastAPI(
         title="cohezion-admission-gate", docs_url=None, redoc_url=None, lifespan=_lifespan
     )
+    hold_s = (
+        lease_hold_s
+        if lease_hold_s is not None
+        else float(os.environ.get("COHEZION_GPU_LEASE_HOLD_S", str(LEASE_HOLD_S_DEFAULT)))
+    )
     counters = {"forwarded": 0, "refused": 0, "shadow_refusals": 0}
+    lease_counters = {"held_requests": 0, "refused": 0, "cpu_fallbacks": 0}
 
     @app.get("/admission/status")
     async def status() -> JSONResponse:
@@ -160,6 +190,9 @@ def build_app(
                 "cgroup_readable": active_gate.cgroup_readable,
                 "catalog_age_s": active_gate.catalog_age_s(),
                 "bypass_paths": bypass,
+                "gpu_lease": await run_in_threadpool(active_gate.lease_status),
+                "gpu_lease_counters": dict(lease_counters),
+                "reserved": active_gate.reserved_models(),
             }
         )
 
@@ -176,6 +209,7 @@ def build_app(
         # Every model the request names: query string, multipart fields, and any JSON body
         # whatever its size (a vision or audio chat is easily > 1 MB and still loads).
         names = [v for k, v in request.query_params.multi_items() if "model" in k.lower() and v]
+        parsed: object = None
         if body and request.method in ("POST", "PUT", "PATCH"):
             content_type = request.headers.get("content-type", "").lower()
             if content_type.startswith("multipart/form-data"):
@@ -190,39 +224,92 @@ def build_app(
                     logger.warning("admission gate: unparseable multipart body: %s", exc)
             else:
                 with contextlib.suppress(ValueError, UnicodeDecodeError):  # not JSON: no model
-                    names += await run_in_threadpool(lambda: models_named(json.loads(body)))
+                    parsed = await run_in_threadpool(json.loads, body)
+                    names += models_named(parsed)
+        names = list(dict.fromkeys(names))
 
-        # decide() reads health and /proc -- keep it off the event loop.
-        admitted: list[str] = []
-        refusal: AdmissionDecision | None = None
-        for name in dict.fromkeys(names):
-            decision = await run_in_threadpool(active_gate.decide, name, path)
-            if decision.would_refuse:
-                counters["shadow_refusals"] += 1
-            new_load = decision.reason.startswith("fits")
-            if (not decision.allow or new_load) and request.client is not None:
-                server_port = (request.scope.get("server") or (None, 0))[1] or 0
-                who = await run_in_threadpool(client_identity, request.client.port, server_port)
-                logger.info(
-                    "admission %s client=%s model=%s path=/%s: %s",
-                    "ADMIT" if decision.allow else "REFUSE",
-                    who,
-                    name,
-                    path,
-                    decision.reason,
+        async def run_gate(
+            lease_exempt: bool = False, gate_body: object = None
+        ) -> tuple[AdmissionDecision | None, list[str]]:
+            """(refusal or None, names admitted as new loads). decide() reads health and
+            /proc, so it runs off the event loop."""
+            admitted: list[str] = []
+            checks: list[str | None] = list(names)
+            # An unnamed write to a load-capable path is checked once: a held lease
+            # refuses it (with no lease decide() forwards it as before).
+            if (
+                not checks
+                and request.method not in _READ_METHODS
+                and is_load_path(path)
+                and active_gate.gpu_lease_held()
+            ):
+                checks = [None]
+            for name in checks:
+                decision = await run_in_threadpool(
+                    lambda n=name: active_gate.decide(
+                        n,
+                        path,
+                        method=request.method,
+                        body=parsed if gate_body is None else gate_body,
+                        lease_exempt=lease_exempt,
+                    )
                 )
-            if not decision.allow:
-                refusal = decision
+                if decision.would_refuse:
+                    counters["shadow_refusals"] += 1
+                new_load = decision.reason.startswith("fits")
+                if (not decision.allow or new_load) and request.client is not None:
+                    server_port = (request.scope.get("server") or (None, 0))[1] or 0
+                    who = await run_in_threadpool(client_identity, request.client.port, server_port)
+                    logger.info(
+                        "admission %s client=%s model=%s path=/%s: %s",
+                        "ADMIT" if decision.allow else "REFUSE",
+                        who,
+                        name,
+                        path,
+                        decision.reason,
+                    )
+                if not decision.allow:
+                    for n in admitted:
+                        active_gate.release(n)
+                    return decision, []
+                if new_load and name:
+                    admitted.append(name)
+            return None, admitted
+
+        loop = asyncio.get_running_loop()
+        deadline = loop.time() + hold_s
+        refusal, admitted = await run_gate()
+        held_once = False
+        while refusal is not None and refusal.kind == "gpu_lease":
+            fallback = cpu_fallback_body(active_gate, path, parsed, refusal.model or "")
+            if fallback is not None:
+                # Fall back immediately: holding a load for a multi-hour lease only ends in
+                # a 503. The rewritten load still faces the full-footprint cgroup check.
+                fb_parsed = json.loads(fallback)
+                refusal, admitted = await run_gate(lease_exempt=True, gate_body=fb_parsed)
+                if refusal is None:
+                    body = fallback
+                    lease_counters["cpu_fallbacks"] += 1
+                    logger.info("admission CPU fallback under GPU lease: /%s", path)
                 break
-            if new_load:
-                admitted.append(name)
+            if loop.time() >= deadline:
+                break
+            if not held_once:
+                held_once = True
+                lease_counters["held_requests"] += 1
+            while active_gate.gpu_lease_held() and loop.time() < deadline:
+                await asyncio.sleep(lease_poll_s)
+            refusal, admitted = await run_gate()
+
         if refusal is not None:
-            for name in admitted:
-                active_gate.release(name)
             counters["refused"] += 1
+            headers_out = {"Retry-After": str(RETRY_AFTER_S)}
+            if refusal.kind == "gpu_lease":
+                lease_counters["refused"] += 1
+                headers_out["X-Cohezion-Refusal"] = "gpu_lease"
             return JSONResponse(
                 status_code=503,
-                headers={"Retry-After": str(RETRY_AFTER_S)},
+                headers=headers_out,
                 content={
                     "error": {
                         "type": "admission_refused",

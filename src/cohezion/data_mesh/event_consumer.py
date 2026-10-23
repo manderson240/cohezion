@@ -29,6 +29,7 @@ from __future__ import annotations
 import inspect
 import json
 import logging
+import os
 import re
 import urllib.request
 from collections.abc import Callable
@@ -53,6 +54,21 @@ ACTIONABLE_EVENT_TYPES = {
     "data_product_quality_alert",
     "domain_health_degraded",
 }
+# GPU lease audit events (platform/gpu_lease.py). Enforcement never waits on these; a lease
+# held longer than this is surfaced to the kanban when its release event arrives.
+GPU_LEASE_EVENT_TYPES = {
+    "gpu_lease_requested",
+    "gpu_model_unloaded",
+    "gpu_lease_granted",
+    "gpu_lease_refused",
+    "gpu_lease_released",
+}
+
+
+def _gpu_lease_warn_s() -> float:
+    return float(os.environ.get("COHEZION_GPU_LEASE_WARN_H", "12")) * 3600.0
+
+
 TALLY_ONLY_EVENT_TYPES = {
     "data_product_created",
     "data_product_updated",
@@ -205,6 +221,8 @@ class EventConsumer:
             return self._handle_land_ready(payload, str(event.get("source", "datamesh")))
         if etype in ("model_needed", "model_idle"):
             return self._handle_residency(event)
+        if etype in GPU_LEASE_EVENT_TYPES:
+            return self._handle_gpu_lease(etype, payload, event)
         if etype in ACTIONABLE_EVENT_TYPES:
             summary = self._summarize(etype, payload)
             item_id = self._call_file_work_item(
@@ -234,6 +252,31 @@ class EventConsumer:
             return self._file_work_item(title, description, domain, priority)
         return self._file_work_item(title, description, domain)
 
+    def _handle_gpu_lease(self, etype: str, payload: str, event: dict[str, Any]) -> dict[str, Any]:
+        """Tally lease events; a lease that was held past the warn threshold goes to kanban.
+
+        The consumer is stateless per event, so an over-long lease is reported when its
+        ``gpu_lease_released`` event arrives, not while it is still held.
+        """
+        if etype != "gpu_lease_released":
+            return {"action": "tally", "kind": "gpu_lease"}
+        try:
+            data = json.loads(payload) if payload.strip().startswith("{") else {}
+            held_s = float(data.get("held_s") or 0.0)
+        except (ValueError, TypeError, AttributeError):
+            return {"action": "tally", "kind": "gpu_lease"}
+        if held_s <= _gpu_lease_warn_s():
+            return {"action": "tally", "kind": "gpu_lease"}
+        holder = str(data.get("holder", "?"))
+        item_id = self._call_file_work_item(
+            f"[datamesh:gpu_lease] {holder} held the GPU for {held_s / 3600:.1f} h",
+            "The GPU lease displaced fleet GPU work (refused or held at :13305) for longer "
+            f"than COHEZION_GPU_LEASE_WARN_H.\n\nRaw event payload:\n{payload[:1200]}",
+            str(event.get("source", "gpu_lease")),
+            _coerce_priority(event.get("priority")),
+        )
+        return {"action": "work-item", "work_item": item_id}
+
     def _handle_residency(self, event: dict[str, Any]) -> dict[str, Any]:
         """Route a model residency event to the ResidencyService admission gate.
 
@@ -251,8 +294,12 @@ class EventConsumer:
         residency = self._residency
         if residency is None:  # lazy default — keep hotswap's HTTP calls out of module import
             from cohezion.inference.residency_service import ResidencyService
+            from cohezion.platform.gpu_lease import publish_event
 
-            residency = ResidencyService().handle_event
+            # publish= so the service's admitted/refused decisions are written to the bus.
+            residency = ResidencyService(
+                publish=lambda t, p: publish_event(t, p, source="residency_service")
+            ).handle_event
             # Memoize: a per-event service gets a FRESH EMPTY ledger every call,
             # which leaves the RS3 resident-view fallback and LRU state inert in
             # production while injected-service tests keep passing.
