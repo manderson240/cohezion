@@ -217,13 +217,27 @@ def surql(query: str) -> list:
 # ── Insertion ─────────────────────────────────────────────────────────────────
 
 
+def sanitize_record_id(raw: str) -> str:
+    """Make an external string safe as a SurrealDB backtick-quoted record id.
+
+    Record ids are built from external wiki page names (stealthskater pages,
+    bridge-map keys) — not trusted content. Backtick-quoted identifiers have
+    no escape sequence: a raw backtick terminates the identifier, so injection
+    must be prevented by dropping the character entirely (caught by
+    multi-perspective review, 2026-09-14). Whitespace/braces/${ are also
+    removed to keep ids parse-safe; collisions fall through on CREATE
+    (record already exists) rather than corrupting a query.
+    """
+    return re.sub(r"[`\s{}$]", "_", (raw or "").replace("-", "_"))
+
+
 def insert_neuron(chunk: dict, embedding: list[float], dry_run: bool) -> bool:
     """Insert one neuron; return True on success."""
     tags_sql = "[" + ", ".join(f'"{t}"' for t in chunk["tags"]) + "]"
     emb_sql = "[" + ", ".join(str(x) for x in embedding) + "]"
-    nid = chunk["id"].replace("-", "_")
+    nid = sanitize_record_id(chunk["id"])
     q = (
-        f"CREATE neurons:`{nid}` CONTENT {{"
+        f"CREATE neuron:`{nid}` CONTENT {{"
         f"  title: {json.dumps(chunk['title'])},"
         f"  content: {json.dumps(chunk['content'])},"
         f"  tags: {tags_sql},"
@@ -253,7 +267,7 @@ def create_synapses(stealthskater_ids: list[str], dry_run: bool) -> int:
     # Find existing physics bridge neurons
     bridge_map: dict[str, str] = {}
     for _, search_term in PHYSICS_BRIDGES:
-        q = f"SELECT id, title FROM neurons WHERE title CONTAINS {json.dumps(search_term)} LIMIT 1;"
+        q = f"SELECT id, title FROM neuron WHERE title CONTAINS {json.dumps(search_term)} LIMIT 1;"
         r = surql(q)
         if r and r[0].get("result"):
             rec = r[0]["result"][0]
@@ -264,7 +278,7 @@ def create_synapses(stealthskater_ids: list[str], dry_run: bool) -> int:
     synapse_count = 0
     for nid in stealthskater_ids:
         # Get the neuron's tags
-        q = f"SELECT tags FROM neurons:`{nid}`;"
+        q = f"SELECT tags FROM neuron:`{nid}`;"
         r = surql(q)
         if not r or not r[0].get("result"):
             continue
@@ -272,9 +286,9 @@ def create_synapses(stealthskater_ids: list[str], dry_run: bool) -> int:
 
         for tag, search_term in PHYSICS_BRIDGES:
             if tag in tags and search_term in bridge_map:
-                bridge_id = bridge_map[search_term]
+                bridge_id = sanitize_record_id(bridge_map[search_term])
                 syn_q = (
-                    f"RELATE neurons:`{nid}`->informed_by->{bridge_id}"
+                    f"RELATE neuron:`{nid}`->informed_by->{bridge_id}"
                     f' CONTENT {{ how: "stealthskater-bridge: tag={tag}" }};'
                 )
                 sr = surql(syn_q)
