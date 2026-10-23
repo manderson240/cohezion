@@ -1065,3 +1065,33 @@ existing coherence gates were green at the time.
   some *other* substring is rejected as useless).
 - **Do not raise the baselines without a mutation run.** Green here proved nothing
   before the mutants were run, and it will prove nothing next time either.
+
+## Git Hook Gate Invariants (GH1–GH3, 2026-10-22)
+
+Origin: `.githooks/pre-commit` (active via `core.hooksPath`) ran `pytest tests/kaggle/`
+unconditionally. On a checkout without that directory pytest exits 4, `set -e` aborted every
+commit, and the workaround became `--no-verify` (51 commits in history), which also skipped the
+SemVer, import-smoke and security steps in the same hook. **A gate whose precondition cannot
+hold disables every other gate beside it.** Hooks are gated code; they get the same V-model
+treatment as the code they gate.
+
+### GH1: every `pytest <path>` in a hook names a path that exists, or is explicitly guarded
+- A test step over an optional subtree must sit behind `[ -d <path> ]` (or `[ -e <path> ]`) and
+  print a one-line skip reason, so CANNOT-RUN is distinguishable from FAIL.
+- **Verification**: `test_pytest_targets_exist_or_are_guarded` in `tests/scripts/test_githooks.py`
+- **T2 discriminating**: red on the unguarded hook from `8d3265bb6`, green on `2e1f264ee`
+  (the prior revision is the oracle; nobody authored it to test this check).
+
+### GH2: every hook parses and is executable
+- `bash -n` on each file; `stat` mode has an execute bit. git silently skips a hook it cannot
+  execute, which reads as "all gates passed".
+- **Verification**: `test_hook_parses` and `test_hook_is_executable` in `tests/scripts/test_githooks.py`
+
+### GH3: the hook registry is validated at session start (user-level, consumption)
+- `~/.claude/hooks/hooks-doctor.py` runs as a SessionStart hook and prints
+  `[hooks-doctor:broken] <event> <path>: <reason>` for any registered hook whose file is missing
+  or not executable. Origin: `session-title.sh` exited 126 on every session start for months,
+  indistinguishable from a hook with nothing to say.
+- **Verification**: `python3 ~/.claude/hooks/hooks-doctor.py` prints nothing on a healthy
+  registry; with `CLAUDE_PROJECT_DIR` pointed at a settings file naming a mode-644 script it
+  prints one `not executable` line (checked 2026-10-22).
