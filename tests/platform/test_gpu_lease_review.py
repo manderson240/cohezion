@@ -33,7 +33,7 @@ from fastapi.testclient import TestClient
 from cohezion.platform import gpu_lease as gl
 from cohezion.platform.admission_gate import AdmissionGate, GateConfig, probe_gpu_lease
 from cohezion.platform.admission_proxy import build_app
-from tests.platform.test_gpu_lease import FakeFleet
+from tests.platform.test_gpu_lease import FakeFleet, quiet_status
 from tests.platform.test_gpu_lease_gate import CATALOG, FLM, GGUF, _gate, _upstream, holder
 
 
@@ -66,11 +66,14 @@ def _run_cli(tmp: Path, cmd: list[str], grace_s: float = 5.0) -> tuple[Path, sub
     script = tmp / "run.py"
     script.write_text(
         textwrap.dedent(f"""
-        import pathlib, sys
+        import os, pathlib, sys
         from cohezion.platform import gpu_lease as g
         g.KILL_GRACE_S = {grace_s}
         io = g.LeaseIO(read_resident=lambda: [], unload=lambda m: True,
-                       admission_status=lambda: {{"reserved": [], "config": {{"enforce": True}}}},
+                       admission_status=lambda: {{"reserved": [], "in_flight": 0,
+                                                 "config": {{"enforce": True}},
+                                                 "gpu_lease": {{"held": True,
+                                                                "pid": os.getpid()}}}},
                        mem_available_gb=lambda: 500.0, gtt_used_gb=lambda: 0.0,
                        publish=lambda *a: None, sleep=lambda s: None)
         orig = g.gpu_lease
@@ -151,7 +154,7 @@ def test_second_sigterm_in_grace_never_frees_lease_with_child_alive(tmp_path: Pa
 @pytest.mark.parametrize("status", [{"enforce": False}, {}])
 def test_grant_refused_when_gate_is_not_enforcing(_isolated_gpu_lease, status) -> None:
     fleet = FakeFleet([])
-    io = fleet.io(admission_status=lambda: {"reserved": [], "config": status})
+    io = fleet.io(admission_status=lambda: {**quiet_status(), "config": status})
     with pytest.raises(gl.GpuLeaseError) as ei, gl.gpu_lease("t", 1.0, io=io):
         pass
     assert ei.value.stage == "enforce"

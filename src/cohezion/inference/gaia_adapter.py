@@ -18,8 +18,10 @@ from __future__ import annotations
 
 import json
 import logging
+import os
 import re
 import time
+import urllib.error
 import urllib.request
 from dataclasses import dataclass
 from typing import Any
@@ -290,6 +292,37 @@ def build_gaia_mcp_tier(
     return GaiaAgentTier(agent=agent, label=f"gaia-mcp:{model_id}")
 
 
+# Under a held GPU lease the :13305 admission proxy holds a GPU-placed request, then answers
+# 503 + Retry-After + X-Cohezion-Refusal: gpu_lease. That is "wait", not "this tier failed":
+# escalating would hit the same refusal on every GGUF tier and fail the task. The shim waits
+# and retries the SAME tier, bounded by COHEZION_GPU_LEASE_CLIENT_WAIT_S (default 6 h, the
+# CLI's default max-hold).
+LEASE_CLIENT_WAIT_S_DEFAULT = 6 * 3600.0
+_LEASE_RETRY_AFTER_S = 15.0
+_LEASE_REFUSAL_MARKER = "GPU lease held"
+# Above the proxy's default lease hold (120 s) plus upstream latency; matches GAIA's own
+# DEFAULT_REQUEST_TIMEOUT so both client paths wait the same.
+LOCAL_ROUTER_TIMEOUT_S = 900
+_lease_sleep = time.sleep  # monkeypatched in tests
+
+
+def gpu_lease_retry_after(exc: BaseException) -> float | None:
+    """Seconds to wait when *exc* is the admission gate's GPU-lease refusal, else None.
+
+    GAIA's client puts the 503 body (with the refusal message) in its exception text; the
+    stdlib client's ``HTTPError`` carries only the headers.
+    """
+    if isinstance(exc, urllib.error.HTTPError):
+        headers = exc.headers
+        if exc.code != 503 or headers is None or headers.get("X-Cohezion-Refusal") != "gpu_lease":
+            return None
+        try:
+            return float(headers.get("Retry-After") or _LEASE_RETRY_AFTER_S)
+        except ValueError:
+            return _LEASE_RETRY_AFTER_S
+    return _LEASE_RETRY_AFTER_S if _LEASE_REFUSAL_MARKER in str(exc) else None
+
+
 class _GaiaLLMClientShim:
     """Adapt GAIA's ``LemonadeClient`` to the ``.prompt(text) -> str`` surface that
     :class:`GaiaAgentTier` probes for.
@@ -319,15 +352,32 @@ class _GaiaLLMClientShim:
         self.last_gen_tokens: int = 0
         self.last_dropped_reasoning_chars: int = 0
 
-    def prompt(self, text: str) -> str:
-        resp = self._client.chat_completions(  # type: ignore[attr-defined]
-            model=self._model,
-            messages=[{"role": "user", "content": text}],
-            max_tokens=self._max_tokens,
-            temperature=self._temperature,
-            auto_download=False,
-            **self._extra_sampling,
+    def _chat(self, text: str) -> dict[str, Any]:
+        """One chat call that waits out GPU-lease refusals (see gpu_lease_retry_after)."""
+        budget = float(
+            os.environ.get("COHEZION_GPU_LEASE_CLIENT_WAIT_S", str(LEASE_CLIENT_WAIT_S_DEFAULT))
         )
+        waited = 0.0
+        while True:
+            try:
+                return self._client.chat_completions(  # type: ignore[attr-defined,no-any-return]
+                    model=self._model,
+                    messages=[{"role": "user", "content": text}],
+                    max_tokens=self._max_tokens,
+                    temperature=self._temperature,
+                    auto_download=False,
+                    **self._extra_sampling,
+                )
+            except Exception as exc:
+                wait = gpu_lease_retry_after(exc)
+                if wait is None or waited + wait > budget:
+                    raise
+                logger.info("%s: GPU lease held, retrying in %.0fs", self._model, wait)
+                _lease_sleep(wait)
+                waited += wait
+
+    def prompt(self, text: str) -> str:
+        resp = self._chat(text)
         # OpenAI-compatible shape; raise (don't silently return '') on an unexpected body
         msg = resp["choices"][0]["message"]
         # Defence in depth for defect 4dd925b0081f. reasoning_format="none" (set by
@@ -405,7 +455,7 @@ class _LocalRouterClient:
             headers={"Content-Type": "application/json"},
             method="POST",
         )
-        with urllib.request.urlopen(req, timeout=120) as resp:  # noqa: S310 (localhost router)
+        with urllib.request.urlopen(req, timeout=LOCAL_ROUTER_TIMEOUT_S) as resp:  # noqa: S310
             return json.loads(resp.read())
 
 

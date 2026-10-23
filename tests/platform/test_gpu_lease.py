@@ -55,7 +55,7 @@ class FakeFleet:
             "read_resident": self.read_resident,
             "unload": self.unload,
             # the real /admission/status shape: an enforcing gate with nothing in flight
-            "admission_status": lambda: {"reserved": [], "config": {"enforce": True}},
+            "admission_status": lambda: quiet_status(),
             "mem_available_gb": lambda: self.mem_gb,
             "gtt_used_gb": lambda: self.gtt,
             "publish": lambda t, p: self.events.append((t, p)) or True,
@@ -63,6 +63,19 @@ class FakeFleet:
         }
         kw.update(over)
         return gl.LeaseIO(**kw)
+
+
+def quiet_status(**config) -> dict:
+    """An enforcing gate with nothing in flight that sees the lease at the test lock path."""
+    from cohezion.platform.admission_gate import LEASE_HELD, probe_gpu_lease
+
+    held = probe_gpu_lease(gl.lease_path()) == LEASE_HELD
+    return {
+        "reserved": [],
+        "in_flight": 0,
+        "config": config or {"enforce": True},
+        "gpu_lease": {"held": held, "pid": os.getpid() if held else None},
+    }
 
 
 FLEET = [
@@ -119,7 +132,12 @@ class TestAcquireRelease:
             [{"reserved": ["x"], **on}, {"reserved": ["x"], **on}, {"reserved": [], **on}]
         )
         fleet = FakeFleet([])
-        with gl.gpu_lease("t", 1.0, io=fleet.io(admission_status=lambda: next(answers))):
+
+        def status():  # the scripted drain, then the live shape (in_flight, gpu_lease)
+            nxt = next(answers, None)
+            return quiet_status() if nxt is None else {**quiet_status(), **nxt}
+
+        with gl.gpu_lease("t", 1.0, io=fleet.io(admission_status=status)):
             pass  # granted only after the third status read
 
     def test_gate_unreachable_fails_closed(self, _isolated_gpu_lease, monkeypatch) -> None:

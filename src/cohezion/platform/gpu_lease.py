@@ -12,10 +12,11 @@ the GPU and then holds the lock. Datamesh events are audit/notification only: th
 fail-open and nothing waits on their delivery.
 
 Acquire: A0 requested event, A1 flock (retry 1 s up to ``acquire_timeout_s``) + sidecar,
-A2 drain the gate's in-flight reservations, A3 upstream health readable, A4 victims = every
-GPU-resident model (pinned included, never NPU), A5 unload each (3 tries, 10 s apart),
-A6 MEASURED postcondition (no GPU model resident AND MemAvailable >= need + 16 GiB),
-A7 granted event. Any failure releases the lock and raises :class:`GpuLeaseError`.
+A2 drain the gate's reservations AND admits still in flight, and require that the gate
+enforces and sees THIS lease, A3 upstream health readable, A4 victims = every GPU-resident
+model (pinned included, never NPU), A5 unload each (3 tries, 10 s apart), A6 MEASURED
+postcondition (no GPU model resident, re-checked after a settle with the gate still quiet
+and still seeing the lease, AND MemAvailable >= need + 16 GiB), A7 granted event. Any failure releases the lock and raises :class:`GpuLeaseError`.
 Release never reloads models; Lemonade reloads on demand once the gate admits again.
 
 CLI: ``python -m cohezion.platform.gpu_lease --holder X --need-gb N [--max-hold 6h] -- cmd``.
@@ -51,6 +52,8 @@ UNLOAD_RETRY_S = 10.0
 WATCHDOG_S = 30.0
 KILL_GRACE_S = 60.0
 GROUP_POLL_S = 0.2
+SETTLE_S = 3.0  # A6 re-measures after this: a reload already under way must show by then
+_STOP_SIGNALS = (signal.SIGTERM, signal.SIGINT, signal.SIGHUP, signal.SIGQUIT)
 _GPU_DEVICES = frozenset({"igpu"})  # silicon_residency.normalize_device maps gpu -> igpu
 
 
@@ -319,13 +322,12 @@ def _acquire(holder: str, need_gb: float, timeout_s: float, path: pathlib.Path, 
             got = io.admission_status()
             status.clear()
             status.update(got or {})
-            return got is not None and got.get("reserved") == []
+            return got is not None and _quiet(got)
 
         if not _wait_for(io, DRAIN_MAX_S, _drained):
             raise GpuLeaseError(stage, "gate reservations did not drain (or gate unreachable)")
-        stage = "enforce"  # the gate is the ONLY enforcer: a shadow-mode gate voids the lease
-        if (status.get("config") or {}).get("enforce") is not True:
-            raise GpuLeaseError(stage, "admission gate is not enforcing (shadow mode)")
+        stage = "enforce"
+        _check_enforced(status)
 
         stage = "health"  # A3
         entries: list[dict] = []
@@ -356,12 +358,19 @@ def _acquire(holder: str, need_gb: float, timeout_s: float, path: pathlib.Path, 
             _emit(io, "gpu_model_unloaded", {"holder": holder, "model": model, "ok": ok})
 
         stage = "postcondition"  # A6: measured, not inferred from unload() answers
-        fresh = io.read_resident()
-        still = (
-            _gpu_models(fresh) + _unclassified(fresh)
-            if fresh is not None
-            else ["<health unreadable>"]
-        )
+        still = _still_resident(io)
+        if not still:
+            # Settle, then measure again: a request forwarded before the flock may have
+            # started a reload that only shows on a later census.
+            io.sleep(SETTLE_S)
+            after = io.admission_status()
+            if after is None or not _quiet(after):
+                still = ["<gate not quiet after settle>"]
+            else:
+                stage = "enforce"
+                _check_enforced(after)
+                stage = "postcondition"
+                still = _still_resident(io)
         mem = io.mem_available_gb()
         gtt_after = io.gtt_used_gb()
         logger.info("gpu_lease: mem_info_gtt_used %s -> %s GiB", gtt_before, gtt_after)
@@ -419,6 +428,30 @@ def _acquire(holder: str, need_gb: float, timeout_s: float, path: pathlib.Path, 
     )
     held.start(io, holder, grant.acquired_at)
     return held, grant
+
+
+def _quiet(status: dict) -> bool:
+    """Nothing the gate admitted before the flock is still loading or in flight. A gate that
+    does not report a field is not quiet (it predates the check: fail closed)."""
+    return status.get("reserved") == [] and status.get("in_flight") == 0
+
+
+def _check_enforced(status: dict) -> None:
+    """The gate is the ONLY enforcer: it must enforce, and it must see THIS lease. A gate in
+    shadow mode, or one probing another lock path (a different HOME or
+    COHEZION_GPU_LEASE_PATH in its unit), would admit every GPU load during the job."""
+    if (status.get("config") or {}).get("enforce") is not True:
+        raise GpuLeaseError("enforce", "admission gate is not enforcing (shadow mode)")
+    seen = status.get("gpu_lease") or {}
+    if seen.get("held") is not True or seen.get("pid") != os.getpid():
+        raise GpuLeaseError("enforce", f"admission gate does not see this lease: {seen}")
+
+
+def _still_resident(io: LeaseIO) -> list[str]:
+    fresh = io.read_resident()
+    if fresh is None:
+        return ["<health unreadable>"]
+    return _gpu_models(fresh) + _unclassified(fresh)
 
 
 def _release_lock(held: _Held, path: pathlib.Path) -> None:
@@ -514,12 +547,12 @@ def _wait_group(proc: subprocess.Popen, timeout_s: float) -> bool:
 def _stop_group(proc: subprocess.Popen) -> None:
     """SIGTERM the job's whole process group, SIGKILL after the grace, and return only once
     the group is empty. Runs on EVERY exit path, so the lease is never released while a
-    backgrounded worker of the job lives on. Further SIGTERM/SIGINT are ignored from here on:
+    backgrounded worker of the job lives on. Further stop signals are ignored from here on:
     an interrupt inside the grace must not skip the SIGKILL and release early.
     (A job that calls setsid leaves the group; it still holds the passed lease fd.)
     """
-    signal.signal(signal.SIGTERM, signal.SIG_IGN)
-    signal.signal(signal.SIGINT, signal.SIG_IGN)
+    for sig in _STOP_SIGNALS:
+        signal.signal(sig, signal.SIG_IGN)
     with contextlib.suppress(ProcessLookupError):
         os.killpg(proc.pid, signal.SIGTERM)
     if _wait_group(proc, KILL_GRACE_S):
@@ -545,8 +578,11 @@ def main(argv: list[str] | None = None) -> int:
     def _term(signum, _frame):
         raise KeyboardInterrupt(f"signal {signum}")
 
-    saved = {sig: signal.getsignal(sig) for sig in (signal.SIGTERM, signal.SIGINT)}
-    signal.signal(signal.SIGTERM, _term)
+    # SIGHUP (closed terminal, dropped ssh) and SIGQUIT are catchable: unhandled they kill
+    # this holder without stopping the job tree, which keeps the passed lease fd.
+    saved = {sig: signal.getsignal(sig) for sig in _STOP_SIGNALS}
+    for sig in (signal.SIGTERM, signal.SIGHUP, signal.SIGQUIT):
+        signal.signal(sig, _term)
     try:
         with gpu_lease(args.holder, args.need_gb, args.acquire_timeout) as grant:
             logger.info("gpu lease granted to %s: unloaded %s", grant.holder, grant.unloaded)

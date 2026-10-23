@@ -275,22 +275,35 @@ def ollama_query(model: str, prompt: str, timeout: int = 300) -> str:
 # ── Lemonade (gaia llm) ───────────────────────────────────────────────────────
 
 
+# A GPU lease refusal from the :13305 admission gate means "wait", not "fall back to Ollama
+# cloud" (a metered quarter leak). Retry the same model, bounded like the in-process client.
+LEASE_RETRY_AFTER_S = 15.0
+LEASE_WAIT_S = 6 * 3600.0
+
+
 def lemonade_query(model: str, prompt: str, timeout: int = 300) -> tuple[bool, str]:
     """Run gaia llm in a subprocess. Returns (success, output)."""
-    try:
-        result = subprocess.run(
-            ["gaia", "llm", "--model", model, prompt],
-            capture_output=True,
-            text=True,
-            timeout=timeout,
-        )
+    waited = 0.0
+    while True:
+        try:
+            result = subprocess.run(
+                ["gaia", "llm", "--model", model, prompt],
+                capture_output=True,
+                text=True,
+                timeout=timeout,
+            )
+        except subprocess.TimeoutExpired:
+            return False, "timeout"
+        except Exception as e:
+            return False, str(e)
         if result.returncode == 0 and result.stdout.strip():
             return True, result.stdout.strip()
-        return False, result.stderr.strip() or result.stdout.strip()
-    except subprocess.TimeoutExpired:
-        return False, "timeout"
-    except Exception as e:
-        return False, str(e)
+        err = result.stderr.strip() or result.stdout.strip()
+        if "GPU lease held" not in err or waited + LEASE_RETRY_AFTER_S > LEASE_WAIT_S:
+            return False, err
+        print(f"    GPU lease held -- {model} waits {LEASE_RETRY_AFTER_S:.0f}s")
+        time.sleep(LEASE_RETRY_AFTER_S)
+        waited += LEASE_RETRY_AFTER_S
 
 
 # ── Goal Tree ────────────────────────────────────────────────────────────────

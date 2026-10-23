@@ -197,6 +197,7 @@ def build_app(
                 "gpu_lease": await run_in_threadpool(active_gate.lease_status),
                 "gpu_lease_counters": dict(lease_counters),
                 "reserved": await run_in_threadpool(active_gate.reserved_models),
+                "in_flight": active_gate.in_flight(),
             }
         )
 
@@ -240,6 +241,14 @@ def build_app(
                     names += models_named(parsed)
         names = list(dict.fromkeys(names))
 
+        # Admits decided while the lease was free: in flight until upstream answers, so a
+        # lease acquired meanwhile drains them (gate.finish releases each).
+        tracked: list[AdmissionDecision] = []
+
+        def untrack() -> None:
+            while tracked:
+                active_gate.finish(tracked.pop())
+
         async def run_gate(
             lease_exempt: str | None = None, gate_body: object = None
         ) -> tuple[AdmissionDecision | None, list[str]]:
@@ -247,14 +256,9 @@ def build_app(
             /proc, so it runs off the event loop."""
             admitted: list[str] = []
             checks: list[str | None] = list(names)
-            # An unnamed write to a load-capable path is checked once: a held lease
-            # refuses it (with no lease decide() forwards it as before).
-            if (
-                not checks
-                and request.method not in _READ_METHODS
-                and is_load_path(path)
-                and active_gate.gpu_lease_held()
-            ):
+            # An unnamed write to a load-capable path is checked once: a held lease refuses
+            # it, and with no lease it is admitted but still tracked as in flight.
+            if not checks and request.method not in _READ_METHODS and is_load_path(path):
                 checks = [None]
             for name in checks:
                 decision = await run_in_threadpool(
@@ -266,6 +270,8 @@ def build_app(
                         lease_exempt=lease_exempt,
                     )
                 )
+                if decision.token is not None:
+                    tracked.append(decision)
                 if decision.would_refuse:
                     counters["shadow_refusals"] += 1
                 new_load = decision.reason.startswith("fits")
@@ -283,115 +289,119 @@ def build_app(
                 if not decision.allow:
                     for n in admitted:
                         active_gate.release(n)
+                    untrack()
                     return decision, []
                 if new_load and name:
                     admitted.append(name)
             return None, admitted
 
-        loop = asyncio.get_running_loop()
-        deadline = loop.time() + hold_s
-        refusal, admitted = await run_gate()
-        held_once = False
-        while refusal is not None and refusal.kind == "gpu_lease":
-            fallback = cpu_fallback_body(
-                active_gate, path, parsed, refusal.model or "", side_fields
-            )
-            if fallback is not None:
-                # Fall back immediately: holding a load for a multi-hour lease only ends in
-                # a 503. The rewritten load still faces the full-footprint cgroup check and
-                # the lease's memory bound; only the rewritten model is lease-exempt.
-                fb_refusal, fb_admitted = await run_gate(
-                    lease_exempt=refusal.model, gate_body=json.loads(fallback)
+        try:
+            loop = asyncio.get_running_loop()
+            deadline = loop.time() + hold_s
+            refusal, admitted = await run_gate()
+            held_once = False
+            while refusal is not None and refusal.kind == "gpu_lease":
+                fallback = cpu_fallback_body(
+                    active_gate, path, parsed, refusal.model or "", side_fields
                 )
-                if fb_refusal is None:
-                    refusal, admitted, body = None, fb_admitted, fallback
-                    lease_counters["cpu_fallbacks"] += 1
-                    logger.info("admission CPU fallback under GPU lease: /%s", path)
+                if fallback is not None:
+                    # Fall back immediately: holding a load for a multi-hour lease only ends in
+                    # a 503. The rewritten load still faces the full-footprint cgroup check and
+                    # the lease's memory bound; only the rewritten model is lease-exempt.
+                    fb_refusal, fb_admitted = await run_gate(
+                        lease_exempt=refusal.model, gate_body=json.loads(fallback)
+                    )
+                    if fb_refusal is None:
+                        refusal, admitted, body = None, fb_admitted, fallback
+                        lease_counters["cpu_fallbacks"] += 1
+                        logger.info("admission CPU fallback under GPU lease: /%s", path)
+                        break
+                    if fb_refusal.kind != "gpu_lease":  # e.g. cgroup headroom: answer now
+                        refusal = fb_refusal
+                        break
+                if loop.time() >= deadline:
                     break
-                if fb_refusal.kind != "gpu_lease":  # e.g. cgroup headroom: answer now
-                    refusal = fb_refusal
-                    break
-            if loop.time() >= deadline:
-                break
-            if not held_once:
-                held_once = True
-                lease_counters["held_requests"] += 1
-            while active_gate.gpu_lease_held() and loop.time() < deadline:
+                if not held_once:
+                    held_once = True
+                    lease_counters["held_requests"] += 1
+                while active_gate.gpu_lease_held() and loop.time() < deadline:
+                    if await request.is_disconnected():
+                        # The client gave up: forwarding later would load a model for nobody.
+                        lease_counters["abandoned"] += 1
+                        return Response(status_code=499)
+                    await asyncio.sleep(lease_poll_s)
                 if await request.is_disconnected():
-                    # The client gave up: forwarding later would load a model for nobody.
                     lease_counters["abandoned"] += 1
                     return Response(status_code=499)
-                await asyncio.sleep(lease_poll_s)
-            if await request.is_disconnected():
-                lease_counters["abandoned"] += 1
-                return Response(status_code=499)
-            refusal, admitted = await run_gate()
+                refusal, admitted = await run_gate()
 
-        if refusal is not None:
-            counters["refused"] += 1
-            headers_out = {"Retry-After": str(RETRY_AFTER_S)}
-            if refusal.kind == "gpu_lease":
-                lease_counters["refused"] += 1
-                headers_out["X-Cohezion-Refusal"] = "gpu_lease"
-            return JSONResponse(
-                status_code=503,
-                headers=headers_out,
-                content={
-                    "error": {
-                        "type": "admission_refused",
-                        "message": refusal.reason,
-                        "model": refusal.model,
-                    }
-                },
-            )
+            if refusal is not None:
+                counters["refused"] += 1
+                headers_out = {"Retry-After": str(RETRY_AFTER_S)}
+                if refusal.kind == "gpu_lease":
+                    lease_counters["refused"] += 1
+                    headers_out["X-Cohezion-Refusal"] = "gpu_lease"
+                return JSONResponse(
+                    status_code=503,
+                    headers=headers_out,
+                    content={
+                        "error": {
+                            "type": "admission_refused",
+                            "message": refusal.reason,
+                            "model": refusal.model,
+                        }
+                    },
+                )
 
-        headers = {k: v for k, v in request.headers.items() if k.lower() not in _HOP_HEADERS}
-        # Pin identity explicitly: with the header merely absent, httpx injects its own
-        # 'gzip, deflate', resurrecting the decoded-bytes/encoded-header mismatch.
-        headers["accept-encoding"] = "identity"
-        upstream_req = http.build_request(
-            request.method,
-            f"/{path}",
-            params=request.query_params,
-            headers=headers,
-            content=body if body else None,
-        )
-        try:
-            upstream_resp = await http.send(upstream_req, stream=True)
-        except httpx.HTTPError as exc:
-            for name in admitted:  # nothing loaded: free the reservation now, not in 180 s
-                active_gate.release(name)
-            # A dead/mid-restart upstream is a clean 502, not a traceback-500.
-            return JSONResponse(
-                status_code=502,
-                content={"error": {"type": "upstream_unreachable", "message": str(exc)}},
+            headers = {k: v for k, v in request.headers.items() if k.lower() not in _HOP_HEADERS}
+            # Pin identity explicitly: with the header merely absent, httpx injects its own
+            # 'gzip, deflate', resurrecting the decoded-bytes/encoded-header mismatch.
+            headers["accept-encoding"] = "identity"
+            upstream_req = http.build_request(
+                request.method,
+                f"/{path}",
+                params=request.query_params,
+                headers=headers,
+                content=body if body else None,
             )
-        counters["forwarded"] += 1
-        if upstream_resp.status_code >= 400:
-            for name in admitted:
-                active_gate.release(name)
-        resp_headers = {
-            k: v for k, v in upstream_resp.headers.items() if k.lower() not in _HOP_HEADERS
-        }
-        if upstream_resp.is_stream_consumed or upstream_resp.is_closed:
-            # Content already materialised (MockTransport in tests, cached bodies) —
-            # streaming an already-read response raises StreamConsumed.
-            return Response(
-                content=upstream_resp.content,
+            try:
+                upstream_resp = await http.send(upstream_req, stream=True)
+            except httpx.HTTPError as exc:
+                for name in admitted:  # nothing loaded: free the reservation now, not in 180 s
+                    active_gate.release(name)
+                # A dead/mid-restart upstream is a clean 502, not a traceback-500.
+                return JSONResponse(
+                    status_code=502,
+                    content={"error": {"type": "upstream_unreachable", "message": str(exc)}},
+                )
+            counters["forwarded"] += 1
+            if upstream_resp.status_code >= 400:
+                for name in admitted:
+                    active_gate.release(name)
+            resp_headers = {
+                k: v for k, v in upstream_resp.headers.items() if k.lower() not in _HOP_HEADERS
+            }
+            if upstream_resp.is_stream_consumed or upstream_resp.is_closed:
+                # Content already materialised (MockTransport in tests, cached bodies) —
+                # streaming an already-read response raises StreamConsumed.
+                return Response(
+                    content=upstream_resp.content,
+                    status_code=upstream_resp.status_code,
+                    headers=resp_headers,
+                    media_type=upstream_resp.headers.get("content-type"),
+                )
+            return StreamingResponse(
+                upstream_resp.aiter_raw(),
                 status_code=upstream_resp.status_code,
                 headers=resp_headers,
+                # Close the upstream response when streaming ends OR the client
+                # disconnects mid-stream — otherwise every abandoned generation leaks a
+                # pooled connection until the pool exhausts under lemond's slow streams.
+                background=BackgroundTask(upstream_resp.aclose),
                 media_type=upstream_resp.headers.get("content-type"),
             )
-        return StreamingResponse(
-            upstream_resp.aiter_raw(),
-            status_code=upstream_resp.status_code,
-            headers=resp_headers,
-            # Close the upstream response when streaming ends OR the client
-            # disconnects mid-stream — otherwise every abandoned generation leaks a
-            # pooled connection until the pool exhausts under lemond's slow streams.
-            background=BackgroundTask(upstream_resp.aclose),
-            media_type=upstream_resp.headers.get("content-type"),
-        )
+        finally:
+            untrack()  # every path: refused, 502, or upstream answered
 
     return app
 

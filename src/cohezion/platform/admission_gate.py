@@ -19,6 +19,11 @@ Decision rules (in order):
   3. lemond working set + the model's catalog size > 90% of memory.high -> refuse.
   4. Otherwise forward; Lemonade decides the rest.
 
+An admit decided while the lease was FREE is re-probed against the lease and registered as
+in flight in one critical section, and stays in flight until the proxy has upstream's answer
+(:meth:`AdmissionGate.finish`). A lease that flocked mid-decision gets the request decided
+again under the lease; one that flocks later drains it (gpu_lease A2 waits on ``in_flight``).
+
 Fail open when the cgroup is unreadable (a static sysfs read that does not stall). Fail
 CLOSED when the model's size is unknown: lemonade's /api/v1/models stalls while a model is
 loading, which is exactly when other loads arrive. On 2026-10-21 a fail-open size lookup let
@@ -39,6 +44,7 @@ curated byte budget, replaced by Lemonade's catalog size.
 from __future__ import annotations
 
 import contextlib
+import dataclasses
 import errno
 import fcntl
 import json
@@ -71,6 +77,11 @@ RESIDENT_CACHE_TTL_S = 1.5  # bound per-request health fetches on the hot path
 # then in the cgroup reading) or this expires. Without it, concurrent requests each see the
 # same headroom and all pass.
 RESERVATION_TTL_S = 180.0
+# An admit decided while the lease was FREE stays "in flight" until the proxy has the
+# upstream's answer (lemond loads before it answers): a lease acquired meanwhile must drain
+# it, whatever path admitted it. The TTL only bounds direct decide() callers that never call
+# finish(); the proxy always does.
+IN_FLIGHT_TTL_S = 300.0
 # A positive residency answer stays usable this long: /api/v1/health blocks while any model
 # loads, and losing "resident" then re-prices chats to already-loaded models as fresh loads.
 RESIDENT_LAST_GOOD_S = 60.0
@@ -224,6 +235,13 @@ def extract_model_name(body: object) -> str | None:
     return names[0] if names else None
 
 
+def _exact_match(model_name: str, entry: dict[str, object]) -> bool:
+    """The entry IS *model_name*: its own name, never its checkpoint stem (catalog aliases
+    share stems, e.g. Gemma-4-31B-it-MTP-GGUF's checkpoint stem is Gemma-4-31B-it-GGUF)."""
+    want = normalize_model_name(model_name).lower()
+    return bool(want) and want == normalize_model_name(str(entry.get("model_name", ""))).lower()
+
+
 def _resident_match(model_name: str, entry: dict[str, object]) -> bool:
     """Exact match on the entry's name or its checkpoint stem; never a substring."""
     want = normalize_model_name(model_name).lower()
@@ -267,6 +285,9 @@ class AdmissionDecision:
     reason: str
     model: str | None = None
     kind: str = ""  # "gpu_lease" for a lease refusal; the proxy holds those instead of 503
+    # In-flight token of an admit decided while the lease was free; the proxy hands the
+    # decision back to finish() once upstream has answered. None for lease-checked admits.
+    token: int | None = None
 
 
 class AdmissionGate:
@@ -305,6 +326,8 @@ class AdmissionGate:
         self._catalog_at: float | None = None
         self._read_size_gb = read_size_gb or self._cached_footprint_gb
         self._reserved: dict[str, tuple[float, float]] = {}  # model -> (gb, expires_at)
+        self._in_flight: dict[int, float] = {}  # token -> expires_at
+        self._next_token = 0
         self._lock = threading.Lock()  # proxy calls decide() from a threadpool
         self._resident_cache: tuple[float, list[dict[str, object]] | None] | None = None
         self._last_good: tuple[float, list[dict[str, object]]] | None = None
@@ -466,12 +489,31 @@ class AdmissionGate:
         """
         resident = self._resident_entries()
         with self._lock:
-            now = time.monotonic()
-            for k, (_gb, exp) in list(self._reserved.items()):
-                landed = resident is not None and any(_resident_match(k, m) for m in resident)
-                if landed or now > exp:
-                    del self._reserved[k]
+            self._prune_reserved(resident)
             return sorted(self._reserved)
+
+    def _prune_reserved(self, resident: list[dict[str, object]] | None) -> None:
+        """Drop reservations that landed or expired. Call with the lock held."""
+        now = time.monotonic()
+        for k, (_gb, exp) in list(self._reserved.items()):
+            landed = resident is not None and any(_resident_match(k, m) for m in resident)
+            if landed or now > exp:
+                del self._reserved[k]
+
+    def in_flight(self) -> int:
+        """Admits decided while the lease was free and not yet answered upstream."""
+        with self._lock:
+            now = time.monotonic()
+            for t, exp in list(self._in_flight.items()):
+                if now > exp:
+                    del self._in_flight[t]
+            return len(self._in_flight)
+
+    def finish(self, decision: AdmissionDecision) -> None:
+        """The proxy has upstream's answer (or gave up): the admit is no longer in flight."""
+        if decision.token is not None:
+            with self._lock:
+                self._in_flight.pop(decision.token, None)
 
     def _lease_terms(self) -> dict[str, object] | None:
         """The grant's sidecar once it carries need_gb and grant_mem_gb, else None."""
@@ -492,18 +534,25 @@ class AdmissionGate:
         """True for a non-load request, without backend override, to a model that a FRESH
         census (the 1.5 s cache, never the 60 s last-good) shows resident on the CPU only.
 
-        Residual race: lemond may evict the model between this read and the forward, and
-        the request would then auto-load it on its default backend. The window is the
-        cache TTL; a stale or unreadable census refuses.
+        Matches the resident entry's own name only (never a checkpoint-stem alias) and
+        refuses while any admitted load is in flight, since that load may evict it.
+        Residual race: lemond may still idle-evict the model between this read and the
+        forward. The window is the cache TTL; a stale or unreadable census refuses.
         """
         if path.strip("/").lower() in _EXPLICIT_LOAD_ROUTES or has_backend_override(body):
             return False
         entries = self._resident_entries()
         if entries is None:
             return False
+        with self._lock:
+            # A load in flight may evict this model (lemond's per-type slot cap); a request
+            # forwarded to it then auto-loads it on its default backend, the GPU. Wait.
+            self._prune_reserved(entries)
+            if self._reserved:
+                return False
         from cohezion.inference.silicon_residency import parse_census
 
-        mine = [e for e in entries if _resident_match(model_name, e)]
+        mine = [e for e in entries if _exact_match(model_name, e)]
         census = parse_census({"all_models_loaded": mine})
         return bool(census.residents) and all(m.device == "cpu" for m in census.residents)
 
@@ -557,12 +606,37 @@ class AdmissionGate:
     ) -> AdmissionDecision:
         if not is_load_path(path):  # unload/delete/pull: freeing memory is never refused
             return AdmissionDecision(True, False, "not load-triggering", model_name)
+        held = self.gpu_lease_held()
+        decision, new_key = self._decide(model_name, path, method, body, lease_exempt, held)
+        if held or not decision.allow:
+            return decision
+        # The admit was decided with the lease FREE. Re-probe and register it as in flight
+        # in one critical section: a lease that flocked meanwhile decides it again under the
+        # lease (and is never drained past); a lease that flocks later sees the token.
+        with self._lock:
+            if probe_gpu_lease(self._config.gpu_lease_path) != LEASE_HELD:
+                self._next_token += 1
+                self._in_flight[self._next_token] = time.monotonic() + IN_FLIGHT_TTL_S
+                return dataclasses.replace(decision, token=self._next_token)
+            if new_key is not None:
+                self._reserved.pop(new_key, None)
+        return self._decide(model_name, path, method, body, lease_exempt, True)[0]
+
+    def _decide(
+        self,
+        model_name: str | None,
+        path: str,
+        method: str,
+        body: object,
+        lease_exempt: str | None,
+        held: bool,
+    ) -> tuple[AdmissionDecision, str | None]:
+        """(decision, the reservation key this call wrote or None)."""
         # The lease check runs BEFORE the resident shortcut: under a held lease a resident
         # GPU model must not keep serving a steady client, or its unload can hang behind
         # lemond's eviction lock. ``lease_exempt`` names the ONE model whose load body the
         # proxy's CPU fallback has itself rewritten to llamacpp_backend=cpu; every other
         # name stays lease-checked.
-        held = self.gpu_lease_held()
         exempt = (
             lease_exempt is not None
             and model_name is not None
@@ -572,19 +646,23 @@ class AdmissionGate:
         if held and not exempt:
             lease = self._lease_refusal(model_name, method, body, path)
             if lease is not None:
-                return lease
+                return lease, None
         if not model_name:
-            return AdmissionDecision(True, False, "not load-triggering", model_name)
+            return AdmissionDecision(True, False, "not load-triggering", model_name), None
 
         # Slow reads first, outside the lock.
         resident = self._resident_entries()
         # A lease-exempt (CPU fallback) load never takes the resident shortcut: residency may
         # come from the 60 s last-good cache of a model the lease holder just unloaded.
         if not exempt and self._is_resident(model_name, resident):
-            return AdmissionDecision(True, False, "resident — reuse needs no memory", model_name)
+            return AdmissionDecision(
+                True, False, "resident — reuse needs no memory", model_name
+            ), None
         cgroup = self._read_cgroup()
         if cgroup is None and held:  # a new load under the lease is never admitted blind
-            return self._lease_decision("GPU lease held: lemond cgroup unreadable", model_name)
+            return self._lease_decision(
+                "GPU lease held: lemond cgroup unreadable", model_name
+            ), None
         if cgroup is None:
             self.cgroup_readable = False
             now = time.monotonic()
@@ -593,23 +671,23 @@ class AdmissionGate:
                 logger.warning("admission gate: lemond cgroup unreadable — not gating loads")
             return AdmissionDecision(
                 True, False, "cgroup unreadable — Lemonade decides", model_name
-            )
+            ), None
         self.cgroup_readable = True
         size = self._read_size_gb(model_name)
         if size is None and held:
             return self._lease_decision(
                 f"GPU lease held: size of '{model_name}' unknown", model_name
-            )
+            ), None
         if size is None:
             if self._catalog_is_fresh():
                 return AdmissionDecision(
                     True, False, "not in lemonade's catalog — lemonade will answer", model_name
-                )
+                ), None
             return self._refusal(
                 f"model size unknown for '{model_name}': lemonade's catalog has not been read "
                 "yet (it stalls while a load is in progress) — retry shortly",
                 model_name,
-            )
+            ), None
         credit = self._npu_slot_credit_gb(model_name, path, resident)
         working_set, high = cgroup
         budget = CGROUP_HIGH_FRACTION * high
@@ -620,12 +698,11 @@ class AdmissionGate:
 
         with self._lock:
             now = time.monotonic()
-            for k, (_gb, expires) in list(self._reserved.items()):
-                landed = resident is not None and any(_resident_match(k, m) for m in resident)
-                if landed or now > expires:
-                    del self._reserved[k]
+            self._prune_reserved(resident)
             if key in self._reserved:  # same model already admitted and still loading
-                return AdmissionDecision(True, False, "already admitted — loading", model_name)
+                return AdmissionDecision(
+                    True, False, "already admitted — loading", model_name
+                ), None
             reserved = sum(gb for gb, _ in self._reserved.values())
             total = working_set + reserved - credit + size
             detail = (
@@ -638,14 +715,15 @@ class AdmissionGate:
                     f"({CGROUP_HIGH_FRACTION:.0%} of memory.high {high:.0f}GB) — past "
                     "memory.high the kernel throttles every model in lemond",
                     model_name,
-                )
+                ), None
             if held:
                 refused = self._lease_memory_refusal(model_name, terms, mem_now, reserved, size)
                 if refused is not None:
-                    return refused
+                    return refused, None
             self._reserved[key] = (size, now + RESERVATION_TTL_S)
         logger.info("admission gate ADMIT: %s <= %.1fGB", detail, budget)
-        return AdmissionDecision(True, False, f"fits: {detail} <= {budget:.1f}GB", model_name)
+        fits = AdmissionDecision(True, False, f"fits: {detail} <= {budget:.1f}GB", model_name)
+        return fits, key
 
     def _lease_memory_refusal(
         self,
