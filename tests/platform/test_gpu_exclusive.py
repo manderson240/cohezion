@@ -19,7 +19,7 @@ import threading
 import time
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
-from urllib.parse import unquote
+from urllib.parse import parse_qs, unquote, urlsplit
 
 import pytest
 
@@ -45,15 +45,12 @@ class FakeLemonade:
                     "backends": {"cpu": {"state": "installed"}, "vulkan": {"state": "installed"}}
                 },
                 "sd-cpp": {
-                    "backends": {
-                        "cpu": {"state": "update_required"},
-                        "vulkan": {"state": "installed"},
-                    }
+                    "backends": {"cpu": {"state": "installed"}, "vulkan": {"state": "installed"}}
                 },
                 "whispercpp": {
                     "backends": {"cpu": {"state": "installed"}, "vulkan": {"state": "installed"}}
                 },
-                "vllm": {"backends": {"rocm": {"state": "installed"}}},
+                "vllm": {"backends": {"rocm": {"state": "not_installed"}}},  # inert
                 "flm": {"backends": {"npu": {"state": "installed"}}},
             }
         }
@@ -65,8 +62,13 @@ class FakeLemonade:
             "user.Coder": "llamacpp",
             "whisper-v3": "whispercpp",
             "qwen3-1.7b-FLM": "flm",
+            "user.Remote": "llamacpp",  # registered, NOT downloaded
         }
-        self.registry = {"user.Coder": {"llamacpp_backend": "rocm"}}
+        self.not_downloaded = {"user.Remote"}
+        self.registry = {
+            "user.Coder": {"llamacpp_backend": "rocm"},
+            "user.Remote": {"llamacpp_backend": "vulkan"},
+        }
         self.saved = {
             "Gemma-4-E2B-it-GGUF": {"llamacpp_backend": "rocm", "ctx_size": 8192},
             "Tier0-GGUF": {"llamacpp_backend": "auto", "ctx_size": 4096},
@@ -81,6 +83,10 @@ class FakeLemonade:
         self.sql_response: list = [{"status": "OK", "result": [{"id": "data_product_event:1"}]}]
         self.requests: list[tuple[str, str, object]] = []
         self.fail_set = False
+        self.silent_set = False  # /internal/set answers 200 but changes nothing
+        self.on_health = None  # callable(self) run before each /health answer
+        self.busy_left: dict[str, int] = {}  # model -> health polls it stays busy
+        self.busy_unloads: list[str] = []  # unloads that hit a model with live requests
 
     # -- lemonade resolution ------------------------------------------------
     def effective(self, mid: str) -> dict:
@@ -97,13 +103,17 @@ class FakeLemonade:
             val = self.config.get(section, {}).get("backend", "")
         return {key: val, "model_name": mid}
 
-    def handle(self, method: str, path: str, body):
-        self.requests.append((method, path, body))
+    def handle(self, method: str, raw_path: str, body):
+        self.requests.append((method, raw_path, body))
+        parts = urlsplit(raw_path)
+        path, query = parts.path, parse_qs(parts.query)
         if path == "/internal/config":
             return 200, copy.deepcopy(self.config)
         if path == "/internal/set":
             if self.fail_set:
                 return 500, {"error": "boom"}
+            if self.silent_set:
+                return 200, {"status": "success", "updated": body}
             for section, vals in body.items():
                 if "backend" in vals and vals["backend"] == "cpu":
                     recipe = next(r for r, s in SECTION_OF.items() if s == section)
@@ -115,7 +125,9 @@ class FakeLemonade:
         if path == "/api/v1/system-info":
             return 200, self.sysinfo
         if path == "/api/v1/models":
-            return 200, {"data": [{"id": m, "recipe": r} for m, r in self.models.items()]}
+            show_all = query.get("show_all") == ["true"]
+            listed = [m for m in self.models if show_all or m not in self.not_downloaded]
+            return 200, {"data": [{"id": m, "recipe": self.models[m]} for m in listed]}
         if path.startswith("/api/v1/models/") and path.endswith("/options"):
             mid = unquote(path[len("/api/v1/models/") : -len("/options")])
             if method == "POST":
@@ -131,9 +143,17 @@ class FakeLemonade:
                 "effective": self.effective(mid),
             }
         if path == "/api/v1/health":
+            if self.on_health:
+                self.on_health(self)
+            for m in self.loaded:
+                if m["model_name"] in self.busy_left:
+                    m["is_busy"] = self.busy_left[m["model_name"]] > 0
+                    self.busy_left[m["model_name"]] -= 1
             return 200, {"status": "ok", "all_models_loaded": copy.deepcopy(self.loaded)}
         if path == "/api/v1/unload":
             mid = body["model_name"]
+            if any(m["model_name"] == mid and m.get("is_busy") for m in self.loaded):
+                self.busy_unloads.append(mid)
             if self.sticky.get(mid, 0) > 0:
                 self.sticky[mid] -= 1
                 return 200, {"status": "success"}
@@ -179,6 +199,8 @@ def fake(tmp_path, monkeypatch):
     monkeypatch.setattr(gx, "STATE_PATH", tmp_path / "gpu-exclusive.state.json")
     monkeypatch.setattr(hotswap, "free_gb_or_none", lambda: 64.0)
     monkeypatch.setattr(gx, "POLL_S", 0.01)
+    monkeypatch.setattr(gx, "SETTLE_S", 0.05)
+    monkeypatch.setattr(gx, "WATCH_S", 0.02)
     yield lem
     srv.shutdown()
 
@@ -199,10 +221,10 @@ def test_settings_saved_before_change_and_restored_exactly(fake):
         # During the job: every cpu-capable recipe defaults to cpu ...
         assert fake.config["llamacpp"]["backend"] == "cpu"
         assert fake.config["whispercpp"]["backend"] == "cpu"
-        # ... recipes with no INSTALLED cpu backend are left alone and reported
-        assert fake.config["sdcpp"]["backend"] == "auto"
+        assert fake.config["sdcpp"]["backend"] == "cpu"
+        # ... a recipe with no backend installed at all cannot load: inert, left alone
         assert fake.config["vllm"]["backend"] == "auto"
-        assert set(info["unguarded"]) == {"sdcpp", "vllm"}
+        assert info["unguarded"] == []
         # ... and every downloaded cpu-capable model now resolves to cpu
         for mid, recipe in fake.models.items():
             if recipe in ("llamacpp", "whispercpp"):
@@ -447,7 +469,14 @@ def test_recovery_refuses_while_crashed_holders_job_is_still_running(fake):
     try:
         fake.config["llamacpp"]["backend"] = "cpu"
         gx.STATE_PATH.write_text(
-            json.dumps({"globals": {"llamacpp": "vulkan"}, "models": {}, "child_pgid": job.pid})
+            json.dumps(
+                {
+                    "globals": {"llamacpp": "vulkan"},
+                    "models": {},
+                    "child_pgid": job.pid,
+                    "pidns": gx._pidns(),
+                }
+            )
         )
         with pytest.raises(gx.GpuExclusiveRefusedError), gx.gpu_exclusive("t", 1):
             pass
@@ -468,3 +497,178 @@ def test_cli_records_child_pgid_in_state_during_the_job(fake, tmp_path):
     )
     assert rc == 0
     assert isinstance(json.loads(out.read_text()).get("child_pgid"), int)
+
+
+# ---- adversarial-review findings (2026-10-23): each test was red on 68327c30e ----------
+
+
+def _wait_until(pred, timeout=3.0):
+    t0 = time.monotonic()
+    while time.monotonic() - t0 < timeout:
+        if pred():
+            return True
+        time.sleep(0.01)
+    return False
+
+
+def _gguf(name: str) -> dict:
+    return {"model_name": name, "recipe": "llamacpp", "device": "gpu", "loaded": True}
+
+
+def _events(fake, kind: str) -> list[dict]:
+    out = []
+    for _m, p, b in fake.requests:
+        if p == "/sql" and f'"{kind}"' in b:
+            row = json.loads(b[len("CREATE data_product_event CONTENT ") : -1])
+            out.append(json.loads(row["payload"]))
+    return out
+
+
+def test_load_landing_after_first_clean_census_is_unloaded_before_grant(fake, monkeypatch):
+    # An in-flight load resolved its backend before the flip and lands ~30 ms after the
+    # census first reads clean. One clean census must not be enough to grant.
+    monkeypatch.setattr(gx, "WATCH_S", 1000)  # isolate the settle window from the watcher
+    monkeypatch.setattr(gx, "SETTLE_S", 0.3)
+    armed = {"done": False}
+
+    def hook(lem):
+        clean = not [m for m in lem.loaded if m["device"] in ("gpu", "igpu")]
+        if clean and not armed["done"]:
+            armed["done"] = True
+            threading.Timer(0.03, lambda: lem.loaded.append(_gguf("Late-GGUF"))).start()
+
+    fake.on_health = hook
+    with gx.gpu_exclusive("t", 1):
+        time.sleep(0.1)  # well after the late load landed
+        assert "Late-GGUF" not in {m["model_name"] for m in fake.loaded}
+
+
+def test_watcher_unloads_gpu_load_that_lands_during_the_job(fake):
+    with gx.gpu_exclusive("t", 1) as info:
+        fake.loaded.append(_gguf("Late-GGUF"))
+        assert _wait_until(lambda: "Late-GGUF" not in {m["model_name"] for m in fake.loaded})
+        assert info["watch"]["late_unloads"] >= 1
+
+
+def test_watcher_reapplies_cpu_when_lemond_reverts_mid_job(fake):
+    # lemond restarted after an unpersisted /internal/set (logged, still 200): vulkan again.
+    with gx.gpu_exclusive("t", 1):
+        fake.config["llamacpp"]["backend"] = "vulkan"
+        assert _wait_until(lambda: fake.config["llamacpp"]["backend"] == "cpu")
+    assert fake.config["llamacpp"]["backend"] == "vulkan"
+
+
+def test_watcher_never_reflips_after_restore(fake):
+    with gx.gpu_exclusive("t", 1):
+        time.sleep(0.1)
+    time.sleep(0.2)  # >> WATCH_S: a still-running watcher would re-assert cpu
+    assert fake.config["llamacpp"]["backend"] == "vulkan"
+
+
+def test_unguarded_gpu_only_recipe_refuses_by_default(fake):
+    fake.sysinfo["recipes"]["sd-cpp"]["backends"]["cpu"]["state"] = "update_required"
+    cfg0, _ = _baseline(fake)
+    with pytest.raises(gx.GpuExclusiveRefusedError, match="sdcpp"), gx.gpu_exclusive("t", 1):
+        pass
+    assert fake.config == cfg0
+    assert not any(p == "/api/v1/unload" for _, p, _ in fake.requests)
+
+
+def test_unguarded_recipe_granted_only_with_explicit_opt_in(fake):
+    fake.sysinfo["recipes"]["sd-cpp"]["backends"]["cpu"]["state"] = "update_required"
+    with gx.gpu_exclusive("t", 1, allow_unguarded=True) as info:
+        assert info["unguarded"] == ["sdcpp"]
+        assert fake.config["sdcpp"]["backend"] == "auto"
+    assert _events(fake, "gpu_exclusive_granted")[0]["allow_unguarded"] is True
+
+
+def test_busy_resident_is_never_force_unloaded_and_refuses_at_deadline(fake, monkeypatch):
+    monkeypatch.setattr(gx, "DEADLINE_S", 0.3)
+    fake.loaded[0]["is_busy"] = True  # Bonsai-8B-gguf serving fleet requests
+    cfg0, _ = _baseline(fake)
+    with pytest.raises(gx.GpuExclusiveRefusedError, match="busy"), gx.gpu_exclusive("t", 1):
+        pass
+    unloads = [b["model_name"] for _, p, b in fake.requests if p == "/api/v1/unload"]
+    assert "Bonsai-8B-gguf" not in unloads
+    assert fake.config == cfg0 and not gx.STATE_PATH.exists()
+
+
+def test_busy_resident_unloaded_once_idle(fake):
+    fake.busy_left["Bonsai-8B-gguf"] = 4
+    with gx.gpu_exclusive("t", 1):
+        assert "Bonsai-8B-gguf" not in {m["model_name"] for m in fake.loaded}
+    assert fake.busy_unloads == []  # never while it had live fleet requests
+
+
+@pytest.mark.parametrize("exc", [KeyboardInterrupt(), SystemExit(143)])
+def test_signal_during_setup_restores_and_reraises_original(fake, monkeypatch, exc):
+    def boom(_need):
+        raise exc
+
+    monkeypatch.setattr(gx, "_clear_gpu", boom)
+    cfg0, saved0 = _baseline(fake)
+    with pytest.raises(type(exc)), gx.gpu_exclusive("t", 1):
+        pass
+    assert fake.config == cfg0 and _nonempty(fake.saved) == saved0
+    assert not gx.STATE_PATH.exists()
+    assert _events(fake, "gpu_exclusive_refused")[0]["restored"] is True
+
+
+def test_recovery_keeps_cpu_when_job_ran_in_another_pid_namespace(fake):
+    dead = subprocess.Popen(["true"], start_new_session=True)
+    dead.wait()  # pgid gone HERE, but it was recorded in a different namespace
+    fake.config["llamacpp"]["backend"] = "cpu"
+    gx.STATE_PATH.write_text(
+        json.dumps(
+            {
+                "globals": {"llamacpp": "vulkan"},
+                "models": {},
+                "child_pgid": dead.pid,
+                "pidns": "pid:[1]",
+            }
+        )
+    )
+    assert gx.main(["--recover"]) == 1
+    assert fake.config["llamacpp"]["backend"] == "cpu" and gx.STATE_PATH.exists()
+    assert gx.main(["--recover", "--force"]) == 0
+    assert fake.config["llamacpp"]["backend"] == "vulkan"
+
+
+def test_cli_records_pid_namespace_with_child_pgid(fake, tmp_path):
+    out = tmp_path / "state.json"
+    gx.main(["--holder", "t", "--need-gb", "1", "--", "sh", "-c", f"cat {gx.STATE_PATH} > {out}"])
+    assert json.loads(out.read_text())["pidns"] == gx._pidns() != ""
+
+
+def test_registry_pinned_model_not_yet_downloaded_is_pinned_to_cpu(fake):
+    with gx.gpu_exclusive("t", 1):
+        assert next(iter(fake.effective("user.Remote").values())) == "cpu"
+    assert "llamacpp_backend" not in fake.saved.get("user.Remote", {})
+
+
+def test_hybrid_gpu_npu_resident_is_unloaded(fake):
+    fake.loaded.append(
+        {"model_name": "Hybrid", "recipe": "ryzenai-llm", "device": "gpu npu", "loaded": True}
+    )
+    with gx.gpu_exclusive("t", 1):
+        names = {m["model_name"] for m in fake.loaded}
+        assert "Hybrid" not in names and "qwen3-1.7b-FLM" in names
+
+
+def test_restore_that_answers_200_but_changes_nothing_keeps_state(fake):
+    with gx.gpu_exclusive("t", 1):
+        fake.silent_set = True
+    assert gx.STATE_PATH.exists()
+    assert _events(fake, "gpu_exclusive_released")[0]["restored"] is False
+    fake.silent_set = False
+    assert gx.main(["--recover"]) == 0 and fake.config["llamacpp"]["backend"] == "vulkan"
+
+
+def test_released_event_reports_minimum_memory_seen(fake, monkeypatch):
+    mem = {"gb": 64.0}
+    monkeypatch.setattr(hotswap, "free_gb_or_none", lambda: mem["gb"])
+    with gx.gpu_exclusive("t", 40) as info:
+        assert info["memory_reserved"] is False
+        mem["gb"] = 5.0
+        assert _wait_until(lambda: info["watch"]["min_mem_available_gb"] == 5.0)
+    assert _events(fake, "gpu_exclusive_released")[0]["min_mem_available_gb"] == 5.0

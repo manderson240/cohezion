@@ -27,17 +27,36 @@ cpu after the flip we POST ``/v1/models/{id}/options {"<k>_backend": "cpu"}`` (m
 semantics), recording the exact saved value first; restore re-POSTs that value, or
 ``null`` when the key was absent (never DELETE: it would wipe the other saved options).
 
+Pins are discovered over ``GET /api/v1/models?show_all=true`` (registry entries too: a
+pinned model downloaded on demand mid-job would otherwise load on the GPU).
+
+Sections: GUARDED (cpu backend installed -> flipped), INERT (no backend installed, cannot
+load anything) and UNGUARDED (a GPU backend installed but no cpu one, e.g. sd-cpp whose
+cpu backend is ``update_required``). Unguarded sections are REFUSED unless the caller
+passes ``allow_unguarded`` (``--allow-unguarded``): their loads would land on the iGPU.
+llamacpp must always be guarded (fail closed).
+
+Busy residents (``is_busy``) are never force-unloaded (that would abort fleet requests);
+they are skipped and retried each poll, and still-busy at ``DEADLINE_S`` refuses. The census
+must stay clean for ``SETTLE_S`` (a load already in flight when the backend flipped resolved
+its options earlier, router.cpp, and lands later). While the grant holds a WATCHER thread
+re-censuses every ``WATCH_S``: it unloads late idle GPU residents, re-applies cpu to any
+guarded section that reverted (a lemond restart after an unpersisted /internal/set - the
+route logs and still answers 200), and tracks the minimum MemAvailable. The watcher is
+stopped and joined BEFORE restore so it can never re-flip a restored setting.
+
 Known limits (documented, not enforced): a ``/v1/load`` that passes ``llamacpp_backend``
-explicitly outranks everything (lemonade_server_mcp.py, apply_lemonade_recipes.py; the
-latter's ``save_options`` also replaces the saved entry). Recipes with no INSTALLED cpu
-backend (vllm, acestep, ...) cannot be redirected; they are reported as ``unguarded``.
-On-disk persistence of /internal/set is from source; lemond's config dir is not readable
-here, so the state-file restore at the next start is what covers a restart. A crash
-mid-job leaves backend=cpu: the safe direction.
+explicitly outranks everything (lemonade_server_mcp.py, apply_lemonade_recipes.py).
+MEMORY IS NOT RESERVED: ``need_gb`` is checked at grant time only. On unified RAM displaced
+fleet models reload on CPU into the same pool; lemonade has no size cap (max_loaded_models
+is a count) and the admission gate is out of scope. The watcher reports the minimum seen
+(``min_mem_available_gb`` in the released event) and logs below the floor. A crash mid-job
+leaves backend=cpu: the safe direction.
 If the wrapper dies but its job (own session) survives, the state file records the job's
-pgid and recovery REFUSES while that group is alive (same pid namespace only). The CLI
-traps SIGTERM and SIGHUP so a closed terminal still restores. If llamacpp cannot be
-redirected to cpu the request is refused before anything changes (fail closed).
+pgid and pid namespace; recovery REFUSES while that group is alive or when the namespace
+differs (agent shells each get their own: liveness is then unknowable, so cpu mode stays).
+``--recover --force`` is the explicit escape. Any exception during setup (including
+SIGTERM/SIGHUP/Ctrl-C) restores before propagating.
 """
 
 from __future__ import annotations
@@ -51,6 +70,7 @@ import os
 import signal
 import subprocess
 import sys
+import threading
 import time
 import urllib.parse
 import urllib.request
@@ -76,6 +96,8 @@ EVENT_TYPES = (
 CPU = "cpu"
 DEADLINE_S = 180.0
 POLL_S = 2.0
+SETTLE_S = 20.0  # census must stay clean this long (in-flight loads land late)
+WATCH_S = 5.0  # watcher period while the grant holds
 _GPU_TOKENS = {"gpu", "igpu"}
 
 
@@ -179,7 +201,7 @@ def _restore_and_clear(state_path: Path, state: dict) -> bool:
     return True
 
 
-def _apply_cpu_mode(state: dict, state_path: Path) -> None:
+def _apply_cpu_mode(state: dict, state_path: Path, allow_unguarded: bool) -> None:
     cfg = _lemonade("GET", "/internal/config")
     recipes = _lemonade("GET", "/api/v1/system-info").get("recipes", {})
     guarded, unguarded, cpu_recipes = {}, [], set()
@@ -187,11 +209,12 @@ def _apply_cpu_mode(state: dict, state_path: Path) -> None:
         if not (isinstance(val, dict) and "backend" in val):
             continue
         recipe = next((r for r in recipes if r.replace("-", "") == section), section)
-        cpu = recipes.get(recipe, {}).get("backends", {}).get(CPU, {})
-        if cpu.get("state") == "installed":
+        backends = recipes.get(recipe, {}).get("backends", {})
+        installed = {b for b, i in backends.items() if i.get("state") == "installed"}
+        if CPU in installed:
             guarded[section] = val["backend"]
             cpu_recipes.add(recipe)
-        else:
+        elif installed:  # loadable, but only onto a GPU backend
             unguarded.append(section)
     if "llamacpp" not in guarded:
         # Unexpected config shape or no installed cpu backend: a grant would let the fleet
@@ -199,11 +222,16 @@ def _apply_cpu_mode(state: dict, state_path: Path) -> None:
         raise GpuExclusiveRefusedError(
             f"llamacpp backend cannot be redirected to cpu: {cfg.get('llamacpp')!r}"
         )
+    if unguarded and not allow_unguarded:
+        raise GpuExclusiveRefusedError(
+            f"sections {unguarded} have a GPU backend but no installed cpu backend; their "
+            "loads would land on the iGPU. Install the cpu backend or pass allow_unguarded"
+        )
     state.update(globals=guarded, unguarded=unguarded)
     _write_state(state_path, state)  # durable BEFORE the first mutation
     if guarded:
         _lemonade("POST", "/internal/set", {s: {"backend": CPU} for s in guarded})
-    for m in _lemonade("GET", "/api/v1/models").get("data", []):
+    for m in _lemonade("GET", "/api/v1/models?show_all=true").get("data", []):
         if m.get("recipe") not in cpu_recipes:
             continue
         opts = _lemonade("GET", _options_path(m["id"]))
@@ -216,34 +244,70 @@ def _apply_cpu_mode(state: dict, state_path: Path) -> None:
                 _lemonade("POST", _options_path(m["id"]), {key: CPU})
 
 
-def _gpu_residents() -> list[str] | None:
+def _gpu_residents() -> list[dict] | None:
+    """Residents holding the iGPU (hybrid 'gpu npu' included; FLM/NPU-only excluded)."""
     res = hotswap.resident_models_or_none()
     if res is None:
         return None
-    out = []
-    for m in res:
-        tokens = set(str(m.get("device", "")).split())
-        if m.get("recipe") != "flm" and "npu" not in tokens and tokens & _GPU_TOKENS:
-            out.append(m["model_name"])
-    return out
+    return [
+        m
+        for m in res
+        if m.get("recipe") != "flm" and set(str(m.get("device", "")).split()) & _GPU_TOKENS
+    ]
+
+
+def _unload_idle(res: list[dict]) -> int:
+    """Unload non-busy residents; a busy one has live requests and is retried later."""
+    idle = [m["model_name"] for m in res if not m.get("is_busy")]
+    for mid in idle:
+        hotswap.unload(mid)
+    return len(idle)
 
 
 def _clear_gpu(need_gb: float) -> int:
-    """Unload GPU residents until census is clean and memory fits; returns unload count."""
-    deadline, unloaded = time.monotonic() + DEADLINE_S, 0
+    """Unload GPU residents until the census stays clean for SETTLE_S and memory fits."""
+    deadline, unloaded, clean_since = time.monotonic() + DEADLINE_S, 0, None
     while True:
         res, mem = _gpu_residents(), hotswap.free_gb_or_none()
+        now = time.monotonic()
         if res == [] and mem is not None and mem >= need_gb + hotswap.RAM_FLOOR_GB:
-            return unloaded
-        if time.monotonic() >= deadline:
+            clean_since = now if clean_since is None else clean_since
+            if now - clean_since >= SETTLE_S:
+                return unloaded
+        else:
+            clean_since = None
+        if now >= deadline:
+            names = [(m["model_name"], "busy" if m.get("is_busy") else "idle") for m in res or []]
             raise GpuExclusiveRefusedError(
-                f"GPU residents={res} MemAvailable={mem} GB, need {need_gb}+"
+                f"GPU residents={names} MemAvailable={mem} GB, need {need_gb}+"
                 f"{hotswap.RAM_FLOOR_GB} GB floor"
             )
-        for mid in res or []:
-            hotswap.unload(mid)
-            unloaded += 1
+        unloaded += _unload_idle(res or [])
         time.sleep(POLL_S)
+
+
+def _watch(stop: threading.Event, guarded: list[str], stats: dict) -> None:
+    """While the grant holds: re-assert cpu mode, evict late GPU loads, track memory."""
+    while not stop.wait(WATCH_S):
+        try:
+            cfg = _lemonade("GET", "/internal/config")
+            reverted = [s for s in guarded if cfg.get(s, {}).get("backend") != CPU]
+            if reverted:
+                logger.warning("gpu_exclusive: %s reverted from cpu; re-applying", reverted)
+                _lemonade("POST", "/internal/set", {s: {"backend": CPU} for s in reverted})
+                stats["reapplied"] += len(reverted)
+            late = _gpu_residents() or []
+            if late:
+                logger.warning("gpu_exclusive: late GPU residents %s", late)
+                stats["late_unloads"] += _unload_idle(late)
+            mem = hotswap.free_gb_or_none()
+            if mem is not None:
+                cur = stats["min_mem_available_gb"]
+                stats["min_mem_available_gb"] = mem if cur is None else min(cur, mem)
+                if mem < hotswap.RAM_FLOOR_GB:
+                    logger.warning("gpu_exclusive: MemAvailable %.1f GB below floor", mem)
+        except Exception as exc:
+            logger.warning("gpu_exclusive: watcher tick failed: %s", exc)
 
 
 @contextmanager
@@ -258,13 +322,30 @@ def _flock(path: Path) -> Iterator[None]:
         os.close(fd)
 
 
-def recover(state_path: Path) -> bool:
+def _pidns() -> str:
+    try:
+        return os.readlink("/proc/self/ns/pid")
+    except OSError:
+        return ""
+
+
+def recover(state_path: Path, force: bool = False) -> bool:
     """Restore a crashed holder's settings. Caller must hold the flock."""
     if not state_path.exists():
         return True
     state = json.loads(state_path.read_text())
     pgid = state.get("child_pgid")
-    if pgid:
+    if pgid and not force and (not state.get("pidns") or state.get("pidns") != _pidns()):
+        # Another pid namespace: killpg cannot see the job, so liveness is UNKNOWN.
+        logger.error(
+            "gpu_exclusive: crashed holder's job %s ran in pid namespace %s (here %s); "
+            "keeping cpu mode - use --recover --force once the job is known gone",
+            pgid,
+            state.get("pidns"),
+            _pidns(),
+        )
+        return False
+    if pgid and not force:
         try:
             os.killpg(int(pgid), 0)
         except ProcessLookupError:
@@ -282,7 +363,7 @@ def recover(state_path: Path) -> bool:
 
 
 @contextmanager
-def gpu_exclusive(holder: str, need_gb: float) -> Iterator[dict]:
+def gpu_exclusive(holder: str, need_gb: float, allow_unguarded: bool = False) -> Iterator[dict]:
     lock_path, state_path = Path(LOCK_PATH), Path(STATE_PATH)
     base = {"holder": holder, "need_gb": need_gb, "pid": os.getpid()}
     emit("gpu_exclusive_requested", base)
@@ -293,33 +374,43 @@ def gpu_exclusive(holder: str, need_gb: float) -> Iterator[dict]:
         state: dict = {**base, "started": time.time(), "globals": {}, "models": {}}
         gtt_before = _gtt_used_gb()
         try:
-            _apply_cpu_mode(state, state_path)
+            _apply_cpu_mode(state, state_path, allow_unguarded)
             unloaded = _clear_gpu(need_gb)
-        except Exception as exc:
+        except BaseException as exc:  # SIGTERM/SIGHUP (SystemExit), Ctrl-C included
             restored = _restore_and_clear(state_path, state)
-            emit("gpu_exclusive_refused", {**base, "reason": str(exc), "restored": restored})
-            if isinstance(exc, GpuExclusiveRefusedError):
+            emit("gpu_exclusive_refused", {**base, "reason": repr(exc), "restored": restored})
+            if isinstance(exc, GpuExclusiveRefusedError) or not isinstance(exc, Exception):
                 raise
             raise GpuExclusiveRefusedError(str(exc)) from exc
         info = {
             **base,
             "unloaded": unloaded,
             "unguarded": state.get("unguarded", []),
+            "allow_unguarded": allow_unguarded,
+            "memory_reserved": False,  # need_gb checked at grant only; see module doc
             "gtt_used_gb_before": gtt_before,
             "gtt_used_gb_after": _gtt_used_gb(),
         }
 
         def record_child(pgid: int) -> None:
-            state["child_pgid"] = pgid
+            state.update(child_pgid=pgid, pidns=_pidns())
             _write_state(state_path, state)
 
         logger.info("gpu_exclusive: granted %s", info)
         emit("gpu_exclusive_granted", info)
+        stop = threading.Event()
+        stats = {"late_unloads": 0, "reapplied": 0, "min_mem_available_gb": None}
+        watcher = threading.Thread(
+            target=_watch, args=(stop, list(state["globals"]), stats), daemon=True
+        )
+        watcher.start()
         try:
-            yield {**info, "record_child": record_child}
+            yield {**info, "record_child": record_child, "watch": stats}
         finally:
+            stop.set()
+            watcher.join()  # never let a tick re-flip a setting after restore
             restored = _restore_and_clear(state_path, state)
-            emit("gpu_exclusive_released", {**base, "restored": restored})
+            emit("gpu_exclusive_released", {**base, **stats, "restored": restored})
 
 
 def parse_duration(text: str) -> float:
@@ -351,18 +442,20 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--need-gb", type=float)
     p.add_argument("--max-hold", default="6h")
     p.add_argument("--recover", action="store_true", help="only restore a crashed state")
+    p.add_argument("--force", action="store_true", help="with --recover: ignore job liveness")
+    p.add_argument("--allow-unguarded", action="store_true", help="grant despite GPU-only recipes")
     p.add_argument("cmd", nargs=argparse.REMAINDER)
     args = p.parse_args(argv)
     if args.recover:
         with _flock(Path(LOCK_PATH)):
-            return 0 if recover(Path(STATE_PATH)) else 1
+            return 0 if recover(Path(STATE_PATH), force=args.force) else 1
     cmd = args.cmd[1:] if args.cmd[:1] == ["--"] else args.cmd
     if not (args.holder and args.need_gb is not None and cmd):
         p.error("--holder, --need-gb and a command after -- are required")
     for sig in (signal.SIGTERM, signal.SIGHUP):
         signal.signal(sig, _raise_exit)
     try:
-        with gpu_exclusive(args.holder, args.need_gb) as info:
+        with gpu_exclusive(args.holder, args.need_gb, args.allow_unguarded) as info:
             proc = subprocess.Popen(cmd, start_new_session=True, close_fds=True)
             info["record_child"](proc.pid)
             try:
