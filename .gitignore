@@ -367,3 +367,7 @@ run_stats.csv
 scorer_pkg/
 secondary_seed_weights/
 
+
+# Personal job-application materials stay out of this public repo
+docs/application/
+docs/career/

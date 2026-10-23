@@ -230,6 +230,7 @@ def main():
     }
 
     out_file = repo_root / "docs/career/anthropic_universes_empirical_evidence_100k.json"
+    out_file.parent.mkdir(parents=True, exist_ok=True)
     out_file.write_text(json.dumps(output_data, indent=2))
     print(f"Saved dataset to {out_file}")
 

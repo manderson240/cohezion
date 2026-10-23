@@ -33,7 +33,7 @@ test:  ## Run test suite
 	uv run pytest tests/
 	@echo "✓ Tests complete"
 
-resume:  ## Re-verify the Anthropic Universes living resume (docs/anthropic-universes-fit.md)
+resume:  ## Re-verify capability claims live and write docs/resume_receipt.json
 	uv run python scripts/resume_verify.py --receipt
 	@echo "✓ Resume receipt refreshed: docs/resume_receipt.json"
 
