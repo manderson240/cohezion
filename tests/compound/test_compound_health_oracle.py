@@ -94,8 +94,15 @@ class TestCH2HihoOk:
 
         # May not be HIHO on every run (depends on FD) — only assert if regime is HIHO
         if last and last.regime is FractalRegime.HIHO:
-            assert last.alert_level == "ok"
-            assert last.alerts == []
+            # The FD regime is shape-only; quality statistics decide the alert
+            # (tests/compound/test_health_oracle_quality_stats.py). This seed's last window
+            # genuinely falls ~0.55 -> ~0.29, so a quality-DEGRADING critical is correct here;
+            # what HIHO itself must never produce is a regime-derived warn.
+            if last.alert_level == "critical":
+                assert last.alerts and "quality DEGRADING" in last.alerts[0]
+            else:
+                assert last.alert_level == "ok"
+                assert last.alerts == []
         # else: regime depends on the random walk — not every 40-score sequence hits HIHO
 
     def test_ok_assessment_direct_synthesis(self) -> None:
