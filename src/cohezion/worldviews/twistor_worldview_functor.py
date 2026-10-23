@@ -168,7 +168,7 @@ class TwistorWorldviewFunctor:
                 "hiho_step_helicity": hiho_step.twistor_helicity,
             },
         )
-        self.persistence.persist(witness_mark)
+        precipitated = self.persistence.persist(witness_mark)
         logger.info("✨ Phase 2 Alignment witness mark precipitated to Vault & SurrealDB spool!")
 
         return {
@@ -178,7 +178,7 @@ class TwistorWorldviewFunctor:
             "duration_ms": round(duration_ms, 2),
             "step_geodesics": step_geodesics,
             "hiho_step_conformal": hiho_null,
-            "vault_moc": f"/home/mike-anderson/vaults/cohezion-vault/00-MOCs/compound_{witness_mark.mark_id}.md",
+            "vault_moc": precipitated["vault_path"],
         }
 
 

@@ -18,6 +18,21 @@ from pathlib import Path
 logger = logging.getLogger(__name__)
 
 
+def _is_lfs_pointer(path: Path) -> bool:
+    """True when ``path`` holds a Git LFS pointer rather than the object it stands for.
+
+    A checkout without ``git lfs pull`` (CI runners, fresh clones) leaves a ~130-byte
+    text file where the checkpoint should be; ``torch.load`` then fails with an
+    UnpicklingError that reads like corruption. Treating the pointer as "absent" keeps
+    the random-weights fallback path, which every caller already handles.
+    """
+    try:
+        with path.open("rb") as fh:
+            return fh.read(64).startswith(b"version https://git-lfs.github.com/spec")
+    except OSError:
+        return False
+
+
 def compute_coherence(z: list[float], z_dim: int = 256) -> float:
     """Compute HIHO coherence: 1.0 at mean=0.5, decays with variance."""
     import numpy as np
@@ -52,7 +67,7 @@ def get_vae():
 
         trainer = FlumeVAETrainer()
         ckpt_path = Path("data/flume/checkpoints/flume_vae_ep50.pt")
-        if ckpt_path.exists():
+        if ckpt_path.exists() and not _is_lfs_pointer(ckpt_path):
             try:
                 ckpt = torch.load(ckpt_path, weights_only=True)
                 trainer.encoder.load_state_dict(ckpt["encoder"])
@@ -87,12 +102,14 @@ def get_rl_policy():
 
         policy = PolicyNetwork(state_dim=256, action_dim=256, hidden=128)
         ckpt_path = Path("data/rl/checkpoints/policy_final.pt")
-        if ckpt_path.exists():
+        if ckpt_path.exists() and not _is_lfs_pointer(ckpt_path):
             policy.load_state_dict(torch.load(ckpt_path, map_location="cpu", weights_only=True))
             policy.eval()
             logger.info("Loaded RL policy from %s", ckpt_path)
         else:
-            logger.warning("No RL checkpoint at %s — using random policy", ckpt_path)
+            logger.warning(
+                "No RL checkpoint (or only an LFS pointer) at %s — using random policy", ckpt_path
+            )
         api_module._rl_policy = policy
     return api_module._rl_policy
 

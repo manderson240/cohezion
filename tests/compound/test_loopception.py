@@ -25,6 +25,13 @@ import pytest
 # ── G15 structural ────────────────────────────────────────────────────────────
 
 
+_DAEMON_PATH = pathlib.Path.home() / "cohezion-labs" / "compound_daemon.py"
+
+
+@pytest.mark.skipif(
+    not _DAEMON_PATH.exists(),
+    reason="compound_daemon.py lives in the external cohezion-labs checkout, absent here",
+)
 class TestG15Structural:
     """T1: run_batch() must use LoopCoordinator, not raw subprocess."""
 

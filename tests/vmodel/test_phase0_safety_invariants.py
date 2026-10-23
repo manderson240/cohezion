@@ -60,5 +60,11 @@ class TestSR1SafetyInvariants:
     def test_sr1_4_can_load_model_accepts_live_system(self):
         """On the live Strix Halo with >16GB free, a 5GB model is safe to load."""
         guard = ResourceGuard()
+        available_mb = guard.get_vitals().ram_available_mb
+        needed_mb = 16384 + 5000 + 2048  # N3 floor + model + the guard's margin
+        if available_mb < needed_mb:
+            pytest.skip(
+                f"live probe needs {needed_mb}MB free to be meaningful, host has {available_mb}MB"
+            )
         ok, reason = guard.can_load_model(estimated_mb=5000)
         assert ok, f"Live system rejected 5GB load: {reason}"

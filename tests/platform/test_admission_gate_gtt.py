@@ -47,7 +47,12 @@ class TestGTTHeadroom:
 
     def test_allows_gpu_load_with_gtt_headroom(self):
         gate = _gate(read_gtt=lambda: (30.0, 96.0))
-        with patch("cohezion.platform.admission_gate.check_oom_risk") as risk:
+        # The budget is min(ceiling, MemTotal); on a 16 GB runner it collapses to 13.3 GB
+        # and the test measures the host, not the gate. Pin MemTotal to the Strix Halo.
+        with (
+            patch("cohezion.platform.admission_gate._mem_total_gb", return_value=122.8),
+            patch("cohezion.platform.admission_gate.check_oom_risk") as risk,
+        ):
             risk.return_value.safe = True
             risk.return_value.footprint_gb = 20.0
             risk.return_value.reason = "within memory budget"

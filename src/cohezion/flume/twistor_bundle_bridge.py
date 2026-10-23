@@ -184,7 +184,7 @@ class TwistorBundleBridge:
                 "pairwise_distances": distances,
             },
         )
-        self.persistence.persist(witness_mark)
+        precipitated = self.persistence.persist(witness_mark)
 
         return {
             "status": "PHASE_1_DISSOLUTION_COMPLETE",
@@ -192,5 +192,5 @@ class TwistorBundleBridge:
             "modules_count": len(dissolved_states),
             "lightcone_conformity_pct": conformity_pct,
             "mean_hyperbolic_distance": round(float(np.mean(distances)), 4) if distances else 0.0,
-            "vault_moc": f"/home/mike-anderson/vaults/cohezion-vault/00-MOCs/compound_{witness_mark.mark_id}.md",
+            "vault_moc": precipitated["vault_path"],
         }
