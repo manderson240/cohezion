@@ -203,11 +203,14 @@ def make_local_execute_fn(task_description: str = "", context_prefix: str = "", 
         # Priority: injected inference_provider > caller-supplied orchestrator > module singleton
         orch = inference_provider or orchestrator or _get_orchestrator()
         # Normalize guidance: executor may pass a dict from get_experience_guidance().
-        # str(dict) produces repr noise in the prompt; extract the human-readable text.
-        if isinstance(guidance, dict):
-            guidance_text = guidance.get("guidance", "") or ""
-        else:
-            guidance_text = str(guidance) if guidance else ""
+        # str(dict) produces repr noise in the prompt; flatten it -- INCLUDING the skill's
+        # "## Learned Refinement" sections, which is the only way SkillRefiner output ever
+        # reaches a model (see refinement_reader.guidance_to_prompt_text).
+        from cohezion.compound.executor_helpers.refinement_reader import (
+            guidance_to_prompt_text,
+        )
+
+        guidance_text = guidance_to_prompt_text(guidance)
         parts = [p for p in [context_prefix, guidance_text, task_description] if p]
         prompt = "\n\n".join(parts).strip()
         # Lever 1 (correctness-review fix): override the orchestrator's escalation floor with the

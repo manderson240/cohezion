@@ -263,6 +263,11 @@ class SkillRefiner:
                 attempted and fails open to the existing generic template).
         """
         self.mcp_client = mcp_client
+        # Writer side of the COHEZION_SKILLS_DIR override (reader side: refinement_reader).
+        # Instance attribute shadows the class default; the repo dir stays the default.
+        from cohezion.compound.executor_helpers.refinement_reader import resolve_skills_dir
+
+        self.SKILLS_DIR = resolve_skills_dir(type(self).SKILLS_DIR)
         # A1 (option b): bound the EXPENSIVE refinement chain (drift/regression/shadow-canary/
         # adversarial + PRIME mutation) to 1-in-N successes. Default 1 = run every reached
         # refine (unchanged behavior); the production factory sets it >1 to cap hot-path cost.

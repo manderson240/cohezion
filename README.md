@@ -11,7 +11,7 @@
 [![License](https://img.shields.io/badge/license-AGPL--3.0-blue.svg)](LICENSE)
 [![AMD Native](https://img.shields.io/badge/inference-AMD%20NPU%20%2F%20iGPU%20%2F%20CPU-red)](https://www.amd.com/en/products/processors/consumer/ryzen/ai.html)
 
-**The compound AI engine that gets smarter every session.**
+**The compound AI engine built to get smarter every session** — and the [measurement](docs/benchmarks/compound_loop/README.md) that checks whether it does.
 
 Cohezion is an open-source platform for compound AI orchestration — a self-improving loop where 182 version-controlled skills compound across sessions, agents learn inside a physics-grounded 12D manifold, and the entire inference stack runs locally on AMD hardware with **no per-token API costs**.
 
@@ -25,7 +25,7 @@ Cohezion is an open-source platform for compound AI orchestration — a self-imp
 
 | Other AI Frameworks | Cohezion |
 |---|---|
-| Each session starts fresh | **182 skills compound** — session N+1 builds on session N |
+| Each session starts fresh | **Skill files persist across sessions and the loop can refine them** — whether that compounds is [measured, not assumed](docs/benchmarks/compound_loop/README.md) |
 | Assumes NVIDIA GPU | **AMD-first**: XDNA2 NPU (42 TPS) + iGPU + CPU, no CUDA |
 | Cloud API = cost per token | **No per-token API fees** — local inference via the Lemonade router at `:13305` |
 | Safety = penalty terms in reward | **Safety = physics** — the Lagrangian attractor makes unsafe actions fight the dynamics |
@@ -75,6 +75,8 @@ Execute (CompoundExecutor 11-step pipeline)
 
 182 PRIME skill definitions in [`src/cohezion/skills/`](src/cohezion/skills/) are the accumulated output of 100+ development sessions — version-controlled, keyword-indexed, and auto-discoverable. Run the cycle: `uv run python scripts/drivers/compound_cycle.py`
 
+**Does the loop actually compound?** [`docs/benchmarks/compound_loop/`](docs/benchmarks/compound_loop/README.md) is a three-arm, falsifiable test of exactly that: refinement on, skill frozen, and a placebo that grows the skill by the same number of sections with untargeted text, all on the local NPU at temperature 0. Committed run (2026-10-23, `llama3.2-1b-FLM`, 1B parameters, 15 scored tasks, 4 of 6 planned sessions, promotion gates fail-open): pooled pass rate over measured sessions **0.88 with refinement, 0.92 with placebo, 0.50 frozen**. Growing the skill file helps this small model under its token cap; the refiner's content showed no advantage over the placebo, so the compounding claim is **not supported by this run** (underpowered, so not refuted either; the write-up lists every caveat). The benchmark also found and fixed the reason refinements never reached a prompt before. Reproduce: `uv run python scripts/experiments/compound_loop_evidence.py --model llama3.2-1b-FLM --max-tokens 96 --sessions 6`.
+
 ---
 
 ### Physics-Grounded Agent Safety
@@ -105,7 +107,7 @@ executor = make_executor(mcp_client)  # wires Lemonade → SemanticCache → Com
 result = await executor.execute_task("Your task here")
 ```
 
-Semantic cache (L1 hash + L2 cosine + L3 vault) has reached **95%+ hit rates in internal runs** on repeat workloads, dramatically reducing repeat inference cost.
+The semantic cache (L1 exact hash + L2 cosine similarity + L3 vault) short-circuits repeat prompts before any model call. Its L2 threshold is tuned by [`scripts/calibration/run_cache_calibration.py`](scripts/calibration/run_cache_calibration.py); no hit-rate figure is published here because none has been measured on a committed, reproducible workload yet.
 
 ---
 
@@ -138,7 +140,7 @@ graph TD
 |---|---|---|
 | **Compound Loop** | `compound/` — Executor, SkillRefiner, RetrospectionEngine, JourneyTracker | `CompoundExecutor` |
 | **Swarm** | `swarm/` — TeamOrchestrator, CostAwareRouter, OI-MAS scoring | `CostAwareRouter` |
-| **Semantic Cache** | `cache/` — L1 hash + L2 cosine + L3 vault, 95%+ hit rate | `SemanticCache` |
+| **Semantic Cache** | `cache/` — L1 hash + L2 cosine + L3 vault | `SemanticCache` |
 | **Physics Engine** | `physics/` — SU(2) spinors, Lagrangian, fiber bundles, gauge theory, cosmogony | `SpinorState` |
 | **RL Environments** | `environments/` — ManifoldEnv (19D obs), SwarmEnv (multi-agent gauge coupling) | `gym.make('Cohezion/ManifoldEnv-v0')` |
 
@@ -232,6 +234,26 @@ The full agent contract, specialist routing table, and coding standards live in
 [CLAUDE.md](CLAUDE.md) — start there if you develop with an AI coding agent.
 
 ---
+
+## Verify it yourself
+
+Three commands, no credentials. The first two run offline in under a minute; the third needs the local Lemonade router at `:13305` and takes a few minutes (the full benchmark it gates takes 30-60 minutes on an idle NPU).
+
+```bash
+uv run python examples/quickstart.py
+# -> 10 ManifoldEnv steps, "episode summary: 11 positions visited", then
+#    "Quickstart complete. No network, credentials, or local inference were used." (exit 0)
+
+make validate
+# -> one "[PASS] ..." line per compound-loop check and "Completed in N s", exit 0
+#    (the SurrealDB and vault checks report their own status; a missing service is a visible line, not a crash)
+
+uv run python scripts/experiments/compound_loop_evidence.py --calibrate --models llama3.2-1b-FLM --max-tokens 96
+# -> per-task +/- lines and "[calibrate] llama3.2-1b-FLM max_tokens=96: pass=... -> IN BAND"
+#    The committed calibration measured 0.625; this backend is not bit-reproducible at temperature 0,
+#    so expect roughly 0.4-0.7. Add --model llama3.2-1b-FLM --sessions 6 (without --calibrate) for the
+#    full three-arm run; it exits 1 when the claim is not supported, which is the committed result.
+```
 
 ## Development
 

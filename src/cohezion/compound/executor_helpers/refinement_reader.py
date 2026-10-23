@@ -14,14 +14,51 @@ refinements must never break guidance fetching.
 from __future__ import annotations
 
 import logging
+import os
 import re
 from pathlib import Path
+from typing import Any
 
 
 logger = logging.getLogger(__name__)
 
 # Mirrors SkillRefiner.SKILLS_DIR (skill_refiner.py lives one level up).
 _SKILLS_DIR = Path(__file__).parent.parent.parent / "skills"
+
+# Env override shared with SkillRefiner so reader and writer agree on ONE directory.
+# Set by benchmarks (docs/benchmarks/compound_loop) to run the loop against an isolated
+# copy of a skill instead of mutating the repo's PRIME files.
+SKILLS_DIR_ENV = "COHEZION_SKILLS_DIR"
+
+
+def resolve_skills_dir(default: Path | None = None) -> Path:
+    """Skills directory: ``$COHEZION_SKILLS_DIR`` when set, else ``default`` / repo dir."""
+    override = os.environ.get(SKILLS_DIR_ENV)
+    if override:
+        return Path(override)
+    return default if default is not None else _SKILLS_DIR
+
+
+def guidance_to_prompt_text(guidance: Any) -> str:
+    """Flatten an experience-guidance dict into the text an execute_fn puts in its prompt.
+
+    Until 2026-10-22 ``make_local_execute_fn`` read only ``guidance["guidance"]`` -- a key
+    ``fetch_experience_guidance`` never sets -- so the ``learned_refinements`` it DOES set
+    reached no prompt: the SkillRefiner loop was open at its consumption point. This is the
+    single place that decides what a refinement looks like inside a prompt.
+    """
+    if guidance is None:
+        return ""
+    if not isinstance(guidance, dict):
+        return str(guidance)
+    parts: list[str] = []
+    base = guidance.get("guidance") or ""
+    if base:
+        parts.append(str(base))
+    sections = guidance.get("learned_refinements") or []
+    parts.extend(str(s) for s in sections if s)
+    return "\n\n".join(parts)
+
 
 # Section heading written by SkillRefiner._create_refinement_section().
 _REFINEMENT_HEADING_RE = re.compile(r"^## Learned Refinement \(.*?\)\s*$", re.MULTILINE)
@@ -64,7 +101,7 @@ def load_refined_guidance(
         Empty list on missing skill/file or any read error (fail-open).
     """
     try:
-        base_dir = skills_dir if skills_dir is not None else _SKILLS_DIR
+        base_dir = skills_dir if skills_dir is not None else resolve_skills_dir()
         prime_file = _find_prime_file(skill_name, base_dir)
         if prime_file is None:
             return []
