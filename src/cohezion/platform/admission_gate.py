@@ -1,157 +1,198 @@
-"""Byte-aware admission gate for the lemonade router — the missing PREVENT half of OOM.
+"""Thin admission gate for the lemonade router: one check Lemonade cannot do itself.
 
-The 08-31 double hard-freeze trigger: lemond auto-loads any requested model with a
-COUNT-based cap (max_models) that cannot bound bytes, and its config is ephemeral. The
-landed guard actuator (session_monitor) can claw memory BACK; nothing refuses the load
-up front. This module is that refusal: a thin ASGI proxy that takes :13305 (clients and
-invariant N1 unchanged), forwards to lemond on an internal port, and refuses any request
-that would trigger a load the box cannot afford.
+Lemonade and GAIA already manage the fleet: idle eviction, per-type slot caps, a RAM-gated
+``pull``, ``auto_evict``, and GAIA's own free-memory check. What neither sees is the
+``lemond.service`` cgroup. Every model lemond starts (llama-server, flm) is charged to it,
+and past its ``memory.high`` the kernel throttles EVERY model in it, NPU included
+(GEMS LESSONS 22, 2026-10-15: one 26B CPU probe stalled the fleet while system RAM looked
+fine). This gate refuses a load that would cross that line, and nothing else.
 
 Decision rules (in order):
-  1. No model named in the request -> forward (GETs, health, admin).
-  2. Model already resident -> forward (reuse needs no new memory; blocking a resident
-     model deadlocks the task queue — the 2026-07-19 lesson in check_oom_risk).
-  3. HARD FLOOR: available RAM below ``floor_gb`` -> refuse ALL non-resident loads,
-     TIER-BLIND. The 08-31 killer was an FLM/NPU model — 'NPU is UMA-safe' is falsified
-     as an admission rule; below the floor nothing new loads.
-  4. Byte budget: ``check_oom_risk`` (footprint resolved, never 0.0 for unknowns,
-     + RAM_LOAD_BUFFER_GB) decides.
+  1. Request names no model, or is not load-triggering (unload/delete/pull) -> forward.
+  2. Model already resident -> forward (reuse maps nothing new).
+  3. lemond working set + the model's catalog size > 90% of memory.high -> refuse.
+  4. Otherwise forward; Lemonade decides the rest.
 
-Fail postures, chosen deliberately:
-  - Residency unreadable (health blocks during load — exactly the emergency) -> assume
-    NON-resident. 'Cannot see' is never a pass.
-  - /proc/meminfo unreadable -> fail OPEN with a 'blind' flag: refusing everything on a
-    proc hiccup takes the whole fleet down; telemetry sees the blind state instead.
+Fail open when the cgroup is unreadable (a static sysfs read that does not stall). Fail
+CLOSED when the model's size is unknown: lemonade's /api/v1/models stalls while a model is
+loading, which is exactly when other loads arrive. On 2026-10-21 a fail-open size lookup let
+a 16.9 GB CPU model through and throttle events rose 3,237 -> 4,558. Catalog sizes are static,
+so they are cached and a stalled catalog only matters for a model never seen before.
 
-TRUST BOUNDARY (council finding: Direct-to-Backend Bypass): lemond spawns per-model
-llama-server backends on their own localhost ports (:8002, :8003, ...). Those ports are
-reachable AROUND this proxy by any same-host process, and requests to a resident backend
-do not trigger loads — but ``lemond``'s own port, once moved internal, is equally
-reachable. This gate therefore bounds WELL-BEHAVED clients (everything that talks to
-:13305) and makes the bypass surface auditable via :func:`audit_bypass_paths`; it does
-not and cannot sandbox hostile same-host processes.
+TRUST BOUNDARY: lemond's per-model backends listen on their own localhost ports, reachable
+around this proxy. The gate bounds well-behaved clients (everything on :13305) and makes
+the bypass surface auditable via :func:`audit_bypass_paths`.
 
-Config persistence (council finding: Cold-Boot Cap Persistence): every parameter is read
-from the environment at construction — the systemd unit is the persistence layer. The
-config object is frozen; there is no runtime mutation to lose on restart.
-
-Deployment: scripts/cohezion-admission-gate.service + docs/ops/admission-gate-cutover.md.
+Config is read from the environment at construction (the systemd unit persists it).
+Removed 2026-10-21 (user decision: use Lemonade and GAIA as they are): the name-based
+aperture guard, which refused models by name and even refused unloads; the RAM floor,
+swap-percent and PSI checks, which duplicated the kernel and Lemonade; GTT caps; and the
+curated byte budget, replaced by Lemonade's catalog size.
 """
 
 from __future__ import annotations
 
+import contextlib
 import logging
 import os
 import pathlib
+import threading
 import time
+from collections import deque
 from collections.abc import Callable
 from dataclasses import dataclass
 
+import httpx
+
 from cohezion.compound.oom_guard import (
-    ComputeTier,
-    _mem_total_gb,
-    _resolve_tier,
-    check_oom_risk,
+    MODEL_FOOTPRINT_GB,
+    _kv_reservation_gb,
     fetch_loaded_models,
-    model_matches_loaded_entry,
     normalize_model_name,
 )
 
 
 logger = logging.getLogger(__name__)
 
-DEFAULT_FLOOR_GB = 16.0  # the N3 operational floor; below it nothing new loads
 DEFAULT_UPSTREAM = "http://127.0.0.1:13315"
 DEFAULT_LISTEN_PORT = 13305
 RESIDENT_CACHE_TTL_S = 1.5  # bound per-request health fetches on the hot path
-# Refuse UMA loads that would push GTT past this fraction of the ceiling. GTT is
-# uncgroupable and unreclaimable — the kernel OOM killer never sees it (08-15/08-31
-# root cause), so the RAM floor alone cannot bound it. 0.85 of the (post-reboot)
-# 96 GiB ceiling leaves ~14 GiB of GTT slack for compute buffers and fragmentation.
-GTT_HEADROOM_FRACTION = 0.85
-# Request-body keys that name a model; presence of any makes a request load-triggering.
-_MODEL_KEYS = ("model", "model_name")
+# An admitted load holds its footprint until the model shows up as resident (its memory is
+# then in the cgroup reading) or this expires. Without it, concurrent requests each see the
+# same headroom and all pass.
+RESERVATION_TTL_S = 180.0
+# A positive residency answer stays usable this long: /api/v1/health blocks while any model
+# loads, and losing "resident" then re-prices chats to already-loaded models as fresh loads.
+RESIDENT_LAST_GOOD_S = 60.0
+# The catalog is refreshed in the background (it stalls under load, so never on the hot
+# path). A name missing from a catalog younger than this is unknown to lemonade itself.
+CATALOG_FRESH_S = 300.0
+CATALOG_REFRESH_S = 120.0
+CATALOG_RETRY_S = 15.0
+_WALK_MAX_NODES = 5000
+LEMOND_CGROUP = pathlib.Path("/sys/fs/cgroup/system.slice/lemond.service")
+CGROUP_HIGH_FRACTION = 0.9
+# Routes that name a model but never load one: freeing memory must never be refused, and
+# lemonade budgets its own downloads (pull refuses below size + 8 GB available).
+_NON_LOAD_ROUTES = frozenset(
+    f"{prefix}{verb}"
+    for prefix in ("api/v1/", "v1/", "api/v0/")
+    for verb in ("unload", "delete", "pull")
+)
 
 
-def _sum_drm(kind: str) -> float:
-    return sum(
-        float(p.read_text().strip())
-        for p in pathlib.Path("/sys/class/drm").glob(f"card*/device/mem_info_gtt_{kind}")
-    ) / (1024.0**3)
+def read_lemond_cgroup_gb() -> tuple[float, float] | None:
+    """(working_set_gb, memory_high_gb) for lemond's cgroup, or None.
 
-
-def read_gtt_usage_gb() -> tuple[float, float] | None:
-    """(used_gb, total_gb) summed across DRM cards, or None when unreadable.
-
-    Same sysfs source the guard actuator polls; unreadable telemetry fails OPEN at
-    the caller (the blind-memory doctrine: a probe hiccup must not down the fleet).
+    Working set = anon + min(shmem + file_mapped, file): an upper bound on memory the
+    kernel cannot drop to stay under memory.high. That set is anon + shmem + mapped regular
+    file pages. ``file_mapped`` counts mapped shmem too, and ``file`` counts all shmem, so
+    mapped regular pages are at most min(file_mapped, file - shmem). memory.stat has no field
+    for mapped shmem, so this bound is the tightest one it allows.
+    It is exact when no unmapped cache sits in ``file`` beside the mapped pages, and safe
+    when it is not. ``amdxdna`` pins NPU buffers with drm_gem_shmem_pin whether or not anything maps
+    them, so anon + max(shmem, file_mapped) would under-count pinned NPU shmem beside
+    mmap'd GGUF weights and admit a load that throttles every model.
+    Measured 2026-10-22 with an FLM model resident: anon 6.25, shmem 7.21, file_mapped 9.13,
+    file 13.79 GB. The old anon + shmem + file_mapped read 22.6 GB against a whole-cgroup
+    charge of 20.12 GB and refused a 6.8 GB load that fit; this reads 20.04 GB.
+    Policy on reclaimable page cache: unmapped file cache does NOT count against admission.
+    Under memory.high the kernel drops clean unmapped cache first, cheaply; what throttles
+    every model is pressure on memory it cannot drop. After a model is unloaded its weights
+    stay on the ACTIVE file list (16.9 GB measured 2026-10-21), so counting cache
+    (``memory.current - inactive_file``) would refuse every load. The bound above counts
+    cache only where memory.stat cannot rule out that it is mapped: in the measured FLM
+    state it equals anon + file (20.04 of the 20.12 GB charge). That is the price of having
+    no mapped-shmem field, and it errs toward refusing. The result is clamped to
+    ``memory.current`` (read separately, so an unload between the two reads cannot leave
+    the figure above the charge).
+    None when the cgroup is unreadable or has no memory.high (fail open).
     """
     try:
-        used, total = _sum_drm("used"), _sum_drm("total")
-    except (OSError, ValueError):
+        high_raw = (LEMOND_CGROUP / "memory.high").read_text().strip()
+        if high_raw == "max":
+            return None
+        stat: dict[str, int] = {}
+        for line in (LEMOND_CGROUP / "memory.stat").read_text().splitlines():
+            key, _, value = line.partition(" ")
+            if key in ("anon", "shmem", "file_mapped", "file"):
+                stat[key] = int(value)
+        working_set = stat["anon"] + min(stat["shmem"] + stat["file_mapped"], stat["file"])
+    except (OSError, ValueError, KeyError):
         return None
-    if total <= 0.0:
-        return None
-    return used, total
+    # No readable charge to clamp against: the stat-based figure stands.
+    with contextlib.suppress(OSError, ValueError):
+        working_set = min(working_set, int((LEMOND_CGROUP / "memory.current").read_text()))
+    return working_set / (1024.0**3), int(high_raw) / (1024.0**3)
 
 
-def _npu_like(model_name: str) -> bool:
-    """True for loads that draw no GTT: curated NPU tier, or FLM-recipe by naming
-    convention (all 37 catalog FLM entries end in ``-FLM``; MODEL_TIER names only 3)."""
-    return _resolve_tier(model_name) is ComputeTier.NPU or normalize_model_name(
-        model_name
-    ).lower().endswith("-flm")
+def is_load_path(path: str) -> bool:
+    """False only for the exact routes that name a model but cannot load one."""
+    return path.strip("/").lower() not in _NON_LOAD_ROUTES
 
 
-def read_available_gb_strict() -> float:
-    """MemAvailable in GB, RAISING on failure — never a fabricated number.
+def models_named(body: object) -> list[str]:
+    """Every model a parsed request names, in order, without duplicates.
 
-    Deliberately NOT oom_guard.get_available_ram_gb: MemorySnapshot.capture swallows
-    every exception and returns available_gb=20.0, which (being above the 16 GB floor)
-    would make the gate silently approve loads on ZERO real information exactly when
-    /proc reads fail under livelock. The gate's blind fail-open must be VISIBLE, so its
-    reader must be allowed to fail (adversarial review 2026-09-01, HIGH-1).
+    Collects string values under any key containing "model" or named "checkpoint", at any
+    depth, through lists (JSON-RPC batches) and dicts (MCP ``params.arguments``). Keys, not
+    values, select: a chat message that merely mentions a model name is not a load.
     """
-    info: dict[str, int] = {}
-    for line in pathlib.Path("/proc/meminfo").read_text().splitlines():
-        if ":" in line:
-            k, v = line.split(":", 1)
-            info[k.strip()] = int(v.split()[0])  # kB
-    return info["MemAvailable"] / (1024**2)
+    found: list[str] = []
+    queue: deque[object] = deque([body])
+    seen = 0
+    while queue and seen < _WALK_MAX_NODES:
+        node = queue.popleft()
+        seen += 1
+        if isinstance(node, dict):
+            for key, value in node.items():
+                k = str(key).lower()
+                if isinstance(value, str):
+                    if value and ("model" in k or k == "checkpoint") and value not in found:
+                        found.append(value)
+                elif isinstance(value, (dict, list)):
+                    queue.append(value)
+        elif isinstance(node, list):
+            queue.extend(node)
+    return found
+
+
+def extract_model_name(body: object) -> str | None:
+    """The first model a request names (see :func:`models_named`)."""
+    names = models_named(body)
+    return names[0] if names else None
+
+
+def _resident_match(model_name: str, entry: dict[str, object]) -> bool:
+    """Exact match on the entry's name or its checkpoint stem; never a substring."""
+    want = normalize_model_name(model_name).lower()
+    name = normalize_model_name(str(entry.get("model_name", ""))).lower()
+    stem = str(entry.get("checkpoint", "")).lower().split(":")[0].rsplit("/", 1)[-1]
+    return bool(want) and want in (name, stem)
 
 
 @dataclass(frozen=True)
 class GateConfig:
-    """Frozen gate parameters. Persistence = the environment (systemd unit), re-read at
-    every construction; runtime state can neither change nor outlive a restart."""
+    """Frozen gate parameters, re-read from the environment at every construction."""
 
-    floor_gb: float = DEFAULT_FLOOR_GB
     enforce: bool = True
     upstream_base: str = DEFAULT_UPSTREAM
     health_timeout_s: float = 2.0
 
     @classmethod
     def from_env(cls) -> GateConfig:
-        # Floor fallback chain keeps the gate and the resource guard (session_monitor's
-        # N3_FLOOR_GB) on ONE floor unless deliberately split — two floors that drift
-        # produce admit-at-16/evict-at-24 flapping in the band between them.
-        floor = os.environ.get(
-            "COHEZION_ADMISSION_FLOOR_GB",
-            os.environ.get("COHEZION_RESOURCE_FLOOR_GB", str(DEFAULT_FLOOR_GB)),
-        )
         enforce_raw = os.environ.get("COHEZION_ADMISSION_ENFORCE", "1").strip().lower()
         cfg = cls(
-            floor_gb=float(floor),
             enforce=enforce_raw not in ("0", "false", "no", "off", ""),
             upstream_base=os.environ.get("COHEZION_ADMISSION_UPSTREAM", DEFAULT_UPSTREAM),
             health_timeout_s=float(os.environ.get("COHEZION_ADMISSION_HEALTH_TIMEOUT_S", "2.0")),
         )
         logger.info(
-            "admission config: floor=%.1fGB enforce=%s (raw=%r) upstream=%s",
-            cfg.floor_gb,
+            "admission config: enforce=%s (raw=%r) upstream=%s cgroup_fraction=%.2f",
             cfg.enforce,
             enforce_raw,
             cfg.upstream_base,
+            CGROUP_HIGH_FRACTION,
         )
         return cfg
 
@@ -165,59 +206,120 @@ class AdmissionDecision:
 
 
 class AdmissionGate:
-    """The decision core — pure, injectable, HTTP-free (the proxy layer consumes it).
+    """The decision core — injectable and HTTP-free on the hot path (the proxy consumes it).
 
-    Enforces from the FIRST call: there is no warm-up state whose absence means
-    pass-through (the council's Uncapped-Window/TOCTOU test). The resident list is
-    cached for RESIDENT_CACHE_TTL_S to bound health fetches on the hot path — TTL
-    staleness errs safe (a just-loaded model misread as non-resident falls through to
-    the budget check, never the reverse).
+    Network reads (health, catalog) happen OUTSIDE the decision lock; the lock covers only
+    the arithmetic and the reservation, so one slow lemond answer cannot queue every request.
     """
 
     def __init__(
         self,
         config: GateConfig | None = None,
         *,
-        read_available_gb: Callable[[], float] | None = None,
         read_resident: Callable[[], list[dict[str, object]] | None] | None = None,
-        read_gtt: Callable[[], tuple[float, float] | None] | None = None,
+        read_cgroup: Callable[[], tuple[float, float] | None] | None = None,
+        read_size_gb: Callable[[str], float | None] | None = None,
+        read_catalog: Callable[[], dict[str, dict[str, object]] | None] | None = None,
     ) -> None:
         self._config = config if config is not None else GateConfig.from_env()
-        self._read_available = (
-            read_available_gb if read_available_gb is not None else read_available_gb_strict
-        )
-        self._read_gtt = read_gtt if read_gtt is not None else read_gtt_usage_gb
-        # H1 visibility: when the GTT ceiling exceeds physical RAM (live pre-reboot:
-        # 128 GiB ceiling on 122.8 GiB), a raw fraction-of-ceiling budget could never
-        # fire. decide() bounds the budget by MemTotal; this WARN makes the condition
-        # observable instead of silently absorbed.
-        try:
-            gtt = self._read_gtt()
-            if gtt is not None and _mem_total_gb() > 0 and gtt[1] >= _mem_total_gb():
-                logger.warning(
-                    "admission gate: GTT ceiling %.0fGB >= MemTotal %.0fGB — headroom "
-                    "budget bounded by RAM, not the ceiling",
-                    gtt[1],
-                    _mem_total_gb(),
-                )
-        except Exception:  # telemetry must never break construction
-            pass
-        # The residency probe MUST target the upstream router directly: once this gate's
-        # proxy holds :13305, the module-default LEMONADE_BASE points back at the proxy
-        # itself (adversarial review 2026-09-01, F1 — self-probe deadlock/latency loop).
-        self._read_resident = (
-            read_resident
-            if read_resident is not None
-            else lambda: fetch_loaded_models(
+        # Probes target the UPSTREAM router: the module default :13305 is this proxy.
+        self._read_resident = read_resident or (
+            lambda: fetch_loaded_models(
                 timeout_s=self._config.health_timeout_s,
                 base_url=self._config.upstream_base,
             )
         )
+        self._read_cgroup = read_cgroup or read_lemond_cgroup_gb
+        self._read_catalog = read_catalog or self._fetch_catalog
+        self._catalog: dict[str, dict[str, object]] = {}
+        self._catalog_at: float | None = None
+        self._read_size_gb = read_size_gb or self._cached_footprint_gb
+        self._reserved: dict[str, tuple[float, float]] = {}  # model -> (gb, expires_at)
+        self._lock = threading.Lock()  # proxy calls decide() from a threadpool
         self._resident_cache: tuple[float, list[dict[str, object]] | None] | None = None
+        self._last_good: tuple[float, list[dict[str, object]]] | None = None
+        self._cgroup_warned_at = 0.0
+        self.cgroup_readable = True
+        if read_size_gb is None:
+            self.refresh_catalog()
 
     @property
     def config(self) -> GateConfig:
         return self._config
+
+    # -- catalog (background) -------------------------------------------------------------
+
+    def _fetch_catalog(self) -> dict[str, dict[str, object]] | None:
+        """{normalized id: catalog entry} from lemonade, or None if it does not answer."""
+        try:
+            r = httpx.get(
+                f"{self._config.upstream_base}/api/v1/models",
+                params={"show_all": "true"},
+                timeout=httpx.Timeout(5.0),
+            )
+            r.raise_for_status()
+            entries = r.json().get("data", [])
+            return {
+                normalize_model_name(str(e.get("id", ""))): e
+                for e in entries
+                if isinstance(e, dict)
+            }
+        except (httpx.HTTPError, ValueError, AttributeError, TypeError) as exc:
+            logger.warning("admission gate: catalog unreadable: %s", exc)
+            return None
+
+    def refresh_catalog(self) -> bool:
+        """Replace the cached catalog from lemonade. False when it did not answer."""
+        fresh = self._read_catalog()
+        if not fresh:
+            return False
+        self._catalog = fresh
+        self._catalog_at = time.monotonic()
+        return True
+
+    def start_refresher(self) -> None:
+        """Daemon thread keeping the catalog fresh, so decide() never fetches it."""
+
+        def loop() -> None:
+            while True:
+                ok = self.refresh_catalog()
+                time.sleep(CATALOG_REFRESH_S if ok else CATALOG_RETRY_S)
+
+        threading.Thread(target=loop, name="admission-catalog", daemon=True).start()
+
+    def catalog_age_s(self) -> float | None:
+        return None if self._catalog_at is None else time.monotonic() - self._catalog_at
+
+    def _catalog_is_fresh(self) -> bool:
+        age = self.catalog_age_s()
+        return age is not None and age < CATALOG_FRESH_S
+
+    def _cached_footprint_gb(self, model_name: str) -> float | None:
+        """Weights + KV reservation for *model_name*, or None when its size is unknown.
+
+        Weights are the larger of lemonade's catalog size and oom_guard's curated
+        MODEL_FOOTPRINT_GB: the catalog has under-reported (a 35B at 1.68 GB, harness RS7),
+        and a wrong small size is more dangerous than a missing one.
+        """
+        key = normalize_model_name(model_name)
+        entry = self._catalog.get(key)
+        size = entry.get("size") if entry else None
+        catalog_gb = float(size) if isinstance(size, (int, float)) and size > 0 else 0.0
+        curated_gb = MODEL_FOOTPRINT_GB.get(key, 0.0)
+        weights = max(catalog_gb, curated_gb)
+        if weights <= 0.0:
+            return None
+        if curated_gb and catalog_gb and abs(curated_gb - catalog_gb) > 0.5 * curated_gb:
+            logger.info(
+                "admission gate: size for %s: catalog %.1f vs curated %.1f GB, using %.1f",
+                model_name,
+                catalog_gb,
+                curated_gb,
+                weights,
+            )
+        return weights + _kv_reservation_gb(model_name, weights, entry)
+
+    # -- residency ------------------------------------------------------------------------
 
     def _resident_entries(self) -> list[dict[str, object]] | None:
         now = time.monotonic()
@@ -232,76 +334,104 @@ class AdmissionGate:
             logger.warning("admission gate: residency probe failed: %s", exc)
             entries = None
         self._resident_cache = (now, entries)
+        if entries is not None:
+            self._last_good = (now, entries)
         return entries
 
-    def decide(self, model_name: str | None) -> AdmissionDecision:
-        if not model_name:
-            return AdmissionDecision(True, False, "no model named — not load-triggering")
+    def _is_resident(self, model_name: str, resident: list[dict[str, object]] | None) -> bool:
+        if resident is not None:
+            return any(_resident_match(model_name, m) for m in resident)
+        # health is blocked (a load is in progress): trust a recent positive answer only
+        if self._last_good and time.monotonic() - self._last_good[0] < RESIDENT_LAST_GOOD_S:
+            return any(_resident_match(model_name, m) for m in self._last_good[1])
+        return False
 
-        resident = self._resident_entries()
-        if resident is not None and any(
-            model_matches_loaded_entry(model_name, m) for m in resident
+    def _npu_slot_credit_gb(
+        self, model_name: str, path: str, resident: list[dict[str, object]] | None
+    ) -> float:
+        """Size of the ONE resident FLM llm that loading an FLM llm will evict, else 0.
+
+        Only chat/completions-style paths load an llm; audio, image and embedding FLM
+        models use other slots and evict nothing.
+        """
+        p = path.lower()
+        if not model_name.lower().endswith("-flm") or any(
+            t in p for t in ("embedding", "audio", "image", "transcri", "speech")
         ):
+            return 0.0
+        sizes = [
+            self._read_size_gb(str(e.get("model_name", ""))) or 0.0
+            for e in resident or []
+            if e.get("recipe") == "flm" and e.get("type") == "llm"
+        ]
+        return max(sizes, default=0.0)
+
+    # -- decision -------------------------------------------------------------------------
+
+    def decide(self, model_name: str | None, path: str = "") -> AdmissionDecision:
+        if not model_name or not is_load_path(path):
+            return AdmissionDecision(True, False, "not load-triggering", model_name)
+
+        # Slow reads first, outside the lock.
+        resident = self._resident_entries()
+        if self._is_resident(model_name, resident):
             return AdmissionDecision(True, False, "resident — reuse needs no memory", model_name)
-
-        try:
-            available = float(self._read_available())
-        except Exception as exc:
-            # Cannot reason about memory at all: fail OPEN, loudly flagged. Refusing
-            # everything on a proc hiccup would take the fleet down by itself. This path
-            # is REACHABLE because the default reader raises (read_available_gb_strict),
-            # unlike MemorySnapshot.capture's fabricated 20 GB fallback.
-            logger.warning("admission gate BLIND (meminfo unreadable: %s) — allowing", exc)
+        cgroup = self._read_cgroup()
+        if cgroup is None:
+            self.cgroup_readable = False
+            now = time.monotonic()
+            if now - self._cgroup_warned_at > 60:
+                self._cgroup_warned_at = now
+                logger.warning("admission gate: lemond cgroup unreadable — not gating loads")
             return AdmissionDecision(
-                True, False, f"gate blind: memory unreadable ({exc}) — allowed", model_name
+                True, False, "cgroup unreadable — Lemonade decides", model_name
             )
-
-        if available < self._config.floor_gb:
-            reason = (
-                f"below hard floor: {available:.1f} GB available < "
-                f"{self._config.floor_gb:.1f} GB — no new load of any tier "
-                f"(refused '{model_name}'; 08-31 killer was an NPU-tier model)"
+        self.cgroup_readable = True
+        size = self._read_size_gb(model_name)
+        if size is None:
+            if self._catalog_is_fresh():
+                return AdmissionDecision(
+                    True, False, "not in lemonade's catalog — lemonade will answer", model_name
+                )
+            return self._refusal(
+                f"model size unknown for '{model_name}': lemonade's catalog has not been read "
+                "yet (it stalls while a load is in progress) — retry shortly",
+                model_name,
             )
-            return self._refusal(reason, model_name)
+        credit = self._npu_slot_credit_gb(model_name, path, resident)
+        working_set, high = cgroup
+        budget = CGROUP_HIGH_FRACTION * high
+        key = normalize_model_name(model_name).lower()
 
-        # npu_exempt=False: the 'NPU is UMA-safe' premise is falsified for large FLM MoE
-        # models (weights live in host DRAM); budget-check them like everything else.
-        # catalog_base_url: pricing probes must target the UPSTREAM router — the module
-        # default (:13305) is this gate's own proxy post-cutover (the F1 lesson).
-        risk = check_oom_risk(
-            model_name,
-            available_gb=available,
-            npu_exempt=False,
-            catalog_base_url=self._config.upstream_base,
-        )
-        if not risk.safe:
-            return self._refusal(f"byte budget: {risk.reason}", model_name)
+        with self._lock:
+            now = time.monotonic()
+            for k, (_gb, expires) in list(self._reserved.items()):
+                landed = resident is not None and any(_resident_match(k, m) for m in resident)
+                if landed or now > expires:
+                    del self._reserved[k]
+            if key in self._reserved:  # same model already admitted and still loading
+                return AdmissionDecision(True, False, "already admitted — loading", model_name)
+            reserved = sum(gb for gb, _ in self._reserved.values())
+            total = working_set + reserved - credit + size
+            detail = (
+                f"{working_set:.1f}GB working set + {reserved:.1f}GB reserved - {credit:.1f}GB "
+                f"NPU swap + {size:.1f}GB '{model_name}' = {total:.1f}GB"
+            )
+            if total > budget:
+                return self._refusal(
+                    f"lemond cgroup headroom: {detail} > {budget:.1f}GB "
+                    f"({CGROUP_HIGH_FRACTION:.0%} of memory.high {high:.0f}GB) — past "
+                    "memory.high the kernel throttles every model in lemond",
+                    model_name,
+                )
+            self._reserved[key] = (size, now + RESERVATION_TTL_S)
+        logger.info("admission gate ADMIT: %s <= %.1fGB", detail, budget)
+        return AdmissionDecision(True, False, f"fits: {detail} <= {budget:.1f}GB", model_name)
 
-        # Gate v2 GTT headroom: MemAvailable does not account lent GTT pages, so a load
-        # can clear the RAM checks yet push GTT — uncgroupable, invisible to the kernel
-        # OOM killer — past the ceiling. NPU/FLM loads draw no GTT (the -FLM suffix
-        # covers the 34 catalog FLM models absent from MODEL_TIER — rv-gate-v2 M5);
-        # unreadable telemetry fails open (blind-memory doctrine).
-        if not _npu_like(model_name):
-            gtt = self._read_gtt()
-            if gtt is not None:
-                gtt_used, gtt_total = gtt
-                # Budget against min(ceiling, MemTotal): a fraction of the raw ceiling is
-                # VACUOUS whenever gtt_total >= MemTotal — live pre-reboot state is a
-                # 128 GiB ceiling on a 122.8 GiB box, budget 108.8 GiB the machine
-                # freezes long before reaching (rv-gate-v2 H1).
-                mem_total = _mem_total_gb()
-                bound = min(gtt_total, mem_total) if mem_total > 0 else gtt_total
-                budget = GTT_HEADROOM_FRACTION * bound
-                if gtt_used + risk.footprint_gb > budget:
-                    return self._refusal(
-                        f"GTT headroom: {gtt_used:.1f}GB used + {risk.footprint_gb:.1f}GB "
-                        f"load > {budget:.1f}GB ({GTT_HEADROOM_FRACTION:.0%} of "
-                        f"min(ceiling {gtt_total:.0f}GB, RAM {mem_total:.0f}GB)) — "
-                        f"GTT is invisible to the OOM killer",
-                        model_name,
-                    )
-        return AdmissionDecision(True, False, risk.reason, model_name)
+    def release(self, model_name: str) -> None:
+        """Drop an admitted load's reservation (the upstream request failed)."""
+        with self._lock:
+            self._reserved.pop(normalize_model_name(model_name).lower(), None)
 
     def _refusal(self, reason: str, model_name: str) -> AdmissionDecision:
         if not self._config.enforce:
@@ -322,9 +452,7 @@ def audit_bypass_paths(
     """Name the routes AROUND the gate: backend URLs of spawned per-model servers.
 
     Returns None when the health endpoint is unreadable — 'no bypass paths found' and
-    'could not look' are different answers (council: Direct-to-Backend Bypass).
-    Pass ``base_url`` (the gate's upstream) when calling from the proxy — the default
-    LEMONADE_BASE is the proxy's own port after cutover (F1 self-probe).
+    'could not look' are different answers.
     """
     if loaded is _FETCH_LIVE:
         loaded = (
@@ -335,14 +463,3 @@ def audit_bypass_paths(
     if loaded is None or not isinstance(loaded, list):
         return None
     return [str(m.get("backend_url", "")) for m in loaded if m.get("backend_url")]
-
-
-def extract_model_name(body: object) -> str | None:
-    """The model a JSON request body names, if any. Non-dict bodies name nothing."""
-    if not isinstance(body, dict):
-        return None
-    for key in _MODEL_KEYS:
-        value = body.get(key)
-        if isinstance(value, str) and value:
-            return value
-    return None

@@ -15,9 +15,11 @@ scripts/cohezion-admission-gate.service and docs/ops/admission-gate-cutover.md).
 
 from __future__ import annotations
 
+import contextlib
 import json
 import logging
 import os
+import pathlib
 from contextlib import asynccontextmanager
 
 import httpx
@@ -27,19 +29,66 @@ from starlette.background import BackgroundTask
 from starlette.concurrency import run_in_threadpool
 
 from cohezion.platform.admission_gate import (
+    CGROUP_HIGH_FRACTION,
     DEFAULT_LISTEN_PORT,
+    AdmissionDecision,
     AdmissionGate,
     audit_bypass_paths,
-    extract_model_name,
+    models_named,
 )
 
 
 logger = logging.getLogger(__name__)
 
-# JSON bodies above this size are forwarded without model-hunting: no lemonade
-# load-triggering request carries a model key in a multi-MB JSON payload, and parsing
-# one wholesale on the hot path is pure memory/latency cost (review 2026-09-01, F4).
-_MAX_PARSE_BYTES = 1_000_000
+RETRY_AFTER_S = 15  # refused clients back off instead of retrying in a tight loop
+
+
+def client_identity(
+    client_port: int, server_port: int, proc: pathlib.Path = pathlib.Path("/proc")
+) -> str:
+    """'<systemd unit> pid=<pid>' for the local process on the far end of a connection.
+
+    Attribution is for logs only: any failure reports 'unknown', never fails a request.
+
+    Maps the client's TCP source port to its socket inode via /proc/net/tcp{,6}, then the
+    inode to the process holding it. The gate runs as the same user as the cohezion services,
+    so their fds are readable; anything else reports 'unknown'.
+    """
+    try:
+        return _client_identity(client_port, server_port, proc)
+    except Exception:
+        return "unknown"
+
+
+def _client_identity(client_port: int, server_port: int, proc: pathlib.Path) -> str:
+    inodes: set[str] = set()
+    for table in ("net/tcp", "net/tcp6"):
+        try:
+            lines = (proc / table).read_text().splitlines()[1:]
+        except OSError:
+            continue
+        for line in lines:
+            f = line.split()
+            if (
+                len(f) > 9
+                and int(f[1].rsplit(":", 1)[1], 16) == client_port
+                and int(f[2].rsplit(":", 1)[1], 16) == server_port
+            ):
+                inodes.add(f"socket:[{f[9]}]")
+    if not inodes:
+        return "unknown"
+    for pid_dir in proc.iterdir():
+        if not pid_dir.name.isdigit():
+            continue
+        try:
+            for fd in (pid_dir / "fd").iterdir():
+                if os.readlink(fd) in inodes:
+                    unit = (pid_dir / "cgroup").read_text().strip().rsplit("/", 1)[-1]
+                    return f"{unit} pid={pid_dir.name}"
+        except OSError:
+            continue
+    return "unknown"
+
 
 # Hop-by-hop headers must not be forwarded verbatim (RFC 9110 §7.6.1).
 _HOP_HEADERS = frozenset(
@@ -68,6 +117,7 @@ def build_app(
     gate: AdmissionGate | None = None,
     *,
     client: httpx.AsyncClient | None = None,
+    background_catalog: bool = False,
 ) -> FastAPI:
     """Assemble the proxy app. ``client`` is injectable so tests supply a MockTransport."""
     # A distinct, annotated local so the route closures capture a name pyright can
@@ -81,6 +131,8 @@ def build_app(
 
     @asynccontextmanager
     async def _lifespan(_app: FastAPI):
+        if background_catalog:
+            active_gate.start_refresher()
         yield
         await http.aclose()  # release pooled upstream connections on graceful shutdown
 
@@ -100,11 +152,13 @@ def build_app(
         return JSONResponse(
             {
                 "config": {
-                    "floor_gb": active_gate.config.floor_gb,
+                    "cgroup_high_fraction": CGROUP_HIGH_FRACTION,
                     "enforce": active_gate.config.enforce,
                     "upstream_base": active_gate.config.upstream_base,
                 },
                 "counters": dict(counters),
+                "cgroup_readable": active_gate.cgroup_readable,
+                "catalog_age_s": active_gate.catalog_age_s(),
                 "bypass_paths": bypass,
             }
         )
@@ -119,44 +173,61 @@ def build_app(
             return JSONResponse(status_code=404, content={"error": {"type": "not_found"}})
 
         body = await request.body()
-        model = None
-        # PATCH included defensively; lemonade loads via POST today, but that is the
-        # router's convention, not a contract (adversarial review 2026-09-01, F8).
+        # Every model the request names: query string, multipart fields, and any JSON body
+        # whatever its size (a vision or audio chat is easily > 1 MB and still loads).
+        names = [v for k, v in request.query_params.multi_items() if "model" in k.lower() and v]
         if body and request.method in ("POST", "PUT", "PATCH"):
-            content_type = request.headers.get("content-type", "")
+            content_type = request.headers.get("content-type", "").lower()
             if content_type.startswith("multipart/form-data"):
-                # Audio routes (transcription: Whisper, 1.6 GB) carry `model` as a form
-                # field — JSON-only parsing would let those loads through ungated. Size
-                # is no reason to skip: the body is already buffered and field
-                # extraction is cheap even from a large upload.
                 try:
                     form = await request.form()
-                    value = form.get("model") or form.get("model_name")
-                    model = value if isinstance(value, str) and value else None
-                except Exception:
-                    model = None
-            elif len(body) <= _MAX_PARSE_BYTES:
-                try:
-                    model = extract_model_name(json.loads(body))
-                except (ValueError, UnicodeDecodeError):
-                    model = None  # non-JSON bodies name no model
-            # else: multi-MB non-multipart body — don't json-parse wholesale to hunt a
-            # "model" key; no lemonade load path ships one, so forward ungated.
+                    names += [
+                        v
+                        for k, v in form.multi_items()
+                        if "model" in k.lower() and isinstance(v, str) and v
+                    ]
+                except Exception as exc:
+                    logger.warning("admission gate: unparseable multipart body: %s", exc)
+            else:
+                with contextlib.suppress(ValueError, UnicodeDecodeError):  # not JSON: no model
+                    names += await run_in_threadpool(lambda: models_named(json.loads(body)))
 
-        # decide() does sync I/O (health fetch, /proc) — run off the event loop so one
-        # blocked health call cannot stall every in-flight stream.
-        decision = await run_in_threadpool(active_gate.decide, model)
-        if decision.would_refuse:
-            counters["shadow_refusals"] += 1
-        if not decision.allow:
+        # decide() reads health and /proc -- keep it off the event loop.
+        admitted: list[str] = []
+        refusal: AdmissionDecision | None = None
+        for name in dict.fromkeys(names):
+            decision = await run_in_threadpool(active_gate.decide, name, path)
+            if decision.would_refuse:
+                counters["shadow_refusals"] += 1
+            new_load = decision.reason.startswith("fits")
+            if (not decision.allow or new_load) and request.client is not None:
+                server_port = (request.scope.get("server") or (None, 0))[1] or 0
+                who = await run_in_threadpool(client_identity, request.client.port, server_port)
+                logger.info(
+                    "admission %s client=%s model=%s path=/%s: %s",
+                    "ADMIT" if decision.allow else "REFUSE",
+                    who,
+                    name,
+                    path,
+                    decision.reason,
+                )
+            if not decision.allow:
+                refusal = decision
+                break
+            if new_load:
+                admitted.append(name)
+        if refusal is not None:
+            for name in admitted:
+                active_gate.release(name)
             counters["refused"] += 1
             return JSONResponse(
                 status_code=503,
+                headers={"Retry-After": str(RETRY_AFTER_S)},
                 content={
                     "error": {
                         "type": "admission_refused",
-                        "message": decision.reason,
-                        "model": decision.model,
+                        "message": refusal.reason,
+                        "model": refusal.model,
                     }
                 },
             )
@@ -175,12 +246,17 @@ def build_app(
         try:
             upstream_resp = await http.send(upstream_req, stream=True)
         except httpx.HTTPError as exc:
+            for name in admitted:  # nothing loaded: free the reservation now, not in 180 s
+                active_gate.release(name)
             # A dead/mid-restart upstream is a clean 502, not a traceback-500.
             return JSONResponse(
                 status_code=502,
                 content={"error": {"type": "upstream_unreachable", "message": str(exc)}},
             )
         counters["forwarded"] += 1
+        if upstream_resp.status_code >= 400:
+            for name in admitted:
+                active_gate.release(name)
         resp_headers = {
             k: v for k, v in upstream_resp.headers.items() if k.lower() not in _HOP_HEADERS
         }
@@ -213,13 +289,12 @@ def main() -> int:
     logging.basicConfig(level=logging.INFO)
     port = int(os.environ.get("COHEZION_ADMISSION_PORT", str(DEFAULT_LISTEN_PORT)))
     gate = AdmissionGate()
-    app = build_app(gate)
+    app = build_app(gate, background_catalog=True)
     logger.info(
-        "admission gate listening on :%d -> upstream %s (enforce=%s, floor=%.1fGB)",
+        "admission gate listening on :%d -> upstream %s (enforce=%s)",
         port,
         gate.config.upstream_base,
         gate.config.enforce,
-        gate.config.floor_gb,
     )
     uvicorn.run(app, host="127.0.0.1", port=port, log_level="info")
     return 0
