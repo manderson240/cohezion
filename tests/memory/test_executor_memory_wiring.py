@@ -127,3 +127,16 @@ def test_execute_task_no_memory_when_disabled(monkeypatch):
     _isolate(monkeypatch, ex)
     ex.execute_task("x", "s", "generate", lambda g: ("ok", {}), project="proj")
     assert fake.recall_calls == [] and fake.remember_calls == []
+
+
+def test_lazy_memory_service_resolves_the_real_cohezion_memory(monkeypatch) -> None:
+    """DISCRIMINATING: with no injected memory, enable_memory=True must reach the REAL
+    CohezionMemory singleton. The other tests inject a fake and so cannot see a broken
+    lazy import -- which is exactly how `from cohezion.memory import CohezionMemory` (a
+    re-export that no longer exists) silently self-disabled memory in production."""
+    from cohezion.memory.service import CohezionMemory
+
+    sentinel = object()
+    monkeypatch.setattr(CohezionMemory, "get_instance", classmethod(lambda cls: sentinel))
+    executor = _executor(memory=None, enable_memory=True)
+    assert executor.memory_service is sentinel
