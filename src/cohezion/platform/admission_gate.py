@@ -32,6 +32,7 @@ curated byte budget, replaced by Lemonade's catalog size.
 
 from __future__ import annotations
 
+import contextlib
 import logging
 import os
 import pathlib
@@ -83,13 +84,18 @@ _NON_LOAD_ROUTES = frozenset(
 def read_lemond_cgroup_gb() -> tuple[float, float] | None:
     """(working_set_gb, memory_high_gb) for lemond's cgroup, or None.
 
-    Working set = anon + shmem + file_mapped: memory the kernel cannot drop to stay under
-    memory.high. Unmapped file cache is excluded whichever LRU list it sits on: after a
-    model is unloaded its weights stay on the ACTIVE file list (16.9 GB measured
-    2026-10-21), so ``memory.current - inactive_file`` read 28.7 GB and would have refused
-    every load while only 21.2 GB was in use. Measured on the same day: lemond's processes
-    map 0 MB of shmem, so shmem and file_mapped do not overlap. None when the cgroup is
-    unreadable or has no memory.high (fail open).
+    Working set = anon + max(shmem, file_mapped): memory the kernel cannot drop to stay
+    under memory.high. ``file_mapped`` counts MAPPED shmem as well as mapped file pages, so
+    adding the two double-counts every mapped shmem buffer. Measured 2026-10-22 with an FLM
+    model resident on the NPU: its 7.2 GB of buffers sat in both fields, the sum read
+    22.6 GB against a whole-cgroup charge of 20.1 GB, and unloading it dropped shmem,
+    file_mapped and memory.current together. max() is exact when shmem is fully mapped
+    (lemond's model buffers) and still counts unmapped shmem, which cannot be dropped
+    either. Unmapped file cache is excluded whichever LRU list it sits on: after a model
+    is unloaded its weights stay on the ACTIVE file list (16.9 GB measured 2026-10-21), so
+    ``memory.current - inactive_file`` would refuse every load. The result never exceeds
+    ``memory.current`` (when readable): memory the cgroup is not charged for is not in use.
+    None when the cgroup is unreadable or has no memory.high (fail open).
     """
     try:
         high_raw = (LEMOND_CGROUP / "memory.high").read_text().strip()
@@ -100,9 +106,12 @@ def read_lemond_cgroup_gb() -> tuple[float, float] | None:
             key, _, value = line.partition(" ")
             if key in ("anon", "shmem", "file_mapped"):
                 stat[key] = int(value)
-        working_set = stat["anon"] + stat["shmem"] + stat["file_mapped"]
+        working_set = stat["anon"] + max(stat["shmem"], stat["file_mapped"])
     except (OSError, ValueError, KeyError):
         return None
+    # No readable charge to clamp against: the stat-based figure stands.
+    with contextlib.suppress(OSError, ValueError):
+        working_set = min(working_set, int((LEMOND_CGROUP / "memory.current").read_text()))
     return working_set / (1024.0**3), int(high_raw) / (1024.0**3)
 
 
