@@ -437,33 +437,31 @@ jobs:
       - name: Sync dependencies
         run: uv sync --frozen --extra dev
 
+      # The `benchmark` marker tags timing/ablation tests that assert on their own
+      # measurements; none uses the pytest-benchmark fixture and that plugin is not a
+      # dependency, so the former --benchmark-* flags failed pytest at argument parsing
+      # (exit 4) on every PR. Run the marker plainly; durations are the evidence.
       - name: Run benchmark tests
         run: |
-          uv run pytest -m benchmark \
-            --benchmark-only \
-            --benchmark-json=benchmark-results.json \
-            --benchmark-compare \
-            --benchmark-histogram=.benchmark-results/histogram \
-            tests/ \
-            -v --tb=short
+          set -o pipefail
+          uv run pytest -m benchmark tests/ -v --tb=short --durations=25 \
+            | tee benchmark-results.txt
 
       - name: Upload benchmark results
         if: always()
         uses: actions/upload-artifact@v7
         with:
           name: benchmark-results
-          path: |
-            benchmark-results.json
-            .benchmark-results/
+          path: benchmark-results.txt
           retention-days: 30
 
       - name: Generate benchmark summary
         if: always()
         run: |
           echo "## Benchmark Results" >> $GITHUB_STEP_SUMMARY
-          if [ -f benchmark-results.json ]; then
-            echo "```json" >> $GITHUB_STEP_SUMMARY
-            head -100 benchmark-results.json >> $GITHUB_STEP_SUMMARY
+          if [ -f benchmark-results.txt ]; then
+            echo "```" >> $GITHUB_STEP_SUMMARY
+            { grep -E "passed|failed|slowest|^[0-9.]+s " benchmark-results.txt || true; } | head -40 >> $GITHUB_STEP_SUMMARY
             echo "```" >> $GITHUB_STEP_SUMMARY
           fi
 

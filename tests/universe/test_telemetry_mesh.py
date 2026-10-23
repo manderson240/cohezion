@@ -6,6 +6,7 @@ import pytest
 from cohezion.core.journey_worker import JourneyWorker
 from cohezion.core.telemetry_bus import get_telemetry_bus
 from cohezion.data_mesh.universe_telemetry import UniverseStateEvent
+from cohezion.reliability import get_circuit
 from cohezion.universe.engine import AxiomaticState, UniverseJourney, UniverseSimulationEngine
 
 
@@ -18,6 +19,11 @@ async def test_journey_worker_processes_universe_event():
     # worker can leave the singleton with different collaborators (order-dependent failure
     # seen 2026-10-22; the test passes alone).
     worker = JourneyWorker()
+
+    # process_event() consults the process-wide "surrealdb" circuit breaker; other tests in
+    # the same xdist worker trip it when no database is listening (CI, the namespace run),
+    # and an open circuit skips the insert this test asserts. Start it closed.
+    get_circuit("surrealdb").reset()
 
     # Mock dependencies to avoid real DB/Bridge calls
     worker._db = MagicMock()
