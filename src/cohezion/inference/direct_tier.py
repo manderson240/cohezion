@@ -68,12 +68,15 @@ def _strip_think(text: str) -> str:
 # old map named Bonsai-8B/Qwen3-8B which are not lane-resident, so every non-routine
 # call auto-loaded a model and evicted a lane — the embed-eviction race, Kanban
 # 32aa143b3962). Complexity → lane: routine=NPU, synthesis/orchestration=iGPU,
-# review=CPU (spreads load across all three substrates).
+# review=the tier-0 id on whatever device its saved recipe selects (2026-10-23: no longer a
+# CPU-backend pin; single ctx/backend authority, config.defaults).
 _QUARTER_MODELS: dict[str, str] = {
     "routine": "llama3.2-1b-FLM",  # NPU (XDNA2), 42 TPS — classify/route/short
     "synthesis": "Gemma-4-E4B-it-GGUF",  # iGPU (RDNA3.5) — code/structured
     "orchestration": "Gemma-4-E4B-it-GGUF",  # iGPU — multi-step reasoning
-    "review": "Gemma-4-E2B-it-GGUF",  # CPU (Zen5, llamacpp_backend=cpu) — audit/completion
+    # The tier-0 id. Chat only (no load, no ctx/backend): the router auto-loads it from its
+    # saved lemonade recipe, the only ctx/backend authority -- Vulkan iGPU today, not CPU.
+    "review": "Gemma-4-E2B-it-GGUF",  # audit/completion
 }
 
 _QUARTER_MAX_TOKENS: dict[str, int] = {
@@ -373,7 +376,7 @@ def quarter_on_a_string_tier(
     routine       → llama3.2-1b-FLM     (NPU, 42 TPS)  — classify, route, short answers
     synthesis     → Gemma-4-E4B-it-GGUF (iGPU)         — code gen, structured output
     orchestration → Gemma-4-E4B-it-GGUF (iGPU)         — multi-step reasoning
-    review        → Gemma-4-E2B-it-GGUF (CPU, Zen5)    — adversarial review, audit
+    review        → Gemma-4-E2B-it-GGUF (saved recipe) — adversarial review, audit
 
     Examples
     --------

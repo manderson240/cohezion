@@ -4,7 +4,7 @@ All inference routes through the single Lemonade OmniRouter on :13305.
 Model selection follows task_classifier node routing:
   npu       → llama3.2-1b-FLM       (XDNA2 NPU, 42 TPS, short tasks)
   gpu/igpu  → Gemma-4-E4B-it-GGUF  (RDNA 3.5 / vulkan, 6GB, balanced)
-  cpu       → Gemma-4-E2B-it-GGUF  (x86 AVX-512/AMX, 4.1GB, offload)
+  cpu       → Gemma-4-E2B-it-GGUF  (the tier-0 id; runs where its saved lemonade recipe puts it)
   reasoning → Qwen3.5-35B-A3B-GGUF (vulkan, 23GB, deep analysis)
 
 Since FLM (NPU) and llamacpp (iGPU/CPU) run on separate silicon, concurrent
@@ -23,7 +23,7 @@ import urllib.request
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from typing import Any
 
-from cohezion.config.defaults import LEMONADE_BASE_URL
+from cohezion.config.defaults import LEMONADE_BASE_URL, tier0_model
 from cohezion.inference.oom_guard import check_ram
 
 
@@ -35,7 +35,7 @@ _TIER_MODEL: dict[str, str] = {
     "npu": "llama3.2-1b-FLM",  # XDNA2 NPU via FLM backend
     "gpu": "Gemma-4-E4B-it-GGUF",  # RDNA 3.5 iGPU via vulkan
     "igpu": "Gemma-4-E4B-it-GGUF",  # same
-    "cpu": "Gemma-4-E2B-it-GGUF",  # x86 CPU via llamacpp cpu backend
+    "cpu": "Gemma-4-E2B-it-GGUF",  # tier-0 id: backend/ctx from its saved lemonade recipe
     "reasoning": "Qwen3.5-35B-A3B-GGUF",  # iGPU vulkan, heavy reasoning
 }
 _DEFAULT_MODEL = "Gemma-4-E4B-it-GGUF"
@@ -45,8 +45,18 @@ _MIN_FREE_RAM_GB = 8.0
 _WARMUP_TIERS: list[tuple[str, str, list[str]]] = [
     ("npu", "llama3.2-1b-FLM", ["--ctx-size", "16384"]),
     ("igpu", "Gemma-4-E4B-it-GGUF", ["--ctx-size", "16384", "--llamacpp", "vulkan"]),
-    ("cpu", "Gemma-4-E2B-it-GGUF", ["--ctx-size", "16384", "--llamacpp", "cpu"]),
+    # The tier-0 id: NO ctx/backend flags. Lemonade's saved per-model recipe is its only
+    # ctx/backend authority; a client pin here made lemond reload it whenever another caller
+    # had it loaded at the recipe ctx (single ctx authority, config.defaults).
+    ("cpu", "Gemma-4-E2B-it-GGUF", []),
 ]
+# NOTE (out of scope, flagged): the FLM / E4B entries above still pin ctx 16384 client-side.
+
+
+def _load_flags(model_name: str, flags: list[str]) -> list[str]:
+    """Client-side load flags for ``model_name``: none at all for the tier-0 id (which may be
+    overridden via COHEZION_TIER0_MODEL to any model), else the static flags."""
+    return [] if model_name == tier0_model() else flags
 
 
 def warmup_tiers(base_url: str = LEMONADE_BASE_URL) -> dict[str, bool]:
@@ -61,7 +71,7 @@ def warmup_tiers(base_url: str = LEMONADE_BASE_URL) -> dict[str, bool]:
     port = base_url.rstrip("/").rsplit(":", 1)[-1]
     results: dict[str, bool] = {}
     for tier_name, model_name, flags in _WARMUP_TIERS:
-        cmd = ["lemonade", "--port", port, "load", model_name, *flags]
+        cmd = ["lemonade", "--port", port, "load", model_name, *_load_flags(model_name, flags)]
         logger.info("warmup: loading %s tier (%s) …", tier_name, model_name)
         try:
             ret = subprocess.run(cmd, capture_output=True, text=True, timeout=120)
@@ -92,8 +102,11 @@ def get_tier_health(base_url: str = LEMONADE_BASE_URL) -> dict[str, str]:
         return {}
 
 
-def _recover_model(base_url: str, model_name: str, ctx_size: int = 16384) -> bool:
+def _recover_model(base_url: str, model_name: str, ctx_size: int | None = 16384) -> bool:
     """API-first tier recovery: unload then reload with bounded ctx_size.
+
+    The tier-0 id is reloaded WITHOUT ``ctx_size`` (``ctx_size=None`` does the same for any
+    model): its saved lemonade recipe is the only ctx/backend authority.
 
     Works for any model tier (NPU/FLM, iGPU/vulkan, CPU/llamacpp).
     Uses POST /api/v1/unload + POST /api/v1/load rather than a subprocess call
@@ -125,7 +138,12 @@ def _recover_model(base_url: str, model_name: str, ctx_size: int = 16384) -> boo
 
     try:
         # Step 2: reload with bounded ctx_size to prevent KV-cache OOM (N3)
-        load_payload = json.dumps({"model_name": model_name, "ctx_size": ctx_size}).encode()
+        if model_name == tier0_model():
+            ctx_size = None
+        load_body: dict[str, Any] = {"model_name": model_name}
+        if ctx_size is not None:
+            load_body["ctx_size"] = ctx_size
+        load_payload = json.dumps(load_body).encode()
         req = urllib.request.Request(  # noqa: S310
             f"{base}/api/v1/load",
             data=load_payload,
@@ -134,7 +152,7 @@ def _recover_model(base_url: str, model_name: str, ctx_size: int = 16384) -> boo
         )
         with urllib.request.urlopen(req, timeout=30.0) as resp:  # noqa: S310
             resp.read()
-        logger.info("model recovery: reloaded %s (ctx_size=%d)", model_name, ctx_size)
+        logger.info("model recovery: reloaded %s (ctx_size=%s)", model_name, ctx_size or "recipe")
         return True
     except Exception as exc:
         logger.warning("model recovery: load failed (%s): %s", model_name, exc)

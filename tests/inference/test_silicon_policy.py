@@ -8,6 +8,7 @@ is silent and catastrophic on a 24/7 box.
 
 from __future__ import annotations
 
+from cohezion.config.defaults import DEFAULT_TIER0_MODEL
 from cohezion.inference.silicon_policy import (
     DEFAULT_POLICY,
     ResidencyPolicy,
@@ -18,7 +19,22 @@ from cohezion.inference.silicon_policy import (
 from cohezion.inference.silicon_residency import parse_census
 
 
+# Tier 0 moved OFF the single-slot NPU 2026-10-23: the policy's tier-0 slot is now the
+# tier0_model() id on the iGPU, with ctx_size=None (saved recipe is the ctx authority).
+TIER0 = DEFAULT_TIER0_MODEL
+
+# The single-slot NPU mechanism is still real (FLM owns XDNA2 exclusively); its tests use
+# an explicit NPU policy now that the default policy no longer declares an NPU slot.
+NPU_POLICY = ResidencyPolicy(
+    slots=(
+        SiliconSlot(
+            device="npu", model="llama3.2-1b-FLM", ctx_size=4096, role="npu tier", pin=True
+        ),
+    )
+)
+
 CATALOG = [
+    {"id": TIER0, "size": 4.09},
     {"id": "llama3.2-1b-FLM", "size": 1.3},
     {"id": "Gemma-4-E4B-it-GGUF", "size": 5.56},
     {"id": "Nemotron-3-Nano-30B-A3B-GGUF", "size": 21.3},
@@ -65,15 +81,15 @@ def test_empty_census_bootstraps_rather_than_refusing() -> None:
     the last good census), so the only way to reach here with no residents is a
     REACHABLE router with an EMPTY fleet -- exactly the cold-boot state `--heal`
     exists to fix. The refusal meant the supervisor could never bootstrap the
-    tier-0 NPU router it was written to keep resident.
+    tier-0 router it was written to keep resident.
 
     DISCRIMINATING: restoring the refusal makes this fail.
     """
     plan = plan_residency(parse_census({}), catalog=CATALOG, available_gb=100.0)
 
     assert not plan.is_noop, "an empty fleet is the case healing exists for"
-    assert "llama3.2-1b-FLM" in {a.model for a in plan.of("load")}
-    assert set(plan.idle_devices) == {"npu", "igpu", "cpu"}
+    assert TIER0 in {a.model for a in plan.of("load")}
+    assert set(plan.idle_devices) == {"igpu", "cpu"}
 
 
 def test_unmeasurable_ram_refuses_all_loads() -> None:
@@ -124,19 +140,21 @@ def test_cpu_slot_gap_is_detected_on_the_live_shape() -> None:
     assert "cpu" in plan.idle_devices
 
 
-def test_npu_tier0_model_is_planned_for_pinning() -> None:
+def test_tier0_model_is_planned_for_pinning() -> None:
     """DISCRIMINATING: an impl ignoring `slot.pin` emits no pin action."""
-    census = parse_census(LIVE_SHAPE, catalog=CATALOG)
-    plan = plan_residency(census, catalog=CATALOG, available_gb=100.0)
+    payload = {"all_models_loaded": [*LIVE_SHAPE["all_models_loaded"], _entry(TIER0, "gpu")]}
+    plan = plan_residency(
+        parse_census(payload, catalog=CATALOG), catalog=CATALOG, available_gb=100.0
+    )
 
     pins = {a.model for a in plan.of("pin")}
-    assert pins == {"llama3.2-1b-FLM"}
+    assert pins == {TIER0}
 
 
 def test_already_pinned_model_is_not_re_pinned() -> None:
     payload = {
         "all_models_loaded": [
-            _entry("llama3.2-1b-FLM", "npu", ctx_size=4096, pinned=True),
+            _entry(TIER0, "gpu", ctx_size=4096, pinned=True),
         ]
     }
     plan = plan_residency(
@@ -146,12 +164,12 @@ def test_already_pinned_model_is_not_re_pinned() -> None:
 
 
 def test_model_on_wrong_silicon_is_warned_not_silently_accepted() -> None:
-    """A model advertised as the NPU tier but resident on iGPU is a real defect."""
-    payload = {"all_models_loaded": [_entry("llama3.2-1b-FLM", "gpu", ctx_size=4096)]}
+    """A model the policy places on the iGPU but resident on the NPU is a real defect."""
+    payload = {"all_models_loaded": [_entry(TIER0, "npu", ctx_size=4096)]}
     plan = plan_residency(
         parse_census(payload, catalog=CATALOG), catalog=CATALOG, available_gb=100.0
     )
-    assert any("policy expects npu" in w for w in plan.warnings)
+    assert any("policy expects igpu" in w for w in plan.warnings)
 
 
 # --------------------------- byte budget ---------------------------
@@ -293,16 +311,18 @@ def test_actions_render_reviewable_cli_commands() -> None:
     plan = plan_residency(census, catalog=CATALOG, available_gb=100.0)
     cmds = [a.as_command() for a in plan.actions]
     assert any(c.startswith("lemonade load Nemotron") and "--ctx-size" in c for c in cmds)
-    assert "lemonade pin llama3.2-1b-FLM" in cmds
+    # Tier 0 loads from its saved recipe: no client ctx on its command.
+    assert f"lemonade load {TIER0}" in cmds
 
 
-def test_default_policy_covers_all_three_silicon_types() -> None:
-    assert {s.device for s in DEFAULT_POLICY.slots} == {"npu", "igpu", "cpu"}
+def test_default_policy_keeps_tier0_off_the_single_slot_npu() -> None:
+    assert {s.device for s in DEFAULT_POLICY.slots} == {"igpu", "cpu"}
+    assert not any(s.device in DEFAULT_POLICY.single_slot_devices for s in DEFAULT_POLICY.slots)
 
 
 def test_default_policy_pins_only_the_tier0_router() -> None:
     pinned = {s.model for s in DEFAULT_POLICY.slots if s.pin}
-    assert pinned == {"llama3.2-1b-FLM"}
+    assert pinned == {TIER0}
 
 
 # ---------------- single-slot contention (measured 2026-08-29) ----------------
@@ -328,7 +348,10 @@ def test_t2_single_slot_displacement_is_warned() -> None:
     }
     catalog = [*CATALOG, {"id": "deepseek-r1-0528-8b-FLM", "size": 5.6}]
     plan = plan_residency(
-        parse_census(payload, catalog=catalog), catalog=catalog, available_gb=100.0
+        parse_census(payload, catalog=catalog),
+        policy=NPU_POLICY,
+        catalog=catalog,
+        available_gb=100.0,
     )
 
     assert any("single-slot" in w and "DISPLACES" in w for w in plan.warnings), (
@@ -342,7 +365,10 @@ def test_t2_no_contention_warning_when_the_right_model_is_resident() -> None:
     """DISCRIMINATING: an always-warn impl fires here and fails."""
     payload = {"all_models_loaded": [_entry("llama3.2-1b-FLM", "npu", ctx_size=4096)]}
     plan = plan_residency(
-        parse_census(payload, catalog=CATALOG), catalog=CATALOG, available_gb=100.0
+        parse_census(payload, catalog=CATALOG),
+        policy=NPU_POLICY,
+        catalog=CATALOG,
+        available_gb=100.0,
     )
     assert not any("single-slot" in w for w in plan.warnings)
 
@@ -356,7 +382,10 @@ def test_t2_multi_slot_device_does_not_warn_on_displacement() -> None:
         ]
     }
     plan = plan_residency(
-        parse_census(payload, catalog=CATALOG), catalog=CATALOG, available_gb=100.0
+        parse_census(payload, catalog=CATALOG),
+        policy=NPU_POLICY,
+        catalog=CATALOG,
+        available_gb=100.0,
     )
     assert not any("single-slot" in w for w in plan.warnings)
 

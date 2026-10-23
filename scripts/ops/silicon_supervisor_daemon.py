@@ -201,8 +201,10 @@ async def _apply_plan(plan: Any, apply_pins: bool, heal: bool, quiet: bool = Fal
             if not quiet:
                 print(f"    ADVISORY (needs --heal): {action.as_command()}", flush=True)
             continue
+        # ctx_size None = the model's saved lemonade recipe is its only ctx authority (tier 0).
+        ctx_args = [] if action.ctx_size is None else ["--ctx-size", str(action.ctx_size)]
         await _run_lemonade(
-            ["load", action.model, "--ctx-size", str(action.ctx_size)],
+            ["load", action.model, *ctx_args],
             f"load {action.model} on {action.device}",
         )
 

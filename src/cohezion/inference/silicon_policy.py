@@ -20,6 +20,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
+from cohezion.config.defaults import tier0_model
 from cohezion.inference.silicon_residency import ResidentModel, SiliconCensus
 
 
@@ -39,7 +40,9 @@ class SiliconSlot:
 
     device: str
     model: str
-    ctx_size: int
+    # None = no client ctx: the model's saved lemonade recipe is its only ctx authority
+    # (the tier-0 slot). An int is a policy-bounded ctx passed to `lemonade load`.
+    ctx_size: int | None
     role: str
     pin: bool = False
     rationale: str = ""
@@ -84,10 +87,15 @@ class ResidencyPolicy:
 #                                    what makes a big model viable on CPU at all
 DEFAULT_POLICY = ResidencyPolicy(
     slots=(
+        # Tier 0 moved OFF the single-slot NPU 2026-10-23 (it thrashed against other FLM
+        # workloads): the model is config.defaults.tier0_model() -- an iGPU GGUF by default --
+        # and ctx_size=None, because its saved lemonade recipe is the ONLY ctx/backend
+        # authority (a `--ctx-size` here would make --heal a second one). tier0_model() is read
+        # when this module is imported; a later COHEZION_TIER0_MODEL change needs a re-import.
         SiliconSlot(
-            device="npu",
-            model="llama3.2-1b-FLM",
-            ctx_size=4096,
+            device="igpu",
+            model=tier0_model(),
+            ctx_size=None,
             role="classify/route (tier 0)",
             pin=True,
             rationale=(
@@ -133,6 +141,8 @@ class ResidencyAction:
     def as_command(self) -> str:
         """The lemonade CLI equivalent, for operator review before applying."""
         if self.verb == "load":
+            if self.ctx_size is None:  # saved recipe is the ctx authority
+                return f"lemonade load {self.model}"
             return f"lemonade load {self.model} --ctx-size {self.ctx_size}"
         if self.verb in ("pin", "unpin"):
             return f"lemonade {self.verb} {self.model}"
@@ -282,7 +292,7 @@ def plan_residency(
                     f"headroom (reserve={policy.reserve_gb:g}GB)"
                 )
                 continue
-            if slot.ctx_size > policy.max_ctx_size:
+            if slot.ctx_size is not None and slot.ctx_size > policy.max_ctx_size:
                 refused.append(
                     f"{slot.model}: ctx_size {slot.ctx_size} exceeds "
                     f"max_ctx_size {policy.max_ctx_size}"

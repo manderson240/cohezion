@@ -14,7 +14,7 @@ from cohezion.inference.direct_tier import _QUARTER_MODELS, quarter_on_a_string_
 _LANE_MODELS = {
     "llama3.2-1b-FLM",  # NPU
     "Gemma-4-E4B-it-GGUF",  # iGPU
-    "Gemma-4-E2B-it-GGUF",  # CPU
+    "Gemma-4-E2B-it-GGUF",  # tier-0 id; device from its saved recipe (Vulkan iGPU today)
 }
 
 
@@ -24,9 +24,9 @@ def test_every_quarter_model_is_lane_resident():
 
 
 def test_all_three_lanes_are_used():
-    # routine=NPU, synthesis/orchestration=iGPU, review=CPU — spread across silicon
+    # routine=NPU, synthesis/orchestration=iGPU, review=the tier-0 id (saved-recipe device)
     assert _QUARTER_MODELS["routine"] == "llama3.2-1b-FLM"
-    assert _QUARTER_MODELS["review"] == "Gemma-4-E2B-it-GGUF"  # the CPU lane
+    assert _QUARTER_MODELS["review"] == "Gemma-4-E2B-it-GGUF"  # the tier-0 id
     assert set(_QUARTER_MODELS.values()) == _LANE_MODELS
 
 
