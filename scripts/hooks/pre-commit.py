@@ -31,9 +31,20 @@ def check_file_size(file_path):
 
 def main():
     staged_files = get_staged_files()
+    # Size gate applies only to content being added/modified. A file being
+    # DELETED from the index may still exist on disk (e.g. tracked-but-ignored
+    # artifacts being untracked); stat-ing it here would block its own removal.
+    _name_status = subprocess.run(
+        ["git", "diff", "--cached", "--name-status"], capture_output=True, text=True
+    ).stdout.splitlines()
+    deleted_files = {
+        line.split("\t", 1)[1].split("\t")[0] for line in _name_status if line.startswith("D\t")
+    }
     forbidden_files = []
 
     for f in staged_files:
+        if f in deleted_files:
+            continue
         if not check_file_size(f):
             forbidden_files.append(f)
 
@@ -44,9 +55,16 @@ def main():
 
     # Check for ignored files that are somehow staged
     # (Rare but happens with git add -f)
-    ignored_staged = subprocess.run(
+    #
+    # `git ls-files -i -c` lists every TRACKED file matching .gitignore, repo-wide --
+    # `-c` is "cached", not "staged". Using it directly made this gate fire on
+    # pre-existing tracked-but-ignored files (190 of them here) and so block EVERY
+    # commit regardless of content. Intersect with the actual staged set, which is
+    # what the check has always claimed to inspect.
+    ignored_tracked = subprocess.run(
         ["git", "ls-files", "-i", "-c", "--exclude-standard"], capture_output=True, text=True
     ).stdout.splitlines()
+    ignored_staged = sorted(set(ignored_tracked) & set(staged_files))
 
     if ignored_staged:
         print("\n🚫 Commit blocked: Some staged files match .gitignore patterns.")
