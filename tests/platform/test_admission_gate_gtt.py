@@ -258,3 +258,51 @@ class TestSystemReader:
 
     def test_e_gtt_budget_is_bounded_by_its_container(self) -> None:
         assert 0 < ag.GTT_TOTAL_FRACTION <= 1.0
+
+
+class TestCatalogBackendPin:
+    """Live catalog 2026-10-23 (GET /api/v1/models?show_all=true): llama.cpp entries carry
+    recipe_options.llamacpp_backend (11 pinned 'cpu', incl. Gemma-4-E2B-it-GGUF), so the
+    per-model pin is readable without root; and LFM2.5-8B-A1B is recipe 'llamacpp' with no
+    'GGUF' in its name."""
+
+    def test_catalog_pin_vulkan_beats_cpu_default(self) -> None:
+        entry = {"recipe": "llamacpp", "recipe_options": {"llamacpp_backend": "vulkan"}}
+        assert model_placement(MODEL, entry, GateConfig()) == "gtt"
+
+    def test_catalog_pin_cpu_beats_vulkan_default(self) -> None:
+        entry = {"recipe": "llamacpp", "recipe_options": {"llamacpp_backend": "cpu"}}
+        assert model_placement(MODEL, entry, GateConfig(gguf_backend="vulkan")) == "cgroup"
+
+    def test_env_override_beats_catalog_pin(self) -> None:
+        entry = {"recipe": "llamacpp", "recipe_options": {"llamacpp_backend": "cpu"}}
+        cfg = GateConfig(backend_overrides=((MODEL.lower(), "vulkan"),))
+        assert model_placement(MODEL, entry, cfg) == "gtt"
+
+    def test_llamacpp_variant_recipe_follows_backend(self) -> None:
+        cfg = GateConfig(gguf_backend="vulkan")
+        assert model_placement("LFM2.5-8B-A1B", {"recipe": "llamacpp-hrx"}, cfg) == "gtt"
+
+    def test_catalog_miss_non_gguf_name_is_not_waved_through(self) -> None:
+        # The catalog is empty exactly while lemonade stalls on a load; a llama.cpp model
+        # without "GGUF" in its name (LFM2.5-8B-A1B) must still face the system check.
+        cfg = GateConfig(gguf_backend="vulkan")
+        assert model_placement("LFM2.5-8B-A1B", None, cfg) == "gtt"
+        d = _gate(system=PRESSURED).decide("LFM2.5-8B-A1B", CHAT)
+        assert d.allow is False and "MemAvailable" in d.reason
+
+    def test_gate_reads_the_pin_from_its_catalog(self) -> None:
+        entry = {
+            "size": 3.0,
+            "recipe": "llamacpp",
+            "recipe_options": {"llamacpp_backend": "vulkan", "ctx_size": 4096},
+        }
+        g = AdmissionGate(
+            config=GateConfig(),  # default backend cpu: only the pin can make this GPU-placed
+            read_resident=lambda: [],
+            read_cgroup=lambda: VULKAN_CGROUP,
+            read_catalog=lambda: {MODEL: entry},
+            read_system=lambda: PRESSURED,
+        )
+        d = g.decide(MODEL, CHAT)
+        assert d.allow is False and "MemAvailable" in d.reason

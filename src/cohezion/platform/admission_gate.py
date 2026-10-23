@@ -314,17 +314,25 @@ def model_placement(
     """'gtt' when the load's bytes land in GPU-mapped memory, else 'cgroup'.
 
     FLM (NPU) is always 'cgroup' (its buffers are lemond shmem/file_mapped, measured).
-    llama.cpp models -- catalog recipe 'llamacpp', or a GGUF name when the catalog has no
-    entry -- follow the per-model override, else the configured default backend. Every
-    other recipe (whisper, kokoro, sd, ...) keeps the cgroup check.
+    llama.cpp models (recipe 'llamacpp*') pick their backend in this order: the configured
+    per-model override, then the catalog's ``recipe_options.llamacpp_backend`` pin (lemonade
+    exposes it on /api/v1/models, readable without root), then the configured default.
+    Every other explicit recipe (whisper, kokoro, sd, ...) keeps the cgroup check. With no
+    catalog entry (the catalog stalls while a load is in progress) the recipe is unknown, so
+    the default backend applies: a llama.cpp model without "GGUF" in its name
+    (LFM2.5-8B-A1B) must not slip past the system check.
     """
-    recipe = str((catalog_entry or {}).get("recipe", "")).lower()
+    entry = catalog_entry or {}
+    recipe = str(entry.get("recipe", "")).lower()
     name = normalize_model_name(model_name).lower()
     if recipe == "flm" or name.endswith("-flm"):
         return "cgroup"
-    if recipe != "llamacpp" and (recipe or "gguf" not in name):
+    if recipe and not recipe.startswith("llamacpp"):
         return "cgroup"
-    backend = dict(config.backend_overrides).get(name, config.gguf_backend)
+    options = entry.get("recipe_options")
+    pin = options.get("llamacpp_backend") if isinstance(options, dict) else None
+    default = str(pin).strip().lower() if isinstance(pin, str) and pin.strip() else None
+    backend = dict(config.backend_overrides).get(name, default or config.gguf_backend)
     return "cgroup" if backend in _CGROUP_BACKENDS else "gtt"
 
 
