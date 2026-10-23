@@ -1,0 +1,137 @@
+# Calibration probes, 2026-10-23, llama3.2-1b-FLM via :13305, temperature 0, think=false, base skill only.
+# Produced by: scripts/experiments/compound_loop_evidence.py --calibrate --models <model> --max-tokens <n>
+# Per-task line: + pass / - fail / ! transport error, then the first 70 chars of the reply.
+
+## max_tokens=48 (first probe, also tried gemma4-it-e2b-FLM and qwen3.5-4b-FLM)
+    + s3         'To answer your question, I will first restate it in my own words: \n\nTh'
+    - tls        'To understand which cryptographic protocol HTTPS uses for encryption, '
+    + mergesort  '**Restatement of the question:** What sorting algorithm repeatedly mer'
+    - distinct   '**Restated Question:** What SQL keyword is used to remove duplicate ro'
+    [retry 1] TimeoutError: timed out
+    + gitbranch  '**Restatement of the question:** I want to create a new branch and swi'
+    - pgport     'To find the default port for PostgreSQL, we need to understand the con'
+    - len        '**Restatement of the Question:**\nThe question asks for a Python built-'
+    - put        '**Restated Question:** What HTTP method is used to replace a resource '
+    - bfs        '**Restated Question:** What data structure is used to track the fronti'
+    - ports      '**Restated Question:** I want to find out which Linux commands list op'
+    - raft       'Restated question: What consensus algorithm does etcd use?\n\nBackground'
+    + dns53      'To answer your question, the default port for DNS (Domain Name System)'
+[calibrate] llama3.2-1b-FLM: pass=0.250 (4/16, 0 transport) -> out of band
+
+[calibrate] gemma4-it-e2b-FLM: warming up ...
+    [retry 1] TimeoutError: timed out
+    [retry 2] HTTP 404: {"error":{"message":"No model loaded: gemma4-it-e2b-FLM","type":"model_not_loaded"}}
+    [retry 3] HTTP 404: {"error":{"message":"No model loaded: gemma4-it-e2b-FLM","type":"model_not_loaded"}}
+[calibrate] gemma4-it-e2b-FLM: NOT SERVING (gemma4-it-e2b-FLM never served within 240.0s: TimeoutError: timed out) -- skipped
+
+[calibrate] qwen3.5-4b-FLM: warming up ...
+    [retry 1] HTTP 503: {"error":{"type":"admission_refused","message":"lemond cgroup headroom: 20.8GB working set
+    [retry 2] HTTP 503: {"error":{"type":"admission_refused","message":"lemond cgroup headroom: 20.8GB working set
+    [retry 3] HTTP 503: {"error":{"type":"admission_refused","message":"lemond cgroup headroom: 20.8GB working set
+[calibrate] qwen3.5-4b-FLM: warm in 140.7s
+    [retry 1] HTTP 404: {"error":{"message":"No model loaded: qwen3.5-4b-FLM","type":"model_not_loaded"}}
+    [retry 2] TimeoutError: timed out
+    [retry 3] HTTP 404: {"error":{"message":"No model loaded: qwen3.5-4b-FLM","type":"model_not_loaded"}}
+    ! lifo       HTTP 503: {"error":{"type":"admission_refused","message":"lemond cgroup headroom
+    [retry 1] HTTP 503: {"error":{"type":"admission_refused","message":"lemond cgroup headroom: 19.3GB working set
+    [retry 2] HTTP 503: {"error":{"type":"admission_refused","message":"lemond cgroup headroom: 19.2GB working set
+    [retry 3] HTTP 503: {"error":{"type":"admission_refused","message":"lemond cgroup headroom: 12.4GB working set
+    ! http404    HTTP 503: {"error":{"type":"admission_refused","message":"lemond cgroup headroom
+    [retry 1] HTTP 503: {"error":{"type":"admission_refused","message":"lemond cgroup headroom: 20.5GB working set
+    [retry 2] TimeoutError: timed out
+    [retry 3] HTTP 404: {"error":{"message":"No model loaded: qwen3.5-4b-FLM","type":"model_not_loaded"}}
+    ! generator  TimeoutError: timed out
+    - binsearch  '### Restatement of the Question\nThe user is asking for the worst-case '
+    - s3         '### Restatement of the Question\nThe user is asking to identify the spe'
+    - tls        '### Restatement of the Question\nThe user is asking to identify the spe'
+    - mergesort  '### Restatement of the Question\nThe question asks to identify a specif'
+    - distinct   '### Restatement of the Question\nThe user is asking for the specific SQ'
+    [retry 1] HTTP 404: {"error":{"message":"No model loaded: qwen3.5-4b-FLM","type":"model_not_loaded"}}
+    - gitbranch  '### Restatement of the Question\nYou are looking for a specific Git com'
+    [retry 1] HTTP 404: {"error":{"message":"No model loaded: qwen3.5-4b-FLM","type":"model_not_loaded"}}
+    - pgport     '### Restatement of the Question\nThe user is asking for the standard, o'
+    [retry 1] HTTP 404: {"error":{"message":"No model loaded: qwen3.5-4b-FLM","type":"model_not_loaded"}}
+    - len        '### Restating the Question\nThe user is asking for the name of a specif'
+    [retry 1] HTTP 404: {"error":{"message":"No model loaded: qwen3.5-4b-FLM","type":"model_not_loaded"}}
+    [retry 2] TimeoutError: timed out
+    - put        '### Restatement of the Question\nThe user is asking to identify a speci'
+    [retry 1] TimeoutError: timed out
+    [retry 2] HTTP 503: {"error":{"type":"admission_refused","message":"lemond cgroup headroom: 18.0GB working set
+    [retry 3] HTTP 503: {"error":{"type":"admission_refused","message":"lemond cgroup headroom: 21.0GB working set
+    ! bfs        HTTP 503: {"error":{"type":"admission_refused","message":"lemond cgroup headroom
+    [retry 1] HTTP 503: {"error":{"type":"admission_refused","message":"lemond cgroup headroom: 21.0GB working set
+    [retry 2] HTTP 503: {"error":{"type":"admission_refused","message":"lemond cgroup headroom: 21.0GB working set
+    [retry 3] HTTP 503: {"error":{"type":"admission_refused","message":"lemond cgroup headroom: 21.0GB working set
+    ! ports      HTTP 503: {"error":{"type":"admission_refused","message":"lemond cgroup headroom
+    [retry 1] HTTP 503: {"error":{"type":"admission_refused","message":"lemond cgroup headroom: 21.0GB working set
+    [retry 2] HTTP 503: {"error":{"type":"admission_refused","message":"lemond cgroup headroom: 21.0GB working set
+    [retry 3] TimeoutError: timed out
+    - raft       '### Restatement of the Question\nThe user is asking to identify the spe'
+    [retry 1] TimeoutError: timed out
+    [retry 2] HTTP 404: {"error":{"message":"No model loaded: qwen3.5-4b-FLM","type":"model_not_loaded"}}
+    - dns53      '### Restatement of the Question\nThe user is asking for the standard, d'
+[calibrate] qwen3.5-4b-FLM: pass=0.000 (0/11, 5 transport) -> out of band
+
+in-band models: NONE (instrument saturated -- change the task set, not the model)
+
+
+### max_tokens=64
+
+[calibrate] llama3.2-1b-FLM: warming up ...
+    [retry 1] HTTP 503: {"error":{"type":"admission_refused","message":"lemond cgroup headroom: 28.5GB working set
+    [retry 2] TimeoutError: timed out
+[calibrate] llama3.2-1b-FLM: warm in 177.6s
+    [retry 1] TimeoutError: timed out
+    [retry 2] HTTP 503: {"error":{"type":"admission_refused","message":"lemond cgroup headroom: 28.7GB working set
+    [retry 3] HTTP 503: {"error":{"type":"admission_refused","message":"lemond cgroup headroom: 28.7GB working set
+    - lifo       '**Restated Question:** What data structure uses last-in-first-out (LIF'
+    [retry 1] TimeoutError: timed out
+    - http404    "To understand what HTTP status code means 'Not Found', let's break it "
+    [retry 1] TimeoutError: timed out
+    - generator  '**Restatement of the Question:** What Python keyword makes a function '
+    - binsearch  '**Restatement of the question:**\nThe worst-case time complexity of bin'
+    - s3         '**Restated Question:** Which AWS service provides object storage?\n\n**B'
+    [retry 1] TimeoutError: timed out
+    - tls        '**Restated Question:** What cryptographic protocol does HTTPS use for '
+    - mergesort  '**Restatement of the question:** What is a sorting algorithm that repe'
+    + distinct   '**Restated Question:** What SQL keyword removes duplicate rows from a '
+    + gitbranch  '**Restatement of the question:** I want to create a new branch and swi'
+    - pgport     '**Restatement of the question:** What is the default port number for P'
+    - len        '**Restatement of the Question:**\nThe question asks for a Python built-'
+    - put        '**Restated Question:** What HTTP method is idempotent and used to repl'
+    - bfs        '**Restated Question:** What data structure is used to track the fronti'
+    [retry 1] TimeoutError: timed out
+    - ports      '**Restated Question:** What Linux command lists open network ports and'
+    - raft       'Restated question: What consensus algorithm does etcd use?\n\nBackground'
+    + dns53      'The default port for DNS (Domain Name System) is 53. This is because D'
+[calibrate] llama3.2-1b-FLM: pass=0.188 (3/16, 0 transport) -> out of band
+
+in-band models: NONE (instrument saturated -- change the task set, not the model)
+### max_tokens=96
+
+[calibrate] llama3.2-1b-FLM: warming up ...
+    [retry 1] TimeoutError: timed out
+[calibrate] llama3.2-1b-FLM: warm in 120.8s
+    - lifo       '**Restated Question:** What data structure uses last-in-first-out (LIF'
+    - http404    "To understand what HTTP status code means 'Not Found', let's break it "
+    [retry 1] TimeoutError: timed out
+    + generator  '**Restatement of the Question:** What Python keyword makes a function '
+    - binsearch  '**Restated Question:** What is the worst-case time complexity of binar'
+    + s3         '**Restated Question:** Which AWS service provides object storage?\n\n**B'
+    - tls        '**Restated Question:** What cryptographic protocol does HTTPS use for '
+    [retry 1] TimeoutError: timed out
+    - mergesort  '**Restatement of the question:** What is a sorting algorithm that repe'
+    + distinct   '**Restated Question:** What SQL keyword is used to remove duplicate ro'
+    + gitbranch  '**Restatement of the question:** I want to create a new branch and swi'
+    + pgport     '**Restatement of the question:** What is the default port number for P'
+    [retry 1] TimeoutError: timed out
+    [retry 2] TimeoutError: timed out
+    + len        '**Restatement of the Question:**\nThe question asks for a Python built-'
+    + put        '**Restated Question:** What HTTP method is idempotent and used to repl'
+    - bfs        '**Restated Question:** What data structure is used to track the fronti'
+    [retry 1] TimeoutError: timed out
+    + ports      '**Restated Question:** What Linux command lists open network ports and'
+    + raft       'Restated question: What consensus algorithm does etcd use?\n\nBackground'
+    + dns53      'To answer your question, the default port for DNS (Domain Name System)'
+[calibrate] llama3.2-1b-FLM max_tokens=96: pass=0.625 (10/16, 0 transport) -> IN BAND
+in-band models: ['llama3.2-1b-FLM']
