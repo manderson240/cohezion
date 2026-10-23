@@ -277,6 +277,31 @@ def test_watch_times_out_when_ref_never_listed(
     assert result["episodes"] is None
 
 
+# Verbatim first line of `kaggle competitions submissions <comp> --csv` stdout from
+# kaggle-cli 2.2.4 on 2026-10-23 (newer release on the server). It goes to STDOUT,
+# before the header, and contains a comma — so it parses as a 2-column header row.
+_KAGGLE_OUTDATED_WARNING = (
+    "Warning: Looks like you're using an outdated `kaggle` version (installed: 2.2.4), "
+    "please consider upgrading to the latest version (2.2.5)"
+)
+
+
+def test_watch_parses_from_header_when_cli_prints_version_warning(
+    monkeypatch: pytest.MonkeyPatch, clock: _FakeClock
+) -> None:
+    """STDOUT-PARSE-FROM-TOP: a banner before the CSV header must not hide the status column."""
+    seen, _ = _scripted_run(
+        monkeypatch, ["COMPLETE"], header=f"{_KAGGLE_OUTDATED_WARNING}\n{_CSV_HEADER}"
+    )
+    result = server.kaggle_watch_submission("kaggriculture", "55844550")
+
+    assert "error" not in result, result.get("error")
+    assert result["ok"] is True
+    assert result["status"] == "COMPLETE"
+    assert result["status_line"].startswith("55844550,")
+    assert seen[-1] == ["competitions", "episodes", "55844550"]
+
+
 def test_watch_errors_when_status_column_missing(
     monkeypatch: pytest.MonkeyPatch, clock: _FakeClock
 ) -> None:

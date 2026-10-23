@@ -227,6 +227,11 @@ def _submission_status(csv_text: str, submission_ref: str) -> tuple[str, str, st
     rather than guessing from the raw line.
     """
     rows = list(csv.reader(io.StringIO(csv_text)))
+    # Parse from the header row, not the first line: kaggle-cli prints an "outdated
+    # version" warning on STDOUT before the CSV (2.2.4 -> 2.2.5, 2026-10-23), which
+    # otherwise becomes the header and hides the status column.
+    start = next((i for i, r in enumerate(rows) if r and r[0].strip().lower() == "ref"), 0)
+    rows = rows[start:]
     if not rows:
         return "", "", None
     header = [h.strip().lower() for h in rows[0]]
