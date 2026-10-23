@@ -3,7 +3,7 @@
 These tests run without a live Lemonade daemon.
 They guard:
   - All LLM BASE_RECIPES have ctx_size > 0 and ≤ 32768 (N3 OOM hazard)
-  - Gemma-4-E2B uses llamacpp_backend="rocm" (intentional RDNA 3.5 path)
+  - Gemma-4-E2B (tier 0 since 2026-10-23) uses llamacpp_backend="auto"; its old "rocm" pin is gone
   - All other llamacpp models use llamacpp_backend="auto"
   - USER_VARIANTS checkpoint paths reference the correct base models
   - user.DeepSeek-Qwen3-8B-Reasoning does NOT accidentally point to the 35B checkpoint
