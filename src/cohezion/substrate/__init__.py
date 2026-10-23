@@ -38,3 +38,5 @@ with contextlib.suppress(Exception):
 with contextlib.suppress(Exception):
     from cohezion.substrate.popcorn import SubmitResult as SubmitResult
     from cohezion.substrate.popcorn import submit as submit
+
+    __all__ += ["SubmitResult", "submit"]

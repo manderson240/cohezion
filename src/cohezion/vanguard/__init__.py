@@ -23,3 +23,11 @@ with contextlib.suppress(Exception):
     from cohezion.vanguard.source_connector import DiscoveryRecord as DiscoveryRecord
     from cohezion.vanguard.source_connector import SourceConnector as SourceConnector
     from cohezion.vanguard.source_connector import SourceHealth as SourceHealth
+
+# Public surface = each module's primary class (tests/vanguard/test_vanguard_wiring.py).
+# Filtered so a failed guarded import above never lists a missing name.
+__all__ = [
+    name
+    for name in ("AttributionEngine", "SourceConnector", "SubstrateSandbox", "VanguardScoutReport")
+    if name in globals()
+]

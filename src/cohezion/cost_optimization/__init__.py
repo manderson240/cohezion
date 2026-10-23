@@ -81,7 +81,21 @@ __all__ = [
 with contextlib.suppress(Exception):
     from cohezion.cost_optimization.cost_dashboard import BudgetStatus as BudgetStatus
     from cohezion.cost_optimization.cost_dashboard import CostBreakdown as CostBreakdown
+    from cohezion.cost_optimization.cost_dashboard import CostDashboard as CostDashboard
     from cohezion.cost_optimization.cost_dashboard import SpendRate as SpendRate
+    from cohezion.cost_optimization.cost_dashboard import TrendPoint as TrendPoint
+    from cohezion.cost_optimization.cost_dashboard import (
+        get_cost_dashboard as get_cost_dashboard,
+    )
+
+    __all__ += [
+        "BudgetStatus",
+        "CostBreakdown",
+        "CostDashboard",
+        "SpendRate",
+        "TrendPoint",
+        "get_cost_dashboard",
+    ]
 
 with contextlib.suppress(Exception):
     from cohezion.cost_optimization.forecast_engine import Forecast as Forecast

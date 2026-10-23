@@ -135,3 +135,24 @@ __all__ = [
     "TaskSpec",
     "TrainingConfig",
 ]
+
+# Wiring-sweep 2026-06-06 (tests/wiring/test_{causal_interpreter,distributed_trainer,grpo_trainer}
+# _wired.py): the remaining public names of these three modules. Appended AFTER __all__ so a
+# failed guarded import never lists a name the package does not have.
+with contextlib.suppress(Exception):
+    from cohezion.rl.causal_interpreter import ActivationPatcher as ActivationPatcher
+
+    __all__ += ["ActivationPatcher"]
+
+with contextlib.suppress(Exception):
+    from cohezion.rl.distributed_trainer import DistributedLauncher as DistributedLauncher
+    from cohezion.rl.distributed_trainer import ScalingBenchmark as ScalingBenchmark
+    from cohezion.rl.distributed_trainer import ScalingMetrics as ScalingMetrics
+
+    __all__ += ["DistributedLauncher", "ScalingBenchmark", "ScalingMetrics"]
+
+with contextlib.suppress(Exception):
+    from cohezion.rl.grpo_trainer import AsyncGRPOTrainer as AsyncGRPOTrainer
+    from cohezion.rl.grpo_trainer import GRPOMetrics as GRPOMetrics
+
+    __all__ += ["AsyncGRPOTrainer", "GRPOMetrics"]
