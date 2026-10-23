@@ -64,6 +64,9 @@ GPU_LEASE_EVENT_TYPES = {
     "gpu_lease_refused",
     "gpu_lease_released",
     "gpu_lease_overdue",
+    "gpu_lease_lock_recreated",
+    "gpu_lease_lock_conflict",
+    "gpu_lease_client_wait_long",
 }
 
 

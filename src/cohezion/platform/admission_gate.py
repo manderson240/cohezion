@@ -19,7 +19,8 @@ Decision rules (in order):
   3. lemond working set + the model's catalog size > 90% of memory.high -> refuse.
   4. Otherwise forward; Lemonade decides the rest.
 
-An admit decided while the lease was FREE is re-probed against the lease and registered as
+An admit decided while the lease was FREE that can map NEW memory (every admit except reuse
+of a model a fresh census shows resident) is re-probed against the lease and registered as
 in flight in one critical section, and stays in flight until the proxy has upstream's answer
 (:meth:`AdmissionGate.finish`). A lease that flocked mid-decision gets the request decided
 again under the lease; one that flocks later drains it (gpu_lease A2 waits on ``in_flight``).
@@ -65,7 +66,13 @@ from cohezion.compound.oom_guard import (
     fetch_loaded_models,
     normalize_model_name,
 )
-from cohezion.platform.gpu_lease import FLOOR_GB, _mem_available_gb, lease_path, sidecar_path
+from cohezion.platform.gpu_lease import (
+    FLOOR_GB,
+    _mem_available_gb,
+    lease_path,
+    live_sidecar_pid,
+    sidecar_path,
+)
 
 
 logger = logging.getLogger(__name__)
@@ -153,6 +160,8 @@ _LEASE_OVERRIDE_SUFFIXES = ("_backend", "_args", "_device")
 _EXPLICIT_LOAD_ROUTES = frozenset(f"{prefix}load" for prefix in ("api/v1/", "v1/", "api/v0/"))
 _READ_METHODS = frozenset({"GET", "HEAD", "OPTIONS"})
 LEASE_HELD = "held"
+_FRESH_REUSE = "resident — reuse needs no memory"
+_STALE_REUSE = "resident (last-good census) — reuse needs no memory"
 LEASE_FREE = "free"
 
 
@@ -160,12 +169,14 @@ def probe_gpu_lease(path: pathlib.Path) -> str:
     """HELD or FREE for the GPU lease flock at *path*. Never blocks, never creates it.
 
     A shared non-blocking flock succeeds only when nobody holds LOCK_EX. ENOENT is FREE (no
-    lease was ever taken); any other OSError is HELD: an unreadable lease must tighten.
+    lease was ever taken) unless the holder sidecar names a LIVE process: then the lock file
+    was deleted under a held lease, which stays HELD until its watchdog recreates the file.
+    Any other OSError is HELD: an unreadable lease must tighten.
     """
     try:
         fd = os.open(path, os.O_RDONLY)
     except FileNotFoundError:
-        return LEASE_FREE
+        return LEASE_HELD if live_sidecar_pid(path) is not None else LEASE_FREE
     except OSError:
         return LEASE_HELD
     try:
@@ -556,6 +567,20 @@ class AdmissionGate:
         census = parse_census({"all_models_loaded": mine})
         return bool(census.residents) and all(m.device == "cpu" for m in census.residents)
 
+    def forget_census(self) -> None:
+        """Drop the 1.5 s residency cache: the next decision reads /health afresh."""
+        self._resident_cache = None
+
+    def implicit_cpu_fallback_ok(self, model_name: str, body: object) -> bool:
+        """True when a request that would implicitly load *model_name* may instead have the
+        proxy load it on the CPU: a llamacpp (GGUF) model, no backend override anywhere in
+        the request, and a FRESH census showing it resident nowhere (a model on the GPU or
+        an unplaceable device is never reloaded behind lemonade's back)."""
+        if self.recipe_of(model_name) != "llamacpp" or has_backend_override(body):
+            return False
+        entries = self._resident_entries()
+        return entries is not None and not any(_resident_match(model_name, e) for e in entries)
+
     def recipe_of(self, model_name: str) -> str | None:
         entry = self._catalog.get(normalize_model_name(model_name))
         recipe = entry.get("recipe") if entry else None
@@ -615,6 +640,10 @@ class AdmissionGate:
         # lease (and is never drained past); a lease that flocks later sees the token.
         with self._lock:
             if probe_gpu_lease(self._config.gpu_lease_path) != LEASE_HELD:
+                if decision.reason == _FRESH_REUSE:
+                    # Reuse proven by a fresh census maps no new memory: not drained, so one
+                    # long generation cannot stall a lease's drain (DRAIN_MAX_S).
+                    return decision
                 self._next_token += 1
                 self._in_flight[self._next_token] = time.monotonic() + IN_FLIGHT_TTL_S
                 return dataclasses.replace(decision, token=self._next_token)
@@ -655,9 +684,10 @@ class AdmissionGate:
         # A lease-exempt (CPU fallback) load never takes the resident shortcut: residency may
         # come from the 60 s last-good cache of a model the lease holder just unloaded.
         if not exempt and self._is_resident(model_name, resident):
-            return AdmissionDecision(
-                True, False, "resident — reuse needs no memory", model_name
-            ), None
+            # From the 60 s last-good cache the model may already be gone, and forwarding
+            # would auto-load it: that admit stays in flight (decide()).
+            reason = _FRESH_REUSE if resident is not None else _STALE_REUSE
+            return AdmissionDecision(True, False, reason, model_name), None
         cgroup = self._read_cgroup()
         if cgroup is None and held:  # a new load under the lease is never admitted blind
             return self._lease_decision(

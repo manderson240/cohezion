@@ -300,10 +300,18 @@ def build_gaia_mcp_tier(
 LEASE_CLIENT_WAIT_S_DEFAULT = 6 * 3600.0
 _LEASE_RETRY_AFTER_S = 15.0
 _LEASE_REFUSAL_MARKER = "GPU lease held"
-# Above the proxy's default lease hold (120 s) plus upstream latency; matches GAIA's own
+# Above the proxy's default lease hold (60 s) plus upstream latency; matches GAIA's own
 # DEFAULT_REQUEST_TIMEOUT so both client paths wait the same.
 LOCAL_ROUTER_TIMEOUT_S = 900
 _lease_sleep = time.sleep  # monkeypatched in tests
+# A lease wait longer than this is reported once to the datamesh (audit, fail-open).
+LEASE_WAIT_REPORT_S = 600.0
+
+
+def _publish_long_wait(event_type: str, payload: dict[str, Any]) -> None:
+    from cohezion.platform.gpu_lease import publish_event
+
+    publish_event(event_type, payload, source="gaia_adapter")
 
 
 def gpu_lease_retry_after(exc: BaseException) -> float | None:
@@ -357,7 +365,11 @@ class _GaiaLLMClientShim:
         budget = float(
             os.environ.get("COHEZION_GPU_LEASE_CLIENT_WAIT_S", str(LEASE_CLIENT_WAIT_S_DEFAULT))
         )
-        waited = 0.0
+        # The budget bounds WALL time: each refused attempt may itself have been held by the
+        # proxy, so count the larger of the summed sleeps and the monotonic elapsed time.
+        start = time.monotonic()
+        slept = 0.0
+        reported = False
         while True:
             try:
                 return self._client.chat_completions(  # type: ignore[attr-defined,no-any-return]
@@ -370,11 +382,21 @@ class _GaiaLLMClientShim:
                 )
             except Exception as exc:
                 wait = gpu_lease_retry_after(exc)
-                if wait is None or waited + wait > budget:
+                spent = max(slept, time.monotonic() - start)
+                if wait is None or spent + wait > budget:
                     raise
+                if not reported and spent > LEASE_WAIT_REPORT_S:
+                    reported = True
+                    try:
+                        _publish_long_wait(
+                            "gpu_lease_client_wait_long",
+                            {"model": self._model, "waited_s": round(spent, 1)},
+                        )
+                    except Exception as pub_exc:  # audit only: never fails the call
+                        logger.warning("gpu lease wait event not written: %s", pub_exc)
                 logger.info("%s: GPU lease held, retrying in %.0fs", self._model, wait)
                 _lease_sleep(wait)
-                waited += wait
+                slept += wait
 
     def prompt(self, text: str) -> str:
         resp = self._chat(text)

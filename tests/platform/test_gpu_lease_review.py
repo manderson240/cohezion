@@ -93,9 +93,12 @@ def _kill(pid: int) -> None:
 # -- CLI: the lease lives exactly as long as the job tree ------------------------------------
 
 
-def test_holder_sigkill_keeps_lease_while_grandchild_lives(tmp_path: Path) -> None:
-    # `gpu_lease -- uv run python job.py`: the GPU worker is a grandchild. PDEATHSIG kills
-    # only the direct child; the passed lease fd keeps the flock until the worker dies.
+def test_holder_sigkill_frees_lease_job_never_holds_it(tmp_path: Path) -> None:
+    # SPEC CHANGE (third review, 2026-10-23): the job no longer inherits the lease fd, so
+    # the lease lives exactly as long as its holder. Before, a passed fd let any job process
+    # (a setsid escapee, a forked child) hold the lease forever after the holder released.
+    # Residual, stated: a SIGKILLed holder frees the GPU while a grandchild may still run
+    # (PDEATHSIG kills only the direct child); a normal exit stops the whole group first.
     gpid = tmp_path / "gpid"
     lock, p = _run_cli(tmp_path, ["sh", "-c", f"sleep 300 & echo $! > {gpid}; wait"])
     grandchild = int(_wait_file(gpid))
@@ -103,15 +106,12 @@ def test_holder_sigkill_keeps_lease_while_grandchild_lives(tmp_path: Path) -> No
         assert probe_gpu_lease(lock) == "held"
         p.send_signal(signal.SIGKILL)
         p.wait()
-        time.sleep(0.5)
-        assert _alive(grandchild)
-        assert probe_gpu_lease(lock) == "held", "lease freed while the job's worker runs"
+        deadline = time.monotonic() + 5
+        while probe_gpu_lease(lock) == "held" and time.monotonic() < deadline:
+            time.sleep(0.05)
+        assert probe_gpu_lease(lock) == "free", "a job process still holds the lease"
     finally:
         _kill(grandchild)
-    deadline = time.monotonic() + 5
-    while probe_gpu_lease(lock) == "held" and time.monotonic() < deadline:
-        time.sleep(0.05)
-    assert probe_gpu_lease(lock) == "free"  # and it frees once the last holder is gone
 
 
 def test_normal_exit_kills_background_grandchild_before_release(tmp_path: Path) -> None:
@@ -215,11 +215,14 @@ def test_cpu_reuse_is_refused_without_fresh_cpu_proof(holder, resident, path, ex
     assert not d.allow and d.kind == "gpu_lease"
 
 
-def test_chat_to_non_resident_gguf_still_waits_then_503(holder) -> None:
-    # Spec limit, pinned: no fallback on non-load routes, so a non-resident GPU model is held
-    # for the hold window and then refused with the lease headers.
+def test_chat_to_non_resident_gguf_waits_then_503_when_cpu_cannot_fit(holder) -> None:
+    # SPEC CHANGE (third review, 2026-10-23): a chat to a non-resident GGUF is served on the
+    # CPU when it fits (test_gpu_lease_review3). When the CPU budget cannot fit it, it is
+    # held for the hold window and then refused with the lease headers, never loaded.
     seen: list[httpx.Request] = []
-    app = build_app(_gate(), client=_upstream(seen), lease_hold_s=0.3, lease_poll_s=0.05)
+    app = build_app(
+        _gate(working_set=26.0), client=_upstream(seen), lease_hold_s=0.3, lease_poll_s=0.05
+    )
     with TestClient(app) as c:
         r = c.post("/v1/chat/completions", json={"model": GGUF, "messages": []})
     assert r.status_code == 503 and r.headers["X-Cohezion-Refusal"] == "gpu_lease"
@@ -387,7 +390,9 @@ def test_abandoned_held_request_is_not_forwarded(holder) -> None:
     import uvicorn
 
     seen: list[httpx.Request] = []
-    app = build_app(_gate(), client=_upstream(seen), lease_hold_s=5.0, lease_poll_s=0.05)
+    # CPU cannot fit the model, so the request is held (no implicit CPU load) until abandoned.
+    gate = _gate(working_set=26.0)
+    app = build_app(gate, client=_upstream(seen), lease_hold_s=5.0, lease_poll_s=0.05)
     s = socket.socket()
     s.bind(("127.0.0.1", 0))
     port = s.getsockname()[1]

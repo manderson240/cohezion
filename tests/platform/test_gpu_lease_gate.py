@@ -216,12 +216,17 @@ class TestProxyUnderLease:
             r = c.post("/api/v1/load", json={"model_name": GGUF, "llamacpp_backend": "vulkan"})
         assert r.status_code == 503 and seen == []
 
-    def test_no_fallback_on_non_load_routes(self, holder) -> None:
+    def test_non_load_route_is_never_rewritten_nor_forwarded_unproven(self, holder) -> None:
+        # SPEC CHANGE (third review, 2026-10-23): a chat to a non-resident GGUF now gets an
+        # implicit CPU load from the proxy itself. The chat body is never rewritten, and it
+        # is not forwarded while /health (static here) does not prove the CPU placement.
         seen: list[httpx.Request] = []
         app = build_app(_gate(), client=_upstream(seen), lease_hold_s=0.2, lease_poll_s=0.05)
         with TestClient(app) as c:
             r = c.post("/v1/chat/completions", json={"model": GGUF, "messages": []})
-        assert r.status_code == 503 and seen == []
+        assert r.status_code == 503
+        assert [q.url.path for q in seen] == ["/api/v1/load"]
+        assert json.loads(seen[0].content)["llamacpp_backend"] == "cpu"
 
     def test_unload_forwards_under_lease(self, holder) -> None:
         seen: list[httpx.Request] = []

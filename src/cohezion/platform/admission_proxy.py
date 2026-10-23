@@ -9,6 +9,12 @@ triune orchestrator, executors) treats that like any other capacity error and fa
 to a smaller model via its existing cascade. GET /admission/status exposes the live
 config, decision counters, and the bypass-path audit for telemetry.
 
+Under a held GPU lease (gpu_lease.py) a request that would implicitly load a non-resident
+GGUF model is served on the CPU: the proxy loads it with ``llamacpp_backend=cpu`` (full
+cgroup + lease-memory checks, ``save_options`` off), and forwards the original request
+unchanged once /health proves the CPU placement. Anything else is held (default 60 s), then
+refused with ``X-Cohezion-Refusal: gpu_lease``.
+
 Run: ``python -m cohezion.platform.admission_proxy`` (see
 scripts/cohezion-admission-gate.service and docs/ops/admission-gate-cutover.md).
 """
@@ -44,9 +50,12 @@ from cohezion.platform.admission_gate import (
 logger = logging.getLogger(__name__)
 
 RETRY_AFTER_S = 15  # refused clients back off instead of retrying in a tight loop
-# Under a held GPU lease a refused GPU-placed request WAITS (displaced fleet work must wait
-# or fall back, not fail), polling the lease, then gets a 503 only when the hold expires.
-LEASE_HOLD_S_DEFAULT = 120.0
+# Under a held GPU lease a request that would load a GGUF model is served on the CPU when
+# the CPU budget fits (the proxy loads it there first). Otherwise a refused GPU-placed
+# request WAITS, polling the lease, and gets a 503 only when the hold expires. The hold is
+# below the shortest known client timeout (research_daemon, local_executor: 90 s), which
+# escalate to the cloud on a timeout but retry a 503 with the lease marker.
+LEASE_HOLD_S_DEFAULT = 60.0
 LEASE_POLL_S = 1.0
 _CPU_FALLBACK_ROUTES = frozenset({"v1/load", "api/v1/load"})
 _READ_METHODS = frozenset({"GET", "HEAD", "OPTIONS"})
@@ -173,7 +182,15 @@ def build_app(
         else float(os.environ.get("COHEZION_GPU_LEASE_HOLD_S", str(LEASE_HOLD_S_DEFAULT)))
     )
     counters = {"forwarded": 0, "refused": 0, "shadow_refusals": 0}
-    lease_counters = {"held_requests": 0, "refused": 0, "cpu_fallbacks": 0, "abandoned": 0}
+    lease_counters = {
+        "held_requests": 0,
+        "refused": 0,
+        "cpu_fallbacks": 0,
+        "implicit_cpu_loads": 0,
+        "abandoned": 0,
+    }
+    # One implicit CPU load per model at a time: concurrent requests wait for it, then reuse.
+    implicit_locks: dict[str, asyncio.Lock] = {}
 
     @app.get("/admission/status")
     async def status() -> JSONResponse:
@@ -250,12 +267,15 @@ def build_app(
                 active_gate.finish(tracked.pop())
 
         async def run_gate(
-            lease_exempt: str | None = None, gate_body: object = None
+            lease_exempt: str | None = None,
+            gate_body: object = None,
+            gate_path: str | None = None,
         ) -> tuple[AdmissionDecision | None, list[str]]:
             """(refusal or None, names admitted as new loads). decide() reads health and
-            /proc, so it runs off the event loop."""
+            /proc, so it runs off the event loop. ``gate_path`` decides a load the proxy
+            itself will send (one model, named by ``lease_exempt``) instead of the request."""
             admitted: list[str] = []
-            checks: list[str | None] = list(names)
+            checks: list[str | None] = list(names) if gate_path is None else [lease_exempt]
             # An unnamed write to a load-capable path is checked once: a held lease refuses
             # it, and with no lease it is admitted but still tracked as in flight.
             if not checks and request.method not in _READ_METHODS and is_load_path(path):
@@ -264,7 +284,7 @@ def build_app(
                 decision = await run_in_threadpool(
                     lambda n=name: active_gate.decide(
                         n,
-                        path,
+                        path if gate_path is None else gate_path,
                         method=request.method,
                         body=[parsed if gate_body is None else gate_body, side_fields],
                         lease_exempt=lease_exempt,
@@ -295,15 +315,80 @@ def build_app(
                     admitted.append(name)
             return None, admitted
 
+        async def implicit_cpu_load(
+            model: str,
+        ) -> tuple[AdmissionDecision | None, list[str]] | None:
+            """Under a held lease, serve a request that would implicitly load GGUF *model*
+            on the CPU: load it there ourselves, then decide the ORIGINAL request again.
+
+            The load faces the full checks (cgroup headroom for the whole footprint and the
+            lease's memory bound); the original request is forwarded only when a fresh
+            census then proves the model resident on the CPU. None: no CPU placement (does
+            not fit, not GGUF, already placed elsewhere, or the load failed) -> hold.
+            """
+            async with implicit_locks.setdefault(model.lower(), asyncio.Lock()):
+                # A concurrent request may have loaded it while we waited for the lock.
+                active_gate.forget_census()
+                again = await run_gate()
+                if again[0] is None or again[0].kind != "gpu_lease":
+                    return again
+                ok = await run_in_threadpool(
+                    active_gate.implicit_cpu_fallback_ok, model, [parsed, side_fields]
+                )
+                if not ok:
+                    return None
+                load = {"model_name": model, "llamacpp_backend": "cpu", "save_options": False}
+                fb_refusal, _ = await run_gate(
+                    lease_exempt=model, gate_body=load, gate_path="api/v1/load"
+                )
+                if fb_refusal is not None:
+                    return None
+                try:
+                    resp = await http.post(
+                        "/api/v1/load", json=load, headers={"accept-encoding": "identity"}
+                    )
+                    loaded = resp.is_success
+                except httpx.HTTPError as exc:
+                    logger.warning("admission implicit CPU load of %s failed: %s", model, exc)
+                    loaded = False
+                if not loaded:
+                    active_gate.release(model)
+                    return None
+                lease_counters["implicit_cpu_loads"] += 1
+                logger.info("admission CPU fallback under GPU lease: loaded %s on cpu", model)
+                active_gate.forget_census()
+                after = await run_gate()
+                if after[0] is not None:
+                    logger.error(
+                        "admission: %s loaded with llamacpp_backend=cpu but /health does not "
+                        "show it on the CPU; not forwarding: %s",
+                        model,
+                        after[0].reason,
+                    )
+                return after
+
         try:
             loop = asyncio.get_running_loop()
             deadline = loop.time() + hold_s
             refusal, admitted = await run_gate()
             held_once = False
+            tried_implicit = False
             while refusal is not None and refusal.kind == "gpu_lease":
                 fallback = cpu_fallback_body(
                     active_gate, path, parsed, refusal.model or "", side_fields
                 )
+                if (
+                    fallback is None
+                    and not tried_implicit
+                    and len(names) == 1
+                    and refusal.model == names[0]
+                    and request.method not in _READ_METHODS
+                ):
+                    tried_implicit = True
+                    served = await implicit_cpu_load(names[0])
+                    if served is not None and served[0] is None:
+                        refusal, admitted = served
+                        break
                 if fallback is not None:
                     # Fall back immediately: holding a load for a multi-hour lease only ends in
                     # a 503. The rewritten load still faces the full-footprint cgroup check and

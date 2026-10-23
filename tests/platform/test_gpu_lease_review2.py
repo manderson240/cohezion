@@ -148,14 +148,15 @@ def test_lease_drain_waits_for_a_request_admitted_before_the_flock(_isolated_gpu
         assert polls["n"] >= 3
 
 
-def test_resident_reuse_admit_is_in_flight() -> None:
+def test_fresh_resident_reuse_admit_is_not_in_flight() -> None:
+    # SPEC CHANGE (third review, 2026-10-23): reuse proven by a FRESH census maps no new
+    # memory, so it is not drained (one long chat must not fail the lease's drain). Reuse
+    # from the stale last-good cache stays in flight: see test_gpu_lease_review3.
     res = [{"model_name": GGUF, "recipe": "llamacpp", "device": "gpu"}]
     gate = _mk_gate(read_resident=lambda: res)
     d = gate.decide(GGUF, "v1/chat/completions")
     assert d.allow and d.reason.startswith("resident")
-    assert gate.in_flight() == 1
-    gate.finish(d)
-    assert gate.in_flight() == 0
+    assert gate.in_flight() == 0 and d.token is None
 
 
 def test_lease_checked_admits_never_block_the_drain(holder) -> None:
@@ -382,7 +383,8 @@ def test_proxy_unnamed_write_without_lease_is_tracked_until_forwarded(_isolated_
 
 def test_abandoned_held_request_answers_499_and_is_counted(holder) -> None:
     seen: list[httpx.Request] = []
-    gate = _mk_gate()
+    # CPU cannot fit the model, so the request is held (no implicit CPU load) until abandoned.
+    gate = _mk_gate(read_cgroup=lambda: (95.0, 100.0))
     app = build_app(gate, client=_upstream(seen), lease_hold_s=5.0, lease_poll_s=0.05)
     port, server, th = _serve(app)
     try:

@@ -279,11 +279,24 @@ def ollama_query(model: str, prompt: str, timeout: int = 300) -> str:
 # cloud" (a metered quarter leak). Retry the same model, bounded like the in-process client.
 LEASE_RETRY_AFTER_S = 15.0
 LEASE_WAIT_S = 6 * 3600.0
+LEASE_WAIT_REPORT_S = 600.0  # a longer wait is reported once to the datamesh
+
+
+def _publish_long_wait(event_type: str, payload: dict) -> None:
+    try:
+        from cohezion.platform.gpu_lease import publish_event
+
+        publish_event(event_type, payload, source="research_swarm")
+    except Exception as e:  # audit only: never fails the query
+        print(f"    (gpu lease wait event not written: {e})")
 
 
 def lemonade_query(model: str, prompt: str, timeout: int = 300) -> tuple[bool, str]:
     """Run gaia llm in a subprocess. Returns (success, output)."""
-    waited = 0.0
+    # The budget bounds WALL time: each refused call may itself have been held by the proxy.
+    start = time.monotonic()
+    slept = 0.0
+    reported = False
     while True:
         try:
             result = subprocess.run(
@@ -303,11 +316,17 @@ def lemonade_query(model: str, prompt: str, timeout: int = 300) -> tuple[bool, s
         if not refused and result.returncode == 0 and result.stdout.strip():
             return True, result.stdout.strip()
         err = result.stderr.strip() or result.stdout.strip()
-        if not refused or waited + LEASE_RETRY_AFTER_S > LEASE_WAIT_S:
+        spent = max(slept, time.monotonic() - start)
+        if not refused or spent + LEASE_RETRY_AFTER_S > LEASE_WAIT_S:
             return False, err
+        if not reported and spent > LEASE_WAIT_REPORT_S:
+            reported = True
+            _publish_long_wait(
+                "gpu_lease_client_wait_long", {"model": model, "waited_s": round(spent, 1)}
+            )
         print(f"    GPU lease held -- {model} waits {LEASE_RETRY_AFTER_S:.0f}s")
         time.sleep(LEASE_RETRY_AFTER_S)
-        waited += LEASE_RETRY_AFTER_S
+        slept += LEASE_RETRY_AFTER_S
 
 
 # ── Goal Tree ────────────────────────────────────────────────────────────────

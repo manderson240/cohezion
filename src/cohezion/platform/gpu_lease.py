@@ -68,6 +68,31 @@ def sidecar_path(lock: pathlib.Path) -> pathlib.Path:
     return lock.with_name("gpu-lease.holder.json")
 
 
+def live_sidecar_pid(lock: pathlib.Path) -> int | None:
+    """The holder pid in *lock*'s sidecar when that process is alive, else None.
+
+    The sidecar outlives a deleted lock file (and a SIGKILLed holder): only a LIVE pid that
+    wrote it for THIS lock path makes it evidence that the lease is still held (the sidecar
+    name is per directory, so another lock path in the same directory shares it).
+    """
+    try:
+        info = json.loads(sidecar_path(lock).read_text())
+        pid = info.get("pid")
+        if info.get("lock") != str(lock):
+            return None
+    except (OSError, ValueError, AttributeError):
+        return None
+    if not isinstance(pid, int) or isinstance(pid, bool) or pid <= 0:
+        return None
+    try:
+        os.kill(pid, 0)
+    except ProcessLookupError:
+        return None
+    except PermissionError:
+        return pid
+    return pid
+
+
 def warn_after_s() -> float:
     """A lease held longer than this is reported (``gpu_lease_overdue``) while still held."""
     return float(os.environ.get("COHEZION_GPU_LEASE_WARN_H", "12")) * 3600.0
@@ -89,8 +114,7 @@ class Grant:
     mem_available_gb: float
     waited_s: float
     acquired_at: float
-    # The locked fd. A job given this fd (Popen pass_fds) keeps the flock alive for as long
-    # as ANY process in its tree holds it: flock belongs to the open file description.
+    # The locked fd. Never handed to a job: the lease lives exactly as long as its holder.
     fd: int = -1
 
 
@@ -249,6 +273,8 @@ class _Held:
         self._io: LeaseIO | None = None
         self._holder = ""
         self._since = 0.0
+        self.extra_fds: list[int] = []  # earlier fds after a relock (released on close)
+        self.sidecar: dict = {}  # last sidecar written, rewritten on a relock
 
     def start(self, io: LeaseIO, holder: str, since: float) -> None:
         self._io, self._holder, self._since = io, holder, since
@@ -267,28 +293,92 @@ class _Held:
                     {"holder": self._holder, "pid": os.getpid(), "held_s": round(held_s, 3)},
                 )
             if not _inode_matches(self.fd, self.path):
-                # The gate probes the path, so a replaced/deleted file means enforcement is
-                # gone. This is an operator error; shout, do not silently continue.
-                logger.error(
-                    "gpu_lease: lock file %s was replaced or deleted while held -- "
-                    "the admission gate can no longer see this lease",
-                    self.path,
-                )
+                self._relock()
+
+    def _relock(self) -> None:
+        """The lock file was deleted or replaced while held (e.g. .cache wiped). The gate
+        probes the path, so recreate it, flock it again and rewrite the sidecar."""
+        try:
+            fd = _open_lock(self.path)
+        except OSError as exc:
+            logger.error("gpu_lease: cannot recreate lock file %s: %s", self.path, exc)
+            return
+        try:
+            fcntl.flock(fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        except OSError as exc:  # another acquirer took the new inode: two holders
+            os.close(fd)
+            logger.error("gpu_lease: lock file %s recreated and taken by another holder", self.path)
+            self._emit_lock_event("gpu_lease_lock_conflict", str(exc))
+            return
+        self.extra_fds.append(self.fd)
+        self.fd = fd
+        with contextlib.suppress(OSError):
+            _write_sidecar(self.path, self.sidecar)
+        logger.error("gpu_lease: lock file %s was deleted while held -- recreated", self.path)
+        self._emit_lock_event("gpu_lease_lock_recreated", "")
+
+    def _emit_lock_event(self, event_type: str, detail: str) -> None:
+        if self._io is not None:
+            payload = {"holder": self._holder, "pid": os.getpid(), "path": str(self.path)}
+            _emit(self._io, event_type, {**payload, "detail": detail} if detail else payload)
 
     def close(self) -> None:
         self._stop.set()
-        with contextlib.suppress(OSError):
-            os.close(self.fd)  # closing the only fd drops the flock
+        for fd in {self.fd, *self.extra_fds}:
+            with contextlib.suppress(OSError):
+                # LOCK_UN first: a process sharing this open file description (a forked
+                # child) would otherwise keep the flock after close().
+                fcntl.flock(fd, fcntl.LOCK_UN)
+            with contextlib.suppress(OSError):
+                os.close(fd)
+        _log_lingering_holders(self.path)
+
+
+def _log_lingering_holders(path: pathlib.Path) -> None:
+    """Warn about other processes that still have the lock file open after release. They no
+    longer hold the lease (LOCK_UN released the shared description), but they inherited it."""
+    try:
+        st = os.stat(path)
+    except OSError:
+        return
+    me = os.getpid()
+    for proc in pathlib.Path("/proc").iterdir():
+        if not proc.name.isdigit() or int(proc.name) == me:
+            continue
+        try:
+            fds = list((proc / "fd").iterdir())
+        except OSError:
+            continue
+        for fd in fds:
+            try:
+                fst = os.stat(fd)
+            except OSError:
+                continue
+            if (fst.st_dev, fst.st_ino) == (st.st_dev, st.st_ino):
+                logger.warning(
+                    "gpu_lease: pid %s still has the released lock file %s open", proc.name, path
+                )
+                break
+
+
+def _open_lock(path: pathlib.Path) -> int:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    return os.open(path, os.O_RDWR | os.O_CREAT, 0o644)  # no O_TRUNC, never unlinked
 
 
 def _flock(path: pathlib.Path, timeout_s: float, io: LeaseIO) -> int:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    fd = os.open(path, os.O_RDWR | os.O_CREAT, 0o644)  # no O_TRUNC, never unlinked
+    fd = _open_lock(path)
     deadline = io.clock() + timeout_s
     while True:
         try:
             fcntl.flock(fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
-            return fd
+            other = live_sidecar_pid(path)
+            if other is None or other == os.getpid():
+                return fd
+            # A live holder whose lock file was deleted under it: the inode we just locked
+            # is not the one it holds. Wait for its watchdog to relock, or for it to exit.
+            fcntl.flock(fd, fcntl.LOCK_UN)
+            raise BlockingIOError(f"lock file replaced under live holder pid {other}")
         except BlockingIOError as exc:
             if io.clock() >= deadline:
                 os.close(fd)
@@ -313,7 +403,9 @@ def _acquire(holder: str, need_gb: float, timeout_s: float, path: pathlib.Path, 
     stage = "sidecar"
     still: list[str] = []
     try:
-        _write_sidecar(path, {"holder": holder, "pid": os.getpid(), "since": time.time()})
+        _write_sidecar(
+            path, {"holder": holder, "pid": os.getpid(), "since": time.time(), "lock": str(path)}
+        )
 
         stage = "drain"  # A2: loads admitted just before the lock must land first
         status: dict = {}
@@ -402,17 +494,16 @@ def _acquire(holder: str, need_gb: float, timeout_s: float, path: pathlib.Path, 
     )
     # Publish the grant's memory terms: the gate bounds every load it admits under the lease
     # by them. Until this write the sidecar has no need_gb and the gate admits no load.
+    held.sidecar = {
+        "holder": holder,
+        "pid": grant.pid,
+        "since": grant.acquired_at,
+        "need_gb": need_gb,
+        "grant_mem_gb": mem,
+        "lock": str(path),
+    }
     with contextlib.suppress(OSError):
-        _write_sidecar(
-            path,
-            {
-                "holder": holder,
-                "pid": grant.pid,
-                "since": grant.acquired_at,
-                "need_gb": need_gb,
-                "grant_mem_gb": mem,
-            },
-        )
+        _write_sidecar(path, held.sidecar)
     _emit(
         io,
         "gpu_lease_granted",
@@ -549,7 +640,7 @@ def _stop_group(proc: subprocess.Popen) -> None:
     the group is empty. Runs on EVERY exit path, so the lease is never released while a
     backgrounded worker of the job lives on. Further stop signals are ignored from here on:
     an interrupt inside the grace must not skip the SIGKILL and release early.
-    (A job that calls setsid leaves the group; it still holds the passed lease fd.)
+    (A job that calls setsid leaves the group and outlives the lease; it never holds it.)
     """
     for sig in _STOP_SIGNALS:
         signal.signal(sig, signal.SIG_IGN)
@@ -579,22 +670,17 @@ def main(argv: list[str] | None = None) -> int:
         raise KeyboardInterrupt(f"signal {signum}")
 
     # SIGHUP (closed terminal, dropped ssh) and SIGQUIT are catchable: unhandled they kill
-    # this holder without stopping the job tree, which keeps the passed lease fd.
+    # this holder without stopping the job tree, freeing the lease while the job still runs.
     saved = {sig: signal.getsignal(sig) for sig in _STOP_SIGNALS}
     for sig in (signal.SIGTERM, signal.SIGHUP, signal.SIGQUIT):
         signal.signal(sig, _term)
     try:
         with gpu_lease(args.holder, args.need_gb, args.acquire_timeout) as grant:
             logger.info("gpu lease granted to %s: unloaded %s", grant.holder, grant.unloaded)
-            # pass_fds: the job tree shares the locked open file description, so the lease
-            # outlives this process if it is SIGKILLed while any job process still runs.
-            pass_fds = (grant.fd,) if grant.fd >= 0 else ()
-            proc = subprocess.Popen(
-                cmd,
-                start_new_session=True,
-                preexec_fn=_pdeathsig_preexec(),
-                pass_fds=pass_fds,
-            )
+            # The job never inherits the lock fd: the lease lives exactly as long as this
+            # holder, which stops the whole job group before it releases. (A SIGKILLed holder
+            # frees the lease; PDEATHSIG then kills the direct child only.)
+            proc = subprocess.Popen(cmd, start_new_session=True, preexec_fn=_pdeathsig_preexec())
             try:
                 rc = proc.wait(timeout=max_hold)
             except subprocess.TimeoutExpired:
