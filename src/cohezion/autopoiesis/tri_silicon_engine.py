@@ -24,6 +24,7 @@ from typing import Any
 from cohezion.arc.strix_dsl_search import StrixHaloDSLEngine
 from cohezion.config.defaults import tier0_model
 from cohezion.flume.loop_goal_refactor_engine import GoalSpecification
+from cohezion.inference.gaia_adapter import _answer_only
 from cohezion.physics.my_big_toe_entropy_engine import MyBigTOEEntropyEngine
 from cohezion.recursive_trace.tripartite_goal_loop import TripartiteGoalLoop
 from cohezion.reliability.oom_guard import OOMGuard
@@ -32,6 +33,9 @@ from cohezion.reliability.oom_guard import OOMGuard
 logger = logging.getLogger("tri_silicon_autopoiesis")
 
 LEMONADE_URL = "http://127.0.0.1:13305/v1/chat/completions"
+# Tier-0 reflection call budget: thinking-safe (fits the tier-0 recipe's ctx 4096, one slot).
+_TIER0_MAX_TOKENS = 1024
+_TIER0_TIMEOUT_S = 60
 VAULT_LEARNINGS_DIR = Path.home() / "vaults" / "cohezion-vault" / "01-Learnings"
 
 
@@ -92,7 +96,9 @@ class TriSiliconAutopoiesisEngine:
         payload = {
             "model": self.npu_model,
             "messages": [{"role": "user", "content": prompt}],
-            "max_tokens": 80,
+            # Tier 0 (Gemma-4-E2B by default) is a thinking model: 80 tokens / 5 s never got
+            # past its reasoning. Budget and timeout sized for CoT + one sentence.
+            "max_tokens": _TIER0_MAX_TOKENS,
             "temperature": 0.4,
         }
         try:
@@ -101,12 +107,12 @@ class TriSiliconAutopoiesisEngine:
                 data=json.dumps(payload).encode("utf-8"),
                 headers={"Content-Type": "application/json"},
             )
-            with urllib.request.urlopen(req, timeout=5) as resp:  # noqa: S310
+            with urllib.request.urlopen(req, timeout=_TIER0_TIMEOUT_S) as resp:  # noqa: S310
                 data = json.loads(resp.read().decode())
-                content = data["choices"][0]["message"]["content"].strip()
-                # Strip thinking block if present
-                if "</think>" in content:
-                    content = content.split("</think>")[-1].strip()
+                msg = data["choices"][0]["message"]
+                # Answer whichever channel carried it: content, else reasoning_content
+                # (thinking model with an empty content), minus <think>/channel markup.
+                content = _answer_only(msg.get("content") or "", msg.get("reasoning_content") or "")
                 latency_ms = (time.perf_counter() - t0) * 1000.0
                 return content or "Focus on ARC spatial invariant synthesis.", latency_ms
         except Exception as exc:

@@ -47,12 +47,12 @@ class TestBaseRecipeCtxSize:
 
 
 class TestBaseRecipeBackend:
-    def test_gemma_e2b_uses_rocm(self) -> None:
-        """Gemma-4-E2B uses ROCm intentionally — RDNA 3.5 has better GEMM kernels."""
+    def test_gemma_e2b_uses_auto_backend(self) -> None:
+        """Gemma-4-E2B is the cascade tier 0 since 2026-10-23 and runs on the iGPU via the
+        device probe ('auto' -> vulkan on Strix Halo), like every other LLM. The former
+        intentional 'rocm' pin is dropped: the tier-0 capability sweep measured it on Vulkan."""
         opts = BASE_RECIPES["Gemma-4-E2B-it-GGUF"]
-        assert opts.get("llamacpp_backend") == "rocm", (
-            "Gemma-4-E2B must use llamacpp_backend='rocm'"
-        )
+        assert opts.get("llamacpp_backend") == "auto"
 
     def test_all_other_llms_use_auto_backend(self) -> None:
         """Every model except Gemma-4-E2B should use 'auto' so Lemonade picks vulkan/cpu."""

@@ -19,19 +19,34 @@ import asyncio
 import json
 import socket
 import threading
+from contextlib import contextmanager
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 import pytest
 
 from cohezion.compound.lemonade_recipes import BASE_RECIPES
+from cohezion.config.defaults import DEFAULT_TIER0_MODEL
 
 
-TIER0 = "Llama-3.2-1B-Instruct-GGUF"
+TIER0 = DEFAULT_TIER0_MODEL
 RECIPE_CTX = BASE_RECIPES[TIER0]["ctx_size"]
+
+# Thinking-model reply (Gemma-4-E2B, the default tier 0): content is EMPTY and the answer sits
+# at the end of reasoning_content. ZEBRA-7731 is a token no caller fallback can invent; the
+# last line carries the CLR verdict (first word) and the only 0..1 float (Flume coherence).
+THINKING_REASONING = (
+    "The user asks for a short judgement. The context is specific and the step is small.\n"
+    "Marker ZEBRA-7731 recorded.\n"
+    "YES 0.83"
+)
+# Smallest max_tokens a tier-0 call may send: below this a thinking model never reaches the
+# answer (thinking-model-token-budget-gate-trap; the old CLR/Flume budget was 8).
+THINKING_SAFE_MAX_TOKENS = 1024
 
 
 class _FakeLemonade(BaseHTTPRequestHandler):
     calls: list[tuple[str, str, dict]] = []
+    thinking: bool = False  # reply as a thinking model: content="" + reasoning_content
 
     def log_message(self, *_a) -> None:  # keep pytest output clean
         pass
@@ -71,11 +86,19 @@ class _FakeLemonade(BaseHTTPRequestHandler):
             body = {}
         self.calls.append(("POST", self.path, body))
         if self.path.endswith("/chat/completions"):
-            # First word YES (CLR verdict), a float (Flume coherence), non-trivial text (gate).
-            content = "YES 0.8 - the task is tractable, specific and well within reach."
+            if self.thinking:
+                message = {
+                    "role": "assistant",
+                    "content": "",
+                    "reasoning_content": THINKING_REASONING,
+                }
+            else:
+                # First word YES (CLR verdict), a float (Flume coherence), non-trivial text.
+                content = "YES 0.8 - the task is tractable, specific and well within reach."
+                message = {"role": "assistant", "content": content}
             self._reply(
                 {
-                    "choices": [{"index": 0, "message": {"role": "assistant", "content": content}}],
+                    "choices": [{"index": 0, "message": message, "finish_reason": "stop"}],
                     "usage": {"prompt_tokens": 10, "completion_tokens": 14},
                 }
             )
@@ -86,6 +109,19 @@ class _FakeLemonade(BaseHTTPRequestHandler):
 @pytest.fixture
 def fake_lemonade(monkeypatch):
     """Recording fake lemonade; every other outbound INET connect is refused AND recorded."""
+    with _fake_lemonade(monkeypatch, expect_gaia_client=True) as handle:
+        yield handle
+
+
+@pytest.fixture
+def fake_lemonade_raw(monkeypatch):
+    """Same fake, for raw-HTTP callers that never construct a GAIA client."""
+    with _fake_lemonade(monkeypatch, expect_gaia_client=False) as handle:
+        yield handle
+
+
+@contextmanager
+def _fake_lemonade(monkeypatch, *, expect_gaia_client: bool):
     for var in ("HTTP_PROXY", "HTTPS_PROXY", "ALL_PROXY", "http_proxy", "https_proxy", "all_proxy"):
         monkeypatch.delenv(var, raising=False)
     monkeypatch.setenv("NO_PROXY", "127.0.0.1,localhost")
@@ -97,6 +133,7 @@ def fake_lemonade(monkeypatch):
     monkeypatch.delenv(broker_client.BROKER_URL_ENV_VAR, raising=False)
 
     _FakeLemonade.calls = []
+    _FakeLemonade.thinking = False
     server = ThreadingHTTPServer(("127.0.0.1", 0), _FakeLemonade)
     port = server.server_address[1]
     thread = threading.Thread(target=server.serve_forever, daemon=True)
@@ -148,7 +185,8 @@ def fake_lemonade(monkeypatch):
         server.shutdown()
         server.server_close()
     assert not refused, f"tier-0 caller reached past the fake lemonade: {refused}"
-    assert pins, "no GAIA LemonadeClient was constructed -- the real path was not exercised"
+    if expect_gaia_client:
+        assert pins, "no GAIA LemonadeClient was constructed -- the real path was not exercised"
     assert all(p is None for p in pins), f"client-side ctx pin(s) re-added: {pins}"
 
 
@@ -203,3 +241,97 @@ def test_clr_quality_gate_never_loads(fake_lemonade):
     assert score == 1.0
     assert len(_tier0_chats(calls)) == 3
     assert not _load_calls(calls), f"CLRQualityGate issued load/unload: {_load_calls(calls)}"
+
+
+# ── Thinking-model consumption: content="" + reasoning_content must still yield the answer ──
+# Default tier 0 is Gemma-4-E2B-it-GGUF, a thinking model. Each tier-0 path must (a) send a
+# budget that fits CoT + answer and (b) take the answer from reasoning_content when content is
+# empty. A fallback/prior value would not contain ZEBRA-7731 / 0.83 / a 1.0 CLR score.
+
+
+def _assert_thinking_safe_budget(calls) -> None:
+    chats = _tier0_chats(calls)
+    assert chats, f"tier 0 never reached the fake: {calls}"
+    # GAIA's LemonadeClient sends max_completion_tokens; raw callers send max_tokens.
+    budgets = [c[2].get("max_completion_tokens", c[2].get("max_tokens")) for c in chats]
+    assert all(b is not None and b >= THINKING_SAFE_MAX_TOKENS for b in budgets), budgets
+
+
+def test_omni_cascade_tier0_reads_reasoning_content(fake_lemonade):
+    base, calls = fake_lemonade
+    _FakeLemonade.thinking = True
+    from cohezion.inference.triune_orchestrator import build_triune_omni_orchestrator
+
+    orch = build_triune_omni_orchestrator(base_url=f"{base}/api/v1")
+    tier0, _gate = orch.tiers[0]
+    result = asyncio.run(tier0.run("Classify: is 'reboot the router' a networking task?"))
+    assert result.error is None, result.error
+    assert "ZEBRA-7731" in result.text
+    _assert_thinking_safe_budget(calls)
+    assert not _load_calls(calls)
+
+
+def test_flume_world_model_reads_reasoning_content(fake_lemonade):
+    _base, calls = fake_lemonade
+    _FakeLemonade.thinking = True
+    import numpy as np
+
+    from cohezion.compound.lemonade_world_model import FlumeWorldModel
+
+    wm = FlumeWorldModel()
+    wm.set_task("sort a short list of integers")
+    reply = wm._chat("Estimate tractability of: sort a list.")
+    assert "ZEBRA-7731" in reply
+    # End to end: the model's 0.83 (Beta(2,2)-shrunk toward the prior), not the bare prior
+    # that predict_next_state falls back to when no number is parsed.
+    nxt = wm.predict_next_state(np.zeros(12, dtype=np.float32), None)
+    expected = (2.0 * wm._BASELINE + 0.83) / 3.0
+    assert float(np.mean(nxt)) == pytest.approx(expected, abs=1e-6)
+    assert float(np.mean(nxt)) != pytest.approx(wm._BASELINE, abs=1e-3)
+    _assert_thinking_safe_budget(calls)
+    assert not _load_calls(calls)
+
+
+def test_clr_quality_gate_reads_reasoning_content(fake_lemonade):
+    base, calls = fake_lemonade
+    _FakeLemonade.thinking = True
+    from cohezion.compound.clr_quality_gate import CLRQualityGate
+
+    gate = CLRQualityGate(
+        router_url=f"{base}/v1/chat/completions", gaia_router_url=f"{base}/api/v1"
+    )
+    assert gate._gaia_client is not None, "GAIA path not exercised"
+    # Empty content used to parse as None (fail-open) or NO; the verdict is in the reasoning.
+    assert gate.score("Pattern: retry with exponential backoff fixed the flaky upload.") == 1.0
+    assert len(_tier0_chats(calls)) == 3
+    _assert_thinking_safe_budget(calls)
+    assert not _load_calls(calls)
+
+
+def test_clr_quality_gate_httpx_path_reads_reasoning_content(fake_lemonade, monkeypatch):
+    base, calls = fake_lemonade
+    _FakeLemonade.thinking = True
+    from cohezion.compound import clr_quality_gate as clr
+
+    # Build one real GAIA client so the fixture's real-path check holds, then take the httpx
+    # fallback (gaia unavailable) for the gate under test.
+    clr.CLRQualityGate(router_url=f"{base}/v1/chat/completions", gaia_router_url=f"{base}/api/v1")
+    monkeypatch.setattr(clr.CLRQualityGate, "_init_gaia_client", lambda self: None)
+    gate = clr.CLRQualityGate(
+        router_url=f"{base}/v1/chat/completions", gaia_router_url=f"{base}/api/v1"
+    )
+    assert gate.score("Pattern: retry with exponential backoff fixed the flaky upload.") == 1.0
+    _assert_thinking_safe_budget(calls)
+
+
+def test_tri_silicon_tier0_phase_reads_reasoning_content(fake_lemonade_raw, monkeypatch):
+    base, calls = fake_lemonade_raw
+    _FakeLemonade.thinking = True
+    from cohezion.autopoiesis import tri_silicon_engine as tse
+
+    monkeypatch.setattr(tse, "LEMONADE_URL", f"{base}/v1/chat/completions")
+    engine = tse.TriSiliconAutopoiesisEngine(cpu_threads=1)
+    guidance, _latency = engine.execute_npu_phase(cycle=1)
+    # Not either hard-coded fallback sentence: the model's own answer.
+    assert "ZEBRA-7731" in guidance
+    _assert_thinking_safe_budget(calls)

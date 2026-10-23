@@ -14,7 +14,7 @@ Key sources:
 
 Strix Halo specifics:
   • llamacpp_backend = "auto" — Lemonade probes device at load time; picks vulkan
-    (RDNA 3.5 iGPU) for most GGUF LLMs.  Gemma-4-E2B uses "rocm" intentionally.
+    (RDNA 3.5 iGPU) for most GGUF LLMs.  Gemma-4-E2B (tier 0) dropped its old "rocm" pin.
   • Batch size -b 4096 for heavy models — 8× faster prefill vs our prior -b 512.
   • ngram spec-decode — free 1.5-2× throughput on Gemma-4 models, no draft model.
   • All ctx_sizes bounded (≠ 0) to prevent KV-cache OOM hang (harness N3).
@@ -99,10 +99,9 @@ BASE_RECIPES: dict[str, RecipeOptions] = {
     },
     # ── Tiny LLMs (always-warm routing, classification, short QA) ────────────
     "Llama-3.2-1B-Instruct-GGUF": {
-        # Cascade tier 0 (off the NPU 2026-10-23). This saved recipe is the ONLY tier-0 ctx
-        # authority: callers never /load it (GAIA paths pass auto_download=False), so the
-        # router auto-loads it at this ctx. Routing prompts are short; Llama-3.2-1B KV is
-        # 32 KiB/token, so 4096 -> 0.125 GB vs 4.0 GB at the 131072 native window.
+        # Opt-in tier 0 via COHEZION_TIER0_MODEL (the default is Gemma-4-E2B-it-GGUF since the
+        # 2026-10-23 capability sweep). Kept bounded so the override needs no client ctx pin.
+        # Llama-3.2-1B KV is 32 KiB/token: 4096 -> 0.125 GB vs 4.0 GB at the 131072 window.
         # -np 1: lemonade divides ctx_size across slots; 4096 split four ways truncates.
         "ctx_size": 4096,
         "llamacpp_backend": _BACKEND,
@@ -128,11 +127,20 @@ BASE_RECIPES: dict[str, RecipeOptions] = {
     },
     # ── Small LLMs ────────────────────────────────────────────────────────────
     "Gemma-4-E2B-it-GGUF": {
-        # ~2B effective Gemma-4; keeps intentional "rocm" backend (RDNA 3.5 has
-        # better GEMM kernels on the ROCm path for this architecture)
+        # Cascade tier 0 (default since 2026-10-23). This saved recipe is the ONLY tier-0 ctx
+        # authority: tier-0 callers never /load it (GAIA paths pass auto_download=False), so
+        # the router auto-loads it at these options. MUST stay identical to the entry in
+        # scripts/ops/lemonade-recipes.md, or the two appliers re-stamp each other
+        # (tests/inference/test_tier0_model.py pins this).
+        # "auto" (the device probe picks Vulkan on this iGPU), not the old "rocm" pin: the
+        # capability sweep measured it on Vulkan, and Vulkan also measured faster than ROCm
+        # for llama.cpp on this gfx1151 iGPU.
+        # -np 1: lemonade divides ctx_size across slots; a thinking model needs the whole
+        # 4096 (prompt + CoT + answer) in one slot. KV is 18 KiB/token (oom_guard), so 4096
+        # costs ~72 MB. Sampling is the model card's (GGUF general.sampling: 1.0/0.95/64).
         "ctx_size": 4096,
-        "llamacpp_backend": "rocm",
-        "llamacpp_args": "-b 2048 -ub 512 -np 2",
+        "llamacpp_backend": _BACKEND,
+        "llamacpp_args": "--temp 1.0 --top-p 0.95 --top-k 64 -b 2048 -ub 512 -np 1",
     },
     "Bonsai-8B-gguf": {
         # Q1_0 quantization — DO NOT add KV cache quant (--cache-type-k q4_0):

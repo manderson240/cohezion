@@ -124,6 +124,10 @@ def build_triune_orchestrator(
     return TieredOrchestrator(tiers=tiers)
 
 
+# Tier-0 generation budget (thinking model, ctx 4096 / -np 1 recipe): see the builder below.
+_TIER0_MAX_TOKENS = 2048
+
+
 def build_triune_omni_orchestrator(
     *, base_url: str = "http://localhost:13305/api/v1"
 ) -> TieredOrchestrator:
@@ -142,13 +146,23 @@ def build_triune_omni_orchestrator(
     (~195 core-s vs ~51 on iGPU vs ~9 on NPU for the same request).
 
     2026-10-23: tier 0 moved OFF the NPU (``config.defaults.tier0_model``, default
-    ``Llama-3.2-1B-Instruct-GGUF`` on Vulkan, ctx from its saved lemonade recipe only) because the
-    single-slot NPU thrashed against other FLM workloads. Tiers 0 and 1 now BOTH run on the
-    iGPU, so the cascade spans two substrates (iGPU, CPU), not three — the 07-09 "three
-    distinct substrates" property no longer holds while tier 0 is a GGUF.
+    ``Gemma-4-E2B-it-GGUF`` on Vulkan, ctx from its saved lemonade recipe only) because the
+    single-slot NPU thrashed against other FLM workloads.
+
+    KNOWN OVERLAP (open follow-up): with the default tier 0, tiers 0 and 2 are the SAME model
+    id. Lemonade keeps one instance and one saved option set per id, so both tiers run on the
+    recipe's backend (Vulkan iGPU, ctx 4096), not on the CPU backend the 07-09 note above
+    describes; tier 2 is then a TRUST-gated retry of tier 0 with a fresh sample, and the cascade
+    spans one substrate for tiers 0/2 plus the iGPU E4B. Re-homing tier 2 is a separate change.
     """
     # Tier 0 is no longer pinned to the NPU (2026-10-23): see config.defaults.tier0_model.
-    npu_tier = build_gaia_llm_tier(model_id=tier0_model(), base_url=base_url, silent=True)
+    # Gemma-4-E2B is a thinking model: with reasoning_format="none" (set by build_gaia_llm_tier)
+    # the CoT is inline in content, so the 512 default truncates before the answer and the
+    # min_chars=500 gate then escalates on budget, not quality. The recipe serves ctx 4096 on
+    # one slot (-np 1): 2048 generated tokens leave ~2048 tokens of prompt room.
+    npu_tier = build_gaia_llm_tier(
+        model_id=tier0_model(), base_url=base_url, max_tokens=_TIER0_MAX_TOKENS, silent=True
+    )
     igpu_tier = build_gaia_llm_tier(model_id="Gemma-4-E4B-it-GGUF", base_url=base_url, silent=True)
     cpu_tier = build_gaia_llm_tier(model_id="Gemma-4-E2B-it-GGUF", base_url=base_url, silent=True)
     return TieredOrchestrator(

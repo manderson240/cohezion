@@ -42,6 +42,10 @@ _FLOAT_RE = re.compile(r"(\d?\.\d+|\d+\.?\d*)")
 # scale (trivial HIGH, intractable LOW); verified LIVE on llama3.2-1b-FLM: "add two numbers" → 0.93,
 # "derive a full theory of quantum gravity with proof" → 0.01 (and the intractable prompt is the
 # LONGER one, so the estimate tracks tractability, not verbosity).
+# Thinking-safe budget for the coherence probe (tier 0 is a thinking model by default). The
+# prompt is ~200 tokens, so this fits the tier-0 recipe's ctx 4096 on one slot.
+_COHERENCE_MAX_TOKENS = 1024
+
 _COHERENCE_PROMPT_HEADER = (
     "Rate how likely an AI assistant's next step will SUCCEED and stay on-track for a task, "
     "as a calibrated probability from 0.00 (hopeless / intractable) to 1.00 (trivially solvable).\n"
@@ -121,17 +125,19 @@ class FlumeWorldModel:
 
     def _chat(self, prompt: str) -> str:
         if self._chat_fn is None:
-            # lazy GAIA SDK shim — reuse the working LemonadeClient path (gaia_adapter)
-            from gaia.llm.lemonade_client import LemonadeClient  # type: ignore[import-not-found]
+            # Lazy GAIA path through the blessed builder (gemma4-thinking-mode-output): it sends
+            # reasoning_format="none" for thinking models, uses the model-card sampling (greedy
+            # 0.0 degenerates on Gemma cards), never /loads (auto_download=False), and its shim
+            # falls back to reasoning_content when content is empty. The default tier 0
+            # (Gemma-4-E2B) thinks before answering: the old max_tokens=8 could never reach
+            # the number, so every estimate fell back to the prior.
+            from cohezion.inference.gaia_adapter import build_gaia_llm_tier
 
-            from cohezion.inference.gaia_adapter import _GaiaLLMClientShim
-
-            client = LemonadeClient(
-                base_url="http://localhost:13305/api/v1", model=self._model_id, verbose=False
-            )
-            self._chat_fn = _GaiaLLMClientShim(
-                client, self._model_id, max_tokens=8, temperature=0.0
-            ).prompt
+            self._chat_fn = build_gaia_llm_tier(
+                self._model_id,
+                base_url="http://localhost:13305/api/v1",
+                max_tokens=_COHERENCE_MAX_TOKENS,
+            ).agent.prompt
         return self._chat_fn(prompt)
 
     _BASELINE = 0.7  # class prior — per-instance _baseline adapts away from this after observe()

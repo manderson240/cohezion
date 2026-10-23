@@ -26,21 +26,52 @@ _CLAIMS = [
 ]
 
 
-def _parse_verdict(text: str) -> int | None:
-    """Parse YES/NO verdict from first word only.
+# Thinking-safe budget for one YES/NO verdict. Tier 0 (Gemma-4-E2B by default) reasons before
+# answering; at the old max_tokens=8 it could never reach the verdict, so every claim parsed as
+# an empty/ambiguous NO (thinking-model-token-budget-gate-trap). Prompt is <=~250 tokens, so
+# this fits the tier-0 recipe's ctx 4096 on one slot.
+_VERDICT_MAX_TOKENS = 1024
+_VERDICTS = {"yes": 1, "no": 0}
 
-    First-word parsing prevents substring matching bugs (e.g. "unknown" containing "no").
+
+def _first_word_verdict(line: str) -> int | None:
+    words = line.strip().lower().strip("*_`#>").split()
+    if not words:
+        return None
+    return _VERDICTS.get(words[0].strip("*_`").rstrip(".,!?;:"))
+
+
+def _parse_verdict(text: str) -> int | None:
+    """Parse a YES/NO verdict by FIRST WORD (never substring: "unknown" is not "no").
+
     Returns 1 for yes, 0 for no/ambiguous, None for empty/inference failure.
+
+    When the first word is not a verdict, the LAST line whose first word is YES/NO decides.
+    That is where a thinking model's answer lands after its reasoning (content empty, answer
+    taken from reasoning_content). Lines are matched by first word, so an echoed instruction
+    ("Reply YES or NO only.") never counts, and a single-line hedge such as "I think yes"
+    stays the conservative NO.
     """
-    stripped = text.strip().lower()
+    stripped = text.strip()
     if not stripped:
         return None
-    first_word = stripped.split()[0].rstrip(".,!?;:")
-    if first_word == "yes":
-        return 1
-    if first_word == "no":
-        return 0
+    verdict = _first_word_verdict(stripped)
+    if verdict is not None:
+        return verdict
+    for line in reversed(stripped.splitlines()):
+        verdict = _first_word_verdict(line)
+        if verdict is not None:
+            return verdict
     return 0  # ambiguous → conservative NO
+
+
+def _message_answer(result: dict[str, Any]) -> str | None:
+    """The answer from an OpenAI-shaped reply, falling back to reasoning_content."""
+    from cohezion.inference.gaia_adapter import _answer_only
+
+    msg = result["choices"][0]["message"]
+    answer = _answer_only(msg.get("content") or "", msg.get("reasoning_content") or "")
+    return answer.strip() or None
 
 
 class CLRQualityGate:
@@ -54,12 +85,17 @@ class CLRQualityGate:
         model: str | None = None,
         router_url: str = _ROUTER_URL,
         gaia_router_url: str = _GAIA_ROUTER_URL,
-        timeout: float = 10.0,
+        timeout: float = 60.0,
     ) -> None:
         self._model = model or tier0_model()
         self._router_url = router_url
         self._gaia_router_url = gaia_router_url
         self._timeout = timeout
+        # Card temperature, not greedy 0.0: greedy decoding on a Gemma-family card degenerates
+        # into loops/empty output (TR1). Models without a card entry keep the old 0.0.
+        from cohezion.inference.model_card_defaults import get_sampling_defaults
+
+        self._temperature = float(get_sampling_defaults(self._model).get("temperature", 0.0))
         self._gaia_client: Any | None = self._init_gaia_client()
 
     def _init_gaia_client(self) -> Any | None:
@@ -102,15 +138,14 @@ class CLRQualityGate:
                 result = self._gaia_client.chat_completions(
                     model=self._model,
                     messages=[{"role": "user", "content": prompt}],
-                    max_tokens=8,
-                    temperature=0.0,
+                    max_tokens=_VERDICT_MAX_TOKENS,
+                    temperature=self._temperature,
                     # Never let GAIA /load the model: its ensure-loaded path reloads at GAIA's
                     # own expected ctx (32768 floor), a second ctx authority competing with the
                     # saved recipe. The router auto-loads at the recipe ctx instead.
                     auto_download=False,
                 )
-                text = result["choices"][0]["message"].get("content", "").strip()
-                return text or None
+                return _message_answer(result)
             except Exception as exc:
                 logger.debug("CLRQualityGate: GAIA call failed (%s)", exc)
 
@@ -122,15 +157,14 @@ class CLRQualityGate:
                 json={
                     "model": self._model,
                     "messages": [{"role": "user", "content": prompt}],
-                    "max_tokens": 8,
-                    "temperature": 0.0,
+                    "max_tokens": _VERDICT_MAX_TOKENS,
+                    "temperature": self._temperature,
                 },
                 headers={"Content-Type": "application/json"},
                 timeout=self._timeout,
             )
             resp.raise_for_status()
-            text = resp.json()["choices"][0]["message"]["content"].strip()
-            return text or None
+            return _message_answer(resp.json())
         except Exception as exc:
             logger.debug("CLRQualityGate: httpx failed: %s", exc)
             return None

@@ -39,11 +39,11 @@ recipes:
     llamacpp_args: "--temp 1.0 --top-p 0.95 --top-k 64 --cache-type-k q4_0 --cache-type-v q4_0"
     verify_card: true
   - model: Gemma-4-E2B-it-GGUF
-    role: light structured generation
-    ctx_size: 8192
-    llamacpp_backend: vulkan
-    llamacpp_args: "--temp 1.0 --top-p 0.95 --top-k 64"
-    verify_card: true
+    role: cascade tier 0 (default since 2026-10-23; thinking model, one slot for CoT + answer)
+    ctx_size: 4096      # single tier-0 ctx authority; MUST equal BASE_RECIPES in lemonade_recipes.py
+    llamacpp_backend: auto  # same string as BASE_RECIPES (probe -> vulkan); a mismatch re-stamps
+    llamacpp_args: "--temp 1.0 --top-p 0.95 --top-k 64 -b 2048 -ub 512 -np 1"
+    verify_card: false  # sampling read from the GGUF general.sampling keys (2026-10-23)
   - model: Bonsai-1.7B-gguf
     role: fast drafting
     ctx_size: 32768

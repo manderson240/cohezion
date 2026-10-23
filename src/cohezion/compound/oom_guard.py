@@ -53,11 +53,13 @@ MODEL_FOOTPRINT_GB: dict[str, float] = {
     "Qwen3-Embedding-0.6B-GGUF": 0.64,
     # ── Small LLMs (safe at any reasonable ctx) ──────────────────────────────
     "Qwen3-0.6B-GGUF": 0.38,
-    # Tier 0. UD-Q4_K_XL (catalog checkpoint), catalog size 0.777 GB (read 2026-10-23).
+    # Opt-in tier 0. UD-Q4_K_XL (catalog checkpoint), catalog size 0.777 GB (read 2026-10-23).
     # Small weights, but NOT exempt from KV pricing: see KV_KIB_PER_TOKEN below.
     "Llama-3.2-1B-Instruct-GGUF": 0.78,
     "Bonsai-1.7B-gguf": 1.05,
     "Bonsai-4B-gguf": 2.40,
+    # Tier 0 (default since 2026-10-23). Catalog size: Q4_K_M 3.11 GB + mmproj-F16 0.99 GB.
+    # Not exempt from KV pricing: curated shape in KV_KIB_PER_TOKEN below.
     "Gemma-4-E2B-it-GGUF": 4.09,
     # ── Medium LLMs (need ctx guard at high load) ────────────────────────────
     "Bonsai-8B-gguf": 5.25,
@@ -112,11 +114,11 @@ MODEL_TIER: dict[str, ComputeTier] = {
     "lfm2.5-it-1.2b-FLM": ComputeTier.NPU,
     # iGPU — all GGUF LLMs (device: gpu, llamacpp_backend: vulkan)
     "Qwen3-0.6B-GGUF": ComputeTier.IGPU,
-    "Llama-3.2-1B-Instruct-GGUF": ComputeTier.IGPU,  # tier 0 (off NPU 2026-10-23)
+    "Llama-3.2-1B-Instruct-GGUF": ComputeTier.IGPU,  # opt-in tier 0 (COHEZION_TIER0_MODEL)
     "Qwen3-Embedding-0.6B-GGUF": ComputeTier.IGPU,
     "Bonsai-1.7B-gguf": ComputeTier.IGPU,
     "Bonsai-4B-gguf": ComputeTier.IGPU,
-    "Gemma-4-E2B-it-GGUF": ComputeTier.IGPU,
+    "Gemma-4-E2B-it-GGUF": ComputeTier.IGPU,  # tier 0 default (Vulkan recipe)
     "Bonsai-8B-gguf": ComputeTier.IGPU,
     "DeepSeek-Qwen3-8B-GGUF": ComputeTier.IGPU,
     "Gemma-4-E4B-it-GGUF": ComputeTier.IGPU,
@@ -352,6 +354,14 @@ KV_KIB_PER_TOKEN: dict[str, float] = {
     # = 4.0 GB of KV against 0.78 GB of weights). A curated shape here also opts a
     # small-weights model OUT of check_oom_risk's "small model" early return.
     "Llama-3.2-1B-Instruct-GGUF": 32.0,
+    # Gemma-4-E2B (tier 0 default), from the unsloth Q4_K_M GGUF header (read 2026-10-23):
+    # block_count 35, attention.shared_kv_layers 20, head_count_kv 1, key/value_length 512
+    # (full layers), key/value_length_swa 256, sliding_window_pattern full at layers 4,9,...
+    # llama.cpp's reuse callback (LLM_ARCH_GEMMA4) allocates KV only for the first
+    # 35 - 20 = 15 layers; of those, 3 are full (4, 9, 14) and 12 are SWA. f16 K+V:
+    # 2 x 1 x (3 x 512 + 12 x 256) x 2 B / 1024 = 18 KiB/token. Priced at full ctx for every
+    # layer, i.e. ignoring the 512-token SWA cap: an over-estimate, the safe direction.
+    "Gemma-4-E2B-it-GGUF": 18.0,
 }
 # KNOWN LIMIT (research digest 20260901-kv-reservation-pricing): this GQA-style
 # per-token rate OVERESTIMATES iSWA models (gemma family: 5:1 sliding-window layers

@@ -59,7 +59,7 @@ def engine() -> TriSiliconAutopoiesisEngine:
 
 def test_tri_silicon_engine_initialization(engine: TriSiliconAutopoiesisEngine):
     assert engine.cpu_threads == 4
-    assert engine.npu_model == "Llama-3.2-1B-Instruct-GGUF"  # tier 0 off the NPU (2026-10-23)
+    assert engine.npu_model == "Gemma-4-E2B-it-GGUF"  # tier 0 default (2026-10-23 sweep)
     assert engine.entropy_engine is not None
     assert engine.arc_dsl_engine is not None
 

@@ -60,32 +60,40 @@ class TestCodeTasksPreferThinkingCoder:
 # ---------------------------------------------------------------------------
 
 
+def _tier0() -> str:
+    from cohezion.config.defaults import tier0_model
+
+    return tier0_model()
+
+
 class TestNpuTasksSuggestLlama:
-    """NPU-routed tasks should suggest llama3.2-1b-FLM (CL1 invariant preserved)."""
+    """NPU-routed tasks suggest the cascade tier-0 model (CL1 invariant preserved).
+
+    Name kept for history: the fast hint was llama3.2-1b-FLM, then the Llama-1B GGUF; since the
+    2026-10-23 capability sweep it is config.defaults.tier0_model() (Gemma-4-E2B-it-GGUF).
+    """
 
     def test_one_word_reply_suggests_llama(self) -> None:
         d = classify("Reply with one word only.")
         assert d.node == "npu", f"CL1 violated: node={d.node}"
-        assert "llama" in d.preferred_model.lower(), (
-            f"expected llama in preferred_model, got '{d.preferred_model}'"
-        )
+        assert d.preferred_model == _tier0(), d.preferred_model
 
     def test_yes_no_question_suggests_llama(self) -> None:
         d = classify("Reply yes or no: is Python interpreted?")
         assert d.node == "npu"
-        assert "llama" in d.preferred_model.lower(), f"expected llama, got '{d.preferred_model}'"
+        assert d.preferred_model == _tier0(), d.preferred_model
 
     def test_short_definitional_question_suggests_llama(self) -> None:
         # CL3 invariant: "What is the HIHO stability principle?" → NPU
         d = classify("What is the HIHO stability principle?")
         assert d.node == "npu", f"CL3 violated: node={d.node}"
-        assert "llama" in d.preferred_model.lower(), f"expected llama, got '{d.preferred_model}'"
+        assert d.preferred_model == _tier0(), d.preferred_model
 
     def test_class_inheritance_question_suggests_llama(self) -> None:
         # CL2 invariant: "How does class inheritance work?" → NPU
         d = classify("How does class inheritance work?")
         assert d.node == "npu", f"CL2 violated: node={d.node}"
-        assert "llama" in d.preferred_model.lower(), f"expected llama, got '{d.preferred_model}'"
+        assert d.preferred_model == _tier0(), d.preferred_model
 
 
 # ---------------------------------------------------------------------------

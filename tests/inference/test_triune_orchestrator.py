@@ -51,12 +51,19 @@ def test_tr1_omni_orchestrator_tiers_use_model_card_temperature_not_zero():
     import pytest
 
     pytest.importorskip("gaia")
+    from cohezion.inference.model_card_defaults import get_sampling_defaults
     from cohezion.inference.triune_orchestrator import build_triune_omni_orchestrator
 
     orch = build_triune_omni_orchestrator()
     temps = [tier[0].agent._temperature for tier in orch.tiers]
-    assert temps == [0.3, 1.0, 1.0]  # Llama-1B GGUF (tier 0), Gemma-4-E4B (iGPU), Gemma-4-E2B (CPU)
-    assert len(set(temps)) > 1, "not every tier should share one hardcoded temperature"
+    # Each tier's temperature is ITS model's card value (never a fixed 0.0). With the default
+    # tier 0 (Gemma-4-E2B since 2026-10-23) all three tiers are Gemma-4 cards, so all are 1.0;
+    # the per-model check below is what distinguishes card resolution from one hardcoded value.
+    assert temps == [1.0, 1.0, 1.0]  # Gemma-4-E2B (tier 0), Gemma-4-E4B (iGPU), Gemma-4-E2B (CPU)
+    for tier, _gate in orch.tiers:
+        card = get_sampling_defaults(tier.agent._model)["temperature"]
+        assert tier.agent._temperature == card, tier.agent._model
+    assert 0.0 not in temps
     igpu_extra = orch.tiers[1][0].agent._extra_sampling
     # reasoning_format="none" is added for Gemma-4 (a llamacpp thinking model) by the
     # thinking-model empty-output fix (ae3c1f677) so the tier returns non-empty content.
