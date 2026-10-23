@@ -391,6 +391,9 @@ class StatelessNPUAgent:
         self.client = client or StatelessNPUClient()
         self.model = model
         self.enable_dual_model_repair = enable_dual_model_repair
+        # The NPU holds one FLM model; repairing with a different model evicts the resident one.
+        # Callers that care about slot thrash set this to the generation model.
+        self.repair_model = REASONING_NPU_MODEL
 
     def build_prompt(self, state: StatelessState) -> str:
         """Constructs a clean, single-turn prompt strictly reconstructed from current state."""
@@ -488,7 +491,7 @@ class StatelessNPUAgent:
 
         # Dual-Model Autonomous NPU Reasoning Repair with DeepSeek-R1-8B
         if is_error and self.enable_dual_model_repair:
-            logger.info("[%s] Triggering autonomous NPU reasoning repair via %s...", state.task_id, REASONING_NPU_MODEL)
+            logger.info("[%s] Triggering autonomous NPU reasoning repair via %s...", state.task_id, self.repair_model)
             repair_prompt = (
                 f"# Autonomous First-Principles Code Repair ({state.domain.value.upper()})\n"
                 f"The generated code candidate failed verification.\n"
@@ -504,7 +507,7 @@ class StatelessNPUAgent:
                 repair_output, repair_usage = await self.client.query_stateless(
                     prompt=repair_prompt,
                     system_prompt="You are a formal code repair verifier on AMD XDNA 2 NPU. Output ONLY executable Python inside ```python.",
-                    model=REASONING_NPU_MODEL,
+                    model=self.repair_model,
                     max_tokens=1024,
                     temperature=0.1,
                 )
@@ -516,7 +519,7 @@ class StatelessNPUAgent:
                     code = repaired_code
                     candidate_id = hashlib.sha256(code.encode("utf-8")).hexdigest()[:12]
                     score = r_score
-                    diag = f"[Repaired by {REASONING_NPU_MODEL}] {r_diag}"
+                    diag = f"[Repaired by {self.repair_model}] {r_diag}"
                     is_error = False
                     usage["completion_tokens"] = usage.get("completion_tokens", 0) + repair_usage.get("completion_tokens", 0)
                     usage["duration_ms"] = usage.get("duration_ms", 0.0) + repair_usage.get("duration_ms", 0.0)

@@ -421,6 +421,17 @@ def evaluate_name_that_llm_stylometry(code: str) -> tuple[float, str, bool]:
         return 0.0, f"Runtime error in LLM stylometry: {exc}", True
 
 
+def dispatch_order(tracks: list[dict], epoch: int, default_model: str) -> list[dict]:
+    """Group tracks by model so the single-slot NPU swaps once per epoch, not once per track.
+
+    Odd epochs run the model groups in ascending order and even epochs in descending order,
+    so each epoch ends on the model the next one starts with. Interleaved tracks caused
+    37 evictions in 30 min on 2026-10-23, and each eviction holds lemond's lock.
+    """
+    ordered = sorted(tracks, key=lambda t: t.get("model", default_model))
+    return ordered if epoch % 2 else ordered[::-1]
+
+
 async def run_stateless_npu_ascension(epochs: int = 5, model: str = DEFAULT_NPU_MODEL) -> None:
     """Runs autonomous, stateless NPU loops for active Kaggle competitions."""
     logger.info("Initializing Stateless NPU Ascension Worker (Model: %s on NPU)...", model)
@@ -543,9 +554,10 @@ async def run_stateless_npu_ascension(epochs: int = 5, model: str = DEFAULT_NPU_
 
     for epoch in range(1, epochs + 1):
         logger.info("=== Starting Stateless NPU Research Epoch %d / %d ===", epoch, epochs)
-        for track in tracks:
+        for track in dispatch_order(tracks, epoch, model):
             track_model = track.get("model", model)
             agent.model = track_model
+            agent.repair_model = track_model  # repair on the resident model: no slot swap
             state = StatelessState(
                 task_id=f"{track['slug']}_epoch_{epoch}",
                 domain=track["domain"],
