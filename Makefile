@@ -163,6 +163,12 @@ ci: coherence-check async-guard routing-guard a2a-guard agent-guard mcp-guard kg
 	uv run python src/cohezion/healing/scripts/trajectory_guard.py
 	@echo "✓ All CI checks passed"
 # Compound Loop Validation
+ci-equiv:  ## All three CI tiers in a no-services network namespace (what CI sees); run from a normal shell
+	bash scripts/ci/ci_equivalent_netns.sh
+
+ci-equiv-integration:  ## The integration tier only, in the no-services namespace (~5 min with 6 workers)
+	bash scripts/ci/ci_equivalent_netns.sh integration
+
 validate:  ## Validate compound engineering loop end-to-end (27 checks, seconds)
 	.venv/bin/python scripts/validate_compound_loop.py
 	@echo "✓ Compound loop validated"

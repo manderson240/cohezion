@@ -15,6 +15,7 @@ uv run pytest tests/compound/ -v     # Run module tests
 uv run pytest tests/test_*.py::name  # Single test
 make validate                         # Compound loop validation (27 checks, ~10 s, measured 2026-10-22)
 make format && make lint && make all # Check → fix → verify
+make ci-equiv                         # All 3 CI tiers in a no-services netns = what CI sees (normal shell, not the sandbox)
 ```
 
 ### ⚡ Security Standards (MANDATORY)
@@ -236,6 +237,7 @@ See skills: `cohezion-debugging-scenarios` for test isolation, singleton resets,
 - **Report actual numbers**: 2,675/2,700 passing (98.1%) > 1,599 passing (inflated)
 - **Flag discrepancies**: If independent test shows different count, request re-verification immediately
 - **Verify claims**: "Complete" = files exist AND tests pass, not projected
+- **Green means CI-green**: a tier is green when `make ci-equiv` says so in the no-services namespace, not when it passes beside a live fleet. Rule: `.claude/rules/green-verification.md` (failure-classification table: alone / netns / full tier).
 
 ### ⚡ Surgical Commits Against High-Churn Trees (Learning 363)
 When the working tree has unrelated churn (BMAD upgrades, pre-existing untracked, other sprints) and you need a clean commit:
