@@ -54,7 +54,8 @@ class FakeFleet:
         kw = {
             "read_resident": self.read_resident,
             "unload": self.unload,
-            "admission_status": lambda: {"reserved": []},
+            # the real /admission/status shape: an enforcing gate with nothing in flight
+            "admission_status": lambda: {"reserved": [], "config": {"enforce": True}},
             "mem_available_gb": lambda: self.mem_gb,
             "gtt_used_gb": lambda: self.gtt,
             "publish": lambda t, p: self.events.append((t, p)) or True,
@@ -113,7 +114,10 @@ class TestAcquireRelease:
         assert fleet.events[-1][1]["exit_ok"] is False
 
     def test_drain_waits_for_reservations(self, _isolated_gpu_lease) -> None:
-        answers = iter([{"reserved": ["x"]}, {"reserved": ["x"]}, {"reserved": []}])
+        on = {"config": {"enforce": True}}
+        answers = iter(
+            [{"reserved": ["x"], **on}, {"reserved": ["x"], **on}, {"reserved": [], **on}]
+        )
         fleet = FakeFleet([])
         with gl.gpu_lease("t", 1.0, io=fleet.io(admission_status=lambda: next(answers))):
             pass  # granted only after the third status read

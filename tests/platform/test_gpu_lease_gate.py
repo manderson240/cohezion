@@ -6,6 +6,7 @@ cgroup and the catalog are faked. The lease may only TIGHTEN the gate.
 
 from __future__ import annotations
 
+import json
 import os
 import signal
 import subprocess
@@ -51,6 +52,10 @@ def _hold(path: Path) -> subprocess.Popen:
 @pytest.fixture
 def holder(_isolated_gpu_lease):
     proc = _hold(_isolated_gpu_lease)
+    # A granted lease publishes its memory terms (gpu_lease A7); without them the gate
+    # admits no new load under the lease.
+    terms = {"holder": "t", "pid": proc.pid, "since": 1.0, "need_gb": 10.0, "grant_mem_gb": 200.0}
+    _isolated_gpu_lease.with_name("gpu-lease.holder.json").write_text(json.dumps(terms))
     yield proc
     if proc.poll() is None:
         proc.kill()
@@ -61,6 +66,7 @@ def _gate(
     resident: list[dict] | None = None,
     working_set: float = 0.0,
     catalog_fresh: bool = True,
+    mem_available: float = 200.0,
 ) -> AdmissionGate:
     gate = AdmissionGate(
         config=GateConfig(enforce=True),
@@ -68,6 +74,7 @@ def _gate(
         read_cgroup=lambda: (working_set, 30.0),
         read_size_gb=lambda m: 5.0 if m == GGUF else 1.0,
         read_catalog=lambda: CATALOG,
+        read_mem_available=lambda: mem_available,  # hermetic: never the box's /proc/meminfo
     )
     if catalog_fresh:
         gate.refresh_catalog()

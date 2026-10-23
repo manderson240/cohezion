@@ -50,6 +50,7 @@ UNLOAD_ATTEMPTS = 3
 UNLOAD_RETRY_S = 10.0
 WATCHDOG_S = 30.0
 KILL_GRACE_S = 60.0
+GROUP_POLL_S = 0.2
 _GPU_DEVICES = frozenset({"igpu"})  # silicon_residency.normalize_device maps gpu -> igpu
 
 
@@ -62,6 +63,11 @@ def lease_path() -> pathlib.Path:
 
 def sidecar_path(lock: pathlib.Path) -> pathlib.Path:
     return lock.with_name("gpu-lease.holder.json")
+
+
+def warn_after_s() -> float:
+    """A lease held longer than this is reported (``gpu_lease_overdue``) while still held."""
+    return float(os.environ.get("COHEZION_GPU_LEASE_WARN_H", "12")) * 3600.0
 
 
 class GpuLeaseError(RuntimeError):
@@ -80,6 +86,9 @@ class Grant:
     mem_available_gb: float
     waited_s: float
     acquired_at: float
+    # The locked fd. A job given this fd (Popen pass_fds) keeps the flock alive for as long
+    # as ANY process in its tree holds it: flock belongs to the open file description.
+    fd: int = -1
 
 
 # -- events (audit only, fail-open) ---------------------------------------------------------
@@ -127,7 +136,8 @@ def publish_event(
 def _read_resident() -> list[dict] | None:
     from cohezion.compound.oom_guard import fetch_loaded_models
 
-    return fetch_loaded_models(base_url=UPSTREAM)
+    # strict: a 200 without an all_models_loaded list is "cannot see", never "empty fleet".
+    return fetch_loaded_models(base_url=UPSTREAM, strict=True)
 
 
 def _unload(model_id: str) -> bool:
@@ -230,14 +240,29 @@ class _Held:
     def __init__(self, fd: int, path: pathlib.Path) -> None:
         self.fd = fd
         self.path = path
+        self.overdue_reported = False
         self._stop = threading.Event()
         self._thread = threading.Thread(target=self._watch, name="gpu-lease-watchdog", daemon=True)
+        self._io: LeaseIO | None = None
+        self._holder = ""
+        self._since = 0.0
 
-    def start(self) -> None:
+    def start(self, io: LeaseIO, holder: str, since: float) -> None:
+        self._io, self._holder, self._since = io, holder, since
         self._thread.start()
 
     def _watch(self) -> None:
         while not self._stop.wait(WATCHDOG_S):
+            held_s = time.time() - self._since
+            if not self.overdue_reported and held_s > warn_after_s() and self._io is not None:
+                # A library holder may never release, so its release event can never carry
+                # the over-long hold to the kanban: report it while it is still held.
+                self.overdue_reported = True
+                _emit(
+                    self._io,
+                    "gpu_lease_overdue",
+                    {"holder": self._holder, "pid": os.getpid(), "held_s": round(held_s, 3)},
+                )
             if not _inode_matches(self.fd, self.path):
                 # The gate probes the path, so a replaced/deleted file means enforcement is
                 # gone. This is an operator error; shout, do not silently continue.
@@ -288,10 +313,19 @@ def _acquire(holder: str, need_gb: float, timeout_s: float, path: pathlib.Path, 
         _write_sidecar(path, {"holder": holder, "pid": os.getpid(), "since": time.time()})
 
         stage = "drain"  # A2: loads admitted just before the lock must land first
-        if not _wait_for(
-            io, DRAIN_MAX_S, lambda: (io.admission_status() or {}).get("reserved") == []
-        ):
+        status: dict = {}
+
+        def _drained() -> bool:
+            got = io.admission_status()
+            status.clear()
+            status.update(got or {})
+            return got is not None and got.get("reserved") == []
+
+        if not _wait_for(io, DRAIN_MAX_S, _drained):
             raise GpuLeaseError(stage, "gate reservations did not drain (or gate unreachable)")
+        stage = "enforce"  # the gate is the ONLY enforcer: a shadow-mode gate voids the lease
+        if (status.get("config") or {}).get("enforce") is not True:
+            raise GpuLeaseError(stage, "admission gate is not enforcing (shadow mode)")
 
         stage = "health"  # A3
         entries: list[dict] = []
@@ -355,7 +389,21 @@ def _acquire(holder: str, need_gb: float, timeout_s: float, path: pathlib.Path, 
         mem_available_gb=mem,
         waited_s=round(io.clock() - started, 3),
         acquired_at=time.time(),
+        fd=fd,
     )
+    # Publish the grant's memory terms: the gate bounds every load it admits under the lease
+    # by them. Until this write the sidecar has no need_gb and the gate admits no load.
+    with contextlib.suppress(OSError):
+        _write_sidecar(
+            path,
+            {
+                "holder": holder,
+                "pid": grant.pid,
+                "since": grant.acquired_at,
+                "need_gb": need_gb,
+                "grant_mem_gb": mem,
+            },
+        )
     _emit(
         io,
         "gpu_lease_granted",
@@ -369,7 +417,7 @@ def _acquire(holder: str, need_gb: float, timeout_s: float, path: pathlib.Path, 
             "waited_s": grant.waited_s,
         },
     )
-    held.start()
+    held.start(io, holder, grant.acquired_at)
     return held, grant
 
 
@@ -406,6 +454,7 @@ def gpu_lease(
                 "pid": grant.pid,
                 "held_s": round(time.time() - grant.acquired_at, 3),
                 "exit_ok": exit_ok,
+                "overdue_reported": held.overdue_reported,
             },
         )
 
@@ -440,15 +489,44 @@ def _pdeathsig_preexec() -> Callable[[], None] | None:
     return _preexec
 
 
-def _stop_group(proc: subprocess.Popen) -> int:
+def _group_alive(pgid: int) -> bool:
+    try:
+        os.killpg(pgid, 0)
+    except ProcessLookupError:
+        return False
+    except PermissionError:
+        return True
+    return True
+
+
+def _wait_group(proc: subprocess.Popen, timeout_s: float) -> bool:
+    """Reap the leader and wait until no process is left in its group. False on timeout."""
+    deadline = time.monotonic() + timeout_s
+    while True:
+        proc.poll()
+        if proc.returncode is not None and not _group_alive(proc.pid):
+            return True
+        if time.monotonic() >= deadline:
+            return False
+        time.sleep(GROUP_POLL_S)
+
+
+def _stop_group(proc: subprocess.Popen) -> None:
+    """SIGTERM the job's whole process group, SIGKILL after the grace, and return only once
+    the group is empty. Runs on EVERY exit path, so the lease is never released while a
+    backgrounded worker of the job lives on. Further SIGTERM/SIGINT are ignored from here on:
+    an interrupt inside the grace must not skip the SIGKILL and release early.
+    (A job that calls setsid leaves the group; it still holds the passed lease fd.)
+    """
+    signal.signal(signal.SIGTERM, signal.SIG_IGN)
+    signal.signal(signal.SIGINT, signal.SIG_IGN)
     with contextlib.suppress(ProcessLookupError):
         os.killpg(proc.pid, signal.SIGTERM)
-    try:
-        return proc.wait(timeout=KILL_GRACE_S)
-    except subprocess.TimeoutExpired:
-        with contextlib.suppress(ProcessLookupError):
-            os.killpg(proc.pid, signal.SIGKILL)
-        return proc.wait()
+    if _wait_group(proc, KILL_GRACE_S):
+        return
+    with contextlib.suppress(ProcessLookupError):
+        os.killpg(proc.pid, signal.SIGKILL)
+    _wait_group(proc, float("inf"))
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -467,20 +545,28 @@ def main(argv: list[str] | None = None) -> int:
     def _term(signum, _frame):
         raise KeyboardInterrupt(f"signal {signum}")
 
+    saved = {sig: signal.getsignal(sig) for sig in (signal.SIGTERM, signal.SIGINT)}
     signal.signal(signal.SIGTERM, _term)
     try:
         with gpu_lease(args.holder, args.need_gb, args.acquire_timeout) as grant:
             logger.info("gpu lease granted to %s: unloaded %s", grant.holder, grant.unloaded)
-            proc = subprocess.Popen(cmd, start_new_session=True, preexec_fn=_pdeathsig_preexec())
+            # pass_fds: the job tree shares the locked open file description, so the lease
+            # outlives this process if it is SIGKILLed while any job process still runs.
+            pass_fds = (grant.fd,) if grant.fd >= 0 else ()
+            proc = subprocess.Popen(
+                cmd,
+                start_new_session=True,
+                preexec_fn=_pdeathsig_preexec(),
+                pass_fds=pass_fds,
+            )
             try:
                 rc = proc.wait(timeout=max_hold)
             except subprocess.TimeoutExpired:
                 logger.warning("gpu lease max-hold %.0fs reached: stopping %s", max_hold, cmd)
-                _stop_group(proc)
                 rc = 124
             except KeyboardInterrupt:
-                _stop_group(proc)
                 rc = 130
+            _stop_group(proc)  # every path: no group member outlives the lease
             if rc != 0:
                 raise _ChildFailedError(rc)  # release event records exit_ok=False
             return 0
@@ -489,6 +575,9 @@ def main(argv: list[str] | None = None) -> int:
     except GpuLeaseError as exc:
         logger.error("%s", exc)
         return 75  # EX_TEMPFAIL
+    finally:
+        for sig, handler in saved.items():
+            signal.signal(sig, handler)
 
 
 class _ChildFailedError(Exception):

@@ -266,7 +266,7 @@ class OOMRisk(NamedTuple):
 
 
 def fetch_loaded_models(
-    timeout_s: float = 2.0, base_url: str = LEMONADE_BASE
+    timeout_s: float = 2.0, base_url: str = LEMONADE_BASE, *, strict: bool = False
 ) -> list[dict[str, object]] | None:
     """THE single fetch+parse point for ``/api/v1/health`` → ``all_models_loaded``.
 
@@ -282,11 +282,18 @@ def fetch_loaded_models(
     Returns None when the router is unreachable OR busy — the health endpoint BLOCKS
     during model load/unload operations, so a timeout here means "cannot see", never
     "nothing loaded". Callers choose their own failure posture from that distinction.
+
+    ``strict=True`` also returns None when a 200 answer lacks an ``all_models_loaded`` list:
+    for a caller that must PROVE the fleet is empty (the GPU lease), a missing key is
+    "cannot see", not "nothing loaded".
     """
     try:
         resp = httpx.get(f"{base_url}/api/v1/health", timeout=timeout_s)
         resp.raise_for_status()
-        return list(resp.json().get("all_models_loaded", []))
+        payload = resp.json()
+        if strict and not isinstance(payload.get("all_models_loaded"), list):
+            return None
+        return list(payload.get("all_models_loaded", []))
     except Exception:
         return None
 

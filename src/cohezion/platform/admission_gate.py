@@ -10,8 +10,10 @@ fine). This gate refuses a load that would cross that line, and nothing else.
 Decision rules (in order):
   1. Not load-triggering (unload/delete/pull) -> forward, always.
   1b. GPU lease held (a kernel flock, see gpu_lease.py) -> refuse everything except
-      read-only requests and FLM (NPU) models with a fresh catalog and no backend override.
-      Those then continue through the rules below: the lease only ever tightens.
+      read-only requests, FLM (NPU) models with a fresh catalog and no backend override, and
+      non-load requests to a model a fresh census shows resident on the CPU. Those then
+      continue through the rules below, and every NEW load under the lease is also bounded
+      by the grant's measured memory terms: the lease only ever tightens.
   1c. Request names no model -> forward.
   2. Model already resident -> forward (reuse maps nothing new).
   3. lemond working set + the model's catalog size > 90% of memory.high -> refuse.
@@ -57,7 +59,7 @@ from cohezion.compound.oom_guard import (
     fetch_loaded_models,
     normalize_model_name,
 )
-from cohezion.platform.gpu_lease import lease_path, sidecar_path
+from cohezion.platform.gpu_lease import FLOOR_GB, _mem_available_gb, lease_path, sidecar_path
 
 
 logger = logging.getLogger(__name__)
@@ -135,6 +137,9 @@ def read_lemond_cgroup_gb() -> tuple[float, float] | None:
 
 
 _LEASE_OVERRIDE_SUFFIXES = ("_backend", "_args", "_device")
+# Explicit load routes: a request here can (re)load a model on lemonade's default backend
+# (the GPU), so a CPU-resident model is NOT reused through them under a held lease.
+_EXPLICIT_LOAD_ROUTES = frozenset(f"{prefix}load" for prefix in ("api/v1/", "v1/", "api/v0/"))
 _READ_METHODS = frozenset({"GET", "HEAD", "OPTIONS"})
 LEASE_HELD = "held"
 LEASE_FREE = "free"
@@ -279,6 +284,7 @@ class AdmissionGate:
         read_cgroup: Callable[[], tuple[float, float] | None] | None = None,
         read_size_gb: Callable[[str], float | None] | None = None,
         read_catalog: Callable[[], dict[str, dict[str, object]] | None] | None = None,
+        read_mem_available: Callable[[], float | None] | None = None,
     ) -> None:
         self._config = config if config is not None else GateConfig.from_env()
         # Probes target the UPSTREAM router: the module default :13305 is this proxy.
@@ -289,6 +295,9 @@ class AdmissionGate:
             )
         )
         self._read_cgroup = read_cgroup or read_lemond_cgroup_gb
+        self._read_mem_available = read_mem_available or _mem_available_gb
+        # GB admitted as new loads under the current lease, keyed on its (pid, since).
+        self._lease_ledger: tuple[object, float] = (None, 0.0)
         self._read_catalog = read_catalog or self._fetch_catalog
         self._catalog: dict[str, dict[str, object]] = {}
         self._catalog_at: float | None = None
@@ -446,10 +455,55 @@ class AdmissionGate:
         }
 
     def reserved_models(self) -> list[str]:
-        """Admitted loads not yet seen resident (the lease drains these before unloading)."""
+        """Admitted loads not yet seen resident (the lease drains these before unloading).
+
+        Prunes reservations whose model has landed: under a held lease almost every request
+        is refused before decide()'s own prune, so a landed load would otherwise read as
+        in flight until its TTL and stall the lease's drain. Reads health, so call it off
+        the event loop.
+        """
+        resident = self._resident_entries()
         with self._lock:
             now = time.monotonic()
-            return sorted(k for k, (_gb, exp) in self._reserved.items() if exp >= now)
+            for k, (_gb, exp) in list(self._reserved.items()):
+                landed = resident is not None and any(_resident_match(k, m) for m in resident)
+                if landed or now > exp:
+                    del self._reserved[k]
+            return sorted(self._reserved)
+
+    def _lease_terms(self) -> dict[str, object] | None:
+        """The grant's sidecar once it carries need_gb and grant_mem_gb, else None."""
+        try:
+            raw = json.loads(sidecar_path(self._config.gpu_lease_path).read_text())
+        except (OSError, ValueError):
+            return None
+        if not isinstance(raw, dict):
+            return None
+        if not all(
+            isinstance(raw.get(k), (int, float)) and not isinstance(raw.get(k), bool)
+            for k in ("need_gb", "grant_mem_gb")
+        ):
+            return None
+        return raw
+
+    def _cpu_resident_use(self, model_name: str, path: str, body: object) -> bool:
+        """True for a non-load request, without backend override, to a model that a FRESH
+        census (the 1.5 s cache, never the 60 s last-good) shows resident on the CPU only.
+
+        Residual race: lemond may evict the model between this read and the forward, and
+        the request would then auto-load it on its default backend. The window is the
+        cache TTL; a stale or unreadable census refuses.
+        """
+        if path.strip("/").lower() in _EXPLICIT_LOAD_ROUTES or has_backend_override(body):
+            return False
+        entries = self._resident_entries()
+        if entries is None:
+            return False
+        from cohezion.inference.silicon_residency import parse_census
+
+        mine = [e for e in entries if _resident_match(model_name, e)]
+        census = parse_census({"all_models_loaded": mine})
+        return bool(census.residents) and all(m.device == "cpu" for m in census.residents)
 
     def recipe_of(self, model_name: str) -> str | None:
         entry = self._catalog.get(normalize_model_name(model_name))
@@ -457,20 +511,21 @@ class AdmissionGate:
         return str(recipe) if recipe else None
 
     def _lease_refusal(
-        self, model_name: str | None, method: str, body: object
+        self, model_name: str | None, method: str, body: object, path: str = ""
     ) -> AdmissionDecision | None:
         """A refusal while the GPU lease is held, else None. Only ever TIGHTENS.
 
-        Allowed under a held lease: read-only requests that name no model, and FLM (NPU)
+        Allowed under a held lease: read-only requests that name no model, non-load
+        requests to a CPU-resident model (see :meth:`_cpu_resident_use`), and FLM (NPU)
         requests with a fresh catalog and no backend override. An allowed request still
         faces every normal check after this one.
         """
-        if not self.gpu_lease_held():
-            return None
         if not model_name:
             if method.upper() in _READ_METHODS:
                 return None
             reason = "GPU lease held: unnamed request on a load-capable path"
+        elif self._cpu_resident_use(model_name, path, body):
+            return None
         elif not self._catalog_is_fresh():
             reason = f"GPU lease held: catalog stale, cannot prove '{model_name}' is NPU"
         elif self.recipe_of(model_name) != "flm":
@@ -479,6 +534,9 @@ class AdmissionGate:
             reason = f"GPU lease held: '{model_name}' request overrides its backend"
         else:
             return None
+        return self._lease_decision(reason, model_name)
+
+    def _lease_decision(self, reason: str, model_name: str | None) -> AdmissionDecision:
         decision = self._refusal(reason, model_name or "")
         return AdmissionDecision(
             decision.allow, decision.would_refuse, decision.reason, model_name, kind="gpu_lease"
@@ -493,16 +551,24 @@ class AdmissionGate:
         *,
         method: str = "POST",
         body: object = None,
-        lease_exempt: bool = False,
+        lease_exempt: str | None = None,
     ) -> AdmissionDecision:
         if not is_load_path(path):  # unload/delete/pull: freeing memory is never refused
             return AdmissionDecision(True, False, "not load-triggering", model_name)
         # The lease check runs BEFORE the resident shortcut: under a held lease a resident
         # GPU model must not keep serving a steady client, or its unload can hang behind
-        # lemond's eviction lock. ``lease_exempt`` is only for the proxy's CPU fallback,
-        # whose body it has itself rewritten to llamacpp_backend=cpu.
-        if not lease_exempt:
-            lease = self._lease_refusal(model_name, method, body)
+        # lemond's eviction lock. ``lease_exempt`` names the ONE model whose load body the
+        # proxy's CPU fallback has itself rewritten to llamacpp_backend=cpu; every other
+        # name stays lease-checked.
+        held = self.gpu_lease_held()
+        exempt = (
+            lease_exempt is not None
+            and model_name is not None
+            and normalize_model_name(lease_exempt).lower()
+            == normalize_model_name(model_name).lower()
+        )
+        if held and not exempt:
+            lease = self._lease_refusal(model_name, method, body, path)
             if lease is not None:
                 return lease
         if not model_name:
@@ -512,9 +578,11 @@ class AdmissionGate:
         resident = self._resident_entries()
         # A lease-exempt (CPU fallback) load never takes the resident shortcut: residency may
         # come from the 60 s last-good cache of a model the lease holder just unloaded.
-        if not lease_exempt and self._is_resident(model_name, resident):
+        if not exempt and self._is_resident(model_name, resident):
             return AdmissionDecision(True, False, "resident — reuse needs no memory", model_name)
         cgroup = self._read_cgroup()
+        if cgroup is None and held:  # a new load under the lease is never admitted blind
+            return self._lease_decision("GPU lease held: lemond cgroup unreadable", model_name)
         if cgroup is None:
             self.cgroup_readable = False
             now = time.monotonic()
@@ -526,6 +594,10 @@ class AdmissionGate:
             )
         self.cgroup_readable = True
         size = self._read_size_gb(model_name)
+        if size is None and held:
+            return self._lease_decision(
+                f"GPU lease held: size of '{model_name}' unknown", model_name
+            )
         if size is None:
             if self._catalog_is_fresh():
                 return AdmissionDecision(
@@ -540,6 +612,9 @@ class AdmissionGate:
         working_set, high = cgroup
         budget = CGROUP_HIGH_FRACTION * high
         key = normalize_model_name(model_name).lower()
+        # Under a held lease, also the grant's measured memory terms (read outside the lock).
+        terms = self._lease_terms() if held else None
+        mem_now = self._read_mem_available() if held else None
 
         with self._lock:
             now = time.monotonic()
@@ -562,9 +637,55 @@ class AdmissionGate:
                     "memory.high the kernel throttles every model in lemond",
                     model_name,
                 )
+            if held:
+                refused = self._lease_memory_refusal(
+                    model_name, terms, mem_now, reserved, size, credit
+                )
+                if refused is not None:
+                    return refused
             self._reserved[key] = (size, now + RESERVATION_TTL_S)
         logger.info("admission gate ADMIT: %s <= %.1fGB", detail, budget)
         return AdmissionDecision(True, False, f"fits: {detail} <= {budget:.1f}GB", model_name)
+
+    def _lease_memory_refusal(
+        self,
+        model_name: str,
+        terms: dict[str, object] | None,
+        mem_now: float | None,
+        reserved: float,
+        size: float,
+        credit: float,
+    ) -> AdmissionDecision | None:
+        """Bound a NEW load under the lease by the grant's terms. Call with the lock held.
+
+        The grant measured MemAvailable >= need + floor once; the holder's GPU memory (GTT)
+        is not charged to lemond's cgroup, so the cgroup check cannot see it. Two bounds:
+        (1) everything admitted under this lease fits the grant's spare room,
+        grant_mem - need - floor, so a load cannot take memory the holder has yet to
+        allocate; (2) MemAvailable now minus in-flight loads keeps the floor. Unpublished
+        terms (the lease is still being acquired) or unreadable meminfo refuse.
+        """
+        if terms is None or mem_now is None:
+            return self._lease_decision(
+                "GPU lease held: grant terms or MemAvailable unreadable", model_name
+            )
+        need = float(terms["need_gb"])  # type: ignore[arg-type]
+        spare = float(terms["grant_mem_gb"]) - need - FLOOR_GB  # type: ignore[arg-type]
+        key = (terms.get("pid"), terms.get("since"))
+        if self._lease_ledger[0] != key:
+            self._lease_ledger = (key, 0.0)
+        used = self._lease_ledger[1]
+        add = max(0.0, size - credit)  # an NPU swap frees the evicted model's memory
+        if used + add > spare or mem_now - (reserved + size) < FLOOR_GB:
+            return self._lease_decision(
+                f"GPU lease held: '{model_name}' {size:.1f}GB does not fit the lease: "
+                f"admitted {used:.1f}+{add:.1f}GB vs spare {spare:.1f}GB "
+                f"(grant {terms['grant_mem_gb']} - need {need} - floor {FLOOR_GB}); "
+                f"MemAvailable {mem_now:.1f} - {reserved + size:.1f}GB vs floor {FLOOR_GB}",
+                model_name,
+            )
+        self._lease_ledger = (key, used + add)
+        return None
 
     def release(self, model_name: str) -> None:
         """Drop an admitted load's reservation (the upstream request failed)."""

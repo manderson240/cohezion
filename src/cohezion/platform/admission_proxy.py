@@ -52,17 +52,21 @@ _CPU_FALLBACK_ROUTES = frozenset({"v1/load", "api/v1/load"})
 _READ_METHODS = frozenset({"GET", "HEAD", "OPTIONS"})
 
 
-def cpu_fallback_body(gate: AdmissionGate, path: str, parsed: object, name: str) -> bytes | None:
+def cpu_fallback_body(
+    gate: AdmissionGate, path: str, parsed: object, name: str, overrides: object = None
+) -> bytes | None:
     """The load body rewritten to run on the CPU, or None when fallback does not apply.
 
     Only an explicit load (lemonade honours ``*_backend`` on load routes only) of a llamacpp
-    (GGUF) model whose body sets no backend override of its own.
+    (GGUF) model whose request (body, query string, form: ``overrides``) sets no backend
+    override of its own. ``save_options`` is forced off: the CPU placement is for this lease
+    only and must not persist as a per-model cpu pin in lemonade's recipe options.
     """
     if path.strip("/").lower() not in _CPU_FALLBACK_ROUTES or not isinstance(parsed, dict):
         return None
-    if gate.recipe_of(name) != "llamacpp" or has_backend_override(parsed):
+    if gate.recipe_of(name) != "llamacpp" or has_backend_override([parsed, overrides]):
         return None
-    return json.dumps({**parsed, "llamacpp_backend": "cpu"}).encode()
+    return json.dumps({**parsed, "llamacpp_backend": "cpu", "save_options": False}).encode()
 
 
 def client_identity(
@@ -169,7 +173,7 @@ def build_app(
         else float(os.environ.get("COHEZION_GPU_LEASE_HOLD_S", str(LEASE_HOLD_S_DEFAULT)))
     )
     counters = {"forwarded": 0, "refused": 0, "shadow_refusals": 0}
-    lease_counters = {"held_requests": 0, "refused": 0, "cpu_fallbacks": 0}
+    lease_counters = {"held_requests": 0, "refused": 0, "cpu_fallbacks": 0, "abandoned": 0}
 
     @app.get("/admission/status")
     async def status() -> JSONResponse:
@@ -192,7 +196,7 @@ def build_app(
                 "bypass_paths": bypass,
                 "gpu_lease": await run_in_threadpool(active_gate.lease_status),
                 "gpu_lease_counters": dict(lease_counters),
-                "reserved": active_gate.reserved_models(),
+                "reserved": await run_in_threadpool(active_gate.reserved_models),
             }
         )
 
@@ -209,12 +213,20 @@ def build_app(
         # Every model the request names: query string, multipart fields, and any JSON body
         # whatever its size (a vision or audio chat is easily > 1 MB and still loads).
         names = [v for k, v in request.query_params.multi_items() if "model" in k.lower() and v]
+        # Every key the request carries outside a JSON body: a *_backend/*_args override in
+        # the query string or a multipart field counts the same as one in the body.
+        side_fields: dict[str, list[str]] = {}
+        for k, v in request.query_params.multi_items():
+            side_fields.setdefault(k, []).append(v)
         parsed: object = None
         if body and request.method in ("POST", "PUT", "PATCH"):
             content_type = request.headers.get("content-type", "").lower()
             if content_type.startswith("multipart/form-data"):
                 try:
                     form = await request.form()
+                    for k, v in form.multi_items():
+                        if isinstance(v, str):
+                            side_fields.setdefault(k, []).append(v)
                     names += [
                         v
                         for k, v in form.multi_items()
@@ -229,7 +241,7 @@ def build_app(
         names = list(dict.fromkeys(names))
 
         async def run_gate(
-            lease_exempt: bool = False, gate_body: object = None
+            lease_exempt: str | None = None, gate_body: object = None
         ) -> tuple[AdmissionDecision | None, list[str]]:
             """(refusal or None, names admitted as new loads). decide() reads health and
             /proc, so it runs off the event loop."""
@@ -250,7 +262,7 @@ def build_app(
                         n,
                         path,
                         method=request.method,
-                        body=parsed if gate_body is None else gate_body,
+                        body=[parsed if gate_body is None else gate_body, side_fields],
                         lease_exempt=lease_exempt,
                     )
                 )
@@ -281,24 +293,38 @@ def build_app(
         refusal, admitted = await run_gate()
         held_once = False
         while refusal is not None and refusal.kind == "gpu_lease":
-            fallback = cpu_fallback_body(active_gate, path, parsed, refusal.model or "")
+            fallback = cpu_fallback_body(
+                active_gate, path, parsed, refusal.model or "", side_fields
+            )
             if fallback is not None:
                 # Fall back immediately: holding a load for a multi-hour lease only ends in
-                # a 503. The rewritten load still faces the full-footprint cgroup check.
-                fb_parsed = json.loads(fallback)
-                refusal, admitted = await run_gate(lease_exempt=True, gate_body=fb_parsed)
-                if refusal is None:
-                    body = fallback
+                # a 503. The rewritten load still faces the full-footprint cgroup check and
+                # the lease's memory bound; only the rewritten model is lease-exempt.
+                fb_refusal, fb_admitted = await run_gate(
+                    lease_exempt=refusal.model, gate_body=json.loads(fallback)
+                )
+                if fb_refusal is None:
+                    refusal, admitted, body = None, fb_admitted, fallback
                     lease_counters["cpu_fallbacks"] += 1
                     logger.info("admission CPU fallback under GPU lease: /%s", path)
-                break
+                    break
+                if fb_refusal.kind != "gpu_lease":  # e.g. cgroup headroom: answer now
+                    refusal = fb_refusal
+                    break
             if loop.time() >= deadline:
                 break
             if not held_once:
                 held_once = True
                 lease_counters["held_requests"] += 1
             while active_gate.gpu_lease_held() and loop.time() < deadline:
+                if await request.is_disconnected():
+                    # The client gave up: forwarding later would load a model for nobody.
+                    lease_counters["abandoned"] += 1
+                    return Response(status_code=499)
                 await asyncio.sleep(lease_poll_s)
+            if await request.is_disconnected():
+                lease_counters["abandoned"] += 1
+                return Response(status_code=499)
             refusal, admitted = await run_gate()
 
         if refusal is not None:

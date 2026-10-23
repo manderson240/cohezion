@@ -55,13 +55,15 @@ ACTIONABLE_EVENT_TYPES = {
     "domain_health_degraded",
 }
 # GPU lease audit events (platform/gpu_lease.py). Enforcement never waits on these; a lease
-# held longer than this is surfaced to the kanban when its release event arrives.
+# held longer than this is surfaced to the kanban: by gpu_lease_overdue while it is still held
+# (the holder's watchdog emits it once), or by its release event when no overdue was sent.
 GPU_LEASE_EVENT_TYPES = {
     "gpu_lease_requested",
     "gpu_model_unloaded",
     "gpu_lease_granted",
     "gpu_lease_refused",
     "gpu_lease_released",
+    "gpu_lease_overdue",
 }
 
 
@@ -255,17 +257,19 @@ class EventConsumer:
     def _handle_gpu_lease(self, etype: str, payload: str, event: dict[str, Any]) -> dict[str, Any]:
         """Tally lease events; a lease that was held past the warn threshold goes to kanban.
 
-        The consumer is stateless per event, so an over-long lease is reported when its
-        ``gpu_lease_released`` event arrives, not while it is still held.
+        The holder's watchdog emits ``gpu_lease_overdue`` once while the lease is still held
+        (a library holder may never release); a release event is filed only when no overdue
+        report was already sent for that lease.
         """
-        if etype != "gpu_lease_released":
+        if etype not in ("gpu_lease_released", "gpu_lease_overdue"):
             return {"action": "tally", "kind": "gpu_lease"}
         try:
             data = json.loads(payload) if payload.strip().startswith("{") else {}
             held_s = float(data.get("held_s") or 0.0)
+            already = bool(data.get("overdue_reported"))
         except (ValueError, TypeError, AttributeError):
             return {"action": "tally", "kind": "gpu_lease"}
-        if held_s <= _gpu_lease_warn_s():
+        if etype == "gpu_lease_released" and (already or held_s <= _gpu_lease_warn_s()):
             return {"action": "tally", "kind": "gpu_lease"}
         holder = str(data.get("holder", "?"))
         item_id = self._call_file_work_item(
