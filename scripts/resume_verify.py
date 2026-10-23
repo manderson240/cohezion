@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
-"""Self-verifying engine for the Anthropic Universes living resume.
+"""Self-verifying engine for Cohezion's capability claims.
 
-Every claim in ``docs/anthropic-universes-fit.md`` maps to a check here. Running
-this script re-measures the evidence live and writes a dated receipt, so the
-resume is *living* (re-checkable) rather than a static list of assertions.
+Every capability claim maps to a check here. Running this script re-measures
+the evidence live and writes a dated receipt, so the claims are *living*
+(re-checkable) rather than a static list of assertions.
 
 Design constraints (this repo's invariants):
   - No model loading. Checks are import/instantiate/short-rollout only, so the
@@ -1193,7 +1193,7 @@ def run_all() -> Receipt:
 
 
 def print_table(receipt: Receipt) -> None:
-    print("\nAnthropic Universes — Living Resume Verification")
+    print("\nCohezion — Capability Claims Verification")
     print(f"  generated_at: {receipt.generated_at}")
     print(f"  branch/sha:   {receipt.git_branch} @ {receipt.git_sha}   python {receipt.python}")
     s = receipt.summary
