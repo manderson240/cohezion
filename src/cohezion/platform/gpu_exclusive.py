@@ -34,6 +34,10 @@ backend (vllm, acestep, ...) cannot be redirected; they are reported as ``unguar
 On-disk persistence of /internal/set is from source; lemond's config dir is not readable
 here, so the state-file restore at the next start is what covers a restart. A crash
 mid-job leaves backend=cpu: the safe direction.
+If the wrapper dies but its job (own session) survives, the state file records the job's
+pgid and recovery REFUSES while that group is alive (same pid namespace only). The CLI
+traps SIGTERM and SIGHUP so a closed terminal still restores. If llamacpp cannot be
+redirected to cpu the request is refused before anything changes (fail closed).
 """
 
 from __future__ import annotations
@@ -87,7 +91,7 @@ def _lemonade(method: str, path: str, body: object = None) -> dict:
         method=method,
         headers={"Content-Type": "application/json"},
     )
-    with urllib.request.urlopen(req, timeout=30) as r:  # noqa: S310
+    with urllib.request.urlopen(req, timeout=60) as r:  # noqa: S310 - cold /models took 21s
         return json.loads(r.read() or b"{}")
 
 
@@ -189,6 +193,12 @@ def _apply_cpu_mode(state: dict, state_path: Path) -> None:
             cpu_recipes.add(recipe)
         else:
             unguarded.append(section)
+    if "llamacpp" not in guarded:
+        # Unexpected config shape or no installed cpu backend: a grant would let the fleet
+        # reload onto the GPU mid-job, so fail closed before changing anything.
+        raise GpuExclusiveRefusedError(
+            f"llamacpp backend cannot be redirected to cpu: {cfg.get('llamacpp')!r}"
+        )
     state.update(globals=guarded, unguarded=unguarded)
     _write_state(state_path, state)  # durable BEFORE the first mutation
     if guarded:
@@ -252,8 +262,23 @@ def recover(state_path: Path) -> bool:
     """Restore a crashed holder's settings. Caller must hold the flock."""
     if not state_path.exists():
         return True
+    state = json.loads(state_path.read_text())
+    pgid = state.get("child_pgid")
+    if pgid:
+        try:
+            os.killpg(int(pgid), 0)
+        except ProcessLookupError:
+            pass
+        except PermissionError:
+            logger.error("gpu_exclusive: crashed holder's job group %s still exists", pgid)
+            return False
+        else:
+            # The wrapper died (SIGKILL/OOM) but its job still runs on the GPU: keep cpu mode.
+            # Cannot see across pid namespaces; a job in another namespace reads as gone.
+            logger.error("gpu_exclusive: crashed holder's job group %s still running", pgid)
+            return False
     logger.warning("gpu_exclusive: restoring settings left by a crashed holder")
-    return _restore_and_clear(state_path, json.loads(state_path.read_text()))
+    return _restore_and_clear(state_path, state)
 
 
 @contextmanager
@@ -283,10 +308,15 @@ def gpu_exclusive(holder: str, need_gb: float) -> Iterator[dict]:
             "gtt_used_gb_before": gtt_before,
             "gtt_used_gb_after": _gtt_used_gb(),
         }
+
+        def record_child(pgid: int) -> None:
+            state["child_pgid"] = pgid
+            _write_state(state_path, state)
+
         logger.info("gpu_exclusive: granted %s", info)
         emit("gpu_exclusive_granted", info)
         try:
-            yield info
+            yield {**info, "record_child": record_child}
         finally:
             restored = _restore_and_clear(state_path, state)
             emit("gpu_exclusive_released", {**base, "restored": restored})
@@ -329,10 +359,12 @@ def main(argv: list[str] | None = None) -> int:
     cmd = args.cmd[1:] if args.cmd[:1] == ["--"] else args.cmd
     if not (args.holder and args.need_gb is not None and cmd):
         p.error("--holder, --need-gb and a command after -- are required")
-    signal.signal(signal.SIGTERM, _raise_exit)
+    for sig in (signal.SIGTERM, signal.SIGHUP):
+        signal.signal(sig, _raise_exit)
     try:
-        with gpu_exclusive(args.holder, args.need_gb):
+        with gpu_exclusive(args.holder, args.need_gb) as info:
             proc = subprocess.Popen(cmd, start_new_session=True, close_fds=True)
+            info["record_child"](proc.pid)
             try:
                 return proc.wait(timeout=parse_duration(args.max_hold))
             except subprocess.TimeoutExpired:

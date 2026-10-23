@@ -428,3 +428,43 @@ def test_child_does_not_receive_the_lock_fd(fake, tmp_path):
     script = f"for f in /proc/self/fd/*; do readlink $f; done > {out}; true"
     assert gx.main(["--holder", "t", "--need-gb", "1", "--", "sh", "-c", script]) == 0
     assert str(gx.LOCK_PATH) not in out.read_text()
+
+
+def test_refuses_when_llamacpp_cannot_be_redirected(fake):
+    # If the main LLM recipe is not guardable (no installed cpu backend, or an unexpected
+    # config shape), a grant would let the fleet reload onto the GPU mid-job: fail closed.
+    fake.sysinfo["recipes"]["llamacpp"]["backends"].pop("cpu")
+    cfg0, _ = _baseline(fake)
+    with pytest.raises(gx.GpuExclusiveRefusedError, match="llamacpp"), gx.gpu_exclusive("t", 1):
+        pass
+    assert fake.config == cfg0
+    assert not any(p == "/api/v1/unload" for _, p, _ in fake.requests)
+
+
+def test_recovery_refuses_while_crashed_holders_job_is_still_running(fake):
+    # Wrapper SIGKILLed: lock released, but its job (own session) still runs on the GPU.
+    job = subprocess.Popen(["sleep", "30"], start_new_session=True)
+    try:
+        fake.config["llamacpp"]["backend"] = "cpu"
+        gx.STATE_PATH.write_text(
+            json.dumps({"globals": {"llamacpp": "vulkan"}, "models": {}, "child_pgid": job.pid})
+        )
+        with pytest.raises(gx.GpuExclusiveRefusedError), gx.gpu_exclusive("t", 1):
+            pass
+        assert fake.config["llamacpp"]["backend"] == "cpu"  # NOT restored under a live job
+        assert gx.STATE_PATH.exists()
+        assert gx.main(["--recover"]) == 1
+    finally:
+        job.kill()
+        job.wait()
+    assert gx.main(["--recover"]) == 0  # job gone -> restore proceeds
+    assert fake.config["llamacpp"]["backend"] == "vulkan"
+
+
+def test_cli_records_child_pgid_in_state_during_the_job(fake, tmp_path):
+    out = tmp_path / "state.json"
+    rc = gx.main(
+        ["--holder", "t", "--need-gb", "1", "--", "sh", "-c", f"cat {gx.STATE_PATH} > {out}"]
+    )
+    assert rc == 0
+    assert isinstance(json.loads(out.read_text()).get("child_pgid"), int)
