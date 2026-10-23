@@ -560,10 +560,13 @@ def test_research_swarm_lemonade_query_waits_out_a_lease(monkeypatch) -> None:
 
     def fake_run(cmd, **_kw):
         runs.append(cmd)
-        if len(runs) < 3:
+        if len(runs) == 1:
             return subprocess.CompletedProcess(
                 cmd, 1, "", "status 503 GPU lease held: x is not an FLM"
             )
+        if len(runs) == 2:  # the real `gaia llm` shape: exit 0, refusal logged on stdout
+            out = "ERROR | Error in chat completions (status 503): GPU lease held: x"
+            return subprocess.CompletedProcess(cmd, 0, out, "Lemonade server is not running")
         return subprocess.CompletedProcess(cmd, 0, "the answer", "")
 
     slept: list[float] = []

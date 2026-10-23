@@ -296,10 +296,14 @@ def lemonade_query(model: str, prompt: str, timeout: int = 300) -> tuple[bool, s
             return False, "timeout"
         except Exception as e:
             return False, str(e)
-        if result.returncode == 0 and result.stdout.strip():
+        # Measured against the real `gaia llm` (2026-10-23): a refused chat exits 0, the
+        # refusal is logged on STDOUT and stderr only says "server not running". So look for
+        # the marker in both streams BEFORE trusting the exit code.
+        refused = "GPU lease held" in result.stdout + result.stderr
+        if not refused and result.returncode == 0 and result.stdout.strip():
             return True, result.stdout.strip()
         err = result.stderr.strip() or result.stdout.strip()
-        if "GPU lease held" not in err or waited + LEASE_RETRY_AFTER_S > LEASE_WAIT_S:
+        if not refused or waited + LEASE_RETRY_AFTER_S > LEASE_WAIT_S:
             return False, err
         print(f"    GPU lease held -- {model} waits {LEASE_RETRY_AFTER_S:.0f}s")
         time.sleep(LEASE_RETRY_AFTER_S)
