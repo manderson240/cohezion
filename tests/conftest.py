@@ -301,6 +301,17 @@ def reset_singletons():
     if api_module is not None and hasattr(api_module, "_rl_policy"):
         api_module._rl_policy = None
 
+    # Per-agent physics endpoint state (lenr/event, ionic-cluster/status+step) is a
+    # module-level dict that persists by design; across tests it leaks, e.g. two test files
+    # both use agent_id "test-ionic-agent", so the second reads the first's plasma density.
+    try:
+        import cohezion.api.services.physics_extended as _phys_ext
+
+        _phys_ext._lenr_agents.clear()
+        _phys_ext._ionic_cluster_agents.clear()
+    except (ImportError, AttributeError):
+        pass
+
     # Clear ALL logger handlers and filters to prevent test pollution.
     # Root cause: RedactionFilter (or any filter) can modify LogRecord.args,
     # corrupting types (%d expects int, but filter may convert to str).
