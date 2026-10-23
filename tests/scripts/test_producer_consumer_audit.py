@@ -10,21 +10,29 @@ Validates:
 
 from __future__ import annotations
 
+import importlib.util
 import sys
 from pathlib import Path
 
 
-_SCRIPTS_CI_DIR = Path(__file__).resolve().parents[2] / "scripts" / "ci"
-if str(_SCRIPTS_CI_DIR) not in sys.path:
-    sys.path.insert(0, str(_SCRIPTS_CI_DIR))
+# Load by FILE PATH, not by bare module name. Two files share the basename
+# `producer_consumer_audit.py` (scripts/ and scripts/ci/); other tests in this
+# directory insert `scripts/` at sys.path[0], so a bare import here resolved to
+# the WRONG file whenever they were collected first (ImportError: AUDIT_PAIRS),
+# aborting collection of the whole suite.
+_SCRIPT_PATH = Path(__file__).resolve().parents[2] / "scripts" / "ci" / "producer_consumer_audit.py"
+_MODULE_NAME = "ci_producer_consumer_audit"
+_spec = importlib.util.spec_from_file_location(_MODULE_NAME, _SCRIPT_PATH)
+assert _spec is not None and _spec.loader is not None
+_pca = importlib.util.module_from_spec(_spec)
+sys.modules[_MODULE_NAME] = _pca  # dataclasses resolve cls.__module__ via sys.modules
+_spec.loader.exec_module(_pca)
 
-from producer_consumer_audit import (
-    AUDIT_PAIRS,
-    AuditPair,
-    execute_audit,
-    format_markdown_report,
-    run_self_test,
-)
+AUDIT_PAIRS = _pca.AUDIT_PAIRS
+AuditPair = _pca.AuditPair
+execute_audit = _pca.execute_audit
+format_markdown_report = _pca.format_markdown_report
+run_self_test = _pca.run_self_test
 
 
 def test_producer_consumer_audit_self_test() -> None:
