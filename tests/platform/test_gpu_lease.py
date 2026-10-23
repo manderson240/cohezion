@@ -6,6 +6,7 @@ SurrealDB are injected fakes. Never touches :13305/:13315.
 
 from __future__ import annotations
 
+import contextlib
 import json
 import os
 import subprocess
@@ -172,6 +173,15 @@ class TestPostcondition:
             assert g.mem_available_gb == 36.0
 
 
+class TestUnclassifiedDevice:
+    def test_unknown_device_fails_postcondition(self, _isolated_gpu_lease) -> None:
+        fleet = FakeFleet([{"model_name": "Mystery-GGUF", "device": "rocm", "recipe": "llamacpp"}])
+        with pytest.raises(gl.GpuLeaseError) as ei, gl.gpu_lease("t", 1.0, io=fleet.io()):
+            pass
+        assert ei.value.stage == "postcondition"
+        assert fleet.unload_calls == []  # it is not unloaded blind either
+
+
 class TestKernelLockSemantics:
     def test_sigkilled_holder_frees_lease_without_ttl(self, _isolated_gpu_lease) -> None:
         proc = subprocess.Popen(
@@ -325,3 +335,40 @@ class TestEventConsumerRouting:
         c = self._consumer([])
         c.handle({"event_type": "model_needed", "model_id": "m"})
         assert callable(captured.get("publish"))
+
+
+_PARENT = (
+    "import subprocess, sys, time\n"
+    "from cohezion.platform import gpu_lease as gl\n"
+    "p = subprocess.Popen(['sleep', '60'], start_new_session=True,"
+    " preexec_fn=gl._pdeathsig_preexec())\n"
+    "print(p.pid, flush=True)\n"
+    "time.sleep(60)\n"
+)
+
+
+def _proc_state(pid: int) -> str | None:
+    try:
+        return Path(f"/proc/{pid}/stat").read_text().rsplit(")", 1)[1].split()[0]
+    except OSError:
+        return None
+
+
+def test_job_dies_when_lease_holder_is_sigkilled() -> None:
+    env = {**os.environ, "PYTHONPATH": str(Path(gl.__file__).parents[2])}
+    parent = subprocess.Popen(
+        [sys.executable, "-c", _PARENT], stdout=subprocess.PIPE, text=True, env=env
+    )
+    assert parent.stdout is not None
+    child = int(parent.stdout.readline())
+    assert _proc_state(child) in ("S", "R")
+    parent.kill()
+    parent.wait()
+    deadline = time.monotonic() + 5
+    while time.monotonic() < deadline and _proc_state(child) not in (None, "Z"):
+        time.sleep(0.05)
+    try:
+        assert _proc_state(child) in (None, "Z")
+    finally:
+        with contextlib.suppress(ProcessLookupError):
+            os.kill(child, 9)

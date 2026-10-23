@@ -197,6 +197,15 @@ def _gpu_models(entries: list[dict]) -> list[str]:
     return [m.name for m in census.residents if m.device in _GPU_DEVICES and m.recipe != "flm"]
 
 
+def _unclassified(entries: list[dict]) -> list[str]:
+    """Non-FLM residents whose device the census cannot classify. The postcondition fails on
+    these: a census that cannot place a model cannot claim zero GPU models."""
+    from cohezion.inference.silicon_residency import parse_census
+
+    census = parse_census({"all_models_loaded": entries})
+    return [m.name for m in census.residents if m.device == "unknown" and m.recipe != "flm"]
+
+
 def _wait_for(io: LeaseIO, max_s: float, probe: Callable[[], bool]) -> bool:
     deadline = io.clock() + max_s
     while True:
@@ -314,7 +323,11 @@ def _acquire(holder: str, need_gb: float, timeout_s: float, path: pathlib.Path, 
 
         stage = "postcondition"  # A6: measured, not inferred from unload() answers
         fresh = io.read_resident()
-        still = _gpu_models(fresh) if fresh is not None else ["<health unreadable>"]
+        still = (
+            _gpu_models(fresh) + _unclassified(fresh)
+            if fresh is not None
+            else ["<health unreadable>"]
+        )
         mem = io.mem_available_gb()
         gtt_after = io.gtt_used_gb()
         logger.info("gpu_lease: mem_info_gtt_used %s -> %s GiB", gtt_before, gtt_after)
@@ -408,11 +421,23 @@ def parse_duration(raw: str) -> float:
     return float(raw)
 
 
-def _die_with_parent() -> None:
-    """Child preexec: SIGKILL the job if the lease holder dies, so no orphan keeps the GPU
-    busy after the kernel has already freed the lease (PR_SET_PDEATHSIG = 1)."""
-    with contextlib.suppress(OSError, AttributeError):
-        ctypes.CDLL(None, use_errno=True).prctl(1, signal.SIGKILL)
+def _pdeathsig_preexec() -> Callable[[], None] | None:
+    """A preexec_fn that SIGKILLs the job if the lease holder dies (PR_SET_PDEATHSIG = 1),
+    so no orphan keeps the GPU busy after the kernel has freed the lease.
+
+    libc is resolved HERE, before fork: dlopen inside a forked child of a threaded process
+    (the watchdog thread is running) can deadlock. The child only makes the C call.
+    """
+    try:
+        prctl = ctypes.CDLL(None, use_errno=True).prctl
+    except (OSError, AttributeError):
+        logger.warning("gpu_lease: prctl unavailable; the job will not die with the holder")
+        return None
+
+    def _preexec() -> None:
+        prctl(1, signal.SIGKILL)
+
+    return _preexec
 
 
 def _stop_group(proc: subprocess.Popen) -> int:
@@ -446,7 +471,7 @@ def main(argv: list[str] | None = None) -> int:
     try:
         with gpu_lease(args.holder, args.need_gb, args.acquire_timeout) as grant:
             logger.info("gpu lease granted to %s: unloaded %s", grant.holder, grant.unloaded)
-            proc = subprocess.Popen(cmd, start_new_session=True, preexec_fn=_die_with_parent)
+            proc = subprocess.Popen(cmd, start_new_session=True, preexec_fn=_pdeathsig_preexec())
             try:
                 rc = proc.wait(timeout=max_hold)
             except subprocess.TimeoutExpired:

@@ -510,7 +510,9 @@ class AdmissionGate:
 
         # Slow reads first, outside the lock.
         resident = self._resident_entries()
-        if self._is_resident(model_name, resident):
+        # A lease-exempt (CPU fallback) load never takes the resident shortcut: residency may
+        # come from the 60 s last-good cache of a model the lease holder just unloaded.
+        if not lease_exempt and self._is_resident(model_name, resident):
             return AdmissionDecision(True, False, "resident — reuse needs no memory", model_name)
         cgroup = self._read_cgroup()
         if cgroup is None:

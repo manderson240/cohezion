@@ -232,3 +232,16 @@ class TestProxyUnderLease:
             s = c.get("/admission/status").json()
         assert s["gpu_lease"] == {"held": True, "holder": "trainer", "pid": 4242, "since": 1.5}
         assert s["reserved"] == []
+
+
+class TestFallbackNeverSkipsCgroup:
+    def test_fallback_of_stale_resident_model_still_faces_cgroup(self, holder) -> None:
+        # A5 unloaded the model but /health is blocked by an FLM load, so the gate's
+        # last-good residency still lists it. The CPU fallback must not ride the resident
+        # shortcut past the footprint check (the 2026-10-21 unchecked-CPU-load class).
+        seen: list[httpx.Request] = []
+        gate = _gate(resident=[{"model_name": GGUF}], working_set=26.0)
+        app = build_app(gate, client=_upstream(seen), lease_hold_s=0.2, lease_poll_s=0.05)
+        with TestClient(app) as c:
+            r = c.post("/api/v1/load", json={"model_name": GGUF})
+        assert r.status_code == 503 and seen == []
