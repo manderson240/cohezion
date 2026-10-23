@@ -8,7 +8,7 @@ from __future__ import annotations
 import logging
 from typing import TYPE_CHECKING
 
-from cohezion.config.defaults import tier0_model
+from cohezion.config.defaults import tier0_model, tier2_model
 from cohezion.inference.gaia_adapter import build_gaia_llm_tier, build_gaia_native_tier
 from cohezion.inference.orchestrator import (
     QualityGate,
@@ -131,47 +131,57 @@ _TIER0_MAX_TOKENS = 2048
 def build_triune_omni_orchestrator(
     *, base_url: str = "http://localhost:13305/api/v1"
 ) -> TieredOrchestrator:
-    """OmniRouter triune cascade — tier 0 → Gemma-4-E4B (iGPU) → Gemma-4-E2B (CPU),
+    """OmniRouter cascade — tier 0 → Gemma-4-E4B (iGPU) → tier 2, deduplicated by model id,
     ALL served by the single :13305 OmniRouter via the supported GAIA ``LemonadeClient`` path
     (:func:`build_gaia_llm_tier`).
 
     N1: :13305 is the only port needed — the dedicated per-port servers (:13306/:13307/:13309) are
     redundant and often offline, so this OmniRouter variant is the default ``exec_provider`` for the
-    compound loop (``make_executor``). Same gates/escalation as the per-port build.
+    compound loop (``make_executor``).
 
-    2026-07-09 fix: the CPU tier previously used ``Gemma-4-31B-it-GGUF``, which the router
-    places on Vulkan (iGPU) — a FAKE CPU tier (two tiers on one device) that was also too slow
-    (>236s). It now uses ``Gemma-4-E2B-it-GGUF`` loaded with ``llamacpp_backend=cpu`` (persisted
-    via ``save_options``), which measurably runs on the Zen5 cores — verified by CPU busy-time
-    (~195 core-s vs ~51 on iGPU vs ~9 on NPU for the same request).
+    2026-07-09: the CPU tier previously used ``Gemma-4-31B-it-GGUF``, which the router places on
+    Vulkan (iGPU) — a FAKE CPU tier (two tiers on one device) that was also too slow (>236s).
 
     2026-10-23: tier 0 moved OFF the NPU (``config.defaults.tier0_model``, default
-    ``Gemma-4-E2B-it-GGUF`` on Vulkan, ctx from its saved lemonade recipe only) because the
-    single-slot NPU thrashed against other FLM workloads.
+    ``Gemma-4-E2B-it-GGUF``, ctx/backend from its saved lemonade recipe only) because the
+    single-slot NPU thrashed against other FLM workloads. That default is the same id as the
+    legacy tier 2, and lemonade keeps one instance and one saved option set per id, so the two
+    tiers collapsed onto one model (tier 2 was a TRUST-gated resample of tier 0).
 
-    KNOWN OVERLAP (open follow-up): with the default tier 0, tiers 0 and 2 are the SAME model
-    id. Lemonade keeps one instance and one saved option set per id, so both tiers run on the
-    recipe's backend (Vulkan iGPU, ctx 4096), not on the CPU backend the 07-09 note above
-    describes; tier 2 is then a TRUST-gated retry of tier 0 with a fresh sample, and the cascade
-    spans one substrate for tiers 0/2 plus the iGPU E4B. Re-homing tier 2 is a separate change.
+    Tier 2 is now ``config.defaults.tier2_model`` (``COHEZION_TIER2_MODEL``) and tiers are
+    DEDUPLICATED by model id, first occurrence wins: the default cascade is
+    ``[Gemma-4-E2B, Gemma-4-E4B]``. A more capable tier 2 AWAITS THE LARGE-MODEL SWEEP; set the
+    env var to add one. Whatever tier ends up last carries the TRUST gate, so the cascade always
+    completes (tasks complete > quality > speed).
+
+    Note: ``local_inference._engine_for`` still maps cascade index 2 to "cpu"; with two tiers an
+    entry/escalation at index >= 1 reports "igpu" (clamped), which matches the iGPU E4B.
     """
-    # Tier 0 is no longer pinned to the NPU (2026-10-23): see config.defaults.tier0_model.
     # Gemma-4-E2B is a thinking model: with reasoning_format="none" (set by build_gaia_llm_tier)
     # the CoT is inline in content, so the 512 default truncates before the answer and the
     # min_chars=500 gate then escalates on budget, not quality. The recipe serves ctx 4096 on
     # one slot (-np 1): 2048 generated tokens leave ~2048 tokens of prompt room.
-    npu_tier = build_gaia_llm_tier(
-        model_id=tier0_model(), base_url=base_url, max_tokens=_TIER0_MAX_TOKENS, silent=True
-    )
-    igpu_tier = build_gaia_llm_tier(model_id="Gemma-4-E4B-it-GGUF", base_url=base_url, silent=True)
-    cpu_tier = build_gaia_llm_tier(model_id="Gemma-4-E2B-it-GGUF", base_url=base_url, silent=True)
-    return TieredOrchestrator(
-        tiers=[
-            (npu_tier, QualityGate(min_chars=500)),  # NPU must provide a solid start
-            (igpu_tier, QualityGate(min_chars=2000)),  # iGPU for complex synthesis
-            (cpu_tier, QualityGate.TRUST),  # CPU for guaranteed completion
-        ]
-    )
+    specs: list[tuple[str, int | None, QualityGate]] = [
+        (tier0_model(), _TIER0_MAX_TOKENS, QualityGate(min_chars=500)),  # solid start
+        ("Gemma-4-E4B-it-GGUF", None, QualityGate(min_chars=2000)),  # iGPU complex synthesis
+        (tier2_model(), None, QualityGate.TRUST),  # guaranteed completion
+    ]
+    seen: set[str] = set()
+    unique: list[tuple[str, int | None, QualityGate]] = []
+    for model_id, max_tokens, gate in specs:
+        if model_id in seen:
+            continue  # one lemonade instance per id: a repeat is a resample, not a tier
+        seen.add(model_id)
+        unique.append((model_id, max_tokens, gate))
+    # The last surviving tier completes the cascade, whatever was deduplicated after it.
+    unique[-1] = (unique[-1][0], unique[-1][1], QualityGate.TRUST)
+
+    tiers = []
+    for model_id, max_tokens, gate in unique:
+        kwargs = {"max_tokens": max_tokens} if max_tokens is not None else {}
+        tier = build_gaia_llm_tier(model_id=model_id, base_url=base_url, silent=True, **kwargs)
+        tiers.append((tier, gate))
+    return TieredOrchestrator(tiers=tiers)
 
 
 def build_reasoning_orchestrator(

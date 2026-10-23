@@ -1,48 +1,80 @@
-"""Guard: the omni triune cascade must span THREE distinct compute lanes.
+"""Guard: the omni triune cascade never runs the SAME model id twice.
 
-2026-07-09 bug: the CPU tier used Gemma-4-31B, which the router places on
-Vulkan (iGPU) — a fake CPU tier that put two of the three tiers on the same
-device (and was too slow). The fix routes the CPU tier to Gemma-4-E2B loaded
-with llamacpp_backend=cpu. This test fails if any two tiers collapse onto the
-same model (the shape of the original bug).
+2026-07-09 bug: the CPU tier used Gemma-4-31B, which the router places on Vulkan (iGPU) -- a
+fake CPU tier that put two tiers on one device. 2026-10-23: the tier-0 default became
+Gemma-4-E2B-it-GGUF (capability sweep), which was also the legacy tier-2 id. Lemonade keeps
+one instance and one saved option set per id, so tiers 0 and 2 collapsed onto one model and
+tier 2 became a TRUST-gated resample of tier 0, not a more capable tier.
+
+Fix: tier 2 is configurable (COHEZION_TIER2_MODEL) and tiers are DEDUPLICATED by model id,
+first occurrence wins, so the default cascade is [Gemma-4-E2B, Gemma-4-E4B] until a measured
+more-capable tier 2 is chosen (pending the large-model sweep). The last surviving tier keeps
+the TRUST gate so a cascade always completes.
 """
 
 import pytest
 
+from cohezion.inference.orchestrator import QualityGate
 from cohezion.inference.triune_orchestrator import build_triune_omni_orchestrator
+
+
+pytestmark = pytest.mark.usefixtures("_clean_tier_env")
+
+_E2B = "Gemma-4-E2B-it-GGUF"
+_E4B = "Gemma-4-E4B-it-GGUF"
+
+
+@pytest.fixture
+def _clean_tier_env(monkeypatch):
+    monkeypatch.delenv("COHEZION_TIER0_MODEL", raising=False)
+    monkeypatch.delenv("COHEZION_TIER2_MODEL", raising=False)
 
 
 def _tier_models(orch):
     return [getattr(getattr(t, "agent", None), "_model", None) for t, _gate in orch.tiers]
 
 
-# Known collision (2026-10-23): the tier-0 default became Gemma-4-E2B-it-GGUF (capability
-# sweep), which is also the CPU tier's model id. Lemonade keeps one instance and one saved
-# option set per id, so tiers 0 and 2 now collapse onto one model -- exactly the shape this
-# guard exists to catch. strict=True: re-homing tier 2 makes this XPASS and fails the run,
-# forcing this marker's removal. Overriding COHEZION_TIER0_MODEL also restores three models.
-@pytest.mark.xfail(
-    strict=True,
-    reason="tier 0 default (Gemma-4-E2B) shares the CPU tier's model id; tier 2 re-home pending",
-)
-def test_three_tiers_are_three_distinct_models():
-    orch = build_triune_omni_orchestrator()
-    models = _tier_models(orch)
-    assert len(models) == 3
-    assert len(set(models)) == 3, f"tiers collapsed onto <3 models: {models}"
+def test_default_cascade_is_deduplicated_to_e2b_then_e4b():
+    models = _tier_models(build_triune_omni_orchestrator())
+    assert models == [_E2B, _E4B], models
 
 
-def test_cpu_tier_is_the_cpu_backend_model_not_a_vulkan_31b():
+def test_tiers_are_never_duplicated_by_model_id():
+    models = _tier_models(build_triune_omni_orchestrator())
+    assert len(set(models)) == len(models), f"duplicate tier model ids: {models}"
+
+
+def test_last_tier_is_trust_gated_so_the_cascade_completes():
     orch = build_triune_omni_orchestrator()
-    npu, igpu, cpu = _tier_models(orch)
-    assert npu == "Gemma-4-E2B-it-GGUF"  # tier 0 default since the 2026-10-23 capability sweep
-    assert igpu == "Gemma-4-E4B-it-GGUF"  # RDNA3.5 iGPU
-    assert cpu == "Gemma-4-E2B-it-GGUF"  # same id as tier 0 now: see the xfail above
-    # The regression: a 31B here lands on Vulkan → fake CPU tier
-    assert "31B" not in cpu
+    assert orch.tiers[-1][1] is QualityGate.TRUST
+    assert all(g is not QualityGate.TRUST for _t, g in orch.tiers[:-1])
+
+
+def test_tier2_env_adds_a_third_distinct_tier(monkeypatch):
+    monkeypatch.setenv("COHEZION_TIER2_MODEL", "Qwen3-8B-GGUF")
+    orch = build_triune_omni_orchestrator()
+    assert _tier_models(orch) == [_E2B, _E4B, "Qwen3-8B-GGUF"]
+    assert orch.tiers[-1][1] is QualityGate.TRUST
+    assert orch.tiers[1][1] is not QualityGate.TRUST  # E4B keeps its escalation gate
+
+
+def test_tier2_equal_to_tier0_is_deduplicated(monkeypatch):
+    monkeypatch.setenv("COHEZION_TIER2_MODEL", _E2B)
+    assert _tier_models(build_triune_omni_orchestrator()) == [_E2B, _E4B]
+
+
+def test_tier0_equal_to_tier1_keeps_first_occurrence(monkeypatch):
+    monkeypatch.setenv("COHEZION_TIER0_MODEL", _E4B)
+    models = _tier_models(build_triune_omni_orchestrator())
+    assert models == [_E4B, _E2B], models
 
 
 def test_tier0_override_restores_three_distinct_models(monkeypatch):
     monkeypatch.setenv("COHEZION_TIER0_MODEL", "Llama-3.2-1B-Instruct-GGUF")
     models = _tier_models(build_triune_omni_orchestrator())
-    assert len(set(models)) == 3, models
+    assert models == ["Llama-3.2-1B-Instruct-GGUF", _E4B, _E2B], models
+
+
+def test_no_tier_is_a_vulkan_31b():
+    # The 2026-07-09 regression: a 31B here lands on Vulkan -> fake CPU tier.
+    assert not any("31B" in m for m in _tier_models(build_triune_omni_orchestrator()))

@@ -34,6 +34,19 @@ def tier0_model() -> str:
     return os.environ.get("COHEZION_TIER0_MODEL") or DEFAULT_TIER0_MODEL
 
 
+# ── Tier 2 (cascade completion) model ────────────────────────────────────────
+# AWAITING THE LARGE-MODEL SWEEP: no measured more-capable tier 2 has been chosen yet. The
+# legacy default is the same id as the tier-0 default, so build_triune_omni_orchestrator
+# deduplicates it away and the default cascade is [tier 0, Gemma-4-E4B]. Set
+# COHEZION_TIER2_MODEL to add a distinct third tier.
+DEFAULT_TIER2_MODEL: str = "Gemma-4-E2B-it-GGUF"
+
+
+def tier2_model() -> str:
+    """Tier-2 model id; ``COHEZION_TIER2_MODEL`` overrides. Read at call time, not import."""
+    return os.environ.get("COHEZION_TIER2_MODEL") or DEFAULT_TIER2_MODEL
+
+
 # Tier-0 ctx has exactly ONE authority: lemonade's saved per-model option, written from
 # compound.lemonade_recipes.BASE_RECIPES by scripts/apply_lemonade_recipes.py. No client
 # pins it per load -- a second authority makes lemond unload/reload the model whenever two

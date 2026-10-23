@@ -33,15 +33,21 @@ def test_build_triune_orchestrator_quality_gates():
     assert orch.tiers[2][1].min_chars is None
 
 
-def test_build_triune_omni_orchestrator_three_tier_cascade():
-    """The :13305 OmniRouter triune cascade (restored 2026-06-29 — make_executor's exec_provider)."""
+def test_build_triune_omni_orchestrator_cascade_is_deduplicated(monkeypatch):
+    """The :13305 OmniRouter cascade (restored 2026-06-29 — make_executor's exec_provider).
+
+    2026-10-23: tier 0 (Gemma-4-E2B) and the legacy tier 2 share a model id, so the default
+    cascade deduplicates to two tiers; COHEZION_TIER2_MODEL adds a distinct third
+    (see test_triune_three_lane.py)."""
     import pytest
 
     pytest.importorskip("gaia")  # GAIA LemonadeClient path
     from cohezion.inference.triune_orchestrator import build_triune_omni_orchestrator
 
+    monkeypatch.delenv("COHEZION_TIER0_MODEL", raising=False)
+    monkeypatch.delenv("COHEZION_TIER2_MODEL", raising=False)
     orch = build_triune_omni_orchestrator()
-    assert len(orch.tiers) == 3  # NPU -> iGPU -> CPU, all via :13305
+    assert len(orch.tiers) == 2  # tier 0 -> iGPU E4B, all via :13305
 
 
 def test_tr1_omni_orchestrator_tiers_use_model_card_temperature_not_zero():
@@ -57,9 +63,9 @@ def test_tr1_omni_orchestrator_tiers_use_model_card_temperature_not_zero():
     orch = build_triune_omni_orchestrator()
     temps = [tier[0].agent._temperature for tier in orch.tiers]
     # Each tier's temperature is ITS model's card value (never a fixed 0.0). With the default
-    # tier 0 (Gemma-4-E2B since 2026-10-23) all three tiers are Gemma-4 cards, so all are 1.0;
+    # tier 0 (Gemma-4-E2B since 2026-10-23) both tiers are Gemma-4 cards, so all are 1.0;
     # the per-model check below is what distinguishes card resolution from one hardcoded value.
-    assert temps == [1.0, 1.0, 1.0]  # Gemma-4-E2B (tier 0), Gemma-4-E4B (iGPU), Gemma-4-E2B (CPU)
+    assert temps == [1.0, 1.0]  # Gemma-4-E2B (tier 0), Gemma-4-E4B (iGPU); tier 2 deduped
     for tier, _gate in orch.tiers:
         card = get_sampling_defaults(tier.agent._model)["temperature"]
         assert tier.agent._temperature == card, tier.agent._model
