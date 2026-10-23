@@ -44,9 +44,27 @@ def main():
 
     # Check for ignored files that are somehow staged
     # (Rare but happens with git add -f)
-    ignored_staged = subprocess.run(
-        ["git", "ls-files", "-i", "-c", "--exclude-standard"], capture_output=True, text=True
-    ).stdout.splitlines()
+    # Scoped to the STAGED paths: without a pathspec, `ls-files -i -c` lists every TRACKED
+    # file matching an ignore pattern, so a tree carrying tracked-then-ignored files blocked
+    # every commit regardless of what was staged (observed 2026-09-21: ~200 unrelated paths).
+    ignored_staged = (
+        subprocess.run(
+            [
+                "git",
+                "--literal-pathspecs",
+                "ls-files",
+                "-i",
+                "-c",
+                "--exclude-standard",
+                "--",
+                *staged_files,
+            ],
+            capture_output=True,
+            text=True,
+        ).stdout.splitlines()
+        if staged_files
+        else []
+    )
 
     if ignored_staged:
         print("\n🚫 Commit blocked: Some staged files match .gitignore patterns.")
