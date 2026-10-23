@@ -169,7 +169,7 @@ class TestCgroupReader:
     ) -> None:
         # Live 2026-10-21 after the 26B was unloaded: its 16.9 GB stayed on the ACTIVE
         # file list. Counting it (current - inactive_file = 28.7 GB) refuses every load.
-        # (Its shmem is mapped, so file_mapped already contains it: 5 + max(7, 9) = 14.)
+        # Bound: 5 + min(7 + 9, 24) = 21.
         self._write(
             tmp_path,
             str(30 * GiB),
@@ -180,7 +180,7 @@ class TestCgroupReader:
             active_file=17 * GiB,
         )
         monkeypatch.setattr(ag, "LEMOND_CGROUP", tmp_path)
-        assert ag.read_lemond_cgroup_gb() == pytest.approx((14.0, 30.0))
+        assert ag.read_lemond_cgroup_gb() == pytest.approx((21.0, 30.0))
 
     def test_mapped_shmem_is_not_counted_twice(self, tmp_path, monkeypatch) -> None:
         # Live 2026-10-22 22:33 with deepseek-r1-0528-8b-FLM resident on the NPU: its 7.21 GB
@@ -200,14 +200,15 @@ class TestCgroupReader:
         reading = ag.read_lemond_cgroup_gb()
         assert reading is not None
         working, high = reading
-        assert working == pytest.approx(15.38, abs=0.01)
+        assert working == pytest.approx(20.04, abs=0.01)  # 6.25 + min(16.34, 13.79)
         assert working <= 20.12 and high == pytest.approx(30.0)
+        # The refused load now fits the 90% budget; it would not under the old sum (22.6).
+        assert working + 6.8 <= 0.9 * high
 
-    def test_after_the_flm_unload_the_reading_matches_the_measured_drop(
+    def test_after_the_flm_unload_the_reading_tracks_the_charge(
         self, tmp_path, monkeypatch
     ) -> None:
-        # Same cgroup after the FLM model left: shmem 0, file_mapped 1.90. The drop between the
-        # two readings must equal the measured memory.current drop (8.44 GB), not 2x the shmem.
+        # Same cgroup after the FLM model left: shmem 0, file_mapped 1.90, file 6.58.
         self._write(
             tmp_path,
             str(30 * GiB),
@@ -215,32 +216,54 @@ class TestCgroupReader:
             anon=int(5.05 * GiB),
             shmem=0,
             file_mapped=int(1.90 * GiB),
+            file=int(6.58 * GiB),
         )
         monkeypatch.setattr(ag, "LEMOND_CGROUP", tmp_path)
         reading = ag.read_lemond_cgroup_gb()
         assert reading is not None
-        working = reading[0]
-        assert working == pytest.approx(6.95, abs=0.01)
-        assert 15.38 - working == pytest.approx(8.44, abs=0.05)
+        assert reading[0] == pytest.approx(6.95, abs=0.01)
 
-    def test_unmapped_shmem_still_counts(self, tmp_path, monkeypatch) -> None:
-        # shmem nobody maps (tmpfs files) is still unreclaimable without swap: max() keeps it.
-        self._write(tmp_path, str(30 * GiB), anon=2 * GiB, shmem=6 * GiB, file_mapped=1 * GiB)
-        monkeypatch.setattr(ag, "LEMOND_CGROUP", tmp_path)
-        assert ag.read_lemond_cgroup_gb() == pytest.approx((8.0, 30.0))
-
-    def test_working_set_never_exceeds_the_cgroup_charge(self, tmp_path, monkeypatch) -> None:
-        # Whatever the stat fields say, memory the cgroup is not charged for cannot be in use.
+    def test_unmapped_pinned_shmem_beside_mapped_weights_is_not_under_counted(
+        self, tmp_path, monkeypatch
+    ) -> None:
+        # The case anon + max(shmem, file_mapped) gets wrong (adversarial review 2026-10-22):
+        # amdxdna pins NPU buffers with drm_gem_shmem_pin whether or not anything maps them,
+        # while llama.cpp mmaps its GGUF weights. 6 GB unmapped shmem + 10 GB mapped weights
+        # is 16 GB the kernel cannot drop; max() would report 10. Under-counting admits a load
+        # that pushes lemond past memory.high and throttles every model.
         self._write(
             tmp_path,
             str(30 * GiB),
-            current=10 * GiB,
-            anon=8 * GiB,
-            shmem=0,
-            file_mapped=9 * GiB,
+            anon=2 * GiB,
+            shmem=6 * GiB,
+            file_mapped=10 * GiB,
+            file=16 * GiB,
         )
         monkeypatch.setattr(ag, "LEMOND_CGROUP", tmp_path)
-        assert ag.read_lemond_cgroup_gb() == pytest.approx((10.0, 30.0))
+        assert ag.read_lemond_cgroup_gb() == pytest.approx((18.0, 30.0))
+
+    def test_unmapped_shmem_still_counts(self, tmp_path, monkeypatch) -> None:
+        # shmem nobody maps is still unreclaimable without swap: 2 + min(6 + 1, 7) = 9.
+        self._write(
+            tmp_path, str(30 * GiB), anon=2 * GiB, shmem=6 * GiB, file_mapped=1 * GiB, file=7 * GiB
+        )
+        monkeypatch.setattr(ag, "LEMOND_CGROUP", tmp_path)
+        assert ag.read_lemond_cgroup_gb() == pytest.approx((9.0, 30.0))
+
+    def test_working_set_never_exceeds_the_cgroup_charge(self, tmp_path, monkeypatch) -> None:
+        # memory.stat and memory.current are read separately, so an unload between the two
+        # reads can leave the stat figure above the charge. Uncharged memory is not in use.
+        self._write(
+            tmp_path,
+            str(30 * GiB),
+            current=int(8.5 * GiB),
+            anon=8 * GiB,
+            shmem=0,
+            file_mapped=1 * GiB,
+            file=9 * GiB,
+        )
+        monkeypatch.setattr(ag, "LEMOND_CGROUP", tmp_path)
+        assert ag.read_lemond_cgroup_gb() == pytest.approx((8.5, 30.0))
 
     def test_no_memory_high_means_no_check(self, tmp_path, monkeypatch) -> None:
         self._write(tmp_path, "max", anon=5 * GiB)
