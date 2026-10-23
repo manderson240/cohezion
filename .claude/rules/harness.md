@@ -169,6 +169,7 @@ The catalogue is scanned by `scripts/ci/doc_code_consistency.py` exactly like th
 | HIHO-LM Invariants (2026-05-20) — Phase 20 | `docs/harness-invariants-catalogue.md#hiho-lm-invariants-2026-05-20--phase-20` | LM1, LM2, LM3, LM4, LM5, LM6, LM7 |
 | Coherence Invariants (2026-07-31) | `docs/harness-invariants-catalogue.md#coherence-invariants-2026-07-31` | EB1, SCP2b, DOC-E5 |
 | Adversarial Guardrail Ratchet Invariants (AG1–AG3, 2026-08-09) | `docs/harness-invariants-catalogue.md#adversarial-guardrail-ratchet-invariants-ag1ag3-2026-08-09` | AG1, AG4, AG5, AG2, AG3 |
+| Git Hook Gate Invariants (GH1–GH3, 2026-10-22) | `docs/harness-invariants-catalogue.md#git-hook-gate-invariants-gh1gh3-2026-10-22` | GH1, GH2, GH3 |
 
 ## TieredOrchestrator Temperature Invariants
 
