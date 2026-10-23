@@ -62,6 +62,29 @@ def _write(module, text: str) -> None:
     module.BASELINE_FILE.write_text(text, encoding="utf-8")
 
 
+def test_ruff_that_never_ran_fails_closed_not_zero(monkeypatch):
+    """GATE-THAT-CANNOT-FAIL: `uv run ruff` exiting 2 with empty stdout used to count as 0
+    violations, so a broken toolchain turned the gate GREEN ("debt reduced by 905")."""
+    import subprocess
+
+    module = _load()
+    broken = subprocess.CompletedProcess(
+        args=["uv"], returncode=2, stdout="", stderr="error: Failed to spawn: `ruff`"
+    )
+    monkeypatch.setattr(module.subprocess, "run", lambda *a, **k: broken)
+    with pytest.raises(SystemExit, match="did not run"):
+        module._current_count()
+
+
+def test_ruff_violations_exit_one_is_still_counted(monkeypatch):
+    import subprocess
+
+    module = _load()
+    found = subprocess.CompletedProcess(args=["uv"], returncode=1, stdout="[{}, {}]", stderr="")
+    monkeypatch.setattr(module.subprocess, "run", lambda *a, **k: found)
+    assert module._current_count() == 2
+
+
 def test_unverified_baseline_reports_misconfiguration_not_author_debt(ratchet, capsys):
     """DISCRIMINATING: red if an unstamped baseline is treated as ordinary debt.
 

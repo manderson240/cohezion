@@ -49,6 +49,12 @@ def _current_count() -> int:
     except FileNotFoundError:
         # uv not available — fall back to bare ruff on PATH.
         proc = subprocess.run(cmd, cwd=REPO, capture_output=True, text=True)
+    # ruff exits 0 (clean) or 1 (violations found); anything else means it never ran
+    # (uv could not spawn ruff, bad config, crash). Empty stdout then read as "[]" ->
+    # 0 violations -> GREEN with "debt reduced, run --update". Fail closed instead.
+    if proc.returncode not in (0, 1):
+        sys.stderr.write(proc.stdout[:2000] + "\n" + proc.stderr[:2000] + "\n")
+        raise SystemExit(f"ruff_ratchet: ruff did not run (exit {proc.returncode}); no count")
     try:
         return len(json.loads(proc.stdout or "[]"))
     except json.JSONDecodeError as exc:
