@@ -31,11 +31,14 @@ from starlette.concurrency import run_in_threadpool
 from cohezion.platform.admission_gate import (
     CGROUP_HIGH_FRACTION,
     DEFAULT_LISTEN_PORT,
+    GTT_BASELINE_GB,
+    GTT_HOST_SHARE,
     GTT_TOTAL_FRACTION,
     AdmissionDecision,
     AdmissionGate,
     audit_bypass_paths,
     models_named,
+    request_options,
 )
 
 
@@ -159,6 +162,8 @@ def build_app(
                     "backend_overrides": dict(active_gate.config.backend_overrides),
                     "mem_available_floor_gb": active_gate.config.mem_available_floor_gb,
                     "gtt_total_fraction": GTT_TOTAL_FRACTION,
+                    "gtt_host_share": GTT_HOST_SHARE,
+                    "gtt_baseline_gb": GTT_BASELINE_GB,
                     "upstream_base": active_gate.config.upstream_base,
                 },
                 "counters": dict(counters),
@@ -181,27 +186,30 @@ def build_app(
         # Every model the request names: query string, multipart fields, and any JSON body
         # whatever its size (a vision or audio chat is easily > 1 MB and still loads).
         names = [v for k, v in request.query_params.multi_items() if "model" in k.lower() and v]
+        # Load options the request sets for itself (lemonade's /v1/load lets a body
+        # llamacpp_backend / ctx_size override the saved recipe options).
+        options: dict[str, object] = {}
         if body and request.method in ("POST", "PUT", "PATCH"):
             content_type = request.headers.get("content-type", "").lower()
             if content_type.startswith("multipart/form-data"):
                 try:
                     form = await request.form()
-                    names += [
-                        v
-                        for k, v in form.multi_items()
-                        if "model" in k.lower() and isinstance(v, str) and v
-                    ]
+                    fields = [(k, v) for k, v in form.multi_items() if isinstance(v, str)]
+                    names += [v for k, v in fields if "model" in k.lower() and v]
+                    options = request_options(dict(fields))
                 except Exception as exc:
                     logger.warning("admission gate: unparseable multipart body: %s", exc)
             else:
                 with contextlib.suppress(ValueError, UnicodeDecodeError):  # not JSON: no model
-                    names += await run_in_threadpool(lambda: models_named(json.loads(body)))
+                    parsed = await run_in_threadpool(json.loads, body)
+                    names += await run_in_threadpool(models_named, parsed)
+                    options = request_options(parsed)
 
         # decide() reads health and /proc -- keep it off the event loop.
         admitted: list[str] = []
         refusal: AdmissionDecision | None = None
         for name in dict.fromkeys(names):
-            decision = await run_in_threadpool(active_gate.decide, name, path)
+            decision = await run_in_threadpool(active_gate.decide, name, path, options)
             if decision.would_refuse:
                 counters["shadow_refusals"] += 1
             new_load = decision.reason.startswith("fits")

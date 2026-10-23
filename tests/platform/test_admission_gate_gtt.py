@@ -90,7 +90,9 @@ class TestVulkanLoadIsPricedAgainstSystemMemory:
 
     def test_cgroup_check_still_applies_to_gpu_loads(self) -> None:
         # Additive, not a swap: a Vulkan load must also pass the existing cgroup check.
-        d = _gate(system=AMPLE, cgroup=(25.0, 30.0)).decide(MODEL, CHAT)
+        # Since review F3 it is charged its measured host share (0.38 x 5 = 1.9 GB), not its
+        # full size, so the working set is 26 GB: 26 + 1.9 = 27.9 > 27.
+        d = _gate(system=AMPLE, cgroup=(26.0, 30.0)).decide(MODEL, CHAT)
         assert d.allow is False and "cgroup" in d.reason
 
     def test_shadow_mode_reports_but_allows(self) -> None:
@@ -120,9 +122,11 @@ class TestFailClosed:
     def test_unreadable_cgroup_with_ample_system_memory_admits_gpu_load(self) -> None:
         assert _gate(system=AMPLE, cgroup=None).decide(MODEL, CHAT).allow is True
 
-    def test_cpu_load_never_reads_system_memory(self) -> None:
+    def test_cpu_load_survives_a_broken_system_probe(self) -> None:
+        # Review F4/F8: cgroup loads now read system memory (for the floor once GTT is
+        # resident), so "never reads" no longer holds. A broken probe must fail OPEN for them.
         def boom() -> SystemMemory:
-            raise AssertionError("cgroup-placed loads must not depend on GTT/MemAvailable")
+            raise RuntimeError("probe broken")
 
         g = AdmissionGate(
             config=GateConfig(gguf_backend="cpu"),
@@ -188,7 +192,9 @@ class TestPlacement:
     def test_catalog_recipe_decides_llamacpp(self) -> None:
         cfg = GateConfig(gguf_backend="vulkan")
         assert model_placement("plain-name", {"recipe": "llamacpp"}, cfg) == "gtt"
-        assert model_placement("Whisper-Base", {"recipe": "whispercpp"}, cfg) == "cgroup"
+        # Review F2/F5/F10: whispercpp defaults to vulkan; with no recipe default known the
+        # backend is unknown and fails closed to the system check (was 'cgroup').
+        assert model_placement("Whisper-Base", {"recipe": "whispercpp"}, cfg) == "gtt"
 
     def test_unknown_backend_is_treated_as_gpu(self) -> None:
         # A backend the gate does not know must not silently skip the system check.
