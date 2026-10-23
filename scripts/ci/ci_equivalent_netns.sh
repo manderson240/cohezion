@@ -27,7 +27,13 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 # clones live under the primary checkout, whose .venv is the real one).
 _usable() { [ -x "$1" ] && "$1" -c "import pytest, xdist" >/dev/null 2>&1; }
 PY=""
-if [ -n "${CI_EQUIV_PYTHON:-}" ] && _usable "$CI_EQUIV_PYTHON"; then PY="$CI_EQUIV_PYTHON"; fi
+if [ -n "${CI_EQUIV_PYTHON:-}" ]; then
+  # An explicit override is honoured or refused, never silently replaced: the variable's name
+  # promises to choose the interpreter, so falling back behind the caller's back would be a
+  # false contract (the first draft did exactly that).
+  _usable "$CI_EQUIV_PYTHON" || { echo "ci_equivalent_netns: CI_EQUIV_PYTHON=$CI_EQUIV_PYTHON cannot import pytest and xdist" >&2; exit 3; }
+  PY="$CI_EQUIV_PYTHON"
+fi
 d="$ROOT"
 while [ -z "$PY" ] && [ "$d" != "/" ]; do
   _usable "$d/.venv/bin/python" && PY="$d/.venv/bin/python"
