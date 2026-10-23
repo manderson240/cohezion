@@ -56,10 +56,14 @@ def _current_count() -> int:
         sys.stderr.write(proc.stdout[:2000] + "\n" + proc.stderr[:2000] + "\n")
         raise SystemExit(f"ruff_ratchet: ruff did not run (exit {proc.returncode}); no count")
     try:
-        return len(json.loads(proc.stdout or "[]"))
+        count = len(json.loads(proc.stdout or "[]"))
     except json.JSONDecodeError as exc:
         sys.stderr.write(proc.stdout[:2000] + "\n" + proc.stderr[:2000] + "\n")
         raise SystemExit(f"ruff_ratchet: could not parse ruff JSON output: {exc}") from exc
+    if proc.returncode == 1 and count == 0:  # ruff exit 1 means >=1 violation; uv errors also exit 1
+        sys.stderr.write(proc.stderr[:2000] + "\n")
+        raise SystemExit("ruff_ratchet: exit 1 with no violations parsed; ruff did not run")
+    return count
 
 
 # Written by --update so the gate can tell a MEASURED baseline from a typed one.

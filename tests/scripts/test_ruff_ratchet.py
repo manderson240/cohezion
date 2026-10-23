@@ -76,6 +76,17 @@ def test_ruff_that_never_ran_fails_closed_not_zero(monkeypatch):
         module._current_count()
 
 
+def test_exit_one_with_empty_output_fails_closed(monkeypatch):
+    """uv itself exits 1 on some failures; ruff exit 1 always means >=1 violation."""
+    import subprocess
+
+    module = _load()
+    broken = subprocess.CompletedProcess(args=["uv"], returncode=1, stdout="", stderr="error: x")
+    monkeypatch.setattr(module.subprocess, "run", lambda *a, **k: broken)
+    with pytest.raises(SystemExit, match="did not run"):
+        module._current_count()
+
+
 def test_ruff_violations_exit_one_is_still_counted(monkeypatch):
     import subprocess
 
