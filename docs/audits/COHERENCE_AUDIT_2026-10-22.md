@@ -219,6 +219,25 @@ condition, not a return to advisory.
 The bridge list is what the next session works from: `grep -rn "xfail(strict=True" tests/` and the
 reason strings name the gap (24 bridges after this pass).
 
+**Fourth pass — the pull request's own CI run (PR #327, 2026-10-23).** The gated `test (3.13)` job
+went red with 15 failures, none of which the namespace run could see, because they measure the
+runner rather than the code: a `ubuntu-latest` host has 16 GB of RAM (13.7 GB free), no LFS
+objects, no `~/vaults`, and no `~/cohezion-labs`. The namespace reproduces "no services" but keeps
+this machine's 128 GB, its LFS store and its home directory. Dispositions, commit `14c965e0d`:
+
+| Cause | Tests | Fix |
+|---|---|---|
+| `data/rl/checkpoints/policy_final.pt` is an LFS pointer on the runner; `torch.load` raised an UnpicklingError that read like corruption and took the whole `/rl/*` surface down | 5 | `_is_lfs_pointer()` in `src/cohezion/api/_helpers.py` treats the pointer as "no checkpoint" (RL and FLUME VAE loaders); a discriminating test fails with the guard removed |
+| `vault_moc` hardcoded `/home/mike-anderson/...` in the twistor bridge and functor | 2 | the result reports the path `persist()` actually wrote (a real bug for any other user) |
+| loopception G15 reads `~/cohezion-labs/compound_daemon.py`, an external repository | 5 | class-level `skipif` on the file |
+| the OOM preflight in `session_digest.lemonade_chat` refused on 13.7 GB before the connection step a scheme-pinning test was about | 1 | the guard is pinned safe in that one test; `TestOOMPreflight` still covers it |
+| the GTT headroom budget is `min(ceiling, MemTotal)`, 13.3 GB on the runner | 1 | `MemTotal` pinned to 122.8 GB, as the H1 test in the same file already does |
+| SR1.4 is a live-box probe needing floor + model + margin of free RAM | 1 | skips below that threshold, stays a live probe above it |
+
+The lesson for the runner script: `scripts/ci/ci_equivalent_netns.sh` is a *services* oracle, not
+a *host* oracle. The remaining host differences (RAM, LFS objects, home-directory fixtures) are
+the next thing to emulate, or to make the tests independent of, test by test as they appear.
+
 ---
 
 ## 3. Landed in this change
