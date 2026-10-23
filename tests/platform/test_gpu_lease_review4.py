@@ -297,3 +297,37 @@ def test_proxy_docs_do_not_claim_clients_retry_the_lease_marker() -> None:
     src = open(admission_proxy.__file__).read()  # noqa: SIM115
     assert "retry a 503 with the lease marker" not in src
     assert os.path.exists(admission_proxy.__file__)
+
+
+def test_client_leaving_mid_stream_releases_the_model() -> None:
+    """A client that hangs up mid-generation must not leave its model 'in use' (for
+    IN_USE_TTL_S every lease naming it as a victim would fail its drain)."""
+    from tests.platform.test_gpu_lease_review2 import _serve
+
+    gate = _mk_gate(read_resident=lambda: [{"model_name": GGUF, "device": "gpu"}])
+    release = threading.Event()
+
+    async def body():
+        yield b"data: 1\n\n"
+        await asyncio.get_running_loop().run_in_executor(None, release.wait, 10)
+        yield b"data: [DONE]\n\n"
+
+    async def up(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(200, content=body())
+
+    client = httpx.AsyncClient(transport=httpx.MockTransport(up), base_url="http://up")
+    port, server, th = _serve(build_app(gate, client=client))
+    try:
+        with httpx.stream(
+            "POST", f"http://127.0.0.1:{port}/v1/chat/completions", json={"model": GGUF}
+        ) as r:
+            next(r.iter_raw())
+            assert gate.in_use() == {GGUF.lower(): 1}
+        deadline = time.monotonic() + 5
+        while gate.in_use() and time.monotonic() < deadline:
+            time.sleep(0.05)
+        assert gate.in_use() == {}
+    finally:
+        release.set()
+        server.should_exit = True
+        th.join(5)
