@@ -16,6 +16,18 @@ LEMONADE_OPENAI_URL: str = f"{LEMONADE_BASE_URL}/v1"
 LEMONADE_API_URL: str = f"{LEMONADE_BASE_URL}/api/v1"
 LEMONADE_NPU_BASE_URL: str = "http://localhost:13305"
 
+# ── Tier 0 (fast classify/route) model — single source of truth ──────────────
+# Moved OFF the NPU 2026-10-23: the XDNA2 NPU holds one FLM model and every swap evicts/
+# reloads it under lemond's lock; the cascade's llama3.2-1b-FLM thrashed it against the
+# Kaggle worker's FLM models. Same model family, llama.cpp Vulkan (iGPU) build.
+DEFAULT_TIER0_MODEL: str = "Llama-3.2-1B-Instruct-GGUF"
+
+
+def tier0_model() -> str:
+    """Tier-0 model id; ``COHEZION_TIER0_MODEL`` overrides. Read at call time, not import."""
+    return os.environ.get("COHEZION_TIER0_MODEL") or DEFAULT_TIER0_MODEL
+
+
 # ── SurrealDB ─────────────────────────────────────────────────────────────────
 SURREAL_HTTP_URL: str = "http://127.0.0.1:8001/sql"
 SURREAL_WS_URL: str = "ws://localhost:8001"

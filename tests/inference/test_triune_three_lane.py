@@ -24,7 +24,7 @@ def test_three_tiers_are_three_distinct_models():
 def test_cpu_tier_is_the_cpu_backend_model_not_a_vulkan_31b():
     orch = build_triune_omni_orchestrator()
     npu, igpu, cpu = _tier_models(orch)
-    assert npu == "llama3.2-1b-FLM"  # XDNA2 NPU
+    assert npu == "Llama-3.2-1B-Instruct-GGUF"  # tier 0: iGPU since 2026-10-23 (NPU reserved)
     assert igpu == "Gemma-4-E4B-it-GGUF"  # RDNA3.5 iGPU
     assert cpu == "Gemma-4-E2B-it-GGUF"  # Zen5 CPU (llamacpp_backend=cpu)
     # The regression: a 31B here lands on Vulkan → fake CPU tier

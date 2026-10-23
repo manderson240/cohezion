@@ -8,6 +8,7 @@ from __future__ import annotations
 import logging
 from typing import TYPE_CHECKING
 
+from cohezion.config.defaults import tier0_model
 from cohezion.inference.gaia_adapter import build_gaia_llm_tier, build_gaia_native_tier
 from cohezion.inference.orchestrator import (
     QualityGate,
@@ -142,7 +143,8 @@ def build_triune_omni_orchestrator(
     span three distinct compute substrates, so the cascade parallelises across NPU/iGPU/CPU
     instead of serialising two tiers on the iGPU.
     """
-    npu_tier = build_gaia_llm_tier(model_id="llama3.2-1b-FLM", base_url=base_url, silent=True)
+    # Tier 0 is no longer pinned to the NPU (2026-10-23): see config.defaults.tier0_model.
+    npu_tier = build_gaia_llm_tier(model_id=tier0_model(), base_url=base_url, silent=True)
     igpu_tier = build_gaia_llm_tier(model_id="Gemma-4-E4B-it-GGUF", base_url=base_url, silent=True)
     cpu_tier = build_gaia_llm_tier(model_id="Gemma-4-E2B-it-GGUF", base_url=base_url, silent=True)
     return TieredOrchestrator(

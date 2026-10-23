@@ -25,11 +25,12 @@ from typing import Any
 
 import numpy as np
 
+from cohezion.config.defaults import tier0_model
+
 
 logger = logging.getLogger(__name__)
 
 _DIM = 12
-_DEFAULT_MODEL = "llama3.2-1b-FLM"  # fast NPU model — the gate runs per task, latency matters
 _FLOAT_RE = re.compile(r"(\d?\.\d+|\d+\.?\d*)")
 
 # F3 FIX (2026-06-30): the coherence prompt must elicit an estimate of TASK TRACTABILITY (does
@@ -88,10 +89,11 @@ class FlumeWorldModel:
     """
 
     def __init__(
-        self, chat_fn: Callable[[str], str] | None = None, model_id: str = _DEFAULT_MODEL
+        self, chat_fn: Callable[[str], str] | None = None, model_id: str | None = None
     ) -> None:
         self._chat_fn = chat_fn
-        self._model_id = model_id
+        # Fast tier-0 model — the gate runs per task, latency matters (config.defaults.tier0_model).
+        self._model_id = model_id or tier0_model()
         # Current task description — injected by JepaGate.check() via set_task() before each
         # prediction so the coherence estimate depends on the ACTUAL task, not just the prior
         # coherence value (BUGHUNT 2026-06-30: the gate was task-blind → constant verdict).

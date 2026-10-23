@@ -37,6 +37,8 @@ _MODEL_DEFAULTS: dict[str, dict[str, Any]] = {
     # qwen3.6-35b-* keys: _match_model takes the first substring hit in insertion order.
     "qwen3": {"temperature": 0.6, "top_p": 0.95, "top_k": 20},
     "llama3.2-1b-flm": {"temperature": 0.3},
+    # Tier-0 GGUF (iGPU) build of the same model: keep the tier-0 sampling, not the 0.7 fallback.
+    "llama-3.2-1b-instruct": {"temperature": 0.3},
     # Nemotron-3-Nano. Grounded in the unsloth card, which gives TWO regimes:
     #   reasoning    -> temperature 1.0, top_p 1.0
     #   tool calling -> temperature 0.6, top_p 0.95

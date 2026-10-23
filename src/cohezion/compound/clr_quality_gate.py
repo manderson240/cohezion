@@ -11,13 +11,13 @@ from __future__ import annotations
 import logging
 from typing import Any
 
+from cohezion.config.defaults import tier0_model
+
 
 logger = logging.getLogger(__name__)
 
 _ROUTER_URL = "http://localhost:13305/v1/chat/completions"
 _GAIA_ROUTER_URL = "http://localhost:13305/api/v1"
-_NPU_MODEL = "llama3.2-1b-FLM"
-
 _CLAIMS = [
     "Does this pattern contain specific, reusable information worth memorizing? Reply YES or NO only.",
     "Is the execution outcome described verifiably successful? Reply YES or NO only.",
@@ -50,12 +50,12 @@ class CLRQualityGate:
 
     def __init__(
         self,
-        model: str = _NPU_MODEL,
+        model: str | None = None,
         router_url: str = _ROUTER_URL,
         gaia_router_url: str = _GAIA_ROUTER_URL,
         timeout: float = 10.0,
     ) -> None:
-        self._model = model
+        self._model = model or tier0_model()
         self._router_url = router_url
         self._gaia_router_url = gaia_router_url
         self._timeout = timeout

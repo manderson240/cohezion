@@ -18,6 +18,7 @@ from typing import Any
 
 import httpx
 
+from cohezion.config.defaults import tier0_model
 from cohezion.core.event_bus import EventType
 from cohezion.data_mesh.data_product import (
     DataProduct,
@@ -29,11 +30,13 @@ from cohezion.governance.autonomy_engine import AutonomyTier
 
 
 _OMNI_ROUTER = "http://localhost:13305"
+# Tier-0 routing model (iGPU GGUF since 2026-10-23; resolved once at import).
+_TIER0 = tier0_model()
 _FETCH_TIMEOUT_S = 2.0
 
 # The 4 models the compound loop uses: SkillRefiner (x2) + SemanticCache + routing
 COMPOUND_LOOP_MODELS: list[str] = [
-    "llama3.2-1b-FLM",  # NPU: routing/classification, 42 TPS (harness N1)
+    _TIER0,  # iGPU (llama.cpp Vulkan): routing/classification -- off the NPU 2026-10-23
     "Bonsai-8B-gguf",  # llamacpp: SkillRefiner fast tier
     "nomic-embed-text-v2-moe-GGUF",  # llamacpp: SemanticCache 768D embeddings, 6ms (CA1)
     "deepseek-r1-0528-8b-FLM",  # FLM NPU: SkillRefiner reasoning tier, 10.6 TPS (N1)
@@ -41,7 +44,7 @@ COMPOUND_LOOP_MODELS: list[str] = [
 
 # SLA: latency targets and quality tiers (source: harness.md N1, measured 2026-06-22)
 _SLA: dict[str, dict[str, Any]] = {
-    "llama3.2-1b-FLM": {
+    _TIER0: {
         "max_latency_ms": 100,
         "quality_tier": DataQualityTier.GOLD,
         "availability_target": 0.99,
@@ -65,7 +68,7 @@ _SLA: dict[str, dict[str, Any]] = {
 
 # Use cases from model cards (aligned with label tags Lemonade exposes)
 _USE_CASES: dict[str, list[str]] = {
-    "llama3.2-1b-FLM": ["classification", "routing", "short_answer"],
+    _TIER0: ["classification", "routing", "short_answer"],
     "Bonsai-8B-gguf": ["tool_calling", "skill_refinement", "generation"],
     "nomic-embed-text-v2-moe-GGUF": ["semantic_embedding", "similarity_search", "cache_lookup"],
     "deepseek-r1-0528-8b-FLM": ["reasoning", "analysis", "multi_step"],

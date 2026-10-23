@@ -14,6 +14,8 @@ from dataclasses import dataclass
 from enum import StrEnum
 from typing import Any, Literal
 
+from cohezion.config.defaults import tier0_model
+
 
 class Harness(StrEnum):
     """Agentic scaffold for a tier (item 7, arXiv 2605.30621 — Lin et al. 2026).
@@ -134,7 +136,7 @@ def _preferred_model(output_type: str, node: str) -> str:
 
     Priority:
     1. output_type-specific override: code → ThinkingCoder, reasoning/math_reasoning → Gemma31B
-    2. NPU node → registry best for Task.ROUTING/NPU (falls back to llama3.2-1b-FLM)
+    2. NPU node → the cascade tier-0 model (config.defaults.tier0_model; iGPU GGUF by default)
     3. GPU node default → registry best for Task.GOVERNANCE/iGPU (falls back to Gemma-4-E4B-it-GGUF)
 
     Advisory only -- the caller is free to use any model. This is a routing hint to help
@@ -144,7 +146,8 @@ def _preferred_model(output_type: str, node: str) -> str:
     if output_type in _MODEL_HINTS:
         return _MODEL_HINTS[output_type]
     if node == "npu":
-        return _NPU_MODEL
+        # Fast-tier hint follows the cascade tier 0, which is no longer on the NPU.
+        return tier0_model()
     return _IGPU_DEFAULT_MODEL
 
 

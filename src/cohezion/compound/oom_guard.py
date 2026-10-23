@@ -53,6 +53,7 @@ MODEL_FOOTPRINT_GB: dict[str, float] = {
     "Qwen3-Embedding-0.6B-GGUF": 0.64,
     # ── Small LLMs (safe at any reasonable ctx) ──────────────────────────────
     "Qwen3-0.6B-GGUF": 0.38,
+    "Llama-3.2-1B-Instruct-GGUF": 0.81,  # tier 0; approx Q4_K_M size, not measured live
     "Bonsai-1.7B-gguf": 1.05,
     "Bonsai-4B-gguf": 2.40,
     "Gemma-4-E2B-it-GGUF": 4.09,
@@ -109,6 +110,7 @@ MODEL_TIER: dict[str, ComputeTier] = {
     "lfm2.5-it-1.2b-FLM": ComputeTier.NPU,
     # iGPU — all GGUF LLMs (device: gpu, llamacpp_backend: vulkan)
     "Qwen3-0.6B-GGUF": ComputeTier.IGPU,
+    "Llama-3.2-1B-Instruct-GGUF": ComputeTier.IGPU,  # tier 0 (off NPU 2026-10-23)
     "Qwen3-Embedding-0.6B-GGUF": ComputeTier.IGPU,
     "Bonsai-1.7B-gguf": ComputeTier.IGPU,
     "Bonsai-4B-gguf": ComputeTier.IGPU,

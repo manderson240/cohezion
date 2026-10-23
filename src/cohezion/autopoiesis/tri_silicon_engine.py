@@ -20,6 +20,7 @@ from pathlib import Path
 from typing import Any
 
 from cohezion.arc.strix_dsl_search import StrixHaloDSLEngine
+from cohezion.config.defaults import tier0_model
 from cohezion.flume.loop_goal_refactor_engine import GoalSpecification
 from cohezion.physics.my_big_toe_entropy_engine import MyBigTOEEntropyEngine
 from cohezion.recursive_trace.tripartite_goal_loop import TripartiteGoalLoop
@@ -61,11 +62,12 @@ class TriSiliconAutopoiesisEngine:
     def __init__(
         self,
         cpu_threads: int = 16,
-        npu_model: str = "llama3.2-1b-FLM",
+        npu_model: str | None = None,
         igpu_model: str = "gemma-4-E4B-it-GGUF",
     ) -> None:
         self.cpu_threads = cpu_threads
-        self.npu_model = npu_model
+        # Tier-0 model; no longer on the NPU by default (config.defaults.tier0_model).
+        self.npu_model = npu_model or tier0_model()
         self.igpu_model = igpu_model
         self.entropy_engine = MyBigTOEEntropyEngine()
         from cohezion.agi.zkfv_compiler import ZKFVCompiler
