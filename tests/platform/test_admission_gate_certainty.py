@@ -529,3 +529,38 @@ class TestA8InvalidationOutlivesAnInFlightRefresh:
         g = _gate()
         _proxy_call(g, "POST", "/internal/set", {"x": 1}, during=g.refresh_catalog)
         assert g.decide("LFM2-8B-A1B-GGUF", CHAT).allow is False
+
+
+class TestWalkLimitIgnoresScalars:
+    """A scalar cannot hold a model key: long input/token arrays must not trip the A9 limit."""
+
+    @pytest.mark.parametrize(
+        "body",
+        [
+            {"model": "Gemma-4-E2B-it-GGUF", "input": ["x"] * 25000},
+            {"model": "Gemma-4-E2B-it-GGUF", "prompt": list(range(32768))},
+        ],
+    )
+    def test_large_scalar_array_is_forwarded(self, body: dict[str, object]) -> None:
+        client, hits = _upstream()
+        with TestClient(build_app(_gate(), client=client)) as c:
+            r = c.post("/v1/embeddings", json=body)
+        assert r.status_code == 200 and hits == ["/v1/embeddings"], r.text
+
+
+class TestNonConfigInternalWrites:
+    @pytest.mark.parametrize("path", ["/internal/telemetry/flush", "/internal/pin"])
+    def test_do_not_invalidate(self, path: str) -> None:
+        g = _gate()
+        _proxy_call(g, "POST", path, {})
+        assert g.decide("LFM2-8B-A1B-GGUF", CHAT).allow
+
+
+class TestNestedCollections:
+    def test_cycle_is_unknown_not_a_recursion_error(self) -> None:
+        catalog = {
+            "a": {"recipe": "collection.router", "components": ["b"]},
+            "b": {"recipe": "collection.router", "components": ["a"]},
+        }
+        d = _gate(catalog, system=AMPLE).decide("a", CHAT)
+        assert d.allow is False, d.reason

@@ -52,9 +52,12 @@ RETRY_AFTER_S = 15  # refused clients back off instead of retrying in a tight lo
 # Writing a model's saved options changes its placement before the catalog shows it.
 _OPTIONS_ROUTE = re.compile(r"(?:api/)?v[01]/models/(.+)/options", re.IGNORECASE)
 # Writes that can change ANY model's recipe, size or default backend: (re-)registration,
-# pull (register-then-install), backend installs, and lemond's /internal/* config.
+# pull (register-then-install), backend installs, and lemond's config and model-sync writes
+# (routes from lemonade.md and the lemond binary; pin, telemetry and aliases change neither).
 _CONFIG_WRITE = re.compile(
-    r"(?:api/)?v[01]/(?:models/register|pull|install|uninstall)|internal/.*", re.IGNORECASE
+    r"(?:api/)?v[01]/(?:models/register|pull|install|uninstall)"
+    r"|internal/(?:set|config(?:/.*)?|models/sync)",
+    re.IGNORECASE,
 )
 
 

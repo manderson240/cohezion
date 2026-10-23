@@ -68,7 +68,7 @@ and the GTT cap), each failing closed when unreadable except the cgroup read.
     /internal/* write makes EVERY model uncertain, until a catalog (and, for the latter,
     system-info) read that STARTED after lemonade answered the write succeeds.
   - A collection with no size of its own (collection.router) is an uncertain load of its
-    largest component; unknown if any component is. Its name never shows as resident, so
+    largest component; unknown if any component is unsized (one level, no cycles). Its name never shows as resident, so
     its reservation is held for RESERVATION_TTL_S after each admit (over-counts, safe side).
   - Before the first catalog read a curated GGUF is priced with KV at lemond's unknown-ctx
     clamp; a larger saved ctx is only known once the catalog is read.
@@ -371,7 +371,8 @@ def models_named(body: object) -> list[str]:
                 elif isinstance(value, (dict, list)):
                     queue.append(value)
         elif isinstance(node, list):
-            queue.extend(node)
+            # Scalars hold no model key: a long input/token array must not count.
+            queue.extend(v for v in node if isinstance(v, (dict, list)))
     return found
 
 
@@ -746,10 +747,13 @@ class AdmissionGate:
         if not size and isinstance(components, list) and components:
             # A collection (e.g. collection.router) has no size of its own: it runs one of
             # its components, so price the largest; any unknown component is unknown.
+            # One level only: a component that is itself size-less is unknown (no cycles).
             parts = [
-                self._cached_footprint_gb(str(c), ctx_size)
+                None
+                if not (self._catalog.get(normalize_model_name(str(c))) or {}).get("size")
+                and normalize_model_name(str(c)) not in MODEL_FOOTPRINT_GB
+                else self._cached_footprint_gb(str(c), ctx_size)
                 for c in components
-                if normalize_model_name(str(c)) != key
             ]
             return None if not parts or None in parts else max(p or 0.0 for p in parts)
         catalog_gb = float(size) if isinstance(size, (int, float)) and size > 0 else 0.0

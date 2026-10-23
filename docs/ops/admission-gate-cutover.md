@@ -51,3 +51,21 @@ commands, no state to migrate (the gate holds none — by design and by test).
 - Well-behaved clients see 503 + JSON reason and fall back via their existing cascades;
   clients that retry-loop a 503 will keep being refused until headroom returns — that is
   the intended behavior.
+
+## Known availability costs of the certainty rule (2026-10-23)
+
+Placement may only relax a check when it is certain (module docstring, CERTAINTY), so
+under `ENFORCE=1`:
+
+- A name a fresh catalog lacks is refused with **HTTP 404** (size unknown, unbounded).
+  This includes lemonade aliases (`POST /internal/aliases`): a client using an alias is
+  blocked and must name the catalog model. Live check 2026-10-23: `GET :13315/internal/aliases`
+  returned no aliases.
+- An MCP `tools/call` that names no model is refused while any downloaded, non-resident
+  catalog model has no size. Live 2026-10-23 that includes `Qwen3-Embedding-0.6B-GGUF` and
+  `kokoro-v1`, so every unnamed tools/call is refused: name the model in the call.
+- A config write through :13305 (model register, pull, backend install, `/internal/set`,
+  `/internal/config`, `/internal/models/sync`) makes every placement uncertain until the
+  next catalog + system-info read (up to `CATALOG_REFRESH_S`): loads face both checks.
+- A request body with more than `_WALK_MAX_NODES` JSON objects/arrays is refused (503).
+- `user.cohezion-router` is checked as an uncertain load of its largest component.
