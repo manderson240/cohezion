@@ -188,7 +188,12 @@ def _ask(model: str, prompt: str, *, max_tokens: int = 1200, timeout: int = 900)
     )
     with urllib.request.urlopen(req, timeout=timeout) as resp:  # noqa: S310 -- localhost router
         r = json.loads(resp.read())
-    return r["choices"][0]["message"]["content"]
+    msg = r["choices"][0]["message"]
+    # Local-LLM chat contract (check_local_llm_chokepoint.sh): content -> reasoning_content
+    # fallback + think/channel strip, shared with the GAIA tier so the two cannot drift.
+    from cohezion.inference.gaia_adapter import _answer_only
+
+    return _answer_only(msg.get("content") or "", msg.get("reasoning_content") or "")
 
 
 def run_lane(lens: str, diff: str) -> LaneResult:
