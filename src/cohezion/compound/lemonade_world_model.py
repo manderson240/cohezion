@@ -98,6 +98,9 @@ class FlumeWorldModel:
         self, chat_fn: Callable[[str], str] | None = None, model_id: str | None = None
     ) -> None:
         self._chat_fn = chat_fn
+        # The default GAIA shim (built lazily) -- kept so the coherence parse can read its
+        # strict last_final_answer instead of a possibly-unfinished chain of thought.
+        self._shim: Any | None = None
         # Fast tier-0 model — the gate runs per task, latency matters (config.defaults.tier0_model).
         self._model_id = model_id or tier0_model()
         # Current task description — injected by JepaGate.check() via set_task() before each
@@ -133,12 +136,27 @@ class FlumeWorldModel:
             # the number, so every estimate fell back to the prior.
             from cohezion.inference.gaia_adapter import build_gaia_llm_tier
 
-            self._chat_fn = build_gaia_llm_tier(
+            self._shim = build_gaia_llm_tier(
                 self._model_id,
                 base_url="http://localhost:13305/api/v1",
                 max_tokens=_COHERENCE_MAX_TOKENS,
-            ).agent.prompt
+            ).agent
+            self._chat_fn = self._shim.prompt
         return self._chat_fn(prompt)
+
+    def _final_answer(self, prompt: str) -> str | None:
+        """The finished answer to ``prompt``, or None when the reply carried none.
+
+        On the default GAIA path a truncated reply (finish_reason "length" or completion_tokens
+        at the budget) or an unclosed chain of thought yields None, so predict_next_state keeps
+        its baseline instead of parsing a number out of unfinished reasoning (a CoT that echoes
+        the few-shot "0.97" anchor and then runs out of budget is not an estimate). An injected
+        ``chat_fn`` returns only its final text by contract.
+        """
+        text = self._chat(prompt)
+        if self._shim is not None:
+            return self._shim.last_final_answer
+        return text
 
     _BASELINE = 0.7  # class prior — per-instance _baseline adapts away from this after observe()
 
@@ -174,7 +192,8 @@ class FlumeWorldModel:
         task = self._task[:200] if self._task else "(unspecified task)"
         prompt = f"{_COHERENCE_PROMPT_HEADER}Task: {task} -> "
         try:
-            coh = _parse_coherence(self._chat(prompt))
+            answer = self._final_answer(prompt)
+            coh = _parse_coherence(answer) if answer is not None else None
         except Exception as exc:  # unreachable LLM, transport error, etc.
             logger.debug("LemonadeWorldModel chat failed (fallback): %s", exc)
             coh = None

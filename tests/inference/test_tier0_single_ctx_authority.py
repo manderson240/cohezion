@@ -47,6 +47,8 @@ THINKING_SAFE_MAX_TOKENS = 1024
 class _FakeLemonade(BaseHTTPRequestHandler):
     calls: list[tuple[str, str, dict]] = []
     thinking: bool = False  # reply as a thinking model: content="" + reasoning_content
+    # Full override of the chat reply: {"message": ..., "finish_reason": ..., "usage": ...}.
+    override: dict | None = None
 
     def log_message(self, *_a) -> None:  # keep pytest output clean
         pass
@@ -86,6 +88,20 @@ class _FakeLemonade(BaseHTTPRequestHandler):
             body = {}
         self.calls.append(("POST", self.path, body))
         if self.path.endswith("/chat/completions"):
+            if self.override is not None:
+                self._reply(
+                    {
+                        "choices": [
+                            {
+                                "index": 0,
+                                "message": self.override["message"],
+                                "finish_reason": self.override["finish_reason"],
+                            }
+                        ],
+                        "usage": self.override["usage"],
+                    }
+                )
+                return
             if self.thinking:
                 message = {
                     "role": "assistant",
@@ -134,6 +150,7 @@ def _fake_lemonade(monkeypatch, *, expect_gaia_client: bool):
 
     _FakeLemonade.calls = []
     _FakeLemonade.thinking = False
+    _FakeLemonade.override = None
     server = ThreadingHTTPServer(("127.0.0.1", 0), _FakeLemonade)
     port = server.server_address[1]
     thread = threading.Thread(target=server.serve_forever, daemon=True)
@@ -271,7 +288,9 @@ def test_omni_cascade_tier0_reads_reasoning_content(fake_lemonade):
     assert not _load_calls(calls)
 
 
-def test_flume_world_model_reads_reasoning_content(fake_lemonade):
+def test_flume_world_model_ignores_unclosed_reasoning(fake_lemonade):
+    """content="" + bare reasoning_content is the model's THOUGHT, not its answer: Flume must
+    keep its baseline rather than parse a number out of an unfinished chain of thought."""
     _base, calls = fake_lemonade
     _FakeLemonade.thinking = True
     import numpy as np
@@ -280,19 +299,31 @@ def test_flume_world_model_reads_reasoning_content(fake_lemonade):
 
     wm = FlumeWorldModel()
     wm.set_task("sort a short list of integers")
-    reply = wm._chat("Estimate tractability of: sort a list.")
-    assert "ZEBRA-7731" in reply
-    # End to end: the model's 0.83 (Beta(2,2)-shrunk toward the prior), not the bare prior
-    # that predict_next_state falls back to when no number is parsed.
     nxt = wm.predict_next_state(np.zeros(12, dtype=np.float32), None)
-    expected = (2.0 * wm._BASELINE + 0.83) / 3.0
-    assert float(np.mean(nxt)) == pytest.approx(expected, abs=1e-6)
-    assert float(np.mean(nxt)) != pytest.approx(wm._BASELINE, abs=1e-3)
+    assert float(np.mean(nxt)) == pytest.approx(wm._BASELINE, abs=1e-6)
     _assert_thinking_safe_budget(calls)
     assert not _load_calls(calls)
 
 
-def test_clr_quality_gate_reads_reasoning_content(fake_lemonade):
+def test_flume_world_model_reads_finished_answer(fake_lemonade):
+    """Finished thinking reply: CoT (with a misleading draft number) in reasoning_content, the
+    answer in content. The coherence comes from content only."""
+    _base, calls = fake_lemonade
+    _FakeLemonade.override = _finished_reply("ZEBRA-7731 0.83")
+    import numpy as np
+
+    from cohezion.compound.lemonade_world_model import FlumeWorldModel
+
+    wm = FlumeWorldModel()
+    wm.set_task("sort a short list of integers")
+    nxt = wm.predict_next_state(np.zeros(12, dtype=np.float32), None)
+    expected = (2.0 * wm._BASELINE + 0.83) / 3.0
+    assert float(np.mean(nxt)) == pytest.approx(expected, abs=1e-6)
+    _assert_thinking_safe_budget(calls)
+    assert not _load_calls(calls)
+
+
+def test_clr_quality_gate_unclosed_reasoning_fails_open(fake_lemonade):
     base, calls = fake_lemonade
     _FakeLemonade.thinking = True
     from cohezion.compound.clr_quality_gate import CLRQualityGate
@@ -301,16 +332,31 @@ def test_clr_quality_gate_reads_reasoning_content(fake_lemonade):
         router_url=f"{base}/v1/chat/completions", gaia_router_url=f"{base}/api/v1"
     )
     assert gate._gaia_client is not None, "GAIA path not exercised"
-    # Empty content used to parse as None (fail-open) or NO; the verdict is in the reasoning.
+    # The verdict-looking last line of bare reasoning is NOT an answer: fail open.
+    assert gate.score("Pattern: retry with exponential backoff fixed the flaky upload.") is None
+    _assert_thinking_safe_budget(calls)
+    assert not _load_calls(calls)
+
+
+def test_clr_quality_gate_reads_finished_answer(fake_lemonade):
+    base, calls = fake_lemonade
+    _FakeLemonade.override = _finished_reply("YES")
+    from cohezion.compound.clr_quality_gate import CLRQualityGate
+
+    gate = CLRQualityGate(
+        router_url=f"{base}/v1/chat/completions", gaia_router_url=f"{base}/api/v1"
+    )
+    assert gate._gaia_client is not None, "GAIA path not exercised"
+    # The reasoning drafts NO; the closed answer in content says YES.
     assert gate.score("Pattern: retry with exponential backoff fixed the flaky upload.") == 1.0
     assert len(_tier0_chats(calls)) == 3
     _assert_thinking_safe_budget(calls)
     assert not _load_calls(calls)
 
 
-def test_clr_quality_gate_httpx_path_reads_reasoning_content(fake_lemonade, monkeypatch):
+def test_clr_quality_gate_httpx_path_reads_finished_answer(fake_lemonade, monkeypatch):
     base, calls = fake_lemonade
-    _FakeLemonade.thinking = True
+    _FakeLemonade.override = _finished_reply("YES")
     from cohezion.compound import clr_quality_gate as clr
 
     # Build one real GAIA client so the fixture's real-path check holds, then take the httpx
@@ -322,6 +368,141 @@ def test_clr_quality_gate_httpx_path_reads_reasoning_content(fake_lemonade, monk
     )
     assert gate.score("Pattern: retry with exponential backoff fixed the flaky upload.") == 1.0
     _assert_thinking_safe_budget(calls)
+
+
+# ── Truncation: an unfinished chain of thought must never be read as the answer ────────
+# Realistic truncated E2B replies: the CoT reaches a tentative "Yes" (and, for Flume, echoes a
+# few-shot anchor) and then the budget runs out mid-reconsideration. lemonade sometimes reports
+# finish_reason="stop" while truncating, so completion_tokens >= budget must count too.
+
+_TRUNCATED_COT = (
+    "The user wants a YES/NO judgement on the pattern.\n"
+    "Let me check the context. It mentions exponential backoff.\n"
+    "Yes, it mentions X.\n"
+    "But wait"
+)
+_TRUNCATED_FLUME_COT = (
+    "Sorting a short list is like the examples.\n"
+    "Task: add two small numbers -> 0.97 is the closest anchor.\n"
+    "But wait, the list could"
+)
+
+
+def _finished_reply(answer: str) -> dict:
+    return {
+        "message": {
+            "role": "assistant",
+            "content": answer,
+            "reasoning_content": "Draft: NO 0.05? Re-checking the context... it is fine.",
+        },
+        "finish_reason": "stop",
+        "usage": {"prompt_tokens": 90, "completion_tokens": 120},
+    }
+
+
+def _truncated_reply(reasoning: str, *, finish: str, completion_tokens: int) -> dict:
+    return {
+        "message": {"role": "assistant", "content": "", "reasoning_content": reasoning},
+        "finish_reason": finish,
+        "usage": {"prompt_tokens": 90, "completion_tokens": completion_tokens},
+    }
+
+
+def _truncated_inline_reply(reasoning: str, *, finish: str, completion_tokens: int) -> dict:
+    # reasoning_format="none": the whole unclosed Gemma channel lands in content.
+    return {
+        "message": {"role": "assistant", "content": f"<|channel>thought\n{reasoning}"},
+        "finish_reason": finish,
+        "usage": {"prompt_tokens": 90, "completion_tokens": completion_tokens},
+    }
+
+
+_CLR_TRUNCATIONS = {
+    "length": _truncated_reply(_TRUNCATED_COT, finish="length", completion_tokens=1024),
+    "stop_at_budget": _truncated_reply(_TRUNCATED_COT, finish="stop", completion_tokens=1024),
+    "inline_length": _truncated_inline_reply(
+        _TRUNCATED_COT, finish="length", completion_tokens=1024
+    ),
+}
+
+
+@pytest.mark.parametrize("shape", sorted(_CLR_TRUNCATIONS))
+def test_clr_truncated_reasoning_fails_open(fake_lemonade, shape):
+    base, calls = fake_lemonade
+    _FakeLemonade.override = _CLR_TRUNCATIONS[shape]
+    from cohezion.compound.clr_quality_gate import CLRQualityGate
+
+    gate = CLRQualityGate(
+        router_url=f"{base}/v1/chat/completions", gaia_router_url=f"{base}/api/v1"
+    )
+    assert gate._gaia_client is not None, "GAIA path not exercised"
+    content = "Pattern: retry with exponential backoff fixed the flaky upload."
+    assert gate.score(content) is None, "a truncated CoT was read as a verdict"
+    assert gate.passes(content) is True  # fail-open, as before
+    assert _tier0_chats(calls)
+
+
+def test_clr_httpx_path_truncated_reasoning_fails_open(fake_lemonade, monkeypatch):
+    base, _calls = fake_lemonade
+    _FakeLemonade.override = _CLR_TRUNCATIONS["length"]
+    from cohezion.compound import clr_quality_gate as clr
+
+    clr.CLRQualityGate(router_url=f"{base}/v1/chat/completions", gaia_router_url=f"{base}/api/v1")
+    monkeypatch.setattr(clr.CLRQualityGate, "_init_gaia_client", lambda self: None)
+    gate = clr.CLRQualityGate(
+        router_url=f"{base}/v1/chat/completions", gaia_router_url=f"{base}/api/v1"
+    )
+    assert gate.score("Pattern: retry with exponential backoff fixed the flaky upload.") is None
+
+
+_FLUME_TRUNCATIONS = {
+    "length": _truncated_reply(_TRUNCATED_FLUME_COT, finish="length", completion_tokens=1024),
+    "stop_at_budget": _truncated_reply(
+        _TRUNCATED_FLUME_COT, finish="stop", completion_tokens=1024
+    ),
+    "inline_length": _truncated_inline_reply(
+        _TRUNCATED_FLUME_COT, finish="length", completion_tokens=1024
+    ),
+    "inline_stop_at_budget": _truncated_inline_reply(
+        _TRUNCATED_FLUME_COT, finish="stop", completion_tokens=1024
+    ),
+}
+
+
+@pytest.mark.parametrize("shape", sorted(_FLUME_TRUNCATIONS))
+def test_flume_truncated_reasoning_keeps_baseline(fake_lemonade, shape):
+    _base, calls = fake_lemonade
+    _FakeLemonade.override = _FLUME_TRUNCATIONS[shape]
+    import numpy as np
+
+    from cohezion.compound.lemonade_world_model import FlumeWorldModel
+
+    wm = FlumeWorldModel()
+    wm.set_task("sort a short list of integers")
+    nxt = wm.predict_next_state(np.zeros(12, dtype=np.float32), None)
+    # Not (2*0.7 + 0.97)/3: the echoed few-shot anchor in an unfinished CoT is not an estimate.
+    assert float(np.mean(nxt)) == pytest.approx(wm._BASELINE, abs=1e-6)
+    assert _tier0_chats(calls)
+
+
+def test_flume_closed_inline_channel_answer_is_read(fake_lemonade):
+    _base, _calls = fake_lemonade
+    _FakeLemonade.override = {
+        "message": {
+            "role": "assistant",
+            "content": "<|channel>thought\nLike the 0.97 anchor, maybe lower.<channel|>0.9",
+        },
+        "finish_reason": "stop",
+        "usage": {"prompt_tokens": 90, "completion_tokens": 40},
+    }
+    import numpy as np
+
+    from cohezion.compound.lemonade_world_model import FlumeWorldModel
+
+    wm = FlumeWorldModel()
+    wm.set_task("sort a short list of integers")
+    nxt = wm.predict_next_state(np.zeros(12, dtype=np.float32), None)
+    assert float(np.mean(nxt)) == pytest.approx((2.0 * wm._BASELINE + 0.9) / 3.0, abs=1e-6)
 
 
 def test_tri_silicon_tier0_phase_reads_reasoning_content(fake_lemonade_raw, monkeypatch):

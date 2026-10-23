@@ -108,6 +108,72 @@ def _answer_only(content: str, reasoning: str) -> str:
     return out.strip() or text
 
 
+def _is_truncated(finish_reason: Any, completion_tokens: Any, max_tokens: int | None) -> bool:
+    """True when the reply hit its budget. lemonade/FLM can report ``finish_reason="stop"`` while
+    truncating, so ``completion_tokens >= max_tokens`` counts as truncation too."""
+    if finish_reason == "length":
+        return True
+    try:
+        return bool(max_tokens) and int(completion_tokens or 0) >= int(max_tokens or 0)
+    except (TypeError, ValueError):
+        return False
+
+
+def _strip_closed_reasoning(text: str) -> str | None:
+    """Text outside CLOSED reasoning blocks; None when a reasoning block is still open."""
+    lower = text.lower()
+    if lower.rfind("<think>") > lower.rfind("</think>"):
+        return None  # an unclosed <think>: no way to tell reasoning from answer
+    if text.rfind(_CHANNEL_OPEN) > text.rfind(_CHANNEL_CLOSE):
+        return None  # an unclosed Gemma channel
+    out = _THINK_RE.sub("", text)
+    close_at = out.rfind(_CHANNEL_CLOSE)
+    if close_at != -1 and 0 <= out.find(_CHANNEL_OPEN) < close_at:
+        out = out[close_at + len(_CHANNEL_CLOSE) :]
+    return out.strip() or None
+
+
+def final_answer(
+    message: dict[str, Any],
+    *,
+    finish_reason: Any = None,
+    completion_tokens: Any = None,
+    max_tokens: int | None = None,
+) -> str | None:
+    """The model's FINISHED answer, or None. Strict sibling of :func:`_answer_only` for gates.
+
+    Unlike ``_answer_only`` (which never returns empty and falls back to reasoning), this
+    returns None whenever the reply carries no finished answer, so a gate can fail open
+    instead of parsing an unfinished chain of thought (a tentative "Yes, it mentions X." just
+    before "But wait..." is not a verdict):
+
+      * the reply was truncated (``finish_reason == "length"`` or ``completion_tokens >=
+        max_tokens``);
+      * ``content`` holds an unclosed ``<think>`` / Gemma channel (reasoning_format="none");
+      * ``content`` is empty and ``reasoning_content`` has no CLOSED reasoning block followed
+        by an answer -- bare reasoning is the model's thought, never its answer.
+    """
+    if _is_truncated(finish_reason, completion_tokens, max_tokens):
+        return None
+    content = (message.get("content") or "").strip()
+    if content:
+        return _strip_closed_reasoning(content)
+    reasoning = message.get("reasoning_content") or ""
+    has_closer = "</think>" in reasoning.lower() or _CHANNEL_CLOSE in reasoning
+    return _strip_closed_reasoning(reasoning) if has_closer else None
+
+
+def reply_final_answer(resp: dict[str, Any], max_tokens: int | None) -> str | None:
+    """:func:`final_answer` for a whole OpenAI-shaped chat-completions response."""
+    choice = resp["choices"][0]
+    return final_answer(
+        choice.get("message") or {},
+        finish_reason=choice.get("finish_reason"),
+        completion_tokens=(resp.get("usage") or {}).get("completion_tokens"),
+        max_tokens=max_tokens,
+    )
+
+
 @dataclass
 class GaiaAgentTier:
     """Wrap a ``gaia.Agent`` / ``gaia.MCPAgent`` instance as a tier target.
@@ -318,8 +384,15 @@ class _GaiaLLMClientShim:
         # sees 0 rather than an AttributeError -- 0 is also the honest value for "nothing run".
         self.last_gen_tokens: int = 0
         self.last_dropped_reasoning_chars: int = 0
+        # Strict view of the most recent reply for gates (see final_answer): None when the
+        # reply was truncated or carried no finished answer.
+        self.last_finish_reason: str | None = None
+        self.last_final_answer: str | None = None
 
     def prompt(self, text: str) -> str:
+        # Reset first so a failed call never leaves the previous reply's answer behind.
+        self.last_finish_reason = None
+        self.last_final_answer = None
         resp = self._client.chat_completions(  # type: ignore[attr-defined]
             model=self._model,
             messages=[{"role": "user", "content": text}],
@@ -352,6 +425,8 @@ class _GaiaLLMClientShim:
         # one -- which is exactly how a routing table came to rank gpt-oss-20b cheapest on
         # 2026-08-16 when token counts put it second (see docs/benchmarks/lane_selection.md).
         self.last_gen_tokens = int((resp.get("usage") or {}).get("completion_tokens", 0) or 0)
+        self.last_finish_reason = resp["choices"][0].get("finish_reason")
+        self.last_final_answer = reply_final_answer(resp, self._max_tokens)
         answer = _answer_only(content, reasoning)
         # Count BOTH ways reasoning gets discarded, or the number understates itself:
         #   channel — `reasoning_content` dropped wholesale when `content` carried the answer

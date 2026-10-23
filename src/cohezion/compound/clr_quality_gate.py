@@ -66,12 +66,16 @@ def _parse_verdict(text: str) -> int | None:
 
 
 def _message_answer(result: dict[str, Any]) -> str | None:
-    """The answer from an OpenAI-shaped reply, falling back to reasoning_content."""
-    from cohezion.inference.gaia_adapter import _answer_only
+    """The FINISHED answer from an OpenAI-shaped reply, or None (gate fails open).
 
-    msg = result["choices"][0]["message"]
-    answer = _answer_only(msg.get("content") or "", msg.get("reasoning_content") or "")
-    return answer.strip() or None
+    Only ``content`` or a CLOSED final answer counts. A truncated reply (finish_reason
+    "length", or completion_tokens at the budget -- lemonade can say "stop" while truncating)
+    or bare reasoning_content is an unfinished chain of thought: its tentative "Yes, it
+    mentions X." before "But wait..." is not a verdict.
+    """
+    from cohezion.inference.gaia_adapter import reply_final_answer
+
+    return reply_final_answer(result, _VERDICT_MAX_TOKENS)
 
 
 class CLRQualityGate:
