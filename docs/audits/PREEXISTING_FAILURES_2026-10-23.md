@@ -322,3 +322,18 @@ Version governance passes; no semver bump is required for `fix:`/`test:` commits
 - Ports are hard-coded (`lemonade_available(npu_port=13305)`), so tests cannot be redirected
   away from the live fleet by environment. The fleet guard in this audit is a test-run harness,
   not a repo fix.
+
+## The one remaining `tests/unit` failure (CI-gating step)
+
+`tests/unit/test_universes_environment_and_harness.py::test_ultra_realistic_agent_env_lifecycle_and_actions`
+(the sibling branch's "1 unit failure"). `UltraRealisticAgentEnv._exec_in_sandbox` runs commands
+under bwrap whenever bwrap is on PATH. Inside the agent sandbox, nested bwrap fails with
+`Creating new namespace failed ... (ENOSPC)`, so `cat greeting.txt` returns `''`. With bwrap
+hidden from `shutil.which`, all 7 tests pass. So the local failure is a sandbox artifact. **On CI it
+is UNKNOWN:** `ubuntu-latest` (24.04) restricts unprivileged user namespaces via AppArmor, so bwrap
+may fail there the same way. Latent src defect: a bwrap *setup* failure surfaces as empty stdout
+rather than an error. Falling back to unsandboxed execution would weaken isolation of
+agent-issued commands, so that is a security decision and is left unchanged.
+
+`tests/inference` (the other gating step): 0 failures in run 3.
+Gate battery on final HEAD `7a74a3949`: 29/30 pass; the 1 failure is the systemd host audit (G3).
