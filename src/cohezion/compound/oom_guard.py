@@ -730,6 +730,17 @@ def safe_model_for_task(task_type: str, available_gb: float | None = None) -> st
 # ──────────────────────────────────────────────────────────────────────────────
 
 
+def _load_body(model_name: str, effective_ctx: int) -> dict:
+    """The /load body. NEVER ctx_size or save_options for the tier-0 id: with save_options it
+    would OVERWRITE lemonade's saved recipe, the single ctx/backend authority for tier 0
+    (config.defaults). Its recipe is already bounded (ctx 4096), so N3 still holds."""
+    from cohezion.config.defaults import tier0_model
+
+    if model_name == tier0_model():
+        return {"model_name": model_name}
+    return {"model_name": model_name, "ctx_size": effective_ctx, "save_options": True}
+
+
 def safe_load(
     model_name: str,
     ctx_size: int = SAFE_CTX_LIMIT,
@@ -757,7 +768,7 @@ def safe_load(
     try:
         resp = httpx.post(
             f"{LEMONADE_BASE}/api/v1/load",
-            json={"model_name": model_name, "ctx_size": effective_ctx, "save_options": True},
+            json=_load_body(model_name, effective_ctx),
             timeout=timeout_s,
         )
         if resp.status_code == 200:
@@ -815,7 +826,7 @@ def prefetch_for_next_task(
     try:
         httpx.post(
             f"{LEMONADE_BASE}/api/v1/load",
-            json={"model_name": model, "ctx_size": effective_ctx, "save_options": True},
+            json=_load_body(model, effective_ctx),
             timeout=5.0,  # fire-and-forget; the server handles async loading
         )
         _prefetch_in_flight[model] = now

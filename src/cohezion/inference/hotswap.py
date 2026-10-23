@@ -228,6 +228,17 @@ def unload(model_id: str, timeout: float = 30.0) -> bool:
     return True
 
 
+def _load_payload(model_id: str, ctx_size: int) -> dict:
+    """The /load body. The tier-0 id gets NO ctx_size: lemonade's saved per-model recipe is
+    its only ctx/backend authority (config.defaults), and a bounded ctx here would be a
+    second one. Its recipe is already bounded (ctx 4096), so N3 still holds."""
+    from cohezion.config.defaults import tier0_model
+
+    if model_id == tier0_model():
+        return {"model_name": model_id}
+    return {"model_name": model_id, "ctx_size": ctx_size, "save_options": False}
+
+
 def ensure_resident(
     model_id: str,
     *,
@@ -333,11 +344,7 @@ def ensure_resident(
             evicted=evicted,
         )
 
-    status, body = _post(
-        "/api/v1/load",
-        {"model_name": model_id, "ctx_size": ctx_size, "save_options": False},
-        load_timeout,
-    )
+    status, body = _post("/api/v1/load", _load_payload(model_id, ctx_size), load_timeout)
     if status != 200:
         return SwapResult(False, model_id, f"load failed: HTTP {status} {body}", evicted=evicted)
 

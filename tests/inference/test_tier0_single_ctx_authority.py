@@ -457,9 +457,7 @@ def test_clr_httpx_path_truncated_reasoning_fails_open(fake_lemonade, monkeypatc
 
 _FLUME_TRUNCATIONS = {
     "length": _truncated_reply(_TRUNCATED_FLUME_COT, finish="length", completion_tokens=1024),
-    "stop_at_budget": _truncated_reply(
-        _TRUNCATED_FLUME_COT, finish="stop", completion_tokens=1024
-    ),
+    "stop_at_budget": _truncated_reply(_TRUNCATED_FLUME_COT, finish="stop", completion_tokens=1024),
     "inline_length": _truncated_inline_reply(
         _TRUNCATED_FLUME_COT, finish="length", completion_tokens=1024
     ),
@@ -516,3 +514,7 @@ def test_tri_silicon_tier0_phase_reads_reasoning_content(fake_lemonade_raw, monk
     # Not either hard-coded fallback sentence: the model's own answer.
     assert "ZEBRA-7731" in guidance
     _assert_thinking_safe_budget(calls)
+    assert not _load_calls(calls), f"tri-silicon issued load/unload: {_load_calls(calls)}"
+    for _m, _p, body in _tier0_chats(calls):
+        bad = sorted(k for k in ("ctx_size", "llamacpp_backend", "llamacpp_args") if k in body)
+        assert not bad, f"tri-silicon tier-0 chat pins {bad}"

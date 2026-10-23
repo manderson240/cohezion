@@ -172,3 +172,58 @@ def test_argv_check_is_discriminating(flag):
 def test_body_check_is_discriminating():
     with pytest.raises(AssertionError):
         _assert_no_override_body({"model_name": TIER0, "ctx_size": 16384})
+
+
+# ── generic loaders that can be handed the tier-0 id at runtime ──────────────
+
+
+def _tier0_load_bodies(calls):
+    return [
+        c[2]
+        for c in calls
+        if c[0] == "POST" and c[1].rstrip("/").endswith("/load") and c[2].get("model_name") == TIER0
+    ]
+
+
+def test_hotswap_ensure_resident_loads_tier0_from_saved_recipe(fake_lemonade_raw, monkeypatch):
+    """ResidencyService routes any `model_needed` id to hotswap.ensure_resident, which bounds
+    every load's ctx (N3) -- for the tier-0 id that bound would be a second ctx authority."""
+    base, calls = fake_lemonade_raw
+    from cohezion.inference import hotswap
+
+    monkeypatch.setattr(hotswap, "LEMONADE_BASE", base)
+    monkeypatch.setattr(hotswap, "resident_models", lambda: [])
+    monkeypatch.setattr(hotswap, "_catalog_sizes", lambda: {TIER0: 4.09})
+    monkeypatch.setattr(hotswap, "free_gb", lambda: 200.0)
+    hotswap.ensure_resident(TIER0)
+    bodies = _tier0_load_bodies(calls)
+    assert bodies, f"ensure_resident sent no load -- test is vacuous: {calls}"
+    for body in bodies:
+        _assert_no_override_body(body)
+        assert not body.get("save_options"), "must never re-save tier-0 options client-side"
+
+
+@pytest.mark.parametrize("loader", ["safe_load", "prefetch_for_next_task"])
+def test_compound_oom_guard_loaders_never_rewrite_tier0_recipe(
+    fake_lemonade_raw, monkeypatch, loader
+):
+    """safe_load / prefetch POST ctx_size with save_options=True: for the tier-0 id that would
+    OVERWRITE lemonade's saved recipe -- the single authority itself."""
+    base, calls = fake_lemonade_raw
+    from cohezion.compound import oom_guard
+
+    monkeypatch.setattr(oom_guard, "LEMONADE_BASE", base)
+    monkeypatch.setattr(
+        oom_guard, "check_oom_risk", lambda *_a, **_k: type("R", (), {"safe": True})()
+    )
+    monkeypatch.setattr(oom_guard, "safe_model_for_task", lambda *_a, **_k: TIER0)
+    oom_guard._prefetch_in_flight.clear()
+    if loader == "safe_load":
+        oom_guard.safe_load(TIER0)
+    else:
+        oom_guard.prefetch_for_next_task("classify")
+    bodies = _tier0_load_bodies(calls)
+    assert bodies, f"{loader} sent no load -- test is vacuous: {calls}"
+    for body in bodies:
+        _assert_no_override_body(body)
+        assert not body.get("save_options"), "must never re-save tier-0 options client-side"
