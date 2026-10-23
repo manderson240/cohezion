@@ -15,6 +15,18 @@ from pathlib import Path
 import pytest
 
 
+_NOTEBOOK = (
+    Path(__file__).resolve().parents[2]
+    / "notebooks"
+    / "marimo"
+    / "new_science_multimodal_manifold.py"
+)
+pytestmark = pytest.mark.skipif(
+    not _NOTEBOOK.exists(),
+    reason="notebooks/marimo/new_science_multimodal_manifold.py is not in the repository",
+)
+
+
 try:
     from playwright.async_api import async_playwright
 

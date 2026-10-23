@@ -8,10 +8,10 @@ and precipitates. Integrates with AutoHarness and the Immune System.
 from __future__ import annotations
 
 import logging
-import os
 import re
 from pathlib import Path
 from typing import NamedTuple
+
 
 logger = logging.getLogger("secret_scrubber")
 

@@ -110,6 +110,16 @@ jobs:
       - name: Dormancy scan (gating)
         run: uv run python scripts/ci/dormancy_scan.py
 
+      # Tracked-file hygiene (2026-10-22): .gitignore and .gitattributes are rules the
+      # repo declares; nothing enforced them (pre-commit is not installed in CI). Ignore
+      # debt is a ratchet against scripts/ci/ignore_debt_baseline.txt; an LFS-routed file
+      # stored as raw content fails outright. --self-test FIRST, as for the other scanners.
+      - name: Repo hygiene ratchet self-test
+        run: uv run python scripts/ci/repo_hygiene_ratchet.py --self-test
+
+      - name: Repo hygiene ratchet (gating)
+        run: uv run python scripts/ci/repo_hygiene_ratchet.py
+
       # Doc↔code drift (sibling to dormancy_scan): dormancy_scan checks that code
       # has consumers; this checks that CLAUDE.md/harness.md tell the truth about the
       # code — every referenced file-path and cohezion.* module must resolve. Fails on
@@ -254,12 +264,26 @@ jobs:
       - name: Run inference tests (gating)
         run: uv run pytest tests/inference/ -q --tb=short
 
+      # Test failures here stay non-blocking (exit 1), but a run that cannot execute does not:
+      # one ImportError at collection (exit 2) aborted this whole tier, so ~11k tests ran zero
+      # times while this step, then continue-on-error, reported green (found 2026-10-06).
+      # Exit 5 (nothing collected) is the same blindness. Exit 1 (failing tests) is gating too.
       - name: Run integration tests
-        run: >
-          uv run pytest tests/ --ignore=tests/unit/ --ignore=tests/inference/ -v
-          --tb=short
-          --junitxml=integration-report.xml
-        continue-on-error: true
+        run: |
+          set +e
+          uv run pytest tests/ --ignore=tests/unit/ --ignore=tests/inference/ -v \
+            --tb=short --junitxml=integration-report.xml
+          rc=$?
+          if [ "$rc" -ge 2 ]; then
+            echo "::error::integration tier did not run (pytest exit $rc: collection/usage error or nothing collected)"
+            exit "$rc"
+          fi
+          # Gating since 2026-10-22. Evidence: the full tier run in a network namespace with no
+          # local services (what this runner sees) passed 11,360 tests with 3 failures that read
+          # a developer machine's swap pressure or nested-namespace limits, neither present here.
+          # 216 failures hid behind the previous continue-on-error (audit F9). If this goes red,
+          # fix or skipif the named test on its condition; do not return the step to advisory.
+          exit "$rc"
 
       - name: Upload coverage
         if: matrix.python-version == '3.13'

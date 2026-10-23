@@ -9,11 +9,13 @@ Integrates with BlueQubit (https://app.bluequbit.io/):
 """
 
 from __future__ import annotations
-import os
+
 import logging
-from typing import Dict, Any, Optional, List
-from pathlib import Path
+import os
+from typing import Any, Dict, Optional
+
 from dotenv import load_dotenv
+
 
 load_dotenv()
 

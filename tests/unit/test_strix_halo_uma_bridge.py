@@ -1,7 +1,6 @@
 """Unit tests for Strix Halo Zero-Copy UMA Shared Memory Bridge."""
 
 import numpy as np
-import pytest
 
 from cohezion.inference.strix_halo_uma_bridge import (
     POINCARE_DIM,

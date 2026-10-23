@@ -21,7 +21,7 @@ You are an expert in Cohezion's Data Mesh implementation. You apply Dehghani's "
 - `src/cohezion/data_mesh/data_product.py` — `DataProduct` class with SLA fields
 - `get_cohezion_data_products()` — registry entry point used by 17+ MCP servers
 - MCP tier access control mapping (tier 1/2/3 gating)
-- Note: orphan `src/cohezion/datamesh/` (no underscore) is slated for deletion per ORPHAN_AUDIT_2026_04_23
+- Note: the former duplicate `src/cohezion/datamesh/` (no underscore) was folded into `data_mesh/` on 2026-10-22; it is now a deprecation shim (removal 1.29.0)
 
 ## TODO (to be filled in by a future session)
 1. Document `DataProduct` class signature and all SLA fields
@@ -33,7 +33,7 @@ You are an expert in Cohezion's Data Mesh implementation. You apply Dehghani's "
 7. Schema evolution: adding fields without breaking existing consumers
 
 ## REFERENCE
-CLAUDE.md: "DataProduct (typed SLA), MCP Registry (tier access control + call tracking). Canonical: `src/cohezion/data_mesh/`. NOTE: orphan `src/cohezion/datamesh/` (no underscore) is slated for deletion per ORPHAN_AUDIT_2026_04_23."
+CLAUDE.md: "DataProduct (typed SLA), MCP Registry (tier access control + call tracking). Canonical: `src/cohezion/data_mesh/`. NOTE: the former duplicate `src/cohezion/datamesh/` (no underscore) was folded into `data_mesh/` on 2026-10-22 and is a deprecation shim."
 Dehghani (2022) — Data Mesh: Delivering Data-Driven Value at Scale.
 
 

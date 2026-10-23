@@ -9,12 +9,10 @@ Exposes Model Context Protocol (MCP) tool endpoints for:
 
 from __future__ import annotations
 
-import json
 import logging
-import os
 import subprocess
-import time
 from typing import Any
+
 
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s [%(levelname)s] [KAGGLE_MCP] %(message)s"

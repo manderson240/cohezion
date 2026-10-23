@@ -36,6 +36,7 @@ from cohezion.inference.model_shootout import (
 from cohezion.inference.model_sprint_orchestrator import SprintResult
 from cohezion.inference.transports.lemonade import LemonadeTransport, TransportResponse
 
+
 RESIDENT_MODELS = [
     {"model_name": "Gemma-4-26B-A4B-it-GGUF", "last_use": 1, "is_busy": False, "loaded": True},
     {"model_name": "Gemma-4-E4B-it-GGUF", "last_use": 2, "is_busy": False, "loaded": True},

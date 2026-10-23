@@ -1,12 +1,11 @@
-import pytest
 import time
+
 from cohezion.physics.orch_or_runtime_service import (
+    HIHO_EQUILIBRIUM_TARGET,
+    CollapseResult,
     OrchORRuntimeService,
     SuperposedPolicyBranch,
-    CollapseResult,
-    HIHO_EQUILIBRIUM_TARGET,
 )
-from cohezion.agi.autoharness_policy import AutoHarnessPolicy
 
 
 def test_orch_or_single_branch_collapse():

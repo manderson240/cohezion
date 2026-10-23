@@ -6,9 +6,10 @@ directly into the 12D/2048D Poincaré Hyperbolic Manifold metric:
 """
 
 from __future__ import annotations
+
 import math
 from dataclasses import dataclass
-from typing import Dict, List, Tuple
+
 import numpy as np
 
 from cohezion.actioner.autoharness_middleware import standard_harness_lifecycle

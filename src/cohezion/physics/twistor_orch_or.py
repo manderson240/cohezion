@@ -11,13 +11,11 @@ Implements:
 
 from __future__ import annotations
 
-import cmath
 import logging
-import math
 from dataclasses import dataclass
-from typing import Any
 
 import numpy as np
+
 
 logger = logging.getLogger(__name__)
 

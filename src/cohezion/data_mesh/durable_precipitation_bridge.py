@@ -21,6 +21,7 @@ from typing import Any
 
 from pydantic import BaseModel, Field
 
+
 logger = logging.getLogger("durable_precipitation_bridge")
 
 # Default Configuration

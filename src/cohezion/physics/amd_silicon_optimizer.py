@@ -12,7 +12,9 @@ import logging
 import time
 from dataclasses import dataclass
 from typing import Any
+
 import numpy as np
+
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s | %(levelname)s | %(message)s")
 logger = logging.getLogger(__name__)

@@ -10,11 +10,12 @@ COHEZION: 12D agentic universe with FLUME VAE, compound engineering, multi-agent
 
 ### ⚡ Core Commands
 ```bash
-uv run pytest tests/ -q              # Full test suite (6,133 tests collected)
+uv run pytest tests/ -q              # Full test suite (13,900+ tests collected, measured 2026-10-22)
 uv run pytest tests/compound/ -v     # Run module tests
 uv run pytest tests/test_*.py::name  # Single test
-make validate                         # Compound loop validation (23 checks, ~18s)
+make validate                         # Compound loop validation (27 checks, ~10 s, measured 2026-10-22)
 make format && make lint && make all # Check → fix → verify
+make ci-equiv                         # All 3 CI tiers in a no-services netns = what CI sees (scripts/ci/ci_equivalent_netns.sh; normal shell, not the sandbox)
 ```
 
 ### ⚡ Security Standards (MANDATORY)
@@ -33,13 +34,16 @@ uv venv && source .venv/bin/activate && uv pip install -e .  # New project setup
 
 ### ⚡ Git LFS & Repo Health (L333-L337, Session 101)
 ```bash
-# Git LFS is active — .gitattributes tracks: *.so, *.whl, *.pt, *.pth, *.pkl, *.tar.gz, *.bundle, *.jsonl
-# LFS files are POINTERS in git (~130 bytes), actual content in .git/lfs/objects/
-# Bundle size: 182MB (was 14GB before LFS migration)
+# Git LFS is active — the authoritative pattern list is .gitattributes (binaries, archives,
+# *.jsonl, *.csv, *.mp3/*.mp4/*.wav, ...). LFS files are POINTERS in git (~130 bytes),
+# actual content in .git/lfs/objects/
 # Remote: git@github.com:manderson240/cohezion.git
 
 # MANDATORY: Never commit large binaries without LFS
-# Pre-commit hook `lfs-pointer-check` enforces this automatically
+# Enforced by scripts/ci/repo_hygiene_ratchet.py (CI validate job + automerge_guard.sh):
+# any LFS-routed tracked file stored as raw content fails the gate, and tracked files that
+# match .gitignore may only decrease (baseline: scripts/ci/ignore_debt_baseline.txt).
+# The pre-commit hook `lfs-pointer-check` runs only where pre-commit is installed.
 # If LFS breaks: git lfs install && git add --renormalize .
 
 # MANDATORY: Run monthly — entire/ shadow branches accumulate fast
@@ -233,6 +237,7 @@ See skills: `cohezion-debugging-scenarios` for test isolation, singleton resets,
 - **Report actual numbers**: 2,675/2,700 passing (98.1%) > 1,599 passing (inflated)
 - **Flag discrepancies**: If independent test shows different count, request re-verification immediately
 - **Verify claims**: "Complete" = files exist AND tests pass, not projected
+- **Green means CI-green**: a tier is green when `make ci-equiv` says so in the no-services namespace, not when it passes beside a live fleet. Rule: `.claude/rules/green-verification.md` (failure-classification table: alone / netns / full tier).
 
 ### ⚡ Surgical Commits Against High-Churn Trees (Learning 363)
 When the working tree has unrelated churn (BMAD upgrades, pre-existing untracked, other sprints) and you need a clean commit:

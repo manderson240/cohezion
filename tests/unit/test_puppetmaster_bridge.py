@@ -1,6 +1,7 @@
+from unittest.mock import MagicMock, patch
+
 import pytest
-from unittest.mock import patch, MagicMock
-from pathlib import Path
+
 from cohezion.integrations.puppetmaster_bridge import PuppetmasterBridge, PuppetmasterReceipt
 from cohezion.reliability.oom_guard import MemoryState
 

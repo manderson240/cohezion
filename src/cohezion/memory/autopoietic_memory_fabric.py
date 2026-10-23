@@ -20,22 +20,17 @@ import math
 import time
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Sequence
+from typing import Any
 
-import numpy as np
-
-from cohezion.agi.autoharness_policy import ActionPolicyResult, AutoHarnessPolicy
+from cohezion.agi.autoharness_policy import AutoHarnessPolicy
 from cohezion.contracts import PoincarePoint
 from cohezion.data_mesh.durable_precipitation_bridge import (
+    VAULT_MOC_DIR,
     DurablePrecipitationBridge,
     DurableWitnessMark,
-    SURREAL_AUTH,
-    SURREAL_DB,
-    SURREAL_NS,
-    SURREAL_URL,
-    VAULT_MOC_DIR,
 )
 from cohezion.physics.poincare_manifold import PoincareManifoldND
+
 
 logger = logging.getLogger("autopoietic_memory_fabric")
 

@@ -1,11 +1,9 @@
 import pytest
-from pathlib import Path
+
+from cohezion.agi.autoharness_policy import AutoHarnessPolicy
 from cohezion.proactive.metr_negentropy_controller import (
     METRNegentropyController,
-    ControllerDecision,
-    DAILY_QUOTA_LIMIT_USD,
 )
-from cohezion.agi.autoharness_policy import AutoHarnessPolicy
 
 
 def test_daily_quota_enforcement():

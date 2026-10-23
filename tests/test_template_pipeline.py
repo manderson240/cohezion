@@ -304,7 +304,9 @@ class TestDetectStaleAgents:
 
 
 class TestConfigTemplateVersionHeader:
-    def test_version_header_in_generated_agent(self, tmp_path: Path) -> None:
+    def test_version_header_in_generated_agent(
+        self, tmp_path: Path, restore_registration_outputs
+    ) -> None:
         """After modification, generated agents include a version comment."""
         from cohezion.core.config_templates import ConfigTemplateManager
         from cohezion.core.template_engine import TemplateEngine

@@ -26,7 +26,11 @@ class TestSR1SafetyInvariants:
 
     def test_sr1_1_all_heavy_models_have_bounded_ctx(self):
         """N3 invariant: no heavy model with ctx_size=0 on the omni router."""
+        from cohezion.inference.oom_guard import ROUTER_UNREACHABLE
+
         ok, violations = verify_all_bounded()
+        if violations == [ROUTER_UNREACHABLE]:
+            pytest.skip("router unreachable: ctx bounds UNKNOWN (not a pass)")
         assert ok, f"ctx_size hazards: {violations}"
 
     def test_sr1_2_max_loaded_models_is_one(self):
@@ -56,5 +60,11 @@ class TestSR1SafetyInvariants:
     def test_sr1_4_can_load_model_accepts_live_system(self):
         """On the live Strix Halo with >16GB free, a 5GB model is safe to load."""
         guard = ResourceGuard()
+        available_mb = guard.get_vitals().ram_available_mb
+        needed_mb = 16384 + 5000 + 2048  # N3 floor + model + the guard's margin
+        if available_mb < needed_mb:
+            pytest.skip(
+                f"live probe needs {needed_mb}MB free to be meaningful, host has {available_mb}MB"
+            )
         ok, reason = guard.can_load_model(estimated_mb=5000)
         assert ok, f"Live system rejected 5GB load: {reason}"

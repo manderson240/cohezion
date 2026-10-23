@@ -19,21 +19,20 @@ communicating over the async `EventBus` and `CrossSessionEventBridge`.
 from __future__ import annotations
 
 import asyncio
+import logging
+import time
 from collections import deque
 from dataclasses import dataclass, field
 from enum import Enum
-import logging
-import time
 from typing import Any
 
-from cohezion.core.event_bus import Event, EventBus
-from cohezion.core.cross_session_event_bridge import CrossSessionEventBridge
 from cohezion.compound.goals_and_loops_orchestrator import (
-    Goal,
     GoalsAndLoopsOrchestrator,
-    GoalStatus,
 )
-from cohezion.graph.graph_engine import KnowledgeGraphMesh, EdgeType
+from cohezion.core.cross_session_event_bridge import CrossSessionEventBridge
+from cohezion.core.event_bus import Event, EventBus
+from cohezion.graph.graph_engine import EdgeType, KnowledgeGraphMesh
+
 
 logger = logging.getLogger(__name__)
 

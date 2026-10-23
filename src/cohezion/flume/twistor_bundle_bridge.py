@@ -10,12 +10,11 @@ Bridges:
 from __future__ import annotations
 
 import hashlib
-import json
 import logging
 import math
 import time
 from dataclasses import dataclass, field
-from typing import Any, Sequence
+from typing import Any
 
 import numpy as np
 
@@ -31,6 +30,7 @@ from cohezion.physics.twistor_orch_or import (
     PenroseTwistorEngine,
     TwistorState,
 )
+
 
 logger = logging.getLogger("twistor_bundle_bridge")
 
@@ -184,7 +184,7 @@ class TwistorBundleBridge:
                 "pairwise_distances": distances,
             },
         )
-        self.persistence.persist(witness_mark)
+        precipitated = self.persistence.persist(witness_mark)
 
         return {
             "status": "PHASE_1_DISSOLUTION_COMPLETE",
@@ -192,5 +192,5 @@ class TwistorBundleBridge:
             "modules_count": len(dissolved_states),
             "lightcone_conformity_pct": conformity_pct,
             "mean_hyperbolic_distance": round(float(np.mean(distances)), 4) if distances else 0.0,
-            "vault_moc": f"/home/mike-anderson/vaults/cohezion-vault/00-MOCs/compound_{witness_mark.mark_id}.md",
+            "vault_moc": precipitated["vault_path"],
         }

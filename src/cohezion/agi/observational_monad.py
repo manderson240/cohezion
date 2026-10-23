@@ -14,7 +14,8 @@ from __future__ import annotations
 import time
 from collections.abc import Callable
 from dataclasses import dataclass, field
-from typing import Any, Callable, Generic, Sequence, TypeVar
+from typing import Any, Callable, Generic, TypeVar
+
 
 T = TypeVar("T")
 U = TypeVar("U")

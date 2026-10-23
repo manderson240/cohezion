@@ -383,6 +383,9 @@ class TestContextEngineeringInfrastructure(unittest.TestCase):
         mock_client.vault_find_relevant_context.return_value = [
             {"path": "test.md", "category": "decision", "match_count": 2}
         ]
+        # production calls the sync vault_search wrapper, not the async
+        # vault_find_relevant_context the mock above models
+        mock_client.vault_search.return_value = mock_client.vault_find_relevant_context.return_value
         mock_create_client.return_value = mock_client
 
         cei = ContextEngineeringInfrastructure(
@@ -601,6 +604,9 @@ class TestMCPIntegrationWithCompoundSystem(unittest.TestCase):
                 "match_count": 2,
             },
         ]
+        # production calls the sync vault_search wrapper, not the async
+        # vault_find_relevant_context the mock above models
+        mock_client.vault_search.return_value = mock_client.vault_find_relevant_context.return_value
         mock_create_client.return_value = mock_client
 
         cei = ContextEngineeringInfrastructure(

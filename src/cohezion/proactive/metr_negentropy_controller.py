@@ -19,17 +19,15 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Sequence
 
-from cohezion.agi.autoharness_policy import ActionPolicyResult, AutoHarnessPolicy
-from cohezion.contracts import PoincarePoint
+from cohezion.agi.autoharness_policy import AutoHarnessPolicy
 from cohezion.data_mesh.durable_precipitation_bridge import (
     DurablePrecipitationBridge,
-    DurableWitnessMark,
 )
-from cohezion.memory.autopoietic_memory_fabric import AutopoieticMemoryFabric
 from cohezion.physics.my_big_toe_entropy_engine import (
     EntropyState,
     MyBigTOEEntropyEngine,
 )
+
 
 logger = logging.getLogger("metr_negentropy_controller")
 

@@ -6,16 +6,20 @@ $$H = \sum_{i,j} J_{ij} \sigma_i^z \sigma_j^z + \sum_i h_i \sigma_i^z$$
 """
 
 from __future__ import annotations
+
+import logging
 import os
 import time
-import logging
-from typing import List, Dict, Any, Tuple, Optional
+from typing import Any, Dict, List
+
 from dotenv import load_dotenv
+
 
 load_dotenv("/home/mike-anderson/dev/cohezion/.env")
 
 import bluequbit
 import qiskit
+
 
 logger = logging.getLogger(__name__)
 

@@ -7,8 +7,10 @@ Models 2D grids as bioelectric cellular lattices with:
 """
 
 from __future__ import annotations
+
+from typing import List
+
 import numpy as np
-from typing import List, Tuple, Optional
 
 
 class BioelectricNCAMorphogenesis:

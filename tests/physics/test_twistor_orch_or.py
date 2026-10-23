@@ -1,9 +1,9 @@
 import pytest
+
 from cohezion.physics.twistor_orch_or import (
-    PenroseTwistorEngine,
     OrchOREngine,
+    PenroseTwistorEngine,
     TwistorState,
-    OrchORReductionEvent,
 )
 
 

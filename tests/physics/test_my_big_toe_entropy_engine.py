@@ -1,7 +1,5 @@
-import pytest
 from cohezion.physics.my_big_toe_entropy_engine import (
     MyBigTOEEntropyEngine,
-    EntropyState,
     NegentropyTransitionResult,
 )
 

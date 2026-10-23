@@ -521,23 +521,23 @@ cohezion/data_mesh/inference_products.py:unused-ignore:Unused "type: ignore" com
 cohezion/data_mesh/kanban_bridge.py:no-any-return:Returning Any from function declared to return "bool"
 cohezion/data_mesh/land_runner.py:no-redef:Name "_local_review" already defined on line N
 cohezion/data_mesh/lemonade_multimodal.py:no-any-return:Returning Any from function declared to return "str"
-cohezion/datamesh/bidirectional_linkage.py:attr-defined:"object" has no attribute "get"
-cohezion/datamesh/bidirectional_linkage.py:index:Unsupported target for indexed assignment ("object")
-cohezion/datamesh/bidirectional_linkage.py:no-any-return:Returning Any from function declared to return "list[dict[Any, Any]]"
-cohezion/datamesh/bidirectional_linkage.py:no-any-return:Returning Any from function declared to return "str"
-cohezion/datamesh/bidirectional_linkage.py:operator:Unsupported operand types for + ("object" and "int")
-cohezion/datamesh/bidirectional_linkage.py:operator:Unsupported operand types for / ("object" and "int")
-cohezion/datamesh/bidirectional_linkage.py:var-annotated:Need type annotation for "results"
-cohezion/datamesh/federation.py:assignment:Incompatible types in assignment (expression has type "DomainEndpoint | None", variable has type "DomainEndpoint")
-cohezion/datamesh/kanban_bridge.py:no-any-return:Returning Any from function declared to return "bool"
-cohezion/datamesh/knowledge_graph_layer.py:arg-type:Argument "source_system" to "KnowledgeEdge" has incompatible type "float | str"; expected "str"
-cohezion/datamesh/knowledge_graph_layer.py:dict-item:Dict entry 2 has incompatible type "str": "str"; expected "str": "float"
-cohezion/datamesh/knowledge_graph_layer.py:union-attr:Item "None" of "Any | None" has no attribute "create"
-cohezion/datamesh/knowledge_graph_layer.py:union-attr:Item "None" of "Any | None" has no attribute "query"
-cohezion/datamesh/query.py:arg-type:Argument 1 to "extend" of "list" has incompatible type "list[UnifiedRecord] | BaseException"; expected "Iterable[UnifiedRecord]"
-cohezion/datamesh/query.py:attr-defined:"type[RecordType]" has no attribute "RELATED"
-cohezion/datamesh/query.py:index:Invalid index type "UUID" for "dict[str, DataLineage]"; expected type "str"
-cohezion/datamesh/schema.py:call-arg:Unexpected keyword argument "coherence" for "Physics12D"
+cohezion/data_mesh/bidirectional_linkage.py:attr-defined:"object" has no attribute "get"
+cohezion/data_mesh/bidirectional_linkage.py:index:Unsupported target for indexed assignment ("object")
+cohezion/data_mesh/bidirectional_linkage.py:no-any-return:Returning Any from function declared to return "list[dict[Any, Any]]"
+cohezion/data_mesh/bidirectional_linkage.py:no-any-return:Returning Any from function declared to return "str"
+cohezion/data_mesh/bidirectional_linkage.py:operator:Unsupported operand types for + ("object" and "int")
+cohezion/data_mesh/bidirectional_linkage.py:operator:Unsupported operand types for / ("object" and "int")
+cohezion/data_mesh/bidirectional_linkage.py:var-annotated:Need type annotation for "results"
+cohezion/data_mesh/federation.py:assignment:Incompatible types in assignment (expression has type "DomainEndpoint | None", variable has type "DomainEndpoint")
+cohezion/data_mesh/kanban_bridge.py:no-any-return:Returning Any from function declared to return "bool"
+cohezion/data_mesh/knowledge_graph_layer.py:arg-type:Argument "source_system" to "KnowledgeEdge" has incompatible type "float | str"; expected "str"
+cohezion/data_mesh/knowledge_graph_layer.py:dict-item:Dict entry 2 has incompatible type "str": "str"; expected "str": "float"
+cohezion/data_mesh/knowledge_graph_layer.py:union-attr:Item "None" of "Any | None" has no attribute "create"
+cohezion/data_mesh/knowledge_graph_layer.py:union-attr:Item "None" of "Any | None" has no attribute "query"
+cohezion/data_mesh/query.py:arg-type:Argument 1 to "extend" of "list" has incompatible type "list[UnifiedRecord] | BaseException"; expected "Iterable[UnifiedRecord]"
+cohezion/data_mesh/query.py:attr-defined:"type[RecordType]" has no attribute "RELATED"
+cohezion/data_mesh/query.py:index:Invalid index type "UUID" for "dict[str, DataLineage]"; expected type "str"
+cohezion/data_mesh/schema.py:call-arg:Unexpected keyword argument "coherence" for "Physics12D"
 cohezion/dogfooding/daily_cycle.py:index:Unsupported target for indexed assignment ("Collection[str]")
 cohezion/dogfooding/production_hardening.py:assignment:Incompatible types in assignment (expression has type "str", target has type "dict[str, Any]")
 cohezion/dogfooding/production_hardening.py:index:Invalid index type "slice[None, int, None]" for "dict[str, Any]"; expected type "str"

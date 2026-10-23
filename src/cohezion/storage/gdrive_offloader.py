@@ -9,7 +9,6 @@ from __future__ import annotations
 
 import asyncio
 import logging
-import os
 import shutil
 import tarfile
 import tempfile
@@ -18,6 +17,7 @@ from pathlib import Path
 from typing import Literal
 
 from pydantic import BaseModel, Field
+
 
 logger = logging.getLogger("gdrive_offloader")
 

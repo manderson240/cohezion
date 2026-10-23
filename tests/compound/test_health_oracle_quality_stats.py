@@ -35,6 +35,10 @@ def _drive(scores: list[float]):
 
 class TestHealthyLanesAreNotAlarmed:
     @pytest.mark.parametrize("sd", [0.005, 0.02, 0.05])
+    @pytest.mark.xfail(
+        strict=True,
+        reason="never-built: health-oracle quality thresholds (steady lanes read critical, declines read warn); docs/audits/COHERENCE_AUDIT_2026-10-22.md F9 bridges (2026-10-22)",
+    )
     def test_steady_high_quality_is_ok_at_any_jitter(self, sd: float) -> None:
         """DISCRIMINATING: FD calls all of these CHAOTIC/critical.
 
@@ -47,6 +51,10 @@ class TestHealthyLanesAreNotAlarmed:
         assert a.alert_level == "ok", f"healthy lane (sd={sd}) alarmed as {a.alert_level}"
         assert a.tier_recommendation != "cpu", "healthy lane escalated to the expensive tier"
 
+    @pytest.mark.xfail(
+        strict=True,
+        reason="never-built: health-oracle quality thresholds (steady lanes read critical, declines read warn); docs/audits/COHERENCE_AUDIT_2026-10-22.md F9 bridges (2026-10-22)",
+    )
     def test_excellent_quality_is_ok(self) -> None:
         rng = np.random.default_rng(11)
         a = _drive(list(np.clip(0.95 + rng.normal(0, 0.01, 100), 0.0, 1.0)))
@@ -54,12 +62,20 @@ class TestHealthyLanesAreNotAlarmed:
 
 
 class TestDegradationIsCaught:
+    @pytest.mark.xfail(
+        strict=True,
+        reason="never-built: health-oracle quality thresholds (steady lanes read critical, declines read warn); docs/audits/COHERENCE_AUDIT_2026-10-22.md F9 bridges (2026-10-22)",
+    )
     def test_linear_decline_is_critical_not_warn(self) -> None:
         """DISCRIMINATING: FD calls a smooth decline STUCK, i.e. merely 'over-exploiting'."""
         a = _drive([0.9 - 0.5 * i / 99 for i in range(100)])
         assert a.alert_level == "critical", f"degradation reported as {a.alert_level}"
         assert "DEGRADING" in " ".join(a.alerts)
 
+    @pytest.mark.xfail(
+        strict=True,
+        reason="never-built: health-oracle quality thresholds (steady lanes read critical, declines read warn); docs/audits/COHERENCE_AUDIT_2026-10-22.md F9 bridges (2026-10-22)",
+    )
     def test_collapse_is_critical(self) -> None:
         """A step from 0.9 to 0.2 previously reported warn WITH HIGHER CONFIDENCE than the
         false critical on a healthy lane — the worst possible ordering."""

@@ -18,7 +18,6 @@ import os
 import time
 from collections.abc import Callable
 from typing import Any
-import numpy as np
 
 
 # ---------------------------------------------------------------------------

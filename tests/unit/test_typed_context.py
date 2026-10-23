@@ -1,7 +1,8 @@
 """Unit tests for Typed Context System (Design-by-Contract Context Typing)."""
 
 import pytest
-from cohezion.core.typed_context import TypedContextStore, ContextType, ContextTypeError
+
+from cohezion.core.typed_context import ContextType, ContextTypeError, TypedContextStore
 from cohezion.reliability.context_harness import ContextHarness
 
 

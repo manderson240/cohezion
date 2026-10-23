@@ -5,11 +5,12 @@ between transformed inputs and outputs rather than hardcoded expected values.
 """
 
 import math
+
 import numpy as np
 import pytest
 
-from cohezion.physics.my_big_toe_entropy_engine import MyBigTOEEntropyEngine
 from cohezion.flume.twistor_bundle_bridge import PoincareManifoldND
+from cohezion.physics.my_big_toe_entropy_engine import MyBigTOEEntropyEngine
 
 
 @pytest.mark.metamorphic

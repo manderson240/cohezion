@@ -14,11 +14,11 @@ import logging
 import sqlite3
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any
 
-from cohezion.core.event_bus import Event, EventBus, get_event_bus
-from cohezion.researcher.daily_researcher import FleetLock
+from cohezion.core.event_bus import Event, EventBus
 from cohezion.reliability.oom_guard import OOMGuard
+from cohezion.researcher.daily_researcher import FleetLock
+
 
 logger = logging.getLogger(__name__)
 

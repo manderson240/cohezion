@@ -100,7 +100,7 @@ def test_from_unified_record_fallback_name():
     """When metadata has no title, from_unified_record falls back to record type name."""
     from cohezion.data_mesh import UnifiedRecord
     from cohezion.data_mesh.data_product import DataProduct
-    from cohezion.datamesh.schema import RecordType
+    from cohezion.data_mesh.schema import RecordType
 
     record = UnifiedRecord(type=RecordType.EMBEDDING, content="")
     # No 'title' in metadata.

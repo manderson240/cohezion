@@ -8,9 +8,7 @@ bytecode verification.
 
 from __future__ import annotations
 
-import cmath
 import logging
-import math
 import time
 from dataclasses import dataclass, field
 from typing import Any
@@ -19,12 +17,10 @@ import numpy as np
 
 from cohezion.agi.autoharness_policy import ActionPolicyResult, AutoHarnessPolicy
 from cohezion.physics.twistor_orch_or import (
-    GRAV_CONST,
-    H_BAR,
-    TUBULIN_MASS,
     OrchOREngine,
     PenroseTwistorEngine,
 )
+
 
 logger = logging.getLogger("orch_or_runtime_service")
 

@@ -188,7 +188,17 @@ class TestEndpointSchemePinning:
     def test_http_endpoint_passes_the_guard(self, monkeypatch):
         """The guard must not reject the legitimate endpoint — it fails past the scheme
         check on connection, not on validation."""
+        from cohezion.compound import oom_guard
+
         monkeypatch.setattr(session_digest, "OMNIROUTER", "http://127.0.0.1:9/none")
+        # The OOM preflight reads live RAM; on a small runner it refuses before the
+        # connection attempt this test is about. Pin it safe so only the scheme/connection
+        # path is under test (TestOOMPreflight covers the guard itself).
+        monkeypatch.setattr(
+            oom_guard,
+            "check_oom_risk",
+            lambda *a, **k: oom_guard.OOMRisk(True, "M", 2.0, 40.0, "ok"),
+        )
         with pytest.raises(OSError):
             session_digest.lemonade_chat("hi", timeout=1.0)
 

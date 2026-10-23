@@ -2,6 +2,8 @@
 
 import asyncio
 import logging
+import os
+import sys
 from contextlib import asynccontextmanager
 
 import uvicorn
@@ -40,10 +42,18 @@ def main():
     config = ServerConfig.from_env()
 
     if not config.api_key:
-        logger.warning(
-            "MCP_API_KEY is not set. The server will run without authentication. "
-            "Set MCP_API_KEY environment variable for production use."
-        )
+        if os.environ.get("MCP_ALLOW_UNAUTHENTICATED") == "1":
+            logger.warning(
+                "MCP_API_KEY is not set and MCP_ALLOW_UNAUTHENTICATED=1: running "
+                "WITHOUT authentication. Never use this outside an isolated dev host."
+            )
+        else:
+            logger.error(
+                "MCP_API_KEY is not set. Refusing to start an unauthenticated vault "
+                "server (it exposes vault_write/edit/delete). Export MCP_API_KEY, or "
+                "set MCP_ALLOW_UNAUTHENTICATED=1 on an isolated development host."
+            )
+            sys.exit(2)
 
     logger.info("Vault path: %s", config.vault_path)
     logger.info("Starting Cloud Vault MCP Server on %s:%d", config.host, config.port)

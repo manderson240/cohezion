@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import pytest
 from fastapi.testclient import TestClient
 
 from cohezion.api import app
@@ -10,6 +11,17 @@ from cohezion.api import app
 client = TestClient(app)
 
 
+@pytest.fixture
+def _scratch_cwd(tmp_path, monkeypatch):
+    """The train endpoints write checkpoints under cwd-relative data/; keep them out of the repo.
+
+    Without this, /flume/train and /rl/train overwrote the tracked data/flume and data/rl
+    checkpoints, and a later test that loads policy_final.pt failed depending on test order.
+    """
+    monkeypatch.chdir(tmp_path)
+
+
+@pytest.mark.usefixtures("_scratch_cwd")
 class TestFlumeEndpoints:
     """Tests for /flume/* endpoints."""
 
@@ -86,6 +98,7 @@ class TestTemplateEndpoints:
         assert resp.json()["name"] == "COMPOUND_ENGINEERING_PRIME"
 
 
+@pytest.mark.usefixtures("_scratch_cwd")
 class TestRLEndpoints:
     """Tests for /rl/* endpoints."""
 

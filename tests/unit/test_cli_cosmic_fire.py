@@ -2,6 +2,7 @@ from typer.testing import CliRunner
 
 from cohezion.cli.main import app
 
+
 runner = CliRunner()
 
 

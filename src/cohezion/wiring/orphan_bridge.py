@@ -53,9 +53,12 @@ try:
 except (ImportError, AttributeError, ValueError, TypeError, OSError) as exc:
     WIRED_ORPHANS["cli"] = f"unavailable: {type(exc).__name__}: {exc}"
 try:
-    import cohezion.datamesh
+    # datamesh/ was folded into data_mesh/ on 2026-10-22; its formerly-orphan modules live
+    # there now. The edge targets the moved module directly so the deprecated shim is not
+    # imported (and does not warn) on every orphan_bridge import.
+    import cohezion.data_mesh.knowledge_graph_layer
 
-    WIRED_ORPHANS["datamesh"] = cohezion.datamesh
+    WIRED_ORPHANS["datamesh"] = cohezion.data_mesh.knowledge_graph_layer
 except (ImportError, AttributeError, ValueError, TypeError, OSError) as exc:
     WIRED_ORPHANS["datamesh"] = f"unavailable: {type(exc).__name__}: {exc}"
 try:

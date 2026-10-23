@@ -267,6 +267,11 @@ def test_forged_pre_exec_refusal_is_not_reported_as_pre_exec():
 
 
 def test_genuine_pre_exec_failure_is_pre_exec(monkeypatch):
+    # The claim under test is the pre-exec CLASSIFICATION of a missing interpreter, which
+    # is independent of bwrap. Under a bwrap prefix that itself cannot start (nested user
+    # namespace, CI without unprivileged userns) the failure surfaces as "no result from
+    # child" instead, so the probe is pinned to the rlimit path.
+    monkeypatch.setattr(sandboxed_exec, "_bwrap_prefix", lambda: ())
     monkeypatch.setattr(sandboxed_exec, "_python_exec", lambda: "/nonexistent/python")
     r = run_untrusted("x = 1\n", collect=True)
     assert not r.ok and "sandbox refused" in r.error

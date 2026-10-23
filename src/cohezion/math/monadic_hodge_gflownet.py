@@ -8,8 +8,11 @@ Implements:
 """
 
 from __future__ import annotations
+
+from typing import Any, Callable, Dict, Generic, List, Tuple, TypeVar
+
 import numpy as np
-from typing import Callable, TypeVar, Generic, Tuple, Dict, Any, List
+
 
 S = TypeVar("S")
 A = TypeVar("A")

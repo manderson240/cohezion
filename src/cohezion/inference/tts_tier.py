@@ -105,7 +105,9 @@ class DirectLemonadeTTSTier:
     async def is_alive(self) -> bool:
         """Return True if the OmniRouter is responding on self.port."""
         try:
-            async with httpx.AsyncClient(timeout=2.0) as client:
+            # /api/v1/health stalls for 10-20 s while the router loads a model (measured
+            # 2026-10-22); a 2 s probe read a busy-but-healthy router as dead.
+            async with httpx.AsyncClient(timeout=15.0) as client:
                 resp = await client.get(f"http://localhost:{self.port}/api/v1/health")
                 return resp.status_code < 500
         except Exception:

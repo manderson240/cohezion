@@ -38,7 +38,6 @@ def test_save_and_load_calibration_profiles(monkeypatch):
         monkeypatch.setattr(
             "cohezion.validation.calibration_harness.get_project_root", lambda: tmp_path
         )
-        monkeypatch.setattr("cohezion.cache.semantic_cache.get_project_root", lambda: tmp_path)
 
         # 1. Save profile parameters
         params = {"similarity_threshold": 0.68}
@@ -56,7 +55,9 @@ def test_save_and_load_calibration_profiles(monkeypatch):
         class MockConfig:
             root_dir = tmp_path
 
-        monkeypatch.setattr("cohezion.cache.semantic_cache.get_config", lambda: MockConfig)
+        # semantic_cache imports get_config lazily from cohezion.config.unified at call time,
+        # so the source module is the attribute that call resolves.
+        monkeypatch.setattr("cohezion.config.unified.get_config", lambda: MockConfig)
 
         # 2. Test lookup with environment override active (pytest defaults)
         # Should return None (bypass loading)

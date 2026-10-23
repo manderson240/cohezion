@@ -1,6 +1,6 @@
 import json
-import pytest
 from pathlib import Path
+
 from cohezion.data_mesh.durable_precipitation_bridge import (
     DurablePrecipitationBridge,
     DurableWitnessMark,

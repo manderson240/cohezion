@@ -1,11 +1,8 @@
-import numpy as np
-import pytest
 import torch
 
 from cohezion.model.cohezion_evo_model import (
     CampbellNegentropyLoss,
     CohezionEVOModel,
-    EVOAutoHarnessVerifier,
     EVOSolitonTokenizer,
     FLUME12DState,
     GeodesicFlowNeuralODE,

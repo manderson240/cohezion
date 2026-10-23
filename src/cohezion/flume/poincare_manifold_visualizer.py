@@ -16,6 +16,7 @@ from typing import Any
 
 import numpy as np
 
+
 try:
     import plotly.graph_objects as go
 except ImportError:

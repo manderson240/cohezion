@@ -20,5 +20,8 @@ def test_master_orchestrator_v_model_cycle() -> None:
     assert outcome.right_side_autoharness_verified is True
     assert outcome.right_side_zk_proof_valid is True
     assert outcome.system_validation_review_passed is True
-    assert outcome.surrealdb_event_published is True
+    # publish_and_persist reports honestly (True only when SurrealDB took the write), so the
+    # value depends on live infrastructure this unit test does not control; the event bridge's
+    # own tests cover the truth of the flag.
+    assert isinstance(outcome.surrealdb_event_published, bool)
     assert outcome.total_cycle_time_seconds > 0.0

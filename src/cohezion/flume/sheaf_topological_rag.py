@@ -7,9 +7,9 @@ between local documents and global knowledge graph representations:
 
 from __future__ import annotations
 
-import math
 from dataclasses import dataclass, field
-from typing import Any, Callable, Dict, List
+from typing import Any, Dict
+
 import numpy as np
 
 

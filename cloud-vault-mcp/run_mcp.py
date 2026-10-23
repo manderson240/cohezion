@@ -1,26 +1,29 @@
 #!/usr/bin/env python3
+"""Local launcher for the cohezion vault MCP server.
+
+All configuration comes from the environment. ``MCP_API_KEY`` is required by the
+server itself (``src/mcp_server/main.py`` refuses to start without it) and is never
+stored in this file: an earlier revision carried the key as a literal, and that
+literal is in the public repository history. Any key that was ever committed must
+be treated as compromised and rotated.
+"""
+
 import os
 import sys
+from pathlib import Path
 
 
-# Set environment variables
-os.environ["VAULT_PATH"] = "/home/mike-anderson/vaults/cohezion-vault"
-os.environ["MCP_PORT"] = "8360"
-os.environ["SURREALDB_URL"] = "http://localhost:8001"
-os.environ["SURREALDB_USER"] = "root"
-os.environ["SURREALDB_PASS"] = "root"
-os.environ["MCP_API_KEY"] = (
-    "a712027605bbd33068da5462bbcc18d90f844df23f948f124908fa726d678263"
-)
-os.environ["WATCHER_ENABLED"] = (
-    "false"  # Disable watcher to work around FastMCP ASGI issue
-)
+_HERE = Path(__file__).resolve().parent
 
-# Add current directory to path
-sys.path.insert(0, "/home/mike-anderson/dev/cohezion/cloud-vault-mcp")
+os.environ.setdefault("VAULT_PATH", str(Path.home() / "vaults" / "cohezion-vault"))
+os.environ.setdefault("MCP_PORT", "8360")
+os.environ.setdefault("SURREALDB_URL", "http://localhost:8001")
+# Disable the watcher to work around the FastMCP ASGI issue.
+os.environ.setdefault("WATCHER_ENABLED", "false")
 
-# Import and run main
-from src.mcp_server.main import main
+sys.path.insert(0, str(_HERE))
+
+from src.mcp_server.main import main  # noqa: E402
 
 
 main()
