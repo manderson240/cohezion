@@ -296,8 +296,10 @@ class AdmissionGate:
         )
         self._read_cgroup = read_cgroup or read_lemond_cgroup_gb
         self._read_mem_available = read_mem_available or _mem_available_gb
-        # GB admitted as new loads under the current lease, keyed on its (pid, since).
-        self._lease_ledger: tuple[object, float] = (None, 0.0)
+        # Distinct models admitted as new loads under the current lease -> their size,
+        # keyed on the lease's (pid, since). Per model, so swaps and reloads of the same
+        # model never accumulate: each model is resident at most once.
+        self._lease_ledger: tuple[object, dict[str, float]] = (None, {})
         self._read_catalog = read_catalog or self._fetch_catalog
         self._catalog: dict[str, dict[str, object]] = {}
         self._catalog_at: float | None = None
@@ -638,9 +640,7 @@ class AdmissionGate:
                     model_name,
                 )
             if held:
-                refused = self._lease_memory_refusal(
-                    model_name, terms, mem_now, reserved, size, credit
-                )
+                refused = self._lease_memory_refusal(model_name, terms, mem_now, reserved, size)
                 if refused is not None:
                     return refused
             self._reserved[key] = (size, now + RESERVATION_TTL_S)
@@ -654,15 +654,16 @@ class AdmissionGate:
         mem_now: float | None,
         reserved: float,
         size: float,
-        credit: float,
     ) -> AdmissionDecision | None:
         """Bound a NEW load under the lease by the grant's terms. Call with the lock held.
 
         The grant measured MemAvailable >= need + floor once; the holder's GPU memory (GTT)
         is not charged to lemond's cgroup, so the cgroup check cannot see it. Two bounds:
-        (1) everything admitted under this lease fits the grant's spare room,
+        (1) the DISTINCT models admitted under this lease fit the grant's spare room,
         grant_mem - need - floor, so a load cannot take memory the holder has yet to
-        allocate; (2) MemAvailable now minus in-flight loads keeps the floor. Unpublished
+        allocate (a model already counted costs nothing again: NPU swaps and idle-evict
+        reloads must not exhaust the bound over a long lease); (2) MemAvailable now minus
+        in-flight loads keeps the floor, the real-time guard. Unpublished
         terms (the lease is still being acquired) or unreadable meminfo refuse.
         """
         if terms is None or mem_now is None:
@@ -673,9 +674,12 @@ class AdmissionGate:
         spare = float(terms["grant_mem_gb"]) - need - FLOOR_GB  # type: ignore[arg-type]
         key = (terms.get("pid"), terms.get("since"))
         if self._lease_ledger[0] != key:
-            self._lease_ledger = (key, 0.0)
-        used = self._lease_ledger[1]
-        add = max(0.0, size - credit)  # an NPU swap frees the evicted model's memory
+            self._lease_ledger = (key, {})
+        ledger = self._lease_ledger[1]
+        name = normalize_model_name(model_name).lower()
+        others = sum(gb for n, gb in ledger.items() if n != name)
+        counted = max(size, ledger.get(name, 0.0))
+        used, add = others, counted
         if used + add > spare or mem_now - (reserved + size) < FLOOR_GB:
             return self._lease_decision(
                 f"GPU lease held: '{model_name}' {size:.1f}GB does not fit the lease: "
@@ -684,7 +688,7 @@ class AdmissionGate:
                 f"MemAvailable {mem_now:.1f} - {reserved + size:.1f}GB vs floor {FLOOR_GB}",
                 model_name,
             )
-        self._lease_ledger = (key, used + add)
+        ledger[name] = counted
         return None
 
     def release(self, model_name: str) -> None:

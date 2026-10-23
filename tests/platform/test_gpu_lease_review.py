@@ -1,8 +1,14 @@
 """Adversarial-review findings on the GPU lease, each pinned as the SAFE behaviour.
 
-Every test here was red against the reviewed revision (66ce8526e) and asserts what the
-lease must guarantee: user priority 1 (the box never OOMs) and displaced work that waits
-or falls back instead of failing. Real flocks, real subprocesses, real uvicorn where the
+Most tests reproduce a review finding against 66ce8526e (the reviewers' counterexamples,
+inverted to assert what the lease must guarantee: user priority 1, the box never OOMs, and
+displaced work that waits or falls back instead of failing). Run against that revision
+they fail, but partly for an incidental reason: the shared ``_gate`` helper now injects
+``read_mem_available``, which that revision's gate does not accept. Two tests pin spec
+behaviour rather than a defect: ``test_chat_to_non_resident_gguf_still_waits_then_503``
+(no fallback on non-load routes) and ``test_npu_swaps_never_exhaust_the_lease_bound``.
+``test_hold_polls_the_lease_not_the_gate`` exists to kill the busy-spin mutant of the hold
+loop and was run against it. Real flocks, real subprocesses, real uvicorn where the
 behaviour lives in the transport; lemonade, SurrealDB, meminfo and the cgroup are fakes.
 """
 
@@ -256,15 +262,45 @@ def test_small_npu_load_admitted_after_holder_allocated(holder, _isolated_gpu_le
     assert d.allow, d.reason
 
 
-def test_lease_admits_accumulate_against_spare_room(holder, _isolated_gpu_lease) -> None:
+def _flm_gate(names: list[str], resident: list[dict]) -> AdmissionGate:
+    cat = {**CATALOG, **{n: {"id": n, "size": 1.0, "recipe": "flm"} for n in names}}
+    gate = AdmissionGate(
+        config=GateConfig(enforce=True),
+        read_resident=lambda: list(resident),
+        read_cgroup=lambda: (0.0, 30.0),
+        read_size_gb=lambda m: 1.0,
+        read_catalog=lambda: cat,
+        read_mem_available=lambda: 200.0,
+    )
+    gate.refresh_catalog()
+    return gate
+
+
+def test_distinct_lease_admits_accumulate_against_spare_room(holder, _isolated_gpu_lease) -> None:
     _terms(_isolated_gpu_lease, need=10.0, grant_mem=28.5)  # 2.5 GB spare
-    gate = _gate()
-    gate._read_size_gb = lambda m: 1.0
-    for _ in range(2):
-        assert gate.decide(FLM, "api/v1/embeddings").allow  # 2 x 1 GB, no NPU-swap credit
-        gate.release(FLM)
-    d = gate.decide(FLM, "api/v1/embeddings")
+    names = ["a-FLM", "b-FLM", "c-FLM"]
+    gate = _flm_gate(names, [])
+    assert gate.decide(names[0], "api/v1/embeddings").allow
+    assert gate.decide(names[1], "api/v1/embeddings").allow  # 2 distinct GB
+    d = gate.decide(names[2], "api/v1/embeddings")  # a third would exceed 2.5
     assert not d.allow and d.kind == "gpu_lease"
+
+
+def test_npu_swaps_never_exhaust_the_lease_bound(holder, _isolated_gpu_lease) -> None:
+    # npu-ascension swaps FLM models every ~48 s: re-admitting a model already counted must
+    # cost nothing, or a multi-hour lease starves the NPU (held, then 503) part-way through.
+    _terms(_isolated_gpu_lease, need=10.0, grant_mem=31.0)  # 5 GB spare
+    names = ["a-FLM", "b-FLM"]
+    resident: list[dict] = []
+    gate = _flm_gate(names, resident)
+    for i in range(20):
+        name = names[i % 2]
+        resident[:] = []  # the other model was evicted by the swap
+        d = gate.decide(name, "api/v1/chat/completions")
+        assert d.allow, (i, d.reason)
+        gate.release(name)
+        resident[:] = [{"model_name": name, "recipe": "flm", "device": "npu"}]
+        gate._resident_cache = None  # the next decide sees this round's census
 
 
 def test_no_lease_admit_before_terms_are_published(holder, _isolated_gpu_lease) -> None:
