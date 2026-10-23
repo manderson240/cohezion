@@ -31,9 +31,21 @@ class TelemetryBus:
         self._running = False
 
     async def start(self):
-        """Start the background consumer worker."""
-        if self._running:
+        """Start the background consumer worker (or revive one that died).
+
+        ``_running`` alone is not proof of a live worker: the task can be cancelled or crash,
+        or belong to an event loop that has since closed (the module singleton outlives
+        loops). Returning early on the flag then left the bus silently not delivering.
+        """
+        loop = asyncio.get_running_loop()
+        task = self._worker_task
+        if self._running and task is not None and not task.done() and task.get_loop() is loop:
             return
+        if task is not None and task.get_loop() is not loop:
+            # The old loop's queue waiters are bound to it; carry pending events over.
+            old, self._queue = self._queue, asyncio.Queue(maxsize=self._queue.maxsize)
+            while not old.empty():
+                self._queue.put_nowait(old.get_nowait())
         self._running = True
         self._worker_task = asyncio.create_task(self._worker_loop())
         logger.info("📡 Telemetry Bus started (Worker active)")
