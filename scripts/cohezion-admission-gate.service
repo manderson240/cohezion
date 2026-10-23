@@ -22,12 +22,15 @@ WorkingDirectory=/home/mike-anderson/dev/cohezion
 Environment=PYTHONPATH=/home/mike-anderson/dev/cohezion/src
 Environment=COHEZION_ADMISSION_PORT=13305
 Environment=COHEZION_ADMISSION_UPSTREAM=http://127.0.0.1:13315
-# MemAvailable floor for GPU-placed (GTT) loads, and for every load once GTT holds models.
-# The gate uses the LARGER of this and COHEZION_ADMISSION_MEMAVAIL_FLOOR_GB (default 16).
+# MemAvailable floor for GPU-placed and uncertain loads, and for every load once GTT holds
+# models. The floor is max(COHEZION_ADMISSION_FLOOR_GB, COHEZION_ADMISSION_MEMAVAIL_FLOOR_GB);
+# the latter defaults to 16, so this line can raise the floor but never lower it below 16.
+# (The deployed drop-in floor.conf sets FLOOR_GB=25.0 and ENFORCE=1.)
 Environment=COHEZION_ADMISSION_FLOOR_GB=16.0
-# Placement follows lemonade's own /api/v1/system-info default backends and catalog pins.
-# COHEZION_ADMISSION_GGUF_BACKEND is only a fallback for when system-info is unreadable;
-# COHEZION_ADMISSION_BACKEND_OVERRIDES=Model=vulkan,... pins individual models.
+# Placement relaxes a check only when CERTAIN: a fresh catalog entry plus lemonade's catalog
+# pin or /api/v1/system-info default backend. COHEZION_ADMISSION_BACKEND_OVERRIDES=Model=vulkan,...
+# overrides individual models that the fresh catalog lists. COHEZION_ADMISSION_GGUF_BACKEND
+# is reported only; it never makes a placement certain. Anything uncertain gets both checks.
 # Start in SHADOW mode (decisions computed + counted, nothing refused). Flip to 1 after
 # watching /admission/status shadow_refusals for a day — see the cutover doc.
 Environment=COHEZION_ADMISSION_ENFORCE=0

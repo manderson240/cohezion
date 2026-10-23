@@ -16,6 +16,7 @@ from cohezion.platform import admission_gate as ag
 from cohezion.platform.admission_gate import (
     AdmissionGate,
     GateConfig,
+    SystemMemory,
     audit_bypass_paths,
     is_load_path,
 )
@@ -23,6 +24,10 @@ from cohezion.platform.admission_gate import (
 
 GiB = 1024**3
 CHAT = "v1/chat/completions"
+# Readable, ample host memory with GTT at the desktop baseline. These tests pin the cgroup
+# arithmetic; with no catalog every placement is uncertain (2026-10-23 certainty rule), so
+# the system check also runs and must pass for the cgroup check to be what decides.
+AMPLE = SystemMemory(100.0, 128.0, gtt_used_gb=0.8, gtt_total_gb=96.0)
 
 
 def _gate(
@@ -37,6 +42,7 @@ def _gate(
         read_resident=lambda: entries,
         read_cgroup=lambda: cgroup,
         read_size_gb=lambda _m: size_gb,
+        read_system=lambda: AMPLE,
     )
 
 
@@ -62,6 +68,17 @@ class TestCgroupHeadroom:
 
     def test_unknown_cgroup_fails_open(self) -> None:
         assert _gate(cgroup=None, resident=[]).decide("x-GGUF", CHAT).allow
+
+    def test_unknown_cgroup_and_system_refuses_an_uncertain_load(self) -> None:
+        # The cgroup half fails open, but an uncertain placement still faces the system
+        # check, which fails closed when unreadable.
+        g = AdmissionGate(
+            config=GateConfig(),
+            read_resident=lambda: [],
+            read_cgroup=lambda: None,
+            read_size_gb=lambda _m: 3.0,
+        )
+        assert g.decide("x-GGUF", CHAT).allow is False
 
     def test_unknown_size_fails_closed(self) -> None:
         assert not _gate(size_gb=None, resident=[]).decide("x-GGUF", CHAT).allow
@@ -304,11 +321,14 @@ class TestSizeUnknownFailsClosed:
         d = g.decide("Gemma-4-26B-A4B-it-GGUF", CHAT)
         assert d.allow is False and "cgroup" in d.reason
 
-    def test_name_missing_from_a_fresh_catalog_is_forwarded(self) -> None:
-        # Review H3: a permanent "not a model" must not become a 503-retry loop.
+    def test_name_missing_from_a_fresh_catalog_is_refused_without_retry(self) -> None:
+        # Review H3: a permanent "not a model" must not become a 503-retry loop. Round 3
+        # (A3, user directive): it must not be admitted unchecked either, because lemonade
+        # can resolve names its catalog lacks (aliases, register-then-load). So: 404.
         g = self._gate_with_catalog([{"Gemma-4-26B-A4B-it-GGUF": 16.9}])
         d = g.decide("qwen3.5-4b-FLM-typo", CHAT)
-        assert d.allow is True and "not in lemonade's catalog" in d.reason
+        assert d.allow is False and "not in lemonade's catalog" in d.reason
+        assert d.status == 404
 
     def test_small_cached_model_admitted(self) -> None:
         g = self._gate_with_catalog([{"qwen3.5-4b-FLM": 5.0}])
@@ -370,6 +390,7 @@ class TestDynamicCoordination:
             read_resident=lambda: [],
             read_cgroup=lambda: (10.0, 30.0),
             read_size_gb=lambda _m: 10.0,
+            read_system=lambda: AMPLE,
         )
         assert g.decide("a-FLMX", CHAT).allow is True
         second = g.decide("b-FLMX", CHAT)
@@ -382,6 +403,7 @@ class TestDynamicCoordination:
             read_resident=lambda: resident,
             read_cgroup=lambda: (10.0, 30.0),
             read_size_gb=lambda _m: 10.0,
+            read_system=lambda: AMPLE,
         )
         assert g.decide("a-GGUF", CHAT).allow
         resident.append({"model_name": "a-GGUF", "checkpoint": ""})
@@ -422,6 +444,7 @@ class TestReviewFindings:
             read_resident=lambda: [],
             read_cgroup=lambda: (10.0, 30.0),
             read_size_gb=lambda _m: 10.0,
+            read_system=lambda: AMPLE,
         )
         assert g.decide("a-GGUF", CHAT).allow
         g.release("a-GGUF")
@@ -433,6 +456,7 @@ class TestReviewFindings:
             read_resident=lambda: [],
             read_cgroup=lambda: (10.0, 30.0),
             read_size_gb=lambda _m: 10.0,
+            read_system=lambda: AMPLE,
         )
         assert g.decide("a-GGUF", CHAT).allow
         assert g.decide("a-GGUF", CHAT).allow  # still loading; lemond dedupes

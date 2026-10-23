@@ -20,7 +20,10 @@ import json
 import logging
 import os
 import pathlib
+import re
+from collections.abc import Callable
 from contextlib import asynccontextmanager
+from functools import partial
 
 import httpx
 from fastapi import FastAPI, Request, Response
@@ -36,6 +39,7 @@ from cohezion.platform.admission_gate import (
     GTT_TOTAL_FRACTION,
     AdmissionDecision,
     AdmissionGate,
+    WalkTruncatedError,
     audit_bypass_paths,
     models_named,
     request_options,
@@ -45,6 +49,46 @@ from cohezion.platform.admission_gate import (
 logger = logging.getLogger(__name__)
 
 RETRY_AFTER_S = 15  # refused clients back off instead of retrying in a tight loop
+# Writing a model's saved options changes its placement before the catalog shows it.
+_OPTIONS_ROUTE = re.compile(r"(?:api/)?v[01]/models/(.+)/options", re.IGNORECASE)
+# Writes that can change ANY model's recipe, size or default backend: (re-)registration,
+# pull (register-then-install), backend installs, and lemond's /internal/* config.
+_CONFIG_WRITE = re.compile(
+    r"(?:api/)?v[01]/(?:models/register|pull|install|uninstall)|internal/.*", re.IGNORECASE
+)
+
+
+def unnamed_tool_calls(parsed: object) -> bool | None:
+    """For MCP ``tools/call`` requests that name no model (lemonade then picks and may load
+    one itself): None when there are none, else whether any of them allows a download."""
+    calls = [
+        c
+        for c in (parsed if isinstance(parsed, list) else [parsed])
+        if isinstance(c, dict) and c.get("method") == "tools/call" and not models_named(c)
+    ]
+    if not calls:
+        return None
+    allow = False
+    for call in calls:
+        params = call.get("params")
+        args = params.get("arguments") if isinstance(params, dict) else None
+        allow = allow or (isinstance(args, dict) and bool(args.get("allow_download")))
+    return allow
+
+
+def _refused(decision: AdmissionDecision) -> JSONResponse:
+    """The refusal response: 503 + Retry-After, or the decision's non-retryable status."""
+    return JSONResponse(
+        status_code=decision.status,
+        headers={"Retry-After": str(RETRY_AFTER_S)} if decision.status == 503 else None,
+        content={
+            "error": {
+                "type": "admission_refused",
+                "message": decision.reason,
+                "model": decision.model,
+            }
+        },
+    )
 
 
 def client_identity(
@@ -189,6 +233,7 @@ def build_app(
         # Load options the request sets for itself (lemonade's /v1/load lets a body
         # llamacpp_backend / ctx_size override the saved recipe options).
         options: dict[str, object] = {}
+        parsed: object = None
         if body and request.method in ("POST", "PUT", "PATCH"):
             content_type = request.headers.get("content-type", "").lower()
             if content_type.startswith("multipart/form-data"):
@@ -196,20 +241,54 @@ def build_app(
                     form = await request.form()
                     fields = [(k, v) for k, v in form.multi_items() if isinstance(v, str)]
                     names += [v for k, v in fields if "model" in k.lower() and v]
-                    options = request_options(dict(fields))
+                    parsed = dict(fields)
+                    options = request_options(parsed)
                 except Exception as exc:
                     logger.warning("admission gate: unparseable multipart body: %s", exc)
             else:
-                with contextlib.suppress(ValueError, UnicodeDecodeError):  # not JSON: no model
-                    parsed = await run_in_threadpool(json.loads, body)
-                    names += await run_in_threadpool(models_named, parsed)
-                    options = request_options(parsed)
+                try:
+                    with contextlib.suppress(ValueError, UnicodeDecodeError):  # not JSON
+                        parsed = await run_in_threadpool(json.loads, body)
+                        names += await run_in_threadpool(models_named, parsed)
+                        options = request_options(parsed)
+                except WalkTruncatedError as exc:  # A9: a model named past the walk limit
+                    unread = active_gate.refuse(f"request body not fully readable: {exc}")
+                    if not unread.allow:
+                        counters["refused"] += 1
+                        return _refused(unread)
+                    counters["shadow_refusals"] += 1
+
+        # Config writes change placement before the catalog shows them: uncertain until a
+        # catalog read that starts after lemonade has answered the write (stamped twice).
+        invalidations: list[str | None] = []
+        if request.method not in ("GET", "HEAD", "OPTIONS"):
+            stripped = path.strip("/")
+            options_write = _OPTIONS_ROUTE.fullmatch(stripped)
+            if options_write:
+                invalidations.append(options_write.group(1))
+            if _CONFIG_WRITE.fullmatch(stripped):
+                invalidations.append(None)
+        if isinstance(parsed, dict) and parsed.get("save_options") not in (None, False, "", 0):
+            invalidations += names
+        for target in invalidations:
+            active_gate.invalidate(target)
+
+        decisions: list[tuple[str | None, Callable[[], AdmissionDecision]]] = [
+            (name, partial(active_gate.decide, name, path, options))
+            for name in dict.fromkeys(names)
+        ]
+        allow_download = unnamed_tool_calls(parsed)
+        if allow_download is not None:
+            decisions.append(
+                (None, partial(active_gate.decide_unnamed, path, allow_download=allow_download))
+            )
 
         # decide() reads health and /proc -- keep it off the event loop.
         admitted: list[str] = []
         refusal: AdmissionDecision | None = None
-        for name in dict.fromkeys(names):
-            decision = await run_in_threadpool(active_gate.decide, name, path, options)
+        for asked, decide in decisions:
+            decision = await run_in_threadpool(decide)
+            name = decision.model or asked
             if decision.would_refuse:
                 counters["shadow_refusals"] += 1
             new_load = decision.reason.startswith("fits")
@@ -227,23 +306,13 @@ def build_app(
             if not decision.allow:
                 refusal = decision
                 break
-            if new_load:
+            if new_load and name:
                 admitted.append(name)
         if refusal is not None:
             for name in admitted:
                 active_gate.release(name)
             counters["refused"] += 1
-            return JSONResponse(
-                status_code=503,
-                headers={"Retry-After": str(RETRY_AFTER_S)},
-                content={
-                    "error": {
-                        "type": "admission_refused",
-                        "message": refusal.reason,
-                        "model": refusal.model,
-                    }
-                },
-            )
+            return _refused(refusal)
 
         headers = {k: v for k, v in request.headers.items() if k.lower() not in _HOP_HEADERS}
         # Pin identity explicitly: with the header merely absent, httpx injects its own
@@ -259,6 +328,8 @@ def build_app(
         try:
             upstream_resp = await http.send(upstream_req, stream=True)
         except httpx.HTTPError as exc:
+            for target in invalidations:
+                active_gate.invalidate(target)
             for name in admitted:  # nothing loaded: free the reservation now, not in 180 s
                 active_gate.release(name)
             # A dead/mid-restart upstream is a clean 502, not a traceback-500.
@@ -266,6 +337,8 @@ def build_app(
                 status_code=502,
                 content={"error": {"type": "upstream_unreachable", "message": str(exc)}},
             )
+        for target in invalidations:  # A8: outlive any refresh that overlapped the write
+            active_gate.invalidate(target)
         counters["forwarded"] += 1
         if upstream_resp.status_code >= 400:
             for name in admitted:

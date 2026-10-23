@@ -47,6 +47,7 @@ def _gate(
     size_gb: float | None = LOAD_GB,
     overrides: tuple[tuple[str, str], ...] = (),
     enforce: bool = True,
+    catalog: dict[str, dict[str, object]] | None = None,
 ) -> AdmissionGate:
     return AdmissionGate(
         config=GateConfig(enforce=enforce, gguf_backend=backend, backend_overrides=overrides),
@@ -54,7 +55,15 @@ def _gate(
         read_cgroup=lambda: cgroup,
         read_size_gb=lambda _m: size_gb,
         read_system=lambda: system,
+        **({"read_catalog": lambda: catalog} if catalog is not None else {}),
     )
+
+
+def _pinned(backend: str) -> dict[str, dict[str, object]]:
+    """A fresh catalog pinning MODEL to *backend*: the only way a placement is CERTAIN."""
+    return {
+        MODEL: {"recipe": "llamacpp", "size": 3.81, "recipe_options": {"llamacpp_backend": backend}}
+    }
 
 
 # MemAvailable = 20 GB is a CHOSEN pressure state (only the ~13 GB drop was measured): with a
@@ -69,10 +78,16 @@ AMPLE = SystemMemory(
 
 class TestVulkanLoadIsPricedAgainstSystemMemory:
     def test_a_old_cgroup_only_path_admits_the_load(self) -> None:
-        # backend=cpu is today's behaviour (and the default): only the cgroup is checked,
+        # A CERTAIN cpu placement (fresh catalog pin) is checked against the cgroup only:
         # 2.22 + 5.0 = 7.2 GB <= 27 GB, so the load passes despite the MemAvailable floor.
-        d = _gate(backend="cpu", system=PRESSURED).decide(MODEL, CHAT)
+        d = _gate(backend="cpu", system=PRESSURED, catalog=_pinned("cpu")).decide(MODEL, CHAT)
         assert d.allow is True, d.reason
+
+    def test_a_env_default_cpu_without_a_catalog_is_uncertain(self) -> None:
+        # Re-scope of the test above (2026-10-23): the env default is a guess, not
+        # certainty, so with no catalog the same load faces the floor and is refused.
+        d = _gate(backend="cpu", system=PRESSURED).decide(MODEL, CHAT)
+        assert d.allow is False and "MemAvailable" in d.reason
 
     def test_a_vulkan_load_that_fits_the_cgroup_but_breaches_the_floor_is_refused(self) -> None:
         d = _gate(system=PRESSURED).decide(MODEL, CHAT)
@@ -92,8 +107,8 @@ class TestVulkanLoadIsPricedAgainstSystemMemory:
         # Additive, not a swap: a Vulkan load must also pass the existing cgroup check.
         # Since review F3 it is charged its measured host share (0.38 x 5 = 1.9 GB), not its
         # full size, so the working set is 26 GB: 26 + 1.9 = 27.9 > 27.
-        d = _gate(system=AMPLE, cgroup=(26.0, 30.0)).decide(MODEL, CHAT)
-        assert d.allow is False and "cgroup" in d.reason
+        d = _gate(system=AMPLE, cgroup=(26.0, 30.0), catalog=_pinned("vulkan")).decide(MODEL, CHAT)
+        assert d.allow is False and "host share" in d.reason, d.reason
 
     def test_shadow_mode_reports_but_allows(self) -> None:
         d = _gate(system=PRESSURED, enforce=False).decide(MODEL, CHAT)
@@ -134,6 +149,7 @@ class TestFailClosed:
             read_cgroup=lambda: VULKAN_CGROUP,
             read_size_gb=lambda _m: LOAD_GB,
             read_system=boom,
+            read_catalog=lambda: _pinned("cpu"),  # certain cgroup placement
         )
         assert g.decide(MODEL, CHAT).allow is True
 
@@ -156,8 +172,8 @@ class TestReservations:
     def test_gpu_reservation_does_not_consume_cgroup_budget(self) -> None:
         # The cgroup math for a CPU/FLM load stays exactly as before: GTT-bound bytes are
         # not in the cgroup, so they must not crowd it.
-        g = _gate(system=AMPLE, size_gb=10.0, cgroup=(10.0, 30.0))
-        assert g.decide(MODEL, CHAT).allow is True  # gpu-placed, 10 GB reserved
+        g = _gate(system=AMPLE, size_gb=10.0, cgroup=(10.0, 30.0), catalog=_pinned("vulkan"))
+        assert g.decide(MODEL, CHAT).allow is True  # certainly gpu-placed, 10 GB reserved
         assert g.decide("x-FLM", CHAT).allow is True  # 10 + 0 + 10 = 20 <= 27
 
 

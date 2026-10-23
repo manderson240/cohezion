@@ -84,6 +84,12 @@ CATALOG: dict[str, dict[str, object]] = {
         "recipe_options": {"ctx_size": 16384},
     },
     "kokoro-v1": {"recipe": "kokoro", "size": 0.34, "recipe_options": {}},
+    # Live entry; its 1.6 GB catalog size under-reports, the tests inject 15.6.
+    "gpt-oss-20b-mxfp4-GGUF": {"recipe": "llamacpp", "size": 1.6, "recipe_options": {}},
+    # Synthetic llama.cpp entries: since 2026-10-23 a placement is CERTAIN only with a
+    # fresh catalog entry, so the host-share and floor tests name models the catalog lists.
+    "big-GGUF": {"recipe": "llamacpp", "size": 10.0, "recipe_options": {}},
+    "cpu-GGUF": {"recipe": "llamacpp", "size": 5.0, "recipe_options": {"llamacpp_backend": "cpu"}},
 }
 
 HEALTHY_GTT = SystemMemory(100.0, 122.8, gtt_used_gb=1.0, gtt_total_gb=96.0)

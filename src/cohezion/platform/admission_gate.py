@@ -8,13 +8,16 @@ and past its ``memory.high`` the kernel throttles EVERY model in it, NPU include
 fine). This gate refuses a load that would cross that line, and nothing else.
 
 Decision rules (in order):
-  1. Request names no model, or is not load-triggering (unload/delete/pull) -> forward.
+  1. Request is not load-triggering (unload/delete/pull), or names no model -> forward;
+     except an MCP tools/call naming no model, bounded by :meth:`AdmissionGate.decide_unnamed`.
   2. Model already resident -> forward (reuse maps nothing new).
   3. lemond working set + the model's catalog size > 90% of memory.high -> refuse.
   4. Otherwise forward; Lemonade decides the rest.
 
-Fail open when the cgroup is unreadable (a static sysfs read that does not stall). Fail
-CLOSED when the model's size is unknown: lemonade's /api/v1/models stalls while a model is
+The cgroup check fails open when unreadable (a static sysfs read that does not stall);
+a certain cgroup load then skips the system check only while GTT holds no models. Fail
+CLOSED when the model's size is unknown, including a name a fresh catalog lacks (lemonade
+can still resolve it through an alias or a register-then-load; 404, not a 503 retry loop): lemonade's /api/v1/models stalls while a model is
 loading, which is exactly when other loads arrive. On 2026-10-21 a fail-open size lookup let
 a 16.9 GB CPU model through and throttle events rose 3,237 -> 4,558. Catalog sizes are static,
 so they are cached and a stalled catalog only matters for a model never seen before.
@@ -36,29 +39,45 @@ MemAvailable fell ~13 GB. GTT (GPU-mapped memory) is charged to NO memory cgroup
 backend the cgroup check prices the weights and KV at almost nothing. A GPU-placed load must
 therefore ALSO keep MemAvailable above a floor and GTT under a fraction of its total; both
 fail CLOSED when unreadable (absent GTT is never 0). CPU-backend GGUF and FLM loads are
-charged to the cgroup and keep the cgroup check alone, exactly as before. The gate learns the
-backend from configuration (lemonade's recipe_options.json may be unreadable to it): a
-default llama.cpp backend (``cpu`` unless set) plus optional per-model overrides.
+charged to the cgroup.
 
-REVIEW FIXES (2026-10-23, findings F1-F12):
-  - Placement is decided from the BACKEND, in this order: the request body (``/v1/load``
-    takes ``<recipe>_backend`` and it overrides the saved pin), the configured per-model
-    override, the catalog pin, lemonade's published ``recipes[r].default_backend`` from
-    /api/v1/system-info (readable without root), and for llama.cpp only the configured
-    default. Only ``cpu`` and ``npu`` are cgroup-placed; hrx, vulkan, rocm, a collection
-    recipe or anything unknown goes to the system check (fail closed).
-  - A GTT load is charged to the cgroup at its measured host-side share
-    (:data:`GTT_HOST_SHARE`), and in-flight GTT reservations count at the same share.
-  - The MemAvailable floor prices a GTT load at footprint x (1 + share): GTT plus the host
-    side. The brief's ~13 GB MemAvailable drop for a 5.84 GB load (2.2x) is NOT used: most
-    of the excess is the 5.58 GB GGUF page cache, which this module's policy does not count,
-    and the drop was read from an idle maximum, not as a controlled delta.
-  - Cgroup-placed loads face the MemAvailable floor too once GTT holds more than the desktop
-    baseline (:data:`GTT_BASELINE_GB`), because then cgroup headroom no longer implies host
-    headroom. At baseline the 2026-10-21 decision (no RAM floor) stands. Fails open for
-    cgroup loads when /proc/meminfo or GTT is unreadable.
-  - The legacy ``COHEZION_ADMISSION_FLOOR_GB`` is honoured: the floor is the larger of it
-    and ``COHEZION_ADMISSION_MEMAVAIL_FLOOR_GB``.
+CERTAINTY (2026-10-23, user directive): placement inference may only RELAX a check when it
+is CERTAIN. Every other load gets BOTH checks at full footprint: the cgroup budget (charged
+as CPU memory) and the system check (MemAvailable floor at footprint x (1 + GTT_HOST_SHARE),
+and the GTT cap), each failing closed when unreadable except the cgroup read.
+  - Certain: a catalog entry from a read younger than CATALOG_FRESH_S whose recipe is flm,
+    or whose backend comes from the operator override, the catalog pin, or lemonade's
+    published ``recipes[r].default_backend`` from a system-info read equally fresh. cpu and
+    npu are cgroup backends; vulkan, rocm and hrx are GTT backends; any other name is
+    uncertain. A GTT backend with any ``*_args`` / ``*_device`` option, saved or requested,
+    is uncertain (``--device none``, ``--cpu-moe``, ``-ot`` keep weights on the host). The
+    configured ``gguf_backend`` is a guess and never certain. A name the catalog lacks is
+    sized only by the curated table (built-in names); its '-FLM' suffix then marks FLM.
+  - Certain cgroup placement skips the GTT cap, not the MemAvailable floor while GTT holds
+    more than GTT_BASELINE_GB. Certain GTT placement charges the cgroup only its measured
+    host share (GTT_HOST_SHARE, one sample: Vulkan Gemma-4-E2B, anon 0.96 + file_mapped 1.26
+    of a 5.84 GB footprint).
+  - Catalog stalled, stale, or missing the model: uncertain. Sizes still come from the
+    cached catalog and the curated table (they are static); only placement needs freshness.
+  - A request-body ``<recipe>_backend`` (including null, which skips the saved pin) counts
+    only on the load routes (/v1/load, /api/v1/load and their v0 aliases), and only to make
+    a load uncertain when it disagrees with the saved backend. A request can never route a
+    load away from a check. A null ``ctx_size`` is priced as lemond's automatic size.
+  - Writing saved options (``[api/]v0|v1/models/{id}/options``, or ``save_options`` on a
+    load) makes that model uncertain, and a registration, pull, backend install or
+    /internal/* write makes EVERY model uncertain, until a catalog (and, for the latter,
+    system-info) read that STARTED after lemonade answered the write succeeds.
+  - A collection with no size of its own (collection.router) is an uncertain load of its
+    largest component; unknown if any component is. Its name never shows as resident, so
+    its reservation is held for RESERVATION_TTL_S after each admit (over-counts, safe side).
+  - Before the first catalog read a curated GGUF is priced with KV at lemond's unknown-ctx
+    clamp; a larger saved ctx is only known once the catalog is read.
+  - A request body with more than _WALK_MAX_NODES JSON nodes is refused (never half-read).
+  - An MCP tools/call naming no model lets lemonade pick one: :meth:`decide_unnamed` checks
+    it as an uncertain load of the largest downloaded, non-resident model (any catalog model
+    if the call allows downloads), and refuses when that cannot be bounded.
+  - The MemAvailable floor is the larger of ``COHEZION_ADMISSION_MEMAVAIL_FLOOR_GB`` and the
+    legacy ``COHEZION_ADMISSION_FLOOR_GB``.
 """
 
 from __future__ import annotations
@@ -101,7 +120,8 @@ RESIDENT_LAST_GOOD_S = 60.0
 CATALOG_FRESH_S = 300.0
 CATALOG_REFRESH_S = 120.0
 CATALOG_RETRY_S = 15.0
-_WALK_MAX_NODES = 5000
+# A request whose JSON has more nodes than this is refused, never half-read (A9).
+_WALK_MAX_NODES = 20000
 LEMOND_CGROUP = pathlib.Path("/sys/fs/cgroup/system.slice/lemond.service")
 CGROUP_HIGH_FRACTION = 0.9
 GTT_TOTAL_FRACTION = 0.9
@@ -109,10 +129,11 @@ GTT_TOTAL_FRACTION = 0.9
 DEFAULT_MEMAVAIL_FLOOR_GB = 16.0
 MEMINFO = pathlib.Path("/proc/meminfo")
 DRM = pathlib.Path("/sys/class/drm")
-# Backends whose allocations stay in the lemond cgroup. Anything else (vulkan, rocm, hrx,
-# or a name the gate does not know) is treated as GPU-placed: an unknown backend must not
-# silently skip the system check.
+# Backends whose allocations stay in the lemond cgroup, and the GPU backends whose weights
+# land in GTT. Any other name (lemond ignores an unknown backend and uses its default) is
+# UNCERTAIN: certainty is an allowlist, never "not cpu".
 _CGROUP_BACKENDS = frozenset({"cpu", "npu"})
+_GTT_BACKENDS = frozenset({"vulkan", "rocm", "hrx"})
 # A backend value that names no backend: lemonade resolves it itself.
 _ABSENT_BACKENDS = frozenset({"", "auto"})
 # Host-side (cgroup) share of a GTT-placed load. ONE measured sample, 2026-10-23: Vulkan
@@ -126,9 +147,16 @@ GTT_BASELINE_GB = 2.0
 # lemonade budgets its own downloads (pull refuses below size + 8 GB available).
 _NON_LOAD_ROUTES = frozenset(
     f"{prefix}{verb}"
-    for prefix in ("api/v1/", "v1/", "api/v0/")
+    for prefix in ("api/v1/", "v1/", "api/v0/", "v0/")
     for verb in ("unload", "delete", "pull")
 )
+
+
+# Load routes, where a request-body ``<recipe>_backend`` may be honoured. The v0 aliases
+# answer POST too; whether lemond honours the field there is unverified, so it counts there.
+_LOAD_ROUTES = frozenset(f"{p}load" for p in ("api/v1/", "v1/", "api/v0/", "v0/"))
+# Placement states. Only the two certain ones may relax a check.
+CGROUP, GTT, UNCERTAIN = "cgroup", "gtt", "uncertain"
 
 
 def read_lemond_cgroup_gb() -> tuple[float, float] | None:
@@ -274,21 +302,42 @@ def _backend_value(value: object) -> str | None:
 
 
 def request_options(body: object) -> dict[str, object]:
-    """Load options a request sets for itself: every top-level ``*_backend`` and ``ctx_size``.
+    """Load options a request sets for itself: every top-level ``*_backend``, ``*_args``,
+    ``*_device`` and ``ctx_size``.
 
     Lemonade's /v1/load takes these per request and lets them override the saved
-    recipe options, so the gate must price the load the request asks for.
+    recipe options, so the gate must price the load the request asks for. A null
+    ``ctx_size`` skips the saved value and falls to lemond's default (automatic sizing),
+    recorded as -1, which prices like an unset ctx (A5).
     """
     if not isinstance(body, dict):
         return {}
     opts: dict[str, object] = {}
     for key, value in body.items():
         k = str(key).lower()
-        if k.endswith("_backend") and isinstance(value, str):
-            opts[k] = value.strip().lower()
+        if k.endswith("_backend") and (value is None or isinstance(value, str)):
+            opts[k] = None if value is None else value.strip().lower()
+        elif k.endswith(("_args", "_device")) and isinstance(value, str):
+            opts[k] = value.strip()
+        elif k == "ctx_size" and value is None:
+            opts[k] = -1
         elif k == "ctx_size" and isinstance(value, int | float) and not isinstance(value, bool):
             opts[k] = int(value)
     return opts
+
+
+def _moves_placement(options: object) -> bool:
+    """True when ``*_args`` / ``*_device`` options are set: llama-server's ``--device none``,
+    ``--cpu-moe`` or ``-ot`` keep a GPU backend's weights on the host (A2). Not parsed:
+    any value makes a GTT placement uncertain."""
+    return isinstance(options, dict) and any(
+        str(k).lower().endswith(("_args", "_device")) and bool(str(v or "").strip())
+        for k, v in options.items()
+    )
+
+
+class WalkTruncatedError(RuntimeError):
+    """A request body too large to walk in full: refuse it rather than half-read it."""
 
 
 def is_load_path(path: str) -> bool:
@@ -302,11 +351,15 @@ def models_named(body: object) -> list[str]:
     Collects string values under any key containing "model" or named "checkpoint", at any
     depth, through lists (JSON-RPC batches) and dicts (MCP ``params.arguments``). Keys, not
     values, select: a chat message that merely mentions a model name is not a load.
+    Raises :class:`WalkTruncatedError` past ``_WALK_MAX_NODES`` nodes, so a model named after
+    padding is never silently missed (A9).
     """
     found: list[str] = []
     queue: deque[object] = deque([body])
     seen = 0
-    while queue and seen < _WALK_MAX_NODES:
+    while queue:
+        if seen >= _WALK_MAX_NODES:
+            raise WalkTruncatedError(f"request body has more than {_WALK_MAX_NODES} JSON nodes")
         node = queue.popleft()
         seen += 1
         if isinstance(node, dict):
@@ -402,6 +455,31 @@ def _parse_overrides(raw: str) -> tuple[tuple[str, str], ...]:
     return tuple(pairs)
 
 
+def saved_backend(
+    model_name: str,
+    catalog_entry: dict[str, object],
+    config: GateConfig,
+    recipes: RecipeBackends | None = None,
+) -> tuple[str | None, str]:
+    """(backend, the recipe's backend option key) for a load that sets no backend itself.
+
+    The backend is, in order: the operator's per-model override, the catalog pin in
+    ``recipe_options``, and lemonade's published default for the recipe (*recipes*, from
+    /api/v1/system-info). None when none of them names one. The key comes from system-info,
+    falling back to ``<recipe>_backend``. A catalog entry with no recipe is taken as llama.cpp.
+    """
+    recipe = str(catalog_entry.get("recipe", "")).lower() or "llamacpp"
+    published, key = (recipes or {}).get(recipe, (None, None))
+    key = key or f"{recipe}_backend"
+    saved = catalog_entry.get("recipe_options")
+    backend = (
+        dict(config.backend_overrides).get(normalize_model_name(model_name).lower())
+        or _backend_value(saved.get(key) if isinstance(saved, dict) else None)
+        or published
+    )
+    return backend, key
+
+
 def model_placement(
     model_name: str,
     catalog_entry: dict[str, object] | None,
@@ -409,34 +487,25 @@ def model_placement(
     recipes: RecipeBackends | None = None,
     options: dict[str, object] | None = None,
 ) -> str:
-    """'gtt' when the load's bytes land in GPU-mapped memory, else 'cgroup'.
+    """'gtt' when the evidence says the load's bytes land in GPU-mapped memory, else 'cgroup'.
 
-    FLM (NPU) is always 'cgroup' (its buffers are lemond shmem/file_mapped, measured).
-    Otherwise the backend is, in order: the request's own ``<recipe>_backend`` (*options*),
-    the configured per-model override, the catalog pin in ``recipe_options``, lemonade's
-    published default for the recipe (*recipes*, from /api/v1/system-info), and for plain
-    llama.cpp only the configured default. The pin key comes from system-info, falling back
-    to ``<recipe>_backend``. With no catalog entry (the catalog stalls while a load is in
-    progress) the recipe is taken to be llama.cpp: a llama.cpp model without "GGUF" in its
-    name (LFM2.5-8B-A1B) must not slip past the system check. Only cpu and npu are
-    cgroup-placed; a recipe whose backend cannot be learned fails closed to 'gtt'.
+    The best GUESS, including the configured default. :meth:`AdmissionGate.decide` does NOT
+    use it (it relaxes a check only on a certain placement, :meth:`AdmissionGate._placement`);
+    it is kept as the pure evidence function the placement tests pin. FLM (NPU) is 'cgroup'. Otherwise the request's own
+    ``<recipe>_backend`` (*options*), then :func:`saved_backend`, then for plain llama.cpp
+    the configured default. Only cpu and npu are cgroup-placed; an unknown backend is 'gtt'.
     """
     entry = catalog_entry or {}
     recipe = str(entry.get("recipe", "")).lower() or "llamacpp"
-    name = normalize_model_name(model_name).lower()
-    if recipe == "flm" or name.endswith("-flm"):
-        return "cgroup"
-    published, key = (recipes or {}).get(recipe, (None, None))
-    key = key or f"{recipe}_backend"
-    saved = entry.get("recipe_options")
+    if recipe == "flm" or normalize_model_name(model_name).lower().endswith("-flm"):
+        return CGROUP
+    saved, key = saved_backend(model_name, entry, config, recipes)
     backend = (
         _backend_value((options or {}).get(key))
-        or dict(config.backend_overrides).get(name)
-        or _backend_value(saved.get(key) if isinstance(saved, dict) else None)
-        or published
+        or saved
         or (_backend_value(config.gguf_backend) if recipe == "llamacpp" else None)
     )
-    return "cgroup" if backend in _CGROUP_BACKENDS else "gtt"
+    return CGROUP if backend in _CGROUP_BACKENDS else GTT
 
 
 @dataclass(frozen=True)
@@ -445,6 +514,8 @@ class AdmissionDecision:
     would_refuse: bool
     reason: str
     model: str | None = None
+    # HTTP status for a refusal: 503 (retry later) unless retrying cannot help.
+    status: int = 503
 
 
 class AdmissionGate:
@@ -487,6 +558,11 @@ class AdmissionGate:
         self._catalog: dict[str, dict[str, object]] = {}
         self._catalog_at: float | None = None
         self._recipes: RecipeBackends = {}
+        self._recipes_at: float | None = None
+        # normalized lowercased model -> monotonic time its saved options were written
+        self._invalidated: dict[str, float] = {}
+        # monotonic time of the last global config write (register, pull, /internal/*)
+        self._invalidated_all: float | None = None
         self._custom_size = read_size_gb is not None
         self._read_size_gb = read_size_gb or self._cached_footprint_gb
         # model -> (gb, expires_at, placement)
@@ -543,19 +619,37 @@ class AdmissionGate:
         False when the catalog did not answer. Recipe backends keep their last good value
         when system-info does not answer; they change only when lemonade's config does.
         """
+        started = time.monotonic()  # data read below is at least this fresh, no fresher
         try:
             recipes = parse_recipe_backends(self._read_system_info())
         except Exception as exc:  # a broken probe must not stop the catalog refresh
             logger.warning("admission gate: system-info probe failed: %s", exc)
             recipes = {}
         if recipes:
-            self._recipes = recipes
+            self._recipes, self._recipes_at = recipes, started
         fresh = self._read_catalog()
         if not fresh:
             return False
-        self._catalog = fresh
-        self._catalog_at = time.monotonic()
+        with self._lock:
+            self._catalog, self._catalog_at = fresh, started
+            # A write that landed after this read started may be missing from it.
+            self._invalidated = {k: t for k, t in self._invalidated.items() if t >= started}
+            # A global write also needs fresh recipe defaults, read after it.
+            if self._invalidated_all is not None and recipes and self._invalidated_all < started:
+                self._invalidated_all = None
         return True
+
+    def invalidate(self, model_name: str | None) -> None:
+        """Config for *model_name* (every model when None) was or is being written: its
+        placement is uncertain until a catalog read that started after now succeeds. The
+        proxy calls this before forwarding the write AND after lemonade answers it (A8),
+        so a refresh that overlapped the write cannot restore certainty."""
+        now = time.monotonic()
+        with self._lock:
+            if model_name is None:
+                self._invalidated_all = now
+            else:
+                self._invalidated[normalize_model_name(model_name).lower()] = now
 
     def start_refresher(self) -> None:
         """Daemon thread keeping the catalog fresh, so decide() never fetches it."""
@@ -573,6 +667,57 @@ class AdmissionGate:
     def _catalog_is_fresh(self) -> bool:
         age = self.catalog_age_s()
         return age is not None and age < CATALOG_FRESH_S
+
+    def _placement(self, model_name: str, path: str, options: dict[str, object] | None) -> str:
+        """CGROUP or GTT only when CERTAIN, else UNCERTAIN (both checks at full size).
+
+        Certain: an FLM model, or a fresh, not-invalidated catalog entry whose backend comes
+        from the operator override, the catalog pin, or a fresh system-info default. The
+        configured ``gguf_backend`` is a guess and never certain. A request-body backend
+        counts only on /v1/load and only when it disagrees: it then makes the load
+        uncertain, so a request can never route a load away from a check.
+        """
+        name = normalize_model_name(model_name)
+        entry = self._catalog.get(name)
+        if entry is None:
+            # Admitted at all only with a known size, i.e. a curated (built-in) name.
+            return CGROUP if self._is_flm(name) else UNCERTAIN
+        if (
+            not self._catalog_is_fresh()
+            or name.lower() in self._invalidated
+            or self._invalidated_all is not None
+        ):
+            return UNCERTAIN
+        if self._is_flm(name):
+            return CGROUP
+        recipes_fresh = (
+            self._recipes_at is not None and time.monotonic() - self._recipes_at < CATALOG_FRESH_S
+        )
+        backend, key = saved_backend(
+            model_name, entry, self._config, self._recipes if recipes_fresh else {}
+        )
+        if backend is None:
+            return UNCERTAIN
+        asked = options or {}
+        on_load_route = path.strip("/").lower() in _LOAD_ROUTES
+        # null, '' and 'auto' skip the saved pin in lemonade, so they disagree with it too.
+        if on_load_route and key in asked and _backend_value(asked[key]) != backend:
+            return UNCERTAIN
+        if backend in _CGROUP_BACKENDS:
+            return CGROUP
+        if backend in _GTT_BACKENDS and not (
+            _moves_placement(entry.get("recipe_options")) or _moves_placement(asked)
+        ):
+            return GTT
+        return UNCERTAIN
+
+    def _is_flm(self, name: str) -> bool:
+        """The catalog recipe decides; the '-FLM' suffix only for a name the catalog lacks
+        (A4: a user model named '*-FLM' may be llama.cpp on Vulkan)."""
+        entry = self._catalog.get(normalize_model_name(name))
+        if entry is not None:
+            return str(entry.get("recipe", "")).lower() == "flm"
+        return name.lower().endswith("-flm")
 
     def footprint_gb(
         self, model_name: str, options: dict[str, object] | None = None
@@ -597,6 +742,16 @@ class AdmissionGate:
         key = normalize_model_name(model_name)
         entry = self._catalog.get(key)
         size = entry.get("size") if entry else None
+        components = entry.get("components") if entry else None
+        if not size and isinstance(components, list) and components:
+            # A collection (e.g. collection.router) has no size of its own: it runs one of
+            # its components, so price the largest; any unknown component is unknown.
+            parts = [
+                self._cached_footprint_gb(str(c), ctx_size)
+                for c in components
+                if normalize_model_name(str(c)) != key
+            ]
+            return None if not parts or None in parts else max(p or 0.0 for p in parts)
         catalog_gb = float(size) if isinstance(size, (int, float)) and size > 0 else 0.0
         curated_gb = MODEL_FOOTPRINT_GB.get(key, 0.0)
         weights = max(catalog_gb, curated_gb)
@@ -610,6 +765,10 @@ class AdmissionGate:
                 curated_gb,
                 weights,
             )
+        if entry is None and not key.lower().endswith("-flm"):
+            # No catalog read yet: the saved ctx is unknown, so price KV the way lemond
+            # sizes an un-optioned GGUF (its unknown-max clamp), not at zero.
+            entry = {"recipe": "llamacpp", "recipe_options": {}}
         if entry is not None and ctx_size is not None:
             opts = entry.get("recipe_options")
             asked = {
@@ -659,7 +818,7 @@ class AdmissionGate:
         models use other slots and evict nothing.
         """
         p = path.lower()
-        if not model_name.lower().endswith("-flm") or any(
+        if not self._is_flm(model_name) or any(
             t in p for t in ("embedding", "audio", "image", "transcri", "speech")
         ):
             return 0.0
@@ -677,12 +836,15 @@ class AdmissionGate:
         model_name: str | None,
         path: str = "",
         options: dict[str, object] | None = None,
+        *,
+        uncertain: bool = False,
     ) -> AdmissionDecision:
         """Admit or refuse one model a request names.
 
-        *options* are the request's own load options (:func:`request_options`): a body
-        ``<recipe>_backend`` decides placement ahead of the saved pin, and a larger
-        ``ctx_size`` raises the KV estimate.
+        *options* are the request's own load options (:func:`request_options`): on a load
+        route a body ``<recipe>_backend`` that disagrees with the saved one makes the
+        placement uncertain, and a larger ``ctx_size`` raises the KV estimate.
+        *uncertain* forces both checks at full size (a bound for an unnamed load).
         """
         if not model_name or not is_load_path(path):
             return AdmissionDecision(True, False, "not load-triggering", model_name)
@@ -691,10 +853,7 @@ class AdmissionGate:
         resident = self._resident_entries()
         if self._is_resident(model_name, resident):
             return AdmissionDecision(True, False, "resident — reuse needs no memory", model_name)
-        entry = self._catalog.get(normalize_model_name(model_name))
-        placement = model_placement(model_name, entry, self._config, self._recipes, options)
-        if entry is None and not self._custom_size and placement == "cgroup":
-            placement = _catalog_miss_placement(model_name, self._config, options)
+        placement = UNCERTAIN if uncertain else self._placement(model_name, path, options)
         cgroup = self._read_cgroup()
         if cgroup is None:
             self.cgroup_readable = False
@@ -702,25 +861,22 @@ class AdmissionGate:
             if now - self._cgroup_warned_at > 60:
                 self._cgroup_warned_at = now
                 logger.warning("admission gate: lemond cgroup unreadable — not gating loads")
-            if placement == "cgroup":
-                return AdmissionDecision(
-                    True, False, "cgroup unreadable — Lemonade decides", model_name
-                )
-            # A GPU-placed load still faces the system check below, which fails closed.
+            # Every load still faces the system check below: a certain cgroup load only
+            # while GTT holds models (the floor), anything else always (fails closed).
         else:
             self.cgroup_readable = True
         size = self.footprint_gb(model_name, options)
         if size is None:
-            if self._catalog_is_fresh():
-                return AdmissionDecision(
-                    True, False, "not in lemonade's catalog — lemonade will answer", model_name
-                )
-            return self._refusal(
-                f"model size unknown for '{model_name}': lemonade's catalog has not been read "
-                "yet (it stalls while a load is in progress) — retry shortly",
-                model_name,
+            missing = (
+                self._catalog_is_fresh() and normalize_model_name(model_name) not in self._catalog
             )
-        credit = self._npu_slot_credit_gb(model_name, path, resident)
+            # A name a fresh catalog lacks will not appear by retrying: 404, not a 503 loop.
+            return self._refusal(
+                self._unknown_size_reason(model_name), model_name, status=404 if missing else 503
+            )
+        credit = (
+            self._npu_slot_credit_gb(model_name, path, resident) if placement == CGROUP else 0.0
+        )
         system: SystemMemory | None = None
         try:
             system = self._read_system()
@@ -744,7 +900,7 @@ class AdmissionGate:
                 working_set, high = cgroup
                 budget = CGROUP_HIGH_FRACTION * high
                 total = working_set + reserved - credit + charge
-                share = "" if placement == "cgroup" else f" (host share of {size:.1f}GB GTT)"
+                share = f" (host share of {size:.1f}GB GTT)" if placement == GTT else ""
                 detail = (
                     f"{working_set:.1f}GB working set + {reserved:.1f}GB reserved - "
                     f"{credit:.1f}GB NPU swap + {charge:.1f}GB '{model_name}'{share} = "
@@ -758,7 +914,7 @@ class AdmissionGate:
                         model_name,
                     )
                 details.append(f"{detail} <= {budget:.1f}GB")
-            if placement == "gtt" or self._gtt_is_resident(system):
+            if placement != CGROUP or self._gtt_is_resident(system):
                 refusal, detail = self._system_check(system, size, model_name, placement)
                 if refusal is not None:
                     return refusal
@@ -769,6 +925,53 @@ class AdmissionGate:
         logger.info("admission gate ADMIT (%s): %s", placement, summary)
         return AdmissionDecision(True, False, f"fits: {summary}", model_name)
 
+    def _unknown_size_reason(self, model_name: str) -> str:
+        key = normalize_model_name(model_name)
+        if self._catalog_at is None:
+            return (
+                f"model size unknown for '{model_name}': lemonade's catalog has not been read "
+                "yet (it stalls while a load is in progress) — retry shortly"
+            )
+        if key not in self._catalog:
+            # Lemonade may still resolve it (alias, register-then-load): unbounded, refuse.
+            return (
+                f"'{model_name}' is not in lemonade's catalog, so its size is unknown — "
+                "a load it triggers cannot be bounded"
+            )
+        return f"lemonade's catalog lists no size for '{model_name}' (or a component of it)"
+
+    def decide_unnamed(self, path: str, *, allow_download: bool = False) -> AdmissionDecision:
+        """A call that names no model but lets lemonade pick and load one (MCP tools/call).
+
+        Bounded as an UNCERTAIN load of the largest model lemonade could pick: every
+        downloaded, non-resident catalog model, or every catalog model when the call allows
+        downloads. Refused when no fresh catalog bounds the choice or any candidate's size
+        is unknown: a client that names its model is gated by that model instead.
+        """
+        if not self._catalog_is_fresh():
+            return self._refusal(
+                "request names no model and lemonade's catalog is not fresh, so the model "
+                "lemonade may auto-load cannot be bounded — name the model or retry shortly",
+                None,
+            )
+        resident = self._resident_entries()
+        sizes = {
+            name: self.footprint_gb(name)
+            for name, entry in self._catalog.items()
+            if (allow_download or entry.get("downloaded")) and not self._is_resident(name, resident)
+        }
+        if not sizes:
+            return AdmissionDecision(True, False, "no model left for lemonade to load", None)
+        unknown = sorted(n for n, gb in sizes.items() if gb is None)
+        if unknown:
+            return self._refusal(
+                f"request names no model and lemonade could auto-load one of unknown size "
+                f"({', '.join(unknown[:3])}) — name the model",
+                None,
+            )
+        largest = max(sizes, key=lambda n: sizes[n] or 0.0)
+        return self.decide(largest, path, uncertain=True)
+
     def _gtt_is_resident(self, system: SystemMemory | None) -> bool:
         """GTT (read or reserved) above the desktop baseline. Caller holds the lock.
 
@@ -776,21 +979,21 @@ class AdmissionGate:
         """
         if system is None or system.gtt_used_gb is None:
             return False
-        reserved = sum(gb for gb, _, w in self._reserved.values() if w == "gtt")
+        reserved = sum(gb for gb, _, w in self._reserved.values() if w != CGROUP)
         return system.gtt_used_gb + reserved > GTT_BASELINE_GB
 
     def _system_check(
         self, system: SystemMemory | None, size: float, model_name: str, placement: str
     ) -> tuple[AdmissionDecision | None, str]:
-        """MemAvailable floor (every load) + GTT cap (GPU-placed loads). Caller holds the lock.
+        """MemAvailable floor (every load) + GTT cap (all but certain-cgroup loads).
 
-        A GPU-placed load fails CLOSED on any unreadable source: GTT is charged to no
-        cgroup, so nothing else would catch it. A cgroup-placed load fails OPEN (the cgroup
-        check already ran). Each load, in flight or new, is priced at its host cost: a GTT
-        load at footprint x (1 + GTT_HOST_SHARE), a cgroup load at its footprint. Only
-        GTT-placed reservations count against GTT.
+        Caller holds the lock. Any load not certainly cgroup-placed fails CLOSED on an
+        unreadable source: GTT is charged to no cgroup, so nothing else would catch it. A
+        certain cgroup load fails OPEN (the cgroup check already ran). Each load, in flight
+        or new, is priced at its host cost: footprint x (1 + GTT_HOST_SHARE) unless it is
+        certainly cgroup-placed. Every reservation not certainly cgroup counts against GTT.
         """
-        gpu = placement == "gtt"
+        gpu = placement != CGROUP
         if (
             system is None
             or system.mem_available_gb is None
@@ -799,8 +1002,8 @@ class AdmissionGate:
             if not gpu:
                 return None, ""
             return self._refusal(
-                f"GTT/MemAvailable unreadable for GPU-placed '{model_name}' — its weights "
-                "land in GTT, which no cgroup accounts for; refusing rather than guessing",
+                f"GTT/MemAvailable unreadable for {placement} '{model_name}' — its weights "
+                "may land in GTT, which no cgroup accounts for; refusing rather than guessing",
                 model_name,
             ), ""
         all_reserved = sum(_host_cost(gb, w) for gb, _, w in self._reserved.values())
@@ -813,7 +1016,7 @@ class AdmissionGate:
         )
         if left < floor:
             why = (
-                "GPU-placed (GTT) loads bypass the lemond cgroup"
+                f"a {placement} load may land in GTT, which bypasses the lemond cgroup"
                 if gpu
                 else "GTT holds models outside the lemond cgroup, so its headroom no longer "
                 "implies host headroom"
@@ -824,7 +1027,7 @@ class AdmissionGate:
         gtt_used, gtt_total = system.gtt_used_gb, system.gtt_total_gb
         if not gpu or gtt_used is None or gtt_total is None:  # GPU loads checked above
             return None, f"{mem_detail} >= {floor:.1f}GB"
-        gtt_reserved = sum(gb for gb, _, w in self._reserved.values() if w == "gtt")
+        gtt_reserved = sum(gb for gb, _, w in self._reserved.values() if w != CGROUP)
         gtt_budget = GTT_TOTAL_FRACTION * gtt_total
         gtt_after = gtt_used + gtt_reserved + size
         gtt_detail = (
@@ -844,46 +1047,27 @@ class AdmissionGate:
         with self._lock:
             self._reserved.pop(normalize_model_name(model_name).lower(), None)
 
-    def _refusal(self, reason: str, model_name: str) -> AdmissionDecision:
+    def _refusal(self, reason: str, model_name: str | None, status: int = 503) -> AdmissionDecision:
         if not self._config.enforce:
             logger.warning("admission gate SHADOW refusal (not enforced): %s", reason)
             return AdmissionDecision(True, True, f"shadow mode: {reason}", model_name)
         logger.warning("admission gate REFUSED: %s", reason)
-        return AdmissionDecision(False, True, reason, model_name)
+        return AdmissionDecision(False, True, reason, model_name, status)
 
-
-def _catalog_miss_placement(
-    model_name: str, config: GateConfig, options: dict[str, object] | None
-) -> str:
-    """Placement for a model the (stalled) catalog does not list, priced from the curated
-    footprint table: without the catalog's recipe the backend is unknown, so it fails
-    closed to 'gtt' unless it is FLM or the request or an override names a cgroup backend.
-    The curated table sizes GPU-recipe models too (Flux-2-Klein-9B-GGUF and SD-Turbo on
-    sd-cpp, Whisper-Large-v3-Turbo on whispercpp), so assuming llama.cpp-on-cpu here would
-    reopen review finding F5 during every catalog stall.
-    """
-    name = normalize_model_name(model_name).lower()
-    if name.endswith("-flm"):
-        return "cgroup"
-    explicit = [
-        b
-        for k, v in (options or {}).items()
-        if k.endswith("_backend") and (b := _backend_value(v)) is not None
-    ]
-    override = dict(config.backend_overrides).get(name)
-    if override is not None:
-        explicit.append(override)
-    return "cgroup" if explicit and all(b in _CGROUP_BACKENDS for b in explicit) else "gtt"
+    def refuse(self, reason: str) -> AdmissionDecision:
+        """A refusal the proxy decides itself (an unreadable request), shadow-aware."""
+        return self._refusal(reason, None)
 
 
 def _cgroup_charge(gb: float, placement: str) -> float:
-    """What a load adds to lemond's cgroup: all of it, or a GTT load's host share."""
-    return gb if placement == "cgroup" else gb * GTT_HOST_SHARE
+    """What a load adds to lemond's cgroup: all of it unless it is CERTAINLY GTT-placed."""
+    return gb * GTT_HOST_SHARE if placement == GTT else gb
 
 
 def _host_cost(gb: float, placement: str) -> float:
-    """What a load takes from MemAvailable: its footprint, plus the host share if GTT."""
-    return gb if placement == "cgroup" else gb * (1.0 + GTT_HOST_SHARE)
+    """What a load takes from MemAvailable: its footprint, plus the host share unless it
+    is CERTAINLY cgroup-placed."""
+    return gb if placement == CGROUP else gb * (1.0 + GTT_HOST_SHARE)
 
 
 _FETCH_LIVE: object = object()  # sentinel: caller wants a live health fetch

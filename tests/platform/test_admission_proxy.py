@@ -12,7 +12,7 @@ import httpx
 import pytest
 from fastapi.testclient import TestClient
 
-from cohezion.platform.admission_gate import AdmissionGate, GateConfig
+from cohezion.platform.admission_gate import AdmissionGate, GateConfig, SystemMemory
 from cohezion.platform.admission_proxy import build_app
 
 
@@ -26,6 +26,9 @@ def _gate(available_gb: float, resident: list[str] | None = None, enforce: bool 
         read_resident=lambda: entries,
         read_cgroup=lambda: (working_set, 30.0),
         read_size_gb=lambda _m: 16.0,
+        # No catalog, so placement is uncertain and the system check runs: keep it ample
+        # so the cgroup headroom above is what these HTTP-layer tests exercise.
+        read_system=lambda: SystemMemory(100.0, 128.0, 0.8, 96.0),
     )
 
 
