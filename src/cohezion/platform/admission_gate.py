@@ -89,16 +89,21 @@ def read_lemond_cgroup_gb() -> tuple[float, float] | None:
     file pages. ``file_mapped`` counts mapped shmem too, and ``file`` counts all shmem, so
     mapped regular pages are at most min(file_mapped, file - shmem). memory.stat has no field
     for mapped shmem, so this bound is the tightest one it allows.
-    It is exact when no unmapped cache sits in ``file`` beside the mapped pages, and safe when it is
-    not. ``amdxdna`` pins NPU buffers with drm_gem_shmem_pin whether or not anything maps
+    It is exact when no unmapped cache sits in ``file`` beside the mapped pages, and safe
+    when it is not. ``amdxdna`` pins NPU buffers with drm_gem_shmem_pin whether or not anything maps
     them, so anon + max(shmem, file_mapped) would under-count pinned NPU shmem beside
     mmap'd GGUF weights and admit a load that throttles every model.
     Measured 2026-10-22 with an FLM model resident: anon 6.25, shmem 7.21, file_mapped 9.13,
     file 13.79 GB. The old anon + shmem + file_mapped read 22.6 GB against a whole-cgroup
     charge of 20.12 GB and refused a 6.8 GB load that fit; this reads 20.04 GB.
-    Unmapped file cache is excluded whichever LRU list it sits on: after a model is unloaded
-    its weights stay on the ACTIVE file list (16.9 GB measured 2026-10-21), so
-    ``memory.current - inactive_file`` would refuse every load. The result is clamped to
+    Policy on reclaimable page cache: unmapped file cache does NOT count against admission.
+    Under memory.high the kernel drops clean unmapped cache first, cheaply; what throttles
+    every model is pressure on memory it cannot drop. After a model is unloaded its weights
+    stay on the ACTIVE file list (16.9 GB measured 2026-10-21), so counting cache
+    (``memory.current - inactive_file``) would refuse every load. The bound above counts
+    cache only where memory.stat cannot rule out that it is mapped: in the measured FLM
+    state it equals anon + file (20.04 of the 20.12 GB charge). That is the price of having
+    no mapped-shmem field, and it errs toward refusing. The result is clamped to
     ``memory.current`` (read separately, so an unload between the two reads cannot leave
     the figure above the charge).
     None when the cgroup is unreadable or has no memory.high (fail open).
