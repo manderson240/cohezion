@@ -248,3 +248,63 @@ class TestMyceliumWiring:
 
         # The class was never instantiated — early return at `if not success:`
         mock_gate_cls.assert_not_called()
+
+
+# ---------------------------------------------------------------------------
+# Worst-case event-loop block: CLR runs synchronously inside the async post-execution
+# pipeline, and tier 0 serves one request at a time (-np 1), so queued claims stack up.
+# The gate must cap its TOTAL time across claims, not just each call.
+# ---------------------------------------------------------------------------
+
+
+class _Clock:
+    def __init__(self) -> None:
+        self.now = 0.0
+
+    def __call__(self) -> float:
+        return self.now
+
+
+class _SlowYesClient:
+    """Fake GAIA client: each call costs ``cost`` seconds of the injected clock."""
+
+    def __init__(self, clock: _Clock, cost: float) -> None:
+        self.clock = clock
+        self.cost = cost
+        self.timeouts: list[float] = []
+
+    def chat_completions(self, **kwargs):
+        self.timeouts.append(kwargs.get("timeout"))
+        self.clock.now += self.cost
+        return {
+            "choices": [{"message": {"content": "YES"}, "finish_reason": "stop"}],
+            "usage": {"completion_tokens": 5},
+        }
+
+
+class TestCLRTotalTimeBound:
+    def _gate(self, clock, client, monkeypatch, **kw):
+        from cohezion.compound import clr_quality_gate as clr
+
+        monkeypatch.setattr(clr.CLRQualityGate, "_init_gaia_client", lambda self: client)
+        return clr.CLRQualityGate(clock=clock, **kw)
+
+    def test_total_budget_caps_all_claims(self, monkeypatch):
+        clock = _Clock()
+        client = _SlowYesClient(clock, cost=40.0)
+        gate = self._gate(clock, client, monkeypatch, timeout=60.0, total_timeout=60.0)
+        posted = []
+        monkeypatch.setattr("httpx.post", lambda *a, **k: posted.append(k) or 1 / 0)
+        assert gate.score("content") is None  # budget exhausted -> fail open
+        assert len(client.timeouts) == 2  # third claim never sent
+        # Each call's timeout is the REMAINING total budget, never the 900s GAIA default.
+        assert client.timeouts == [60.0, 20.0]
+        assert not posted, "httpx retry must not run past the deadline"
+        assert gate.passes("content") is True
+
+    def test_within_budget_scores_normally(self, monkeypatch):
+        clock = _Clock()
+        client = _SlowYesClient(clock, cost=5.0)
+        gate = self._gate(clock, client, monkeypatch, timeout=60.0, total_timeout=60.0)
+        assert gate.score("content") == pytest.approx(1.0)
+        assert client.timeouts == [60.0, 55.0, 50.0]

@@ -10,6 +10,8 @@ Fail-open: returns True when inference unavailable (None score).
 from __future__ import annotations
 
 import logging
+import time
+from collections.abc import Callable
 from typing import Any
 
 from cohezion.config.defaults import tier0_model
@@ -90,11 +92,20 @@ class CLRQualityGate:
         router_url: str = _ROUTER_URL,
         gaia_router_url: str = _GAIA_ROUTER_URL,
         timeout: float = 60.0,
+        total_timeout: float = 60.0,
+        clock: Callable[[], float] = time.monotonic,
     ) -> None:
         self._model = model or tier0_model()
         self._router_url = router_url
         self._gaia_router_url = gaia_router_url
         self._timeout = timeout
+        # Bound on the WHOLE score() across all claims. CLR runs synchronously inside the async
+        # post-execution pipeline and tier 0 serves one request at a time (-np 1), so queued
+        # claims (each with GAIA's 900 s default timeout, plus an httpx retry) could block the
+        # event loop for many minutes. Out of budget -> None -> fail open.
+        self._total_timeout = total_timeout
+        self._clock = clock
+        self._deadline: float | None = None
         # Card temperature, not greedy 0.0: greedy decoding on a Gemma-family card degenerates
         # into loops/empty output (TR1). Models without a card entry keep the old 0.0.
         from cohezion.inference.model_card_defaults import get_sampling_defaults
@@ -114,6 +125,7 @@ class CLRQualityGate:
     def score(self, content: str) -> float | None:
         """Compute CLR score = (mean_verdicts)^3. Returns None on inference failure."""
         verdicts: list[int] = []
+        self._deadline = self._clock() + self._total_timeout
         for claim in self._CLAIMS:
             v = self._verify_claim(claim, content)
             if v is None:
@@ -136,7 +148,16 @@ class CLRQualityGate:
             return None
         return _parse_verdict(text)
 
+    def _remaining(self) -> float:
+        """Seconds left for this call: the per-call timeout, capped by the score() deadline."""
+        if self._deadline is None:
+            return self._timeout
+        return min(self._timeout, self._deadline - self._clock())
+
     def _call_inference(self, prompt: str) -> str | None:
+        if self._remaining() <= 0:
+            logger.debug("CLRQualityGate: total budget exhausted, failing open")
+            return None
         if self._gaia_client is not None:
             try:
                 result = self._gaia_client.chat_completions(
@@ -148,11 +169,15 @@ class CLRQualityGate:
                     # own expected ctx (32768 floor), a second ctx authority competing with the
                     # saved recipe. The router auto-loads at the recipe ctx instead.
                     auto_download=False,
+                    timeout=self._remaining(),
                 )
                 return _message_answer(result)
             except Exception as exc:
                 logger.debug("CLRQualityGate: GAIA call failed (%s)", exc)
 
+        remaining = self._remaining()
+        if remaining <= 0:
+            return None  # no httpx retry past the deadline
         try:
             import httpx
 
@@ -165,7 +190,7 @@ class CLRQualityGate:
                     "temperature": self._temperature,
                 },
                 headers={"Content-Type": "application/json"},
-                timeout=self._timeout,
+                timeout=remaining,
             )
             resp.raise_for_status()
             return _message_answer(resp.json())
