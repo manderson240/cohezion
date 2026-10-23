@@ -197,10 +197,16 @@ class _Lemond:
     """A stateful fake lemond: an /api/v1/load with llamacpp_backend=cpu makes the model
     resident on the CPU, which /health (the gate's census) then reports."""
 
-    def __init__(self, resident: list[dict] | None = None, load_ok: bool = True) -> None:
+    def __init__(
+        self,
+        resident: list[dict] | None = None,
+        load_ok: bool = True,
+        delays: dict[str, float] | None = None,
+    ) -> None:
         self.resident: list[dict] = list(resident or [])
         self.seen: list[httpx.Request] = []
         self.load_ok = load_ok
+        self.delays = delays or {}
 
     def census(self) -> list[dict]:
         return list(self.resident)
@@ -208,10 +214,10 @@ class _Lemond:
     async def handle(self, request: httpx.Request) -> httpx.Response:
         self.seen.append(request)
         if request.url.path.endswith("/load"):
-            await asyncio.sleep(0.2)  # a load takes a while
+            body = json.loads(request.content)
+            await asyncio.sleep(self.delays.get(body["model_name"], 0.2))  # a load takes a while
             if not self.load_ok:
                 return httpx.Response(500, json={"error": "load failed"})
-            body = json.loads(request.content)
             if body.get("llamacpp_backend") == "cpu" and not any(
                 e["model_name"] == body["model_name"] for e in self.resident
             ):
@@ -324,6 +330,39 @@ def test_concurrent_chats_issue_one_cpu_load(holder) -> None:
         th.join(5)
     assert codes == [200, 200, 200], codes
     assert [q.url.path for q in lemond.seen].count("/api/v1/load") == 1
+
+
+def test_concurrent_chats_to_different_ggufs_both_served_promptly(holder) -> None:
+    """A's re-gate after its CPU load must not sit out the whole hold because B's load is
+    still in flight (its reservation blocks CPU reuse until it lands)."""
+    from tests.platform.test_gpu_lease_review2 import GGUF2
+
+    lemond = _Lemond(delays={GGUF: 0.2, GGUF2: 1.0})
+    app = build_app(_gate_for(lemond), client=lemond.client(), lease_hold_s=10.0)
+    port, server, th = _serve(app)
+    codes: dict[str, int] = {}
+
+    def chat(model: str) -> None:
+        r = httpx.post(
+            f"http://127.0.0.1:{port}/v1/chat/completions",
+            json={"model": model, "messages": []},
+            timeout=30,
+        )
+        codes[model] = r.status_code
+
+    t0 = time.monotonic()
+    try:
+        ts = [threading.Thread(target=chat, args=(m,)) for m in (GGUF2, GGUF)]
+        for t in ts:
+            t.start()
+            time.sleep(0.05)  # B's load starts first, A's lands while B's is in flight
+        for t in ts:
+            t.join(30)
+    finally:
+        server.should_exit = True
+        th.join(5)
+    assert codes == {GGUF: 200, GGUF2: 200}, codes
+    assert time.monotonic() - t0 < 4.0, "a served model sat out the lease hold"
 
 
 def test_local_executor_completes_under_lease_within_its_timeout(holder) -> None:

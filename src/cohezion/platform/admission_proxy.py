@@ -358,10 +358,13 @@ def build_app(
                 logger.info("admission CPU fallback under GPU lease: loaded %s on cpu", model)
                 active_gate.forget_census()
                 after = await run_gate()
+                implicit_loaded.append(model)
                 if after[0] is not None:
-                    logger.error(
-                        "admission: %s loaded with llamacpp_backend=cpu but /health does not "
-                        "show it on the CPU; not forwarding: %s",
+                    # Another load in flight, a blocked /health, or lemonade placed it
+                    # elsewhere: the hold re-gates every poll until proven or expired.
+                    logger.warning(
+                        "admission: %s loaded with llamacpp_backend=cpu, CPU placement not "
+                        "yet proven by /health; holding: %s",
                         model,
                         after[0].reason,
                     )
@@ -373,6 +376,7 @@ def build_app(
             refusal, admitted = await run_gate()
             held_once = False
             tried_implicit = False
+            implicit_loaded: list[str] = []  # set once our implicit CPU load succeeded
             while refusal is not None and refusal.kind == "gpu_lease":
                 fallback = cpu_fallback_body(
                     active_gate, path, parsed, refusal.model or "", side_fields
@@ -415,6 +419,13 @@ def build_app(
                         lease_counters["abandoned"] += 1
                         return Response(status_code=499)
                     await asyncio.sleep(lease_poll_s)
+                    if implicit_loaded:
+                        # Our CPU load landed but was not yet provable (another load still
+                        # in flight, /health blocked): re-check every poll, not after the hold.
+                        active_gate.forget_census()
+                        retry, _ = await run_gate()
+                        if retry is None or retry.kind != "gpu_lease":
+                            break
                 if await request.is_disconnected():
                     lease_counters["abandoned"] += 1
                     return Response(status_code=499)
