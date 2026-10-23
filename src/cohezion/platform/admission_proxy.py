@@ -31,6 +31,7 @@ from starlette.concurrency import run_in_threadpool
 from cohezion.platform.admission_gate import (
     CGROUP_HIGH_FRACTION,
     DEFAULT_LISTEN_PORT,
+    GTT_TOTAL_FRACTION,
     AdmissionDecision,
     AdmissionGate,
     audit_bypass_paths,
@@ -154,6 +155,10 @@ def build_app(
                 "config": {
                     "cgroup_high_fraction": CGROUP_HIGH_FRACTION,
                     "enforce": active_gate.config.enforce,
+                    "gguf_backend": active_gate.config.gguf_backend,
+                    "backend_overrides": dict(active_gate.config.backend_overrides),
+                    "mem_available_floor_gb": active_gate.config.mem_available_floor_gb,
+                    "gtt_total_fraction": GTT_TOTAL_FRACTION,
                     "upstream_base": active_gate.config.upstream_base,
                 },
                 "counters": dict(counters),

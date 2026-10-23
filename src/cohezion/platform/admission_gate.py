@@ -28,6 +28,17 @@ Removed 2026-10-21 (user decision: use Lemonade and GAIA as they are): the name-
 aperture guard, which refused models by name and even refused unloads; the RAM floor,
 swap-percent and PSI checks, which duplicated the kernel and Lemonade; GTT caps; and the
 curated byte budget, replaced by Lemonade's catalog size.
+
+PLACEMENT (added 2026-10-23): where a load's bytes land decides what it is checked against.
+Measured with Gemma-4-E2B-it-GGUF on the llama.cpp VULKAN backend: GTT rose 0.84 -> 5.56 GB
+while the lemond cgroup held anon 0.96 / file_mapped 1.26 / file 5.58 (page cache) GB and
+MemAvailable fell ~13 GB. GTT (GPU-mapped memory) is charged to NO memory cgroup, so on a GPU
+backend the cgroup check prices the weights and KV at almost nothing. A GPU-placed load must
+therefore ALSO keep MemAvailable above a floor and GTT under a fraction of its total; both
+fail CLOSED when unreadable (absent GTT is never 0). CPU-backend GGUF and FLM loads are
+charged to the cgroup and keep the cgroup check alone, exactly as before. The gate learns the
+backend from configuration (lemonade's recipe_options.json may be unreadable to it): a
+default llama.cpp backend (``cpu`` unless set) plus optional per-model overrides.
 """
 
 from __future__ import annotations
@@ -72,6 +83,15 @@ CATALOG_RETRY_S = 15.0
 _WALK_MAX_NODES = 5000
 LEMOND_CGROUP = pathlib.Path("/sys/fs/cgroup/system.slice/lemond.service")
 CGROUP_HIGH_FRACTION = 0.9
+GTT_TOTAL_FRACTION = 0.9
+# Lesson lemonade-admission-proxy-16gb-floor: below ~16 GB available the box stalls.
+DEFAULT_MEMAVAIL_FLOOR_GB = 16.0
+MEMINFO = pathlib.Path("/proc/meminfo")
+DRM = pathlib.Path("/sys/class/drm")
+# llama.cpp backends whose allocations stay in the lemond cgroup. Anything else (vulkan,
+# rocm, or a name the gate does not know) is treated as GPU-placed: an unknown backend must
+# not silently skip the system check.
+_CGROUP_BACKENDS = frozenset({"cpu"})
 # Routes that name a model but never load one: freeing memory must never be refused, and
 # lemonade budgets its own downloads (pull refuses below size + 8 GB available).
 _NON_LOAD_ROUTES = frozenset(
@@ -126,6 +146,66 @@ def read_lemond_cgroup_gb() -> tuple[float, float] | None:
     return working_set / (1024.0**3), int(high_raw) / (1024.0**3)
 
 
+@dataclass(frozen=True)
+class SystemMemory:
+    """System-wide memory in GiB; a field is None when its source is unreadable or invalid."""
+
+    mem_available_gb: float | None
+    mem_total_gb: float | None
+    gtt_used_gb: float | None
+    gtt_total_gb: float | None
+
+
+def _read_meminfo_gb(meminfo: pathlib.Path) -> tuple[float | None, float | None]:
+    """(MemAvailable, MemTotal) in GiB; both None if unreadable or MemAvailable > MemTotal."""
+    try:
+        kb: dict[str, int] = {}
+        for line in meminfo.read_text().splitlines():
+            key, _, rest = line.partition(":")
+            if key in ("MemAvailable", "MemTotal"):
+                kb[key] = int(rest.split()[0])
+        avail, total = kb["MemAvailable"] / 1024**2, kb["MemTotal"] / 1024**2
+    except (OSError, ValueError, KeyError, IndexError):
+        return None, None
+    if not 0 <= avail <= total:  # physical bound: a part cannot exceed its container
+        return None, None
+    return avail, total
+
+
+def _read_gtt_gb(drm: pathlib.Path) -> tuple[float | None, float | None]:
+    """(used, total) GTT in GiB across distinct GPU devices, or (None, None).
+
+    Same approach as the pressure recorder's reader: absent is None, never 0. Devices are
+    de-duplicated by resolved path so a connector entry linking to the same PCI device is
+    not counted twice. used > total is physically impossible and is rejected, not clamped.
+    """
+    used = total = 0
+    seen: set[pathlib.Path] = set()
+    for used_path in sorted(drm.glob("card*/device/mem_info_gtt_used")):
+        try:
+            device = used_path.parent.resolve()
+            if device in seen:
+                continue
+            u = int(used_path.read_text())
+            t = int((used_path.parent / "mem_info_gtt_total").read_text())
+        except (OSError, ValueError):
+            continue
+        seen.add(device)
+        used, total = used + u, total + t
+    if not seen or not 0 <= used <= total or total == 0:
+        return None, None
+    return used / 1024**3, total / 1024**3
+
+
+def read_system_memory_gb(
+    meminfo: pathlib.Path | None = None, drm: pathlib.Path | None = None
+) -> SystemMemory:
+    """MemAvailable/MemTotal and summed GTT used/total, each None when unreadable."""
+    avail, total = _read_meminfo_gb(MEMINFO if meminfo is None else meminfo)
+    gtt_used, gtt_total = _read_gtt_gb(DRM if drm is None else drm)
+    return SystemMemory(avail, total, gtt_used, gtt_total)
+
+
 def is_load_path(path: str) -> bool:
     """False only for the exact routes that name a model but cannot load one."""
     return path.strip("/").lower() not in _NON_LOAD_ROUTES
@@ -178,6 +258,11 @@ class GateConfig:
     enforce: bool = True
     upstream_base: str = DEFAULT_UPSTREAM
     health_timeout_s: float = 2.0
+    # llama.cpp backend lemonade uses for GGUF models, and per-model exceptions as
+    # (lowercased normalized name, backend) pairs. "cpu" keeps today's cgroup-only check.
+    gguf_backend: str = "cpu"
+    backend_overrides: tuple[tuple[str, str], ...] = ()
+    mem_available_floor_gb: float = DEFAULT_MEMAVAIL_FLOOR_GB
 
     @classmethod
     def from_env(cls) -> GateConfig:
@@ -186,15 +271,61 @@ class GateConfig:
             enforce=enforce_raw not in ("0", "false", "no", "off", ""),
             upstream_base=os.environ.get("COHEZION_ADMISSION_UPSTREAM", DEFAULT_UPSTREAM),
             health_timeout_s=float(os.environ.get("COHEZION_ADMISSION_HEALTH_TIMEOUT_S", "2.0")),
+            gguf_backend=os.environ.get("COHEZION_ADMISSION_GGUF_BACKEND", "cpu").strip().lower()
+            or "cpu",
+            backend_overrides=_parse_overrides(
+                os.environ.get("COHEZION_ADMISSION_BACKEND_OVERRIDES", "")
+            ),
+            mem_available_floor_gb=float(
+                os.environ.get(
+                    "COHEZION_ADMISSION_MEMAVAIL_FLOOR_GB", str(DEFAULT_MEMAVAIL_FLOOR_GB)
+                )
+            ),
         )
         logger.info(
-            "admission config: enforce=%s (raw=%r) upstream=%s cgroup_fraction=%.2f",
+            "admission config: enforce=%s (raw=%r) upstream=%s cgroup_fraction=%.2f "
+            "gguf_backend=%s overrides=%s memavail_floor=%.1fGB gtt_fraction=%.2f",
             cfg.enforce,
             enforce_raw,
             cfg.upstream_base,
             CGROUP_HIGH_FRACTION,
+            cfg.gguf_backend,
+            dict(cfg.backend_overrides),
+            cfg.mem_available_floor_gb,
+            GTT_TOTAL_FRACTION,
         )
         return cfg
+
+
+def _parse_overrides(raw: str) -> tuple[tuple[str, str], ...]:
+    """'ModelA=vulkan, ModelB=cpu' -> ((modela, vulkan), (modelb, cpu)); junk is skipped."""
+    pairs: list[tuple[str, str]] = []
+    for item in raw.split(","):
+        name, sep, backend = item.partition("=")
+        name, backend = normalize_model_name(name.strip()).lower(), backend.strip().lower()
+        if sep and name and backend:
+            pairs.append((name, backend))
+    return tuple(pairs)
+
+
+def model_placement(
+    model_name: str, catalog_entry: dict[str, object] | None, config: GateConfig
+) -> str:
+    """'gtt' when the load's bytes land in GPU-mapped memory, else 'cgroup'.
+
+    FLM (NPU) is always 'cgroup' (its buffers are lemond shmem/file_mapped, measured).
+    llama.cpp models -- catalog recipe 'llamacpp', or a GGUF name when the catalog has no
+    entry -- follow the per-model override, else the configured default backend. Every
+    other recipe (whisper, kokoro, sd, ...) keeps the cgroup check.
+    """
+    recipe = str((catalog_entry or {}).get("recipe", "")).lower()
+    name = normalize_model_name(model_name).lower()
+    if recipe == "flm" or name.endswith("-flm"):
+        return "cgroup"
+    if recipe != "llamacpp" and (recipe or "gguf" not in name):
+        return "cgroup"
+    backend = dict(config.backend_overrides).get(name, config.gguf_backend)
+    return "cgroup" if backend in _CGROUP_BACKENDS else "gtt"
 
 
 @dataclass(frozen=True)
@@ -220,6 +351,7 @@ class AdmissionGate:
         read_cgroup: Callable[[], tuple[float, float] | None] | None = None,
         read_size_gb: Callable[[str], float | None] | None = None,
         read_catalog: Callable[[], dict[str, dict[str, object]] | None] | None = None,
+        read_system: Callable[[], SystemMemory | None] | None = None,
     ) -> None:
         self._config = config if config is not None else GateConfig.from_env()
         # Probes target the UPSTREAM router: the module default :13305 is this proxy.
@@ -230,11 +362,13 @@ class AdmissionGate:
             )
         )
         self._read_cgroup = read_cgroup or read_lemond_cgroup_gb
+        self._read_system = read_system or read_system_memory_gb
         self._read_catalog = read_catalog or self._fetch_catalog
         self._catalog: dict[str, dict[str, object]] = {}
         self._catalog_at: float | None = None
         self._read_size_gb = read_size_gb or self._cached_footprint_gb
-        self._reserved: dict[str, tuple[float, float]] = {}  # model -> (gb, expires_at)
+        # model -> (gb, expires_at, placement)
+        self._reserved: dict[str, tuple[float, float, str]] = {}
         self._lock = threading.Lock()  # proxy calls decide() from a threadpool
         self._resident_cache: tuple[float, list[dict[str, object]] | None] | None = None
         self._last_good: tuple[float, list[dict[str, object]]] | None = None
@@ -376,6 +510,9 @@ class AdmissionGate:
         resident = self._resident_entries()
         if self._is_resident(model_name, resident):
             return AdmissionDecision(True, False, "resident — reuse needs no memory", model_name)
+        placement = model_placement(
+            model_name, self._catalog.get(normalize_model_name(model_name)), self._config
+        )
         cgroup = self._read_cgroup()
         if cgroup is None:
             self.cgroup_readable = False
@@ -383,10 +520,13 @@ class AdmissionGate:
             if now - self._cgroup_warned_at > 60:
                 self._cgroup_warned_at = now
                 logger.warning("admission gate: lemond cgroup unreadable — not gating loads")
-            return AdmissionDecision(
-                True, False, "cgroup unreadable — Lemonade decides", model_name
-            )
-        self.cgroup_readable = True
+            if placement == "cgroup":
+                return AdmissionDecision(
+                    True, False, "cgroup unreadable — Lemonade decides", model_name
+                )
+            # A GPU-placed load still faces the system check below, which fails closed.
+        else:
+            self.cgroup_readable = True
         size = self._read_size_gb(model_name)
         if size is None:
             if self._catalog_is_fresh():
@@ -399,34 +539,98 @@ class AdmissionGate:
                 model_name,
             )
         credit = self._npu_slot_credit_gb(model_name, path, resident)
-        working_set, high = cgroup
-        budget = CGROUP_HIGH_FRACTION * high
+        system: SystemMemory | None = None
+        if placement == "gtt":
+            try:
+                system = self._read_system()
+            except Exception as exc:  # a broken probe reads as unreadable: fail closed
+                logger.warning("admission gate: system memory probe failed: %s", exc)
         key = normalize_model_name(model_name).lower()
 
         with self._lock:
             now = time.monotonic()
-            for k, (_gb, expires) in list(self._reserved.items()):
+            for k, (_gb, expires, _where) in list(self._reserved.items()):
                 landed = resident is not None and any(_resident_match(k, m) for m in resident)
                 if landed or now > expires:
                     del self._reserved[k]
             if key in self._reserved:  # same model already admitted and still loading
                 return AdmissionDecision(True, False, "already admitted — loading", model_name)
-            reserved = sum(gb for gb, _ in self._reserved.values())
-            total = working_set + reserved - credit + size
-            detail = (
-                f"{working_set:.1f}GB working set + {reserved:.1f}GB reserved - {credit:.1f}GB "
-                f"NPU swap + {size:.1f}GB '{model_name}' = {total:.1f}GB"
-            )
-            if total > budget:
-                return self._refusal(
-                    f"lemond cgroup headroom: {detail} > {budget:.1f}GB "
-                    f"({CGROUP_HIGH_FRACTION:.0%} of memory.high {high:.0f}GB) — past "
-                    "memory.high the kernel throttles every model in lemond",
-                    model_name,
+            # GTT-bound reservations are not in the cgroup, so they do not crowd its budget.
+            reserved = sum(gb for gb, _, w in self._reserved.values() if w == "cgroup")
+            details: list[str] = []
+            if cgroup is not None:
+                working_set, high = cgroup
+                budget = CGROUP_HIGH_FRACTION * high
+                total = working_set + reserved - credit + size
+                detail = (
+                    f"{working_set:.1f}GB working set + {reserved:.1f}GB reserved - "
+                    f"{credit:.1f}GB NPU swap + {size:.1f}GB '{model_name}' = {total:.1f}GB"
                 )
-            self._reserved[key] = (size, now + RESERVATION_TTL_S)
-        logger.info("admission gate ADMIT: %s <= %.1fGB", detail, budget)
-        return AdmissionDecision(True, False, f"fits: {detail} <= {budget:.1f}GB", model_name)
+                if total > budget:
+                    return self._refusal(
+                        f"lemond cgroup headroom: {detail} > {budget:.1f}GB "
+                        f"({CGROUP_HIGH_FRACTION:.0%} of memory.high {high:.0f}GB) — past "
+                        "memory.high the kernel throttles every model in lemond",
+                        model_name,
+                    )
+                details.append(f"{detail} <= {budget:.1f}GB")
+            if placement == "gtt":
+                refusal, detail = self._system_check(system, size, model_name)
+                if refusal is not None:
+                    return refusal
+                details.append(detail)
+            self._reserved[key] = (size, now + RESERVATION_TTL_S, placement)
+        summary = "; ".join(details)
+        logger.info("admission gate ADMIT (%s): %s", placement, summary)
+        return AdmissionDecision(True, False, f"fits: {summary}", model_name)
+
+    def _system_check(
+        self, system: SystemMemory | None, size: float, model_name: str
+    ) -> tuple[AdmissionDecision | None, str]:
+        """MemAvailable floor + GTT cap for a GPU-placed load. Caller holds the lock.
+
+        Fails CLOSED on any unreadable source: GTT is charged to no cgroup, so nothing else
+        would catch this load. Every in-flight reservation reduces MemAvailable (all of them
+        will consume system RAM); only GTT-placed ones count against GTT.
+        """
+        if (
+            system is None
+            or system.gtt_used_gb is None
+            or system.gtt_total_gb is None
+            or system.mem_available_gb is None
+        ):
+            return self._refusal(
+                f"GTT/MemAvailable unreadable for GPU-placed '{model_name}' — its weights "
+                "land in GTT, which no cgroup accounts for; refusing rather than guessing",
+                model_name,
+            ), ""
+        all_reserved = sum(gb for gb, _, _ in self._reserved.values())
+        gtt_reserved = sum(gb for gb, _, w in self._reserved.values() if w == "gtt")
+        floor = self._config.mem_available_floor_gb
+        left = system.mem_available_gb - all_reserved - size
+        mem_detail = (
+            f"MemAvailable {system.mem_available_gb:.1f}GB - {all_reserved:.1f}GB reserved - "
+            f"{size:.1f}GB '{model_name}' = {left:.1f}GB"
+        )
+        if left < floor:
+            return self._refusal(
+                f"system memory floor: {mem_detail} < {floor:.1f}GB floor — GPU-placed "
+                "(GTT) loads bypass the lemond cgroup",
+                model_name,
+            ), ""
+        gtt_budget = GTT_TOTAL_FRACTION * system.gtt_total_gb
+        gtt_after = system.gtt_used_gb + gtt_reserved + size
+        gtt_detail = (
+            f"GTT {system.gtt_used_gb:.1f}GB + {gtt_reserved:.1f}GB reserved + "
+            f"{size:.1f}GB = {gtt_after:.1f}GB"
+        )
+        if gtt_after > gtt_budget:
+            return self._refusal(
+                f"GTT headroom: {gtt_detail} > {gtt_budget:.1f}GB "
+                f"({GTT_TOTAL_FRACTION:.0%} of GTT total {system.gtt_total_gb:.0f}GB)",
+                model_name,
+            ), ""
+        return None, f"{mem_detail} >= {floor:.1f}GB; {gtt_detail} <= {gtt_budget:.1f}GB"
 
     def release(self, model_name: str) -> None:
         """Drop an admitted load's reservation (the upstream request failed)."""
