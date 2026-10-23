@@ -1,6 +1,7 @@
 """CLR (Claim-Level Reasoning) quality gate for Mycelium re-injection.
 
-3-claim binary NPU verification via OmniRouter :13305 (model: llama3.2-1b-FLM).
+3-claim binary verification on the cascade tier-0 model via OmniRouter :13305
+(config.defaults.tier0_model; iGPU GGUF since 2026-10-23, no longer the NPU FLM).
 score = (mean_verdicts)^3; threshold 0.7 — unanimous YES (3/3=1.0) passes,
 2/3 yields ~0.296 which fails, making this effectively a consensus gate.
 Fail-open: returns True when inference unavailable (None score).
@@ -11,7 +12,7 @@ from __future__ import annotations
 import logging
 from typing import Any
 
-from cohezion.config.defaults import tier0_model
+from cohezion.config.defaults import tier0_client_kwargs, tier0_model
 
 
 logger = logging.getLogger(__name__)
@@ -65,7 +66,12 @@ class CLRQualityGate:
         try:
             from gaia.llm.lemonade_client import LemonadeClient  # type: ignore[import]
 
-            return LemonadeClient(base_url=self._gaia_router_url, model=self._model, verbose=False)
+            return LemonadeClient(
+                base_url=self._gaia_router_url,
+                model=self._model,
+                verbose=False,
+                **tier0_client_kwargs(self._model),  # bounded tier-0 ctx on GAIA's own load
+            )
         except Exception as exc:
             logger.debug("CLRQualityGate: GAIA unavailable (%s), using httpx fallback", exc)
             return None

@@ -1,7 +1,9 @@
 """Tri-Silicon Sovereign Autopoiesis Engine for AMD Strix Halo.
 ==============================================================
 Orchestrates continuous hardware-specialized autopoietic cycles:
-1. NPU Phase: FastFlowLM (XDNA2, port 13305) - Reflection, strategy synthesis, and directional steering.
+1. "NPU" Phase: cascade tier-0 model via :13305 (config.defaults.tier0_model; an iGPU GGUF
+   since 2026-10-23, formerly FastFlowLM on the XDNA2 NPU) - Reflection, strategy synthesis,
+   and directional steering. The phase keeps its historical name.
 2. CPU Phase: 16-Core Zen 4 AVX-512 - High-throughput parallel tournaments & ARC DSL symbolic search.
 3. iGPU Phase: Radeon 8060S Vulkan/ROCm - Code generation and heuristic policy synthesis.
 4. Mathematical Negentropy Verification: Sheaf Dirichlet energy relaxation and Prigogine dissipative entropy sink.
@@ -80,7 +82,7 @@ class TriSiliconAutopoiesisEngine:
         )
 
     def execute_npu_phase(self, cycle: int) -> tuple[str, float]:
-        """Phase 1: NPU-accelerated reflection and goal direction via FastFlowLM."""
+        """Phase 1: reflection and goal direction on the tier-0 model (no longer the NPU/FLM)."""
         t0 = time.perf_counter()
         prompt = (
             f"Autopoiesis Cycle {cycle}: Suggest the single highest-leverage optimization "

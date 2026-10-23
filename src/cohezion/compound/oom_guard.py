@@ -53,7 +53,9 @@ MODEL_FOOTPRINT_GB: dict[str, float] = {
     "Qwen3-Embedding-0.6B-GGUF": 0.64,
     # ── Small LLMs (safe at any reasonable ctx) ──────────────────────────────
     "Qwen3-0.6B-GGUF": 0.38,
-    "Llama-3.2-1B-Instruct-GGUF": 0.81,  # tier 0; approx Q4_K_M size, not measured live
+    # Tier 0. UD-Q4_K_XL (catalog checkpoint), catalog size 0.777 GB (read 2026-10-23).
+    # Small weights, but NOT exempt from KV pricing: see KV_KIB_PER_TOKEN below.
+    "Llama-3.2-1B-Instruct-GGUF": 0.78,
     "Bonsai-1.7B-gguf": 1.05,
     "Bonsai-4B-gguf": 2.40,
     "Gemma-4-E2B-it-GGUF": 4.09,
@@ -346,6 +348,10 @@ KV_KIB_PER_TOKEN: dict[str, float] = {
     "Qwen3.8-27B-NoThinking": 256.0,
     "Qwen3.8-27B-ThinkingCoder": 256.0,
     "Qwen3.8-27B-OBLITERATED-Q5_K_M": 256.0,
+    # Llama-3.2-1B: 16 L x 8 KV heads x 64 head_dim -> 32 KiB/token (131072 native window
+    # = 4.0 GB of KV against 0.78 GB of weights). A curated shape here also opts a
+    # small-weights model OUT of check_oom_risk's "small model" early return.
+    "Llama-3.2-1B-Instruct-GGUF": 32.0,
 }
 # KNOWN LIMIT (research digest 20260901-kv-reservation-pricing): this GQA-style
 # per-token rate OVERESTIMATES iSWA models (gemma family: 5:1 sliding-window layers
@@ -601,7 +607,14 @@ def check_oom_risk(
     # return "small model — no gate needed" — a fail-open that looks like a clearance.
     # A newly-pulled 30B model would have sailed through it. Unknown now means "assume
     # heavy until measured": allowed with ample headroom, gated otherwise.
-    if known and MODEL_FOOTPRINT_GB[model_name] < HEAVY_THRESHOLD_GB:
+    # ...but a small model with a curated KV shape (the tier-0 GGUF) still pays weights +
+    # KV(ctx): its KV reservation can be 5x its weights, so weights-only clearance was
+    # strictly weaker than the unknown-model path it replaced.
+    if (
+        known
+        and MODEL_FOOTPRINT_GB[model_name] < HEAVY_THRESHOLD_GB
+        and model_name not in KV_KIB_PER_TOKEN
+    ):
         weights = MODEL_FOOTPRINT_GB[model_name]
         return OOMRisk(True, model_name, avail, weights, "small model — no gate needed")
 

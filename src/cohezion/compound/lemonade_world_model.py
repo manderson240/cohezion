@@ -25,7 +25,7 @@ from typing import Any
 
 import numpy as np
 
-from cohezion.config.defaults import tier0_model
+from cohezion.config.defaults import tier0_client_kwargs, tier0_model
 
 
 logger = logging.getLogger(__name__)
@@ -78,13 +78,15 @@ class FlumeWorldModel:
     """FLUME world model — maps task descriptions to 12D manifold coherence via local LLM inference.
 
     Extends the FLUME latent-space backbone: instead of encoding via the VAE, this component
-    uses a fast local language model (llama3.2-1b-FLM on the XDNA2 NPU via :13305 OmniRouter)
+    uses the fast cascade tier-0 model (config.defaults.tier0_model, via the :13305 OmniRouter;
+    an iGPU GGUF since 2026-10-23 — it ran on the XDNA2 NPU before)
     as a tractability probe in the manifold's quality dimension.  The protocol is:
     task description → tractability prompt → scalar coherence → 12D state vector.
 
     Args:
         chat_fn: Optional ``prompt(text) -> str`` callable. Injected in tests; when None, a GAIA
-            ``LemonadeClient`` shim is built lazily on first use (router :13305, fast NPU model).
+            ``LemonadeClient`` shim is built lazily on first use (router :13305, tier-0 model,
+            load pinned to config.defaults.tier0_ctx).
         model_id: lemonade model id for the default GAIA path.
     """
 
@@ -125,7 +127,10 @@ class FlumeWorldModel:
             from cohezion.inference.gaia_adapter import _GaiaLLMClientShim
 
             client = LemonadeClient(
-                base_url="http://localhost:13305/api/v1", model=self._model_id, verbose=False
+                base_url="http://localhost:13305/api/v1",
+                model=self._model_id,
+                verbose=False,
+                **tier0_client_kwargs(self._model_id),  # bounded tier-0 ctx on GAIA's load
             )
             self._chat_fn = _GaiaLLMClientShim(
                 client, self._model_id, max_tokens=8, temperature=0.0

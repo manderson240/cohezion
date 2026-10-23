@@ -42,7 +42,9 @@ COMPOUND_LOOP_MODELS: list[str] = [
     "deepseek-r1-0528-8b-FLM",  # FLM NPU: SkillRefiner reasoning tier, 10.6 TPS (N1)
 ]
 
-# SLA: latency targets and quality tiers (source: harness.md N1, measured 2026-06-22)
+# SLA: latency targets and quality tiers (source: harness.md N1, measured 2026-06-22).
+# The _TIER0 row's targets were measured on llama3.2-1b-FLM (NPU); they are NOT yet
+# re-measured for the iGPU GGUF tier-0 model that now fills that row.
 _SLA: dict[str, dict[str, Any]] = {
     _TIER0: {
         "max_latency_ms": 100,

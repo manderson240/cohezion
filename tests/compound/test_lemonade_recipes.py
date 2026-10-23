@@ -116,9 +116,9 @@ class TestBaseRecipeArgs:
 
 class TestBaseRecipeCount:
     def test_recipe_count(self) -> None:
-        """17 LLM models with crafted recipes."""
-        assert len(BASE_RECIPES) == 17, (
-            f"Expected 17 BASE_RECIPES, got {len(BASE_RECIPES)}. "
+        """18 LLM models with crafted recipes (tier-0 Llama-3.2-1B GGUF added 2026-10-23)."""
+        assert len(BASE_RECIPES) == 18, (
+            f"Expected 18 BASE_RECIPES, got {len(BASE_RECIPES)}. "
             "Update this count if you intentionally add/remove a model."
         )
 
