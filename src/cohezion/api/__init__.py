@@ -24,12 +24,16 @@ from fastapi.staticfiles import StaticFiles
 
 from cohezion.api._helpers import (
     compute_coherence as _compute_coherence,
+)
+from cohezion.api._helpers import (
     get_rl_policy as _get_rl_policy,
+)
+from cohezion.api._helpers import (
     get_vae as _get_vae,
 )
-from cohezion.api.routes.metrics import set_token_client
 from cohezion.api.routes.eigent import router as eigent_router
 from cohezion.api.routes.main import router as main_router
+from cohezion.api.routes.metrics import set_token_client
 from cohezion.api.telemetry import router as telemetry_router
 from cohezion.security.rate_limiter import get_rate_limiter
 
@@ -102,6 +106,40 @@ async def root():
 
 # Mount main router (contains health, mcp, knowledge, swarm, notebooks, simulations, agentjet, a2a)
 app.include_router(main_router)
+
+
+# Service routers. Restored 2026-10-23: the #267 refactor (8f712a8bd) dropped these 11 mounts
+# while every module still imported, so ~110 routes silently returned 404. An unavailable
+# module is LOGGED, never silently swallowed -- a quiet ImportError is how this went unseen.
+# Order and prefixes match the pre-refactor app. Guard: tests/api/test_router_mounts.py.
+_SERVICE_ROUTERS: tuple[tuple[str, str, str], ...] = (
+    ("cohezion.api.research_endpoints", "router", ""),
+    ("cohezion.api.services.universe", "universe_router", "/api/universe"),
+    ("cohezion.api.routes.journey_nexus", "router", "/api"),
+    ("cohezion.api.services.genesis", "genesis_router", "/api"),
+    ("cohezion.api.services.world_model", "world_model_router", "/api"),
+    ("cohezion.api.services.physics_extended", "physics_ext_router", "/api"),
+    ("cohezion.api.services.worldviews", "worldviews_router", "/api"),
+    ("cohezion.api.journeys", "router", "/api/journeys"),
+    ("cohezion.api.services.ouroboros_api", "ouroboros_router", "/api"),
+    ("cohezion.api.services.mycelium_api", "mycelium_router", "/api"),
+    ("cohezion.api.services.modules_api", "modules_router", "/api"),
+)
+
+
+def _mount_service_routers() -> None:
+    import importlib
+
+    for module_name, attr, prefix in _SERVICE_ROUTERS:
+        try:
+            router = getattr(importlib.import_module(module_name), attr)
+        except ImportError as exc:
+            logger.warning("API router %s.%s not mounted: %s", module_name, attr, exc)
+            continue
+        app.include_router(router, prefix=prefix)
+
+
+_mount_service_routers()
 
 # Register Anima (system voice) endpoints
 with contextlib.suppress(ImportError):
