@@ -16,6 +16,7 @@ from __future__ import annotations
 
 import json
 import logging
+import os
 import subprocess
 import time
 import urllib.error
@@ -199,8 +200,7 @@ def _chat_complete(
         headers={"Content-Type": "application/json"},
         method="POST",
     )
-    with urllib.request.urlopen(req, timeout=timeout) as resp:  # noqa: S310
-        data = json.loads(resp.read())
+    data = _urlopen_waiting_out_lease(req, timeout)
 
     # Promote reasoning_content → content for thinking-mode models
     for choice in data.get("choices", []):
@@ -209,6 +209,27 @@ def _chat_complete(
             msg["content"] = msg["reasoning_content"]
 
     return data
+
+
+def _urlopen_waiting_out_lease(req: urllib.request.Request, timeout: float) -> dict[str, Any]:
+    """POST and parse, waiting out the admission gate's GPU-lease refusal (503 + Retry-After
+    + X-Cohezion-Refusal: gpu_lease) and retrying the SAME model, like the GAIA shim: a lease
+    is "wait", not "this tier failed". Bounded by the shim's COHEZION_GPU_LEASE_CLIENT_WAIT_S;
+    every other error propagates unchanged."""
+    from cohezion.inference.gaia_adapter import LEASE_CLIENT_WAIT_S_DEFAULT, gpu_lease_retry_after
+
+    budget = float(os.environ.get("COHEZION_GPU_LEASE_CLIENT_WAIT_S", LEASE_CLIENT_WAIT_S_DEFAULT))
+    start = time.monotonic()
+    while True:
+        try:
+            with urllib.request.urlopen(req, timeout=timeout) as resp:  # noqa: S310
+                return json.loads(resp.read())  # type: ignore[no-any-return]
+        except urllib.error.HTTPError as exc:
+            wait = gpu_lease_retry_after(exc)
+            if wait is None or time.monotonic() - start + wait > budget:
+                raise
+            logger.info("OmniRouter: GPU lease held, retrying in %.0fs", wait)
+            time.sleep(wait)
 
 
 # QA-judge lane. Model choice is empirical (live-smoked 2026-06-30 on :13305):

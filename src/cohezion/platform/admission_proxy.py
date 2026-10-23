@@ -54,7 +54,9 @@ RETRY_AFTER_S = 15  # refused clients back off instead of retrying in a tight lo
 # the CPU budget fits (the proxy loads it there first). Otherwise a refused GPU-placed
 # request WAITS, polling the lease, and gets a 503 only when the hold expires. The hold is
 # below the shortest known client timeout (research_daemon, local_executor: 90 s), which
-# escalate to the cloud on a timeout but retry a 503 with the lease marker.
+# escalate to the cloud on a timeout. Of the clients, the GAIA shim (gaia_adapter),
+# research_swarm and local_executor._chat_complete wait out a 503 carrying the lease marker
+# and retry; ~/cohezion-labs/research_daemon does NOT (any 503 goes to its cloud fallback).
 LEASE_HOLD_S_DEFAULT = 60.0
 LEASE_POLL_S = 1.0
 _CPU_FALLBACK_ROUTES = frozenset({"v1/load", "api/v1/load"})
@@ -215,6 +217,7 @@ def build_app(
                 "gpu_lease_counters": dict(lease_counters),
                 "reserved": await run_in_threadpool(active_gate.reserved_models),
                 "in_flight": active_gate.in_flight(),
+                "in_use": active_gate.in_use(),
             }
         )
 
@@ -261,10 +264,16 @@ def build_app(
         # Admits decided while the lease was free: in flight until upstream answers, so a
         # lease acquired meanwhile drains them (gate.finish releases each).
         tracked: list[AdmissionDecision] = []
+        # Admits whose model stays IN USE until the response is relayed (stream end).
+        uses: list[AdmissionDecision] = []
 
         def untrack() -> None:
             while tracked:
                 active_gate.finish(tracked.pop())
+
+        def release_uses() -> None:
+            while uses:
+                active_gate.finish_use(uses.pop())
 
         async def run_gate(
             lease_exempt: str | None = None,
@@ -292,6 +301,8 @@ def build_app(
                 )
                 if decision.token is not None:
                     tracked.append(decision)
+                if decision.use_token is not None:
+                    uses.append(decision)
                 if decision.would_refuse:
                     counters["shadow_refusals"] += 1
                 new_load = decision.reason.startswith("fits")
@@ -310,6 +321,7 @@ def build_app(
                     for n in admitted:
                         active_gate.release(n)
                     untrack()
+                    release_uses()
                     return decision, []
                 if new_load and name:
                     admitted.append(name)
@@ -355,6 +367,7 @@ def build_app(
                     active_gate.release(model)
                     return None
                 lease_counters["implicit_cpu_loads"] += 1
+                active_gate.note_cpu_load(model)
                 logger.info("admission CPU fallback under GPU lease: loaded %s on cpu", model)
                 active_gate.forget_census()
                 after = await run_gate()
@@ -370,6 +383,7 @@ def build_app(
                     )
                 return after
 
+        streaming = False  # once True, the response's background task releases ``uses``
         try:
             loop = asyncio.get_running_loop()
             deadline = loop.time() + hold_s
@@ -377,6 +391,7 @@ def build_app(
             held_once = False
             tried_implicit = False
             implicit_loaded: list[str] = []  # set once our implicit CPU load succeeded
+            cpu_load_of: str | None = None  # the model an explicit load was rewritten to CPU
             while refusal is not None and refusal.kind == "gpu_lease":
                 fallback = cpu_fallback_body(
                     active_gate, path, parsed, refusal.model or "", side_fields
@@ -401,6 +416,7 @@ def build_app(
                         lease_exempt=refusal.model, gate_body=json.loads(fallback)
                     )
                     if fb_refusal is None:
+                        cpu_load_of = refusal.model
                         refusal, admitted, body = None, fb_admitted, fallback
                         lease_counters["cpu_fallbacks"] += 1
                         logger.info("admission CPU fallback under GPU lease: /%s", path)
@@ -474,6 +490,8 @@ def build_app(
             if upstream_resp.status_code >= 400:
                 for name in admitted:
                     active_gate.release(name)
+            elif cpu_load_of is not None:  # lemond answers a load only once it has loaded
+                active_gate.note_cpu_load(cpu_load_of)
             resp_headers = {
                 k: v for k, v in upstream_resp.headers.items() if k.lower() not in _HOP_HEADERS
             }
@@ -486,6 +504,14 @@ def build_app(
                     headers=resp_headers,
                     media_type=upstream_resp.headers.get("content-type"),
                 )
+
+            async def close_upstream() -> None:
+                try:
+                    await upstream_resp.aclose()
+                finally:
+                    release_uses()  # the generation is over: the lease may unload it now
+
+            streaming = True
             return StreamingResponse(
                 upstream_resp.aiter_raw(),
                 status_code=upstream_resp.status_code,
@@ -493,11 +519,13 @@ def build_app(
                 # Close the upstream response when streaming ends OR the client
                 # disconnects mid-stream — otherwise every abandoned generation leaks a
                 # pooled connection until the pool exhausts under lemond's slow streams.
-                background=BackgroundTask(upstream_resp.aclose),
+                background=BackgroundTask(close_upstream),
                 media_type=upstream_resp.headers.get("content-type"),
             )
         finally:
             untrack()  # every path: refused, 502, or upstream answered
+            if not streaming:
+                release_uses()
 
     return app
 

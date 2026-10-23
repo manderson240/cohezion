@@ -30,6 +30,7 @@ from __future__ import annotations
 
 import base64
 import json
+import re
 import subprocess
 import sys
 import textwrap
@@ -313,7 +314,10 @@ def lemonade_query(model: str, prompt: str, timeout: int = 300) -> tuple[bool, s
         # refusal is logged on STDOUT and stderr only says "server not running". So look for
         # the marker in both streams BEFORE trusting the exit code.
         refused = "GPU lease held" in result.stdout + result.stderr
-        if not refused and result.returncode == 0 and result.stdout.strip():
+        # gaia also exits 0 when its own load was refused for another reason: its error log
+        # on stdout is not an answer (it would pass run_agent's length check as research).
+        errored = re.search(r"\| ERROR \||Request failed with status", result.stdout)
+        if not refused and not errored and result.returncode == 0 and result.stdout.strip():
             return True, result.stdout.strip()
         err = result.stderr.strip() or result.stdout.strip()
         spent = max(slept, time.monotonic() - start)

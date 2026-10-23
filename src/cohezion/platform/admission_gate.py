@@ -70,7 +70,7 @@ from cohezion.platform.gpu_lease import (
     FLOOR_GB,
     _mem_available_gb,
     lease_path,
-    live_sidecar_pid,
+    sidecar_lock_held,
     sidecar_path,
 )
 
@@ -89,6 +89,11 @@ RESERVATION_TTL_S = 180.0
 # it, whatever path admitted it. The TTL only bounds direct decide() callers that never call
 # finish(); the proxy always does.
 IN_FLIGHT_TTL_S = 300.0
+# Every admit decided while the lease was FREE also marks its model IN USE until the proxy
+# has finished relaying the response (stream end or client gone). A lease acquirer waits for
+# its victims to be idle before unloading them, so no generation is cut mid-stream. The TTL
+# only bounds a caller that never calls finish_use(); the proxy always does.
+IN_USE_TTL_S = 3600.0
 # A positive residency answer stays usable this long: /api/v1/health blocks while any model
 # loads, and losing "resident" then re-prices chats to already-loaded models as fresh loads.
 RESIDENT_LAST_GOOD_S = 60.0
@@ -168,27 +173,28 @@ LEASE_FREE = "free"
 def probe_gpu_lease(path: pathlib.Path) -> str:
     """HELD or FREE for the GPU lease flock at *path*. Never blocks, never creates it.
 
-    A shared non-blocking flock succeeds only when nobody holds LOCK_EX. ENOENT is FREE (no
-    lease was ever taken) unless the holder sidecar names a LIVE process: then the lock file
-    was deleted under a held lease, which stays HELD until its watchdog recreates the file.
-    Any other OSError is HELD: an unreadable lease must tighten.
+    A shared non-blocking flock succeeds only when nobody holds LOCK_EX. A missing or free
+    file is still HELD while the holder sidecar names another inode a live holder locks (the
+    file was deleted, or replaced, under a held lease); a missing file whose holder cannot
+    be told alive or dead also reads HELD (see gpu_lease.sidecar_lock_held). Any other
+    OSError is HELD: an unreadable lease must tighten.
     """
     try:
         fd = os.open(path, os.O_RDONLY)
     except FileNotFoundError:
-        return LEASE_HELD if live_sidecar_pid(path) is not None else LEASE_FREE
+        return LEASE_HELD if sidecar_lock_held(path) is not False else LEASE_FREE
     except OSError:
         return LEASE_HELD
     try:
         fcntl.flock(fd, fcntl.LOCK_SH | fcntl.LOCK_NB)
         fcntl.flock(fd, fcntl.LOCK_UN)
-        return LEASE_FREE
     except OSError as exc:
         if exc.errno not in (errno.EWOULDBLOCK, errno.EAGAIN):
             logger.warning("admission gate: gpu lease probe error %s -- treating as held", exc)
         return LEASE_HELD
     finally:
         os.close(fd)
+    return LEASE_HELD if sidecar_lock_held(path) is True else LEASE_FREE
 
 
 def has_backend_override(body: object) -> bool:
@@ -299,6 +305,9 @@ class AdmissionDecision:
     # In-flight token of an admit decided while the lease was free; the proxy hands the
     # decision back to finish() once upstream has answered. None for lease-checked admits.
     token: int | None = None
+    # Model-in-use token of an admit decided while the lease was free; released by
+    # finish_use() once the response has been relayed (see IN_USE_TTL_S).
+    use_token: int | None = None
 
 
 class AdmissionGate:
@@ -338,6 +347,10 @@ class AdmissionGate:
         self._read_size_gb = read_size_gb or self._cached_footprint_gb
         self._reserved: dict[str, tuple[float, float]] = {}  # model -> (gb, expires_at)
         self._in_flight: dict[int, float] = {}  # token -> expires_at
+        self._in_use: dict[int, tuple[str, float]] = {}  # use token -> (model key, expires_at)
+        # Models the proxy itself loaded with llamacpp_backend=cpu under a lease -> (lease key,
+        # (backend pid, backend_url) of the instance first seen resident after that load).
+        self._cpu_loads: dict[str, tuple[object, tuple[object, object] | None]] = {}
         self._next_token = 0
         self._lock = threading.Lock()  # proxy calls decide() from a threadpool
         self._resident_cache: tuple[float, list[dict[str, object]] | None] | None = None
@@ -520,6 +533,25 @@ class AdmissionGate:
                     del self._in_flight[t]
             return len(self._in_flight)
 
+    def in_use(self) -> dict[str, int]:
+        """{model key: requests still being relayed} for admits decided while the lease was
+        free (the lease waits on its victims' counts before unloading them)."""
+        with self._lock:
+            now = time.monotonic()
+            counts: dict[str, int] = {}
+            for t, (key, exp) in list(self._in_use.items()):
+                if now > exp:
+                    del self._in_use[t]
+                else:
+                    counts[key] = counts.get(key, 0) + 1
+            return counts
+
+    def finish_use(self, decision: AdmissionDecision) -> None:
+        """The proxy has relayed the whole response (or the client left)."""
+        if decision.use_token is not None:
+            with self._lock:
+                self._in_use.pop(decision.use_token, None)
+
     def finish(self, decision: AdmissionDecision) -> None:
         """The proxy has upstream's answer (or gave up): the admit is no longer in flight."""
         if decision.token is not None:
@@ -565,7 +597,46 @@ class AdmissionGate:
 
         mine = [e for e in entries if _exact_match(model_name, e)]
         census = parse_census({"all_models_loaded": mine})
-        return bool(census.residents) and all(m.device == "cpu" for m in census.residents)
+        if census.residents and all(m.device == "cpu" for m in census.residents):
+            return True
+        return self._proven_cpu_load(model_name, mine)
+
+    def _lease_key(self) -> object:
+        terms = self._lease_terms()
+        return None if terms is None else (terms.get("pid"), terms.get("since"))
+
+    def note_cpu_load(self, model_name: str) -> None:
+        """The proxy's own ``llamacpp_backend=cpu`` load of *model_name* succeeded under the
+        current lease. lemond labels such a load by model type, not backend (journal,
+        2026.41: ``LlamaCpp Backend: cpu`` then ``device: gpu``), so the label cannot prove
+        the placement; the backend instance this load created can."""
+        key = normalize_model_name(model_name).lower()
+        with self._lock:
+            self._cpu_loads[key] = (self._lease_key(), None)
+
+    def _proven_cpu_load(self, model_name: str, mine: list[dict[str, object]]) -> bool:
+        """True while the ONE resident entry for *model_name* is the backend instance (pid and
+        url) first seen after this lease's CPU load of it. Under a held lease no other load of
+        a GGUF is admitted, so the first instance seen is that load; any later change (an
+        eviction and reload, anywhere) drops the proof."""
+        key = normalize_model_name(model_name).lower()
+        with self._lock:
+            rec = self._cpu_loads.get(key)
+            if rec is None or len(mine) != 1:
+                return False
+            if rec[0] != self._lease_key():
+                del self._cpu_loads[key]
+                return False
+            pid, url = mine[0].get("pid"), mine[0].get("backend_url")
+            if not pid or not url:
+                return False
+            if rec[1] is None:
+                self._cpu_loads[key] = (rec[0], (pid, url))
+                return True
+            if rec[1] == (pid, url):
+                return True
+            del self._cpu_loads[key]
+            return False
 
     def forget_census(self) -> None:
         """Drop the 1.5 s residency cache: the next decision reads /health afresh."""
@@ -640,13 +711,20 @@ class AdmissionGate:
         # lease (and is never drained past); a lease that flocks later sees the token.
         with self._lock:
             if probe_gpu_lease(self._config.gpu_lease_path) != LEASE_HELD:
+                use = None
+                if model_name:
+                    self._next_token += 1
+                    use = self._next_token
+                    key = normalize_model_name(model_name).lower()
+                    self._in_use[use] = (key, time.monotonic() + IN_USE_TTL_S)
                 if decision.reason == _FRESH_REUSE:
                     # Reuse proven by a fresh census maps no new memory: not drained, so one
-                    # long generation cannot stall a lease's drain (DRAIN_MAX_S).
-                    return decision
+                    # long generation cannot stall a lease's drain (DRAIN_MAX_S). It is still
+                    # IN USE: the lease waits for it before unloading that model.
+                    return dataclasses.replace(decision, use_token=use)
                 self._next_token += 1
                 self._in_flight[self._next_token] = time.monotonic() + IN_FLIGHT_TTL_S
-                return dataclasses.replace(decision, token=self._next_token)
+                return dataclasses.replace(decision, token=self._next_token, use_token=use)
             if new_key is not None:
                 self._reserved.pop(new_key, None)
         return self._decide(model_name, path, method, body, lease_exempt, True)[0]

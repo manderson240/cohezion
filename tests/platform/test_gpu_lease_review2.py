@@ -71,6 +71,7 @@ def _status_of(gate: AdmissionGate):
     return lambda: {
         "reserved": gate.reserved_models(),
         "in_flight": gate.in_flight(),
+        "in_use": gate.in_use(),
         "config": {"enforce": True},
         "gpu_lease": gate.lease_status(),
     }

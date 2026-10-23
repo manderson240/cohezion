@@ -73,6 +73,7 @@ def quiet_status(**config) -> dict:
     return {
         "reserved": [],
         "in_flight": 0,
+        "in_use": {},
         "config": config or {"enforce": True},
         "gpu_lease": {"held": held, "pid": os.getpid() if held else None},
     }

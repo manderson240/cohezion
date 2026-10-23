@@ -68,29 +68,67 @@ def sidecar_path(lock: pathlib.Path) -> pathlib.Path:
     return lock.with_name("gpu-lease.holder.json")
 
 
-def live_sidecar_pid(lock: pathlib.Path) -> int | None:
-    """The holder pid in *lock*'s sidecar when that process is alive, else None.
+# PROC_PID_INIT_INO: the init pid namespace's inode, a kernel constant. A reader there sees
+# every process's locks in /proc/locks; a nested namespace sees only its own processes'.
+_INIT_PIDNS = 0xEFFFFFFC
 
-    The sidecar outlives a deleted lock file (and a SIGKILLed holder): only a LIVE pid that
-    wrote it for THIS lock path makes it evidence that the lease is still held (the sidecar
-    name is per directory, so another lock path in the same directory shares it).
+
+def _pidns() -> int | None:
+    try:
+        return os.stat("/proc/self/ns/pid").st_ino
+    except OSError:
+        return None
+
+
+def _lock_id(fd: int) -> str:
+    """The fd's inode as /proc/locks prints it: MAJ:MIN:INO (hex device, decimal inode)."""
+    st = os.fstat(fd)
+    return f"{os.major(st.st_dev):02x}:{os.minor(st.st_dev):02x}:{st.st_ino}"
+
+
+def _flock_holders() -> set[str] | None:
+    """Lock ids with a granted FLOCK WRITE in /proc/locks (``->`` waiter lines skipped), or
+    None when unreadable."""
+    try:
+        text = pathlib.Path("/proc/locks").read_text()
+    except OSError:
+        return None
+    held = set()
+    for line in text.splitlines():
+        f = line.split()
+        if len(f) >= 6 and f[1] == "FLOCK" and f[3] == "WRITE":
+            held.add(f[5])
+    return held
+
+
+def sidecar_lock_held(lock: pathlib.Path, exclude: str | None = None) -> bool | None:
+    """Does a process still hold the inode that *lock*'s sidecar recorded?
+
+    Kernel truth, not a pid: the holder's flock on that inode stays in /proc/locks after the
+    file is unlinked and vanishes when the holder dies, so pid reuse and pid namespaces do
+    not matter. False when the sidecar is absent, names another lock path or records no
+    inode (or only *exclude*). None when it cannot be told: /proc/locks unreadable, or the
+    inode is not visible and the holder recorded another pid namespace (a nested namespace
+    sees only its own processes' locks; the init namespace, where the gate runs, sees all).
     """
     try:
         info = json.loads(sidecar_path(lock).read_text())
-        pid = info.get("pid")
         if info.get("lock") != str(lock):
-            return None
+            return False
+        lock_id = info.get("lock_id")
     except (OSError, ValueError, AttributeError):
+        return False
+    if not isinstance(lock_id, str) or lock_id == exclude:
+        return False
+    holders = _flock_holders()
+    if holders is None:
         return None
-    if not isinstance(pid, int) or isinstance(pid, bool) or pid <= 0:
-        return None
-    try:
-        os.kill(pid, 0)
-    except ProcessLookupError:
-        return None
-    except PermissionError:
-        return pid
-    return pid
+    if lock_id in holders:
+        return True
+    mine = _pidns()
+    if mine == _INIT_PIDNS or info.get("pidns") == mine:
+        return False
+    return None
 
 
 def warn_after_s() -> float:
@@ -312,6 +350,7 @@ class _Held:
             return
         self.extra_fds.append(self.fd)
         self.fd = fd
+        self.sidecar = {**self.sidecar, "lock_id": _lock_id(fd)}
         with contextlib.suppress(OSError):
             _write_sidecar(self.path, self.sidecar)
         logger.error("gpu_lease: lock file %s was deleted while held -- recreated", self.path)
@@ -367,25 +406,40 @@ def _open_lock(path: pathlib.Path) -> int:
 
 
 def _flock(path: pathlib.Path, timeout_s: float, io: LeaseIO) -> int:
-    fd = _open_lock(path)
+    """LOCK_EX on *path*, retrying every second up to *timeout_s*.
+
+    Never creates the lock file while its sidecar names an inode a live holder still locks
+    (the file was deleted under it): the gate would then probe a fresh, free inode while the
+    holder runs. The holder's watchdog recreates it within WATCHDOG_S; a file still missing
+    after twice that, with the holder's liveness unknowable from here, means it is dead.
+    """
     deadline = io.clock() + timeout_s
+    missing_since: float | None = None
     while True:
+        fd: int | None = None
         try:
-            fcntl.flock(fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
-            other = live_sidecar_pid(path)
-            if other is None or other == os.getpid():
-                return fd
-            # A live holder whose lock file was deleted under it: the inode we just locked
-            # is not the one it holds. Wait for its watchdog to relock, or for it to exit.
-            fcntl.flock(fd, fcntl.LOCK_UN)
-            raise BlockingIOError(f"lock file replaced under live holder pid {other}")
-        except BlockingIOError as exc:
-            if io.clock() >= deadline:
-                os.close(fd)
-                raise GpuLeaseError(
-                    "acquire", f"held by another process after {timeout_s}s"
-                ) from exc
-            io.sleep(1.0)
+            fd = os.open(path, os.O_RDWR)
+            missing_since = None
+        except FileNotFoundError:
+            now = io.clock()
+            missing_since = now if missing_since is None else missing_since
+            held = sidecar_lock_held(path)
+            if held is False or (held is None and now - missing_since > 2 * WATCHDOG_S):
+                fd = _open_lock(path)
+        if fd is not None:
+            try:
+                fcntl.flock(fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
+                # The inode we locked is the one at the path, and no live holder keeps
+                # another inode recorded in the sidecar.
+                if _inode_matches(fd, path) and not sidecar_lock_held(path, _lock_id(fd)):
+                    return fd
+                fcntl.flock(fd, fcntl.LOCK_UN)
+            except BlockingIOError:
+                pass
+            os.close(fd)
+        if io.clock() >= deadline:
+            raise GpuLeaseError("acquire", f"held by another process after {timeout_s}s")
+        io.sleep(1.0)
 
 
 def _write_sidecar(path: pathlib.Path, info: dict) -> None:
@@ -402,10 +456,9 @@ def _acquire(holder: str, need_gb: float, timeout_s: float, path: pathlib.Path, 
     held = _Held(fd, path)
     stage = "sidecar"
     still: list[str] = []
+    ident = {"lock": str(path), "lock_id": _lock_id(fd), "pidns": _pidns()}
     try:
-        _write_sidecar(
-            path, {"holder": holder, "pid": os.getpid(), "since": time.time(), "lock": str(path)}
-        )
+        _write_sidecar(path, {"holder": holder, "pid": os.getpid(), "since": time.time(), **ident})
 
         stage = "drain"  # A2: loads admitted just before the lock must land first
         status: dict = {}
@@ -434,10 +487,21 @@ def _acquire(holder: str, need_gb: float, timeout_s: float, path: pathlib.Path, 
         if not _wait_for(io, HEALTH_MAX_S, _health):
             raise GpuLeaseError(stage, "upstream health unreadable")
 
+        victims = _gpu_models(entries)
+        stage = "drain"  # A4b: a generation still streaming on a victim finishes first
+
+        def _victims_idle() -> bool:
+            return _idle(
+                io.admission_status(), [e for e in entries if e.get("model_name") in victims]
+            )
+
+        if victims and not _wait_for(io, DRAIN_MAX_S, _victims_idle):
+            raise GpuLeaseError(stage, f"requests still being served by {victims}")
+
         stage = "unload"  # A4 + A5
         gtt_before = io.gtt_used_gb()
         unloaded: list[str] = []
-        for model in _gpu_models(entries):
+        for model in victims:
             ok = False
             for attempt in range(1, UNLOAD_ATTEMPTS + 1):
                 if io.unload(model):
@@ -500,7 +564,7 @@ def _acquire(holder: str, need_gb: float, timeout_s: float, path: pathlib.Path, 
         "since": grant.acquired_at,
         "need_gb": need_gb,
         "grant_mem_gb": mem,
-        "lock": str(path),
+        **ident,
     }
     with contextlib.suppress(OSError):
         _write_sidecar(path, held.sidecar)
@@ -525,6 +589,17 @@ def _quiet(status: dict) -> bool:
     """Nothing the gate admitted before the flock is still loading or in flight. A gate that
     does not report a field is not quiet (it predates the check: fail closed)."""
     return status.get("reserved") == [] and status.get("in_flight") == 0
+
+
+def _idle(status: dict | None, victims: list[dict]) -> bool:
+    """No request the gate admitted (lease free) is still being relayed for any victim. A
+    status without ``in_use`` is not idle (a gate that predates the field: fail closed)."""
+    from cohezion.platform.admission_gate import _resident_match
+
+    in_use = (status or {}).get("in_use")
+    if not isinstance(in_use, dict):
+        return False
+    return not any(_resident_match(str(name), e) for name in in_use for e in victims)
 
 
 def _check_enforced(status: dict) -> None:
