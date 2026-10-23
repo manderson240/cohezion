@@ -38,6 +38,10 @@ from pathlib import Path
 
 
 LOG = Path.home() / ".cohezion" / "pressure.jsonl"
+# lemond (Lemonade) runs every local model; its cgroup is where model memory is charged.
+LEMOND_CGROUP = Path("/sys/fs/cgroup/system.slice/lemond.service")
+DRM = Path("/sys/class/drm")
+_CG_STAT_KEYS = ("anon", "shmem", "file", "file_mapped", "active_file", "inactive_file")
 
 
 def _meminfo() -> dict[str, float]:
@@ -96,6 +100,51 @@ def _top_rss(n: int = 3) -> list[dict[str, object]]:
     return [{"rss_mb": r, "pid": p, "comm": c} for r, p, c in procs[:n]]
 
 
+def _cgroup_mem(cg: Path | None = None) -> dict[str, float]:
+    """Raw lemond cgroup memory counters in GiB, plus memory.events `high` (a count).
+
+    RAW on purpose -- no derived "working set". shmem pages are counted inside `file`, and when
+    mapped they are ALSO inside `file_mapped`, so anon+shmem+file_mapped double-counts mapped
+    shmem (measured 2026-10-22: 22.6 GiB "working set" against a 20.12 GiB memory.current while
+    an FLM model's 7.2 GiB of buffers sat in both). Consumers derive; the recorder only observes.
+    """
+    cg = LEMOND_CGROUP if cg is None else cg
+    out: dict[str, float] = {}
+    try:
+        for line in (cg / "memory.stat").read_text().splitlines():
+            key, _, value = line.partition(" ")
+            if key in _CG_STAT_KEYS:
+                out[key] = round(int(value) / 2**30, 3)
+    except (OSError, ValueError):
+        return {}
+    for name in ("current", "high"):
+        with contextlib.suppress(OSError, ValueError):
+            raw = (cg / f"memory.{name}").read_text().strip()
+            if raw != "max":
+                out[name] = round(int(raw) / 2**30, 3)
+    with contextlib.suppress(OSError, ValueError):
+        for line in (cg / "memory.events").read_text().splitlines():
+            key, _, value = line.partition(" ")
+            if key == "high":
+                out["high_events"] = int(value)
+    return out
+
+
+def _gtt_used_gb(drm: Path | None = None) -> float | None:
+    """GPU-mapped (GTT) memory in GiB across cards, or None when no card reports it.
+
+    GTT is NOT charged to any memory cgroup, so it is invisible in `_cgroup_mem` yet consumes the
+    same unified RAM. None, not 0.0: an absent source must not read as "nothing in use".
+    """
+    drm = DRM if drm is None else drm
+    total, seen = 0, False
+    for path in drm.glob("card*/device/mem_info_gtt_used"):
+        with contextlib.suppress(OSError, ValueError):
+            total += int(path.read_text())
+            seen = True
+    return round(total / 2**30, 3) if seen else None
+
+
 def sample() -> dict[str, object]:
     """One observation. Never raises — a collection failure must not stop recording."""
     mem = _meminfo()
@@ -107,7 +156,11 @@ def sample() -> dict[str, object]:
         "io_psi": _psi("io"),
         "cpu_psi": _psi("cpu"),
         "top": _top_rss(),
+        "lemond_cg": _cgroup_mem(),
     }
+    gtt = _gtt_used_gb()
+    if gtt is not None:
+        row["gtt_used_gb"] = gtt
     with contextlib.suppress(OSError):
         row["load1"] = os.getloadavg()[0]
     return row
