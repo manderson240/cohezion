@@ -279,3 +279,22 @@ def test_gguf_tier0_admission_admits_at_bounded_ctx(monkeypatch):
     risk = oom_guard.check_oom_risk(_GGUF, available_gb=13.0)
     assert risk.safe
     assert risk.footprint_gb == pytest.approx(4.09 + 18.0 * 4096 / (1024 * 1024))
+
+
+def test_router_policy_sends_tier0_class_rules_to_the_shared_npu_model() -> None:
+    """The NPU holds one LLM; every tier-0-class router rule must name the shared tier-0 model,
+    and no other small FLM chat model may remain a router candidate (each would swap the slot)."""
+    import json
+    from pathlib import Path
+
+    policy = json.loads(
+        (Path(__file__).resolve().parents[2] / "config/router/cohezion-router.json").read_text()
+    )
+    routing = policy["routing"]
+    rules = {rule["id"]: rule["route_to"] for rule in routing["rules"]}
+    assert routing["default_model"] == DEFAULT_TIER0_MODEL
+    for rule_id in ("fast-qna", "trivial-ack", "default-npu", "reason"):
+        assert rules[rule_id] == DEFAULT_TIER0_MODEL, rule_id
+    retired = {"llama3.2-1b-FLM", "qwen3-4b-FLM"}
+    assert not retired & set(policy["components"])
+    assert not retired & set(routing["candidates"])

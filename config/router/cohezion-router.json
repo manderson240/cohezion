@@ -3,21 +3,19 @@
   "model_name": "user.cohezion-router",
   "recipe": "collection.router",
   "components": [
-    "llama3.2-1b-FLM",
-    "qwen3-4b-FLM",
+    "gemma4-it-e2b-FLM",
     "qwen3vl-it-4b-FLM",
     "Qwen3-Coder-30B-A3B-Instruct-GGUF",
     "deepseek-r1-0528-8b-FLM"
   ],
   "routing": {
     "candidates": [
-      "llama3.2-1b-FLM",
-      "qwen3-4b-FLM",
+      "gemma4-it-e2b-FLM",
       "qwen3vl-it-4b-FLM",
       "Qwen3-Coder-30B-A3B-Instruct-GGUF",
       "deepseek-r1-0528-8b-FLM"
     ],
-    "default_model": "qwen3-4b-FLM",
+    "default_model": "gemma4-it-e2b-FLM",
     "rules": [
       {
         "id": "vision",
@@ -167,9 +165,9 @@
             }
           ]
         },
-        "route_to": "deepseek-r1-0528-8b-FLM",
+        "route_to": "gemma4-it-e2b-FLM",
         "outputs": {
-          "reason": "reasoning"
+          "reason": "reasoning (shared NPU tier-0 model, 2026-10-24: one resident FLM, calibrated 1.000)"
         }
       },
       {
@@ -210,9 +208,9 @@
             }
           ]
         },
-        "route_to": "qwen3-4b-FLM",
+        "route_to": "gemma4-it-e2b-FLM",
         "outputs": {
-          "reason": "fast qna"
+          "reason": "fast qna (shared NPU tier-0 model, 2026-10-24: one resident FLM, calibrated 1.000)"
         }
       },
       {
@@ -243,9 +241,9 @@
             }
           ]
         },
-        "route_to": "llama3.2-1b-FLM",
+        "route_to": "gemma4-it-e2b-FLM",
         "outputs": {
-          "reason": "trivial ack"
+          "reason": "trivial ack (shared NPU tier-0 model, 2026-10-24: one resident FLM, calibrated 1.000)"
         }
       },
       {
@@ -253,9 +251,9 @@
         "match": {
           "min_chars": 0
         },
-        "route_to": "qwen3-4b-FLM",
+        "route_to": "gemma4-it-e2b-FLM",
         "outputs": {
-          "reason": "default npu chat (repointed 2026-08-30: qwen3.6-moe-35b-a3b-FLM FLM build is degenerate)"
+          "reason": "default npu chat (shared NPU tier-0 model, 2026-10-24: one resident FLM, calibrated 1.000)"
         }
       }
     ]
