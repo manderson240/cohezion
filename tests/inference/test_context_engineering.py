@@ -21,7 +21,7 @@ LIVE_MODELS_WITH_EXPECTED_CTX = [
     ("Qwen3.5-35B-A3B-GGUF", 32768),
     ("DeepSeek-Qwen3-8B-GGUF", 32768),
     ("gemma3-4b-FLM", 8192),
-    ("gemma4-it-e2b-FLM", 4096),
+    ("gemma4-it-e2b-FLM", 32768),
     ("llama3.2-1b-FLM", 4096),
     ("qwen3.5-4b-FLM", 4096),
 ]

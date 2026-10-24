@@ -175,7 +175,7 @@ class ModelCardRegistry:
             optimal_temperature=0.5,
             optimal_top_p=0.9,
             max_tokens_default=100,
-            context_window=4096,
+            context_window=32768,  # saved lemonade recipe ctx (lemonade_recipes.BASE_RECIPES)
             system_templates={"default": "You are a fast, concise assistant."},
         )
 
