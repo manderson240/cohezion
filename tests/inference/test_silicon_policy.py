@@ -19,12 +19,12 @@ from cohezion.inference.silicon_policy import (
 from cohezion.inference.silicon_residency import parse_census
 
 
-# Tier 0 moved OFF the single-slot NPU 2026-10-23: the policy's tier-0 slot is now the
-# tier0_model() id on the iGPU, with ctx_size=None (saved recipe is the ctx authority).
+# Tier 0 is NPU-first (2026-10-24): the policy's tier-0 slot is the tier0_model() FLM id on
+# the single-slot NPU, with ctx_size=None (saved recipe is the ctx authority).
 TIER0 = DEFAULT_TIER0_MODEL
 
-# The single-slot NPU mechanism is still real (FLM owns XDNA2 exclusively); its tests use
-# an explicit NPU policy now that the default policy no longer declares an NPU slot.
+# The single-slot NPU mechanism (FLM owns XDNA2 exclusively) is also tested with an explicit
+# NPU policy, independent of which model the default policy places there.
 NPU_POLICY = ResidencyPolicy(
     slots=(
         SiliconSlot(
@@ -34,7 +34,7 @@ NPU_POLICY = ResidencyPolicy(
 )
 
 CATALOG = [
-    {"id": TIER0, "size": 4.09},
+    {"id": TIER0, "size": 6.0},
     {"id": "llama3.2-1b-FLM", "size": 1.3},
     {"id": "Gemma-4-E4B-it-GGUF", "size": 5.56},
     {"id": "Nemotron-3-Nano-30B-A3B-GGUF", "size": 21.3},
@@ -89,7 +89,7 @@ def test_empty_census_bootstraps_rather_than_refusing() -> None:
 
     assert not plan.is_noop, "an empty fleet is the case healing exists for"
     assert TIER0 in {a.model for a in plan.of("load")}
-    assert set(plan.idle_devices) == {"igpu", "cpu"}
+    assert set(plan.idle_devices) == {"npu", "igpu", "cpu"}
 
 
 def test_unmeasurable_ram_refuses_all_loads() -> None:
@@ -164,12 +164,12 @@ def test_already_pinned_model_is_not_re_pinned() -> None:
 
 
 def test_model_on_wrong_silicon_is_warned_not_silently_accepted() -> None:
-    """A model the policy places on the iGPU but resident on the NPU is a real defect."""
-    payload = {"all_models_loaded": [_entry(TIER0, "npu", ctx_size=4096)]}
+    """A model the policy places on the NPU but resident on the iGPU is a real defect."""
+    payload = {"all_models_loaded": [_entry(TIER0, "gpu", ctx_size=4096)]}
     plan = plan_residency(
         parse_census(payload, catalog=CATALOG), catalog=CATALOG, available_gb=100.0
     )
-    assert any("policy expects igpu" in w for w in plan.warnings)
+    assert any("policy expects npu" in w for w in plan.warnings)
 
 
 # --------------------------- byte budget ---------------------------
@@ -315,9 +315,11 @@ def test_actions_render_reviewable_cli_commands() -> None:
     assert f"lemonade load {TIER0}" in cmds
 
 
-def test_default_policy_keeps_tier0_off_the_single_slot_npu() -> None:
-    assert {s.device for s in DEFAULT_POLICY.slots} == {"igpu", "cpu"}
-    assert not any(s.device in DEFAULT_POLICY.single_slot_devices for s in DEFAULT_POLICY.slots)
+def test_default_policy_puts_tier0_alone_on_the_single_slot_npu() -> None:
+    npu = [s for s in DEFAULT_POLICY.slots if s.device == "npu"]
+    assert [s.model for s in npu] == [TIER0], "exactly one NPU slot, and it is tier 0"
+    assert npu[0].ctx_size is None  # saved recipe is the only ctx authority
+    assert {s.device for s in DEFAULT_POLICY.slots} == {"npu", "igpu", "cpu"}
 
 
 def test_default_policy_pins_only_the_tier0_router() -> None:

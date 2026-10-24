@@ -97,10 +97,20 @@ BASE_RECIPES: dict[str, RecipeOptions] = {
         "llamacpp_backend": _BACKEND,
         "llamacpp_args": "-b 2048 -ub 512 -np 4 --pooling mean",
     },
+    # ── NPU (FastFlowLM) ──────────────────────────────────────────────────────
+    "gemma4-it-e2b-FLM": {
+        # Cascade tier 0 (default since 2026-10-24, NPU-first). This saved recipe is the ONLY
+        # tier-0 ctx authority: tier-0 callers never /load it, so the router auto-loads it at
+        # these options. Without it FLM serves the 131072 context_length. FLM rounds ctx up to
+        # a power of two (min 512); 4096 is one. NO llamacpp keys: the flm recipe has no
+        # llama.cpp backend. MUST stay identical to the entry in scripts/ops/lemonade-recipes.md
+        # (tests/inference/test_tier0_model.py pins this).
+        "ctx_size": 4096,
+    },
     # ── Tiny LLMs (always-warm routing, classification, short QA) ────────────
     "Llama-3.2-1B-Instruct-GGUF": {
-        # Opt-in tier 0 via COHEZION_TIER0_MODEL (the default is Gemma-4-E2B-it-GGUF since the
-        # 2026-10-23 capability sweep). Kept bounded so the override needs no client ctx pin.
+        # Opt-in tier 0 via COHEZION_TIER0_MODEL (the default is gemma4-it-e2b-FLM since
+        # 2026-10-24). Kept bounded so the override needs no client ctx pin.
         # Llama-3.2-1B KV is 32 KiB/token: 4096 -> 0.125 GB vs 4.0 GB at the 131072 window.
         # -np 1: lemonade divides ctx_size across slots; 4096 split four ways truncates.
         "ctx_size": 4096,
@@ -127,8 +137,8 @@ BASE_RECIPES: dict[str, RecipeOptions] = {
     },
     # ── Small LLMs ────────────────────────────────────────────────────────────
     "Gemma-4-E2B-it-GGUF": {
-        # Cascade tier 0 (default since 2026-10-23). This saved recipe is the ONLY tier-0 ctx
-        # authority: tier-0 callers never /load it (GAIA paths pass auto_download=False), so
+        # Opt-in tier 0 via COHEZION_TIER0_MODEL (the default 2026-10-23..24; now the NPU FLM
+        # build). As tier 0, this saved recipe is its ONLY ctx authority: tier-0 callers never /load it (GAIA paths pass auto_download=False), so
         # the router auto-loads it at these options. MUST stay identical to the entry in
         # scripts/ops/lemonade-recipes.md, or the two appliers re-stamp each other
         # (tests/inference/test_tier0_model.py pins this).

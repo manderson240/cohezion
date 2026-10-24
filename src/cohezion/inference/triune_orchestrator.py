@@ -124,7 +124,7 @@ def build_triune_orchestrator(
     return TieredOrchestrator(tiers=tiers)
 
 
-# Tier-0 generation budget (thinking model, ctx 4096 / -np 1 recipe): see the builder below.
+# Tier-0 generation budget (ctx 4096 recipe): see the builder below.
 _TIER0_MAX_TOKENS = 2048
 
 
@@ -142,15 +142,17 @@ def build_triune_omni_orchestrator(
     2026-07-09: the CPU tier previously used ``Gemma-4-31B-it-GGUF``, which the router places on
     Vulkan (iGPU) — a FAKE CPU tier (two tiers on one device) that was also too slow (>236s).
 
-    2026-10-23: tier 0 moved OFF the NPU (``config.defaults.tier0_model``, default
-    ``Gemma-4-E2B-it-GGUF``, ctx/backend from its saved lemonade recipe only) because the
-    single-slot NPU thrashed against other FLM workloads. That default is the same id as the
-    legacy tier 2, and lemonade keeps one instance and one saved option set per id, so the two
-    tiers collapsed onto one model (tier 2 was a TRUST-gated resample of tier 0).
+    2026-10-24: tier 0 is NPU-first (``config.defaults.tier0_model``, default
+    ``gemma4-it-e2b-FLM``, ctx from its saved lemonade recipe only; 1.000 on the calibrated
+    gauntlet with think=false). It is the ONE shared NPU model (single slot), and FLM's think
+    flag is sticky on the loaded model, so ``build_gaia_llm_tier`` sends every tier-0 request
+    ``think: false`` (``config.defaults.tier0_request_extras``).
 
-    Tier 2 is now ``config.defaults.tier2_model`` (``COHEZION_TIER2_MODEL``) and tiers are
-    DEDUPLICATED by model id, first occurrence wins: the default cascade is
-    ``[Gemma-4-E2B, Gemma-4-E4B]``. A more capable tier 2 AWAITS THE LARGE-MODEL SWEEP; set the
+    Tier 2 is ``config.defaults.tier2_model`` (``COHEZION_TIER2_MODEL``) and tiers are
+    DEDUPLICATED by model id, first occurrence wins (lemonade keeps one instance and one saved
+    option set per id, so a repeat is a resample, not a tier). The tier-2 default is the E4B
+    id, so the default cascade is ``[gemma4-it-e2b-FLM, Gemma-4-E4B]`` -- the iGPU only as the
+    quality-gate escalation. A more capable tier 2 AWAITS THE LARGE-MODEL SWEEP; set the
     env var to add one. Whatever tier ends up last carries the TRUST gate, so the cascade always
     completes (tasks complete > quality > speed).
 
@@ -160,10 +162,10 @@ def build_triune_omni_orchestrator(
     to the last tier -- but ``_engine_for(2, 0)`` still reports "cpu", so DifficultyEstimator
     attributes those E4B runs to "cpu". Fix by clamping with the real tier count.
     """
-    # Gemma-4-E2B is a thinking model: with reasoning_format="none" (set by build_gaia_llm_tier)
-    # the CoT is inline in content, so the 512 default truncates before the answer and the
-    # min_chars=500 gate then escalates on budget, not quality. The recipe serves ctx 4096 on
-    # one slot (-np 1): 2048 generated tokens leave ~2048 tokens of prompt room.
+    # Tier-0 budget: with think=false the FLM default answers directly, but the Gemma-4-E2B GGUF
+    # override is a thinking model whose inline CoT (reasoning_format="none") would truncate at
+    # the 512 default and then escalate on budget, not quality. Both recipes serve ctx 4096:
+    # 2048 generated tokens leave ~2048 tokens of prompt room.
     specs: list[tuple[str, int | None, QualityGate]] = [
         (tier0_model(), _TIER0_MAX_TOKENS, QualityGate(min_chars=500)),  # solid start
         ("Gemma-4-E4B-it-GGUF", None, QualityGate(min_chars=2000)),  # iGPU complex synthesis

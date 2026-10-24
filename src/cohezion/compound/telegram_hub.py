@@ -12,7 +12,7 @@ import os
 
 import httpx
 
-from cohezion.config.defaults import LEMONADE_BASE_URL
+from cohezion.config.defaults import LEMONADE_BASE_URL, tier0_model, tier0_request_extras
 
 
 logger = logging.getLogger(__name__)
@@ -29,7 +29,9 @@ class TelegramOOMGuard:
     auto-load of a large, unbounded-ctx model on the :13305 OmniRouter (N3).
     """
 
-    SAFE_MODELS: frozenset[str] = frozenset({"llama3.2-1b-FLM", "Gemma-4-E2B-it-GGUF", "Mellum-4b"})
+    SAFE_MODELS: frozenset[str] = frozenset(
+        {"llama3.2-1b-FLM", "gemma4-it-e2b-FLM", "Gemma-4-E2B-it-GGUF", "Mellum-4b"}
+    )
 
     @classmethod
     def is_safe(cls, model_name: str) -> bool:
@@ -89,6 +91,8 @@ class TelegramHub:
         silently remapped to llama3.2-1b-FLM so no large-model auto-load occurs.
         """
         safe_model = TelegramOOMGuard.guard(model)
+        # Tier 0 on an FLM id: the think flag is sticky on the loaded NPU model (config.defaults).
+        extras = tier0_request_extras(safe_model) if safe_model == tier0_model() else {}
         try:
             async with httpx.AsyncClient() as client:
                 response = await client.post(
@@ -98,6 +102,7 @@ class TelegramHub:
                         "messages": [{"role": "user", "content": prompt}],
                         "max_tokens": 256,
                         "stream": False,
+                        **extras,
                     },
                     timeout=_TIMEOUT,
                 )

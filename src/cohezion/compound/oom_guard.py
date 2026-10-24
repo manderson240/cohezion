@@ -58,13 +58,19 @@ MODEL_FOOTPRINT_GB: dict[str, float] = {
     "Llama-3.2-1B-Instruct-GGUF": 0.78,
     "Bonsai-1.7B-gguf": 1.05,
     "Bonsai-4B-gguf": 2.40,
-    # Tier 0 (default since 2026-10-23). Catalog size: Q4_K_M 3.11 GB + mmproj-F16 0.99 GB.
-    # Not exempt from KV pricing: curated shape in KV_KIB_PER_TOKEN below.
+    # Former tier 0 (2026-10-23), now a COHEZION_TIER0_MODEL override. Catalog size: Q4_K_M
+    # 3.11 GB + mmproj-F16 0.99 GB. Not exempt from KV pricing: curated shape in KV_KIB_PER_TOKEN.
     "Gemma-4-E2B-it-GGUF": 4.09,
     # ── Medium LLMs (need ctx guard at high load) ────────────────────────────
     "Bonsai-8B-gguf": 5.25,
     "DeepSeek-Qwen3-8B-GGUF": 5.25,
     "Gemma-4-E4B-it-GGUF": 5.97,
+    # Tier 0 (default since 2026-10-24), NPU/FLM. Catalog weight 6.0 GB; its weights live in
+    # host DRAM, so the admission gate (npu_exempt=False) budgets it like any other model. The
+    # live admission gate estimated ~10.2 GB resident: this 6.0 is the catalog WEIGHT figure,
+    # not a measured residency. No KV entry: FLM manages its own KV (the "flm" recipe is not
+    # in _KV_PRICED_RECIPES) and its per-token KV cost is UNMEASURED.
+    "gemma4-it-e2b-FLM": 6.0,
     # ── Heavy LLMs (require available_ram > footprint + RAM_LOAD_BUFFER_GB) ──
     "Qwen3.6-27B-GGUF": 16.0,
     "Gemma-4-26B-A4B-it-GGUF": 18.1,
@@ -104,6 +110,7 @@ UMA_TIERS: frozenset[ComputeTier] = frozenset(
 MODEL_TIER: dict[str, ComputeTier] = {
     # NPU — FLM recipe (XDNA2 SRAM, NOT in MODEL_FOOTPRINT_GB)
     "llama3.2-1b-FLM": ComputeTier.NPU,
+    "gemma4-it-e2b-FLM": ComputeTier.NPU,  # tier 0 default (one shared NPU slot)
     "deepseek-r1-0528-8b-FLM": ComputeTier.NPU,
     "gemma3-4b-FLM": ComputeTier.NPU,
     "qwen3.5-4b-FLM": ComputeTier.NPU,
@@ -118,7 +125,7 @@ MODEL_TIER: dict[str, ComputeTier] = {
     "Qwen3-Embedding-0.6B-GGUF": ComputeTier.IGPU,
     "Bonsai-1.7B-gguf": ComputeTier.IGPU,
     "Bonsai-4B-gguf": ComputeTier.IGPU,
-    "Gemma-4-E2B-it-GGUF": ComputeTier.IGPU,  # tier 0 default (Vulkan recipe)
+    "Gemma-4-E2B-it-GGUF": ComputeTier.IGPU,  # opt-in tier 0 (COHEZION_TIER0_MODEL)
     "Bonsai-8B-gguf": ComputeTier.IGPU,
     "DeepSeek-Qwen3-8B-GGUF": ComputeTier.IGPU,
     "Gemma-4-E4B-it-GGUF": ComputeTier.IGPU,
@@ -354,7 +361,7 @@ KV_KIB_PER_TOKEN: dict[str, float] = {
     # = 4.0 GB of KV against 0.78 GB of weights). A curated shape here also opts a
     # small-weights model OUT of check_oom_risk's "small model" early return.
     "Llama-3.2-1B-Instruct-GGUF": 32.0,
-    # Gemma-4-E2B (tier 0 default), from the unsloth Q4_K_M GGUF header (read 2026-10-23):
+    # Gemma-4-E2B GGUF (opt-in tier 0), from the unsloth Q4_K_M GGUF header (read 2026-10-23):
     # block_count 35, attention.shared_kv_layers 20, head_count_kv 1, key/value_length 512
     # (full layers), key/value_length_swa 256, sliding_window_pattern full at layers 4,9,...
     # llama.cpp's reuse callback (LLM_ARCH_GEMMA4) allocates KV only for the first

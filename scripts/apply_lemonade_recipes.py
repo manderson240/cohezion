@@ -54,7 +54,8 @@ _MODEL_SIZE_GB: dict[str, float] = {
     "Llama-3.2-1B-Instruct-GGUF": 1.0,  # opt-in tier 0: 0.78 GB weights + 0.125 GB KV at 4096
     "Bonsai-1.7B-gguf": 1.5,
     "Bonsai-4B-gguf": 3.0,
-    "Gemma-4-E2B-it-GGUF": 6.0,  # tier 0: 4.09 GB weights+mmproj + ~0.07 GB KV at ctx 4096
+    "gemma4-it-e2b-FLM": 6.0,  # tier 0 (NPU/FLM): 6.0 GB catalog weight; no llamacpp keys
+    "Gemma-4-E2B-it-GGUF": 6.0,  # opt-in tier 0: 4.09 GB weights+mmproj + ~0.07 GB KV at 4096
     "Bonsai-8B-gguf": 3.0,
     "DeepSeek-Qwen3-8B-GGUF": 8.0,
     "Gemma-4-E4B-it-GGUF": 10.0,

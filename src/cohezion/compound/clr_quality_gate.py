@@ -1,7 +1,7 @@
 """CLR (Claim-Level Reasoning) quality gate for Mycelium re-injection.
 
 3-claim binary verification on the cascade tier-0 model via OmniRouter :13305
-(config.defaults.tier0_model; iGPU GGUF since 2026-10-23, no longer the NPU FLM).
+(config.defaults.tier0_model; the NPU FLM by default, always sent think=false).
 score = (mean_verdicts)^3; threshold 0.7 — unanimous YES (3/3=1.0) passes,
 2/3 yields ~0.296 which fails, making this effectively a consensus gate.
 Fail-open: returns True when inference unavailable (None score).
@@ -14,7 +14,7 @@ import time
 from collections.abc import Callable
 from typing import Any
 
-from cohezion.config.defaults import tier0_model
+from cohezion.config.defaults import tier0_model, tier0_request_extras
 
 
 logger = logging.getLogger(__name__)
@@ -111,6 +111,8 @@ class CLRQualityGate:
         from cohezion.inference.model_card_defaults import get_sampling_defaults
 
         self._temperature = float(get_sampling_defaults(self._model).get("temperature", 0.0))
+        # Sticky FLM think flag: every tier-0 request carries think=false (config.defaults).
+        self._extras = tier0_request_extras(self._model) if self._model == tier0_model() else {}
         self._gaia_client: Any | None = self._init_gaia_client()
 
     def _init_gaia_client(self) -> Any | None:
@@ -170,6 +172,7 @@ class CLRQualityGate:
                     # saved recipe. The router auto-loads at the recipe ctx instead.
                     auto_download=False,
                     timeout=self._remaining(),
+                    **self._extras,
                 )
                 return _message_answer(result)
             except Exception as exc:
@@ -188,6 +191,7 @@ class CLRQualityGate:
                     "messages": [{"role": "user", "content": prompt}],
                     "max_tokens": _VERDICT_MAX_TOKENS,
                     "temperature": self._temperature,
+                    **self._extras,
                 },
                 headers={"Content-Type": "application/json"},
                 timeout=remaining,

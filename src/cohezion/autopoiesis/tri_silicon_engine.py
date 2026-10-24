@@ -1,9 +1,9 @@
 """Tri-Silicon Sovereign Autopoiesis Engine for AMD Strix Halo.
 ==============================================================
 Orchestrates continuous hardware-specialized autopoietic cycles:
-1. "NPU" Phase: cascade tier-0 model via :13305 (config.defaults.tier0_model; an iGPU GGUF
-   since 2026-10-23, formerly FastFlowLM on the XDNA2 NPU) - Reflection, strategy synthesis,
-   and directional steering. The phase keeps its historical name.
+1. "NPU" Phase: cascade tier-0 model via :13305 (config.defaults.tier0_model; FastFlowLM on
+   the XDNA2 NPU by default, sent think=false) - Reflection, strategy synthesis, and
+   directional steering.
 2. CPU Phase: 16-Core Zen 4 AVX-512 - High-throughput parallel tournaments & ARC DSL symbolic search.
 3. iGPU Phase: Radeon 8060S Vulkan/ROCm - Code generation and heuristic policy synthesis.
 4. Mathematical Negentropy Verification: Sheaf Dirichlet energy relaxation and Prigogine dissipative entropy sink.
@@ -22,7 +22,7 @@ from pathlib import Path
 from typing import Any
 
 from cohezion.arc.strix_dsl_search import StrixHaloDSLEngine
-from cohezion.config.defaults import tier0_model
+from cohezion.config.defaults import tier0_model, tier0_request_extras
 from cohezion.flume.loop_goal_refactor_engine import GoalSpecification
 from cohezion.inference.gaia_adapter import _answer_only
 from cohezion.physics.my_big_toe_entropy_engine import MyBigTOEEntropyEngine
@@ -72,7 +72,7 @@ class TriSiliconAutopoiesisEngine:
         igpu_model: str = "gemma-4-E4B-it-GGUF",
     ) -> None:
         self.cpu_threads = cpu_threads
-        # Tier-0 model; no longer on the NPU by default (config.defaults.tier0_model).
+        # Tier-0 model: the shared NPU FLM model by default (config.defaults.tier0_model).
         self.npu_model = npu_model or tier0_model()
         self.igpu_model = igpu_model
         self.entropy_engine = MyBigTOEEntropyEngine()
@@ -86,7 +86,7 @@ class TriSiliconAutopoiesisEngine:
         )
 
     def execute_npu_phase(self, cycle: int) -> tuple[str, float]:
-        """Phase 1: reflection and goal direction on the tier-0 model (no longer the NPU/FLM)."""
+        """Phase 1: reflection and goal direction on the tier-0 model (the NPU FLM by default)."""
         t0 = time.perf_counter()
         prompt = (
             f"Autopoiesis Cycle {cycle}: Suggest the single highest-leverage optimization "
@@ -96,11 +96,13 @@ class TriSiliconAutopoiesisEngine:
         payload = {
             "model": self.npu_model,
             "messages": [{"role": "user", "content": prompt}],
-            # Tier 0 (Gemma-4-E2B by default) is a thinking model: 80 tokens / 5 s never got
-            # past its reasoning. Budget and timeout sized for CoT + one sentence.
+            # Tier 0 may be a thinking model (the Gemma-4-E2B GGUF override): 80 tokens / 5 s
+            # never got past its reasoning. Budget and timeout sized for CoT + one sentence.
             "max_tokens": _TIER0_MAX_TOKENS,
             "temperature": 0.4,
         }
+        if self.npu_model == tier0_model():
+            payload.update(tier0_request_extras(self.npu_model))  # sticky FLM think flag
         try:
             req = urllib.request.Request(
                 LEMONADE_URL,

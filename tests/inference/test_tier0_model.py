@@ -1,12 +1,10 @@
-"""Tier-0 (fast classify/route) model: one source of truth, off the NPU by default.
+"""Tier-0 (fast classify/route) model: one source of truth, NPU-first.
 
-Measured 2026-10-23: the XDNA2 NPU holds ONE FLM model; every model change evicts/reloads it
-and holds lemond's lock. The cascade's tier 0 (llama3.2-1b-FLM) thrashed the NPU against a
-Kaggle worker's FLM models. Tier 0 now defaults to the iGPU GGUF build of the same model and
-is overridable via COHEZION_TIER0_MODEL.
-
-Default since the 2026-10-23 calibrated capability sweep: Gemma-4-E2B-it-GGUF (mean 0.973,
-n=37) over Llama-3.2-1B-Instruct-GGUF (0.487). Llama-1B stays available as an override.
+The XDNA2 NPU holds ONE FLM model; every model change evicts/reloads it under lemond's lock,
+so tier 0 is the single shared NPU model. User directive 2026-10-23/24: NPU unless a task
+needs an iGPU-only model. Calibrated gauntlet (n=39): gemma4-it-e2b-FLM think=false 1.000,
+Gemma-4-E2B-it-GGUF 0.973, llama3.2-1b-FLM 0.513. The GGUF and Llama-1B GGUF stay available
+as COHEZION_TIER0_MODEL overrides.
 """
 
 from __future__ import annotations
@@ -19,7 +17,8 @@ from cohezion.config.defaults import DEFAULT_TIER0_MODEL, tier0_model
 
 
 _OLD_NPU_LITERAL = "llama3.2-1b-FLM"
-_TIER0 = "Gemma-4-E2B-it-GGUF"
+_TIER0 = "gemma4-it-e2b-FLM"
+_GGUF = "Gemma-4-E2B-it-GGUF"  # the 2026-10-23 default, now an opt-in override
 
 # Hermetic: nothing here may reach the live router (a chat request for the tier-0 GGUF
 # would make :13305 load it). conftest.no_network refuses AND records every connect.
@@ -74,7 +73,7 @@ _LIVE_SITES = {
 }
 
 
-def test_default_tier0_is_gemma4_e2b(monkeypatch):
+def test_default_tier0_is_gemma4_e2b_flm(monkeypatch):
     monkeypatch.delenv("COHEZION_TIER0_MODEL", raising=False)
     assert DEFAULT_TIER0_MODEL == _TIER0
     assert tier0_model() == _TIER0
@@ -106,16 +105,25 @@ def test_default_tier0_uses_gemma4_card_sampling():
     must send the same card values, never the 0.7 unknown-model fallback or greedy 0.0."""
     from cohezion.inference.model_card_defaults import get_sampling_defaults
 
-    assert get_sampling_defaults(_TIER0) == {"temperature": 1.0, "top_k": 64, "top_p": 0.95}
+    assert get_sampling_defaults(_GGUF) == {"temperature": 1.0, "top_k": 64, "top_p": 0.95}
 
 
-def test_default_tier0_gets_reasoning_format_none():
+def test_gguf_override_gets_reasoning_format_none_and_flm_default_does_not():
+    """FLM has no reasoning_content channel; reasoning_format is a llama.cpp-only field."""
     from cohezion.inference.gaia_adapter import _is_llamacpp_thinking_model
 
-    assert _is_llamacpp_thinking_model(_TIER0)
+    assert _is_llamacpp_thinking_model(_GGUF)
+    assert not _is_llamacpp_thinking_model(_TIER0)
 
 
-def test_default_tier0_is_classified_igpu_and_light():
+def test_default_tier0_is_classified_npu_with_catalog_weight():
+    from cohezion.compound.oom_guard import MODEL_FOOTPRINT_GB, ComputeTier, tier_for_model
+
+    assert tier_for_model(_TIER0) is ComputeTier.NPU
+    assert MODEL_FOOTPRINT_GB[_TIER0] == 6.0  # catalog weight, not a measured residency
+
+
+def test_gguf_override_is_classified_igpu_and_light():
     from cohezion.compound.oom_guard import (
         HEAVY_THRESHOLD_GB,
         MODEL_FOOTPRINT_GB,
@@ -123,8 +131,20 @@ def test_default_tier0_is_classified_igpu_and_light():
         tier_for_model,
     )
 
-    assert tier_for_model(_TIER0) is ComputeTier.IGPU
-    assert MODEL_FOOTPRINT_GB[_TIER0] < HEAVY_THRESHOLD_GB
+    assert tier_for_model(_GGUF) is ComputeTier.IGPU
+    assert MODEL_FOOTPRINT_GB[_GGUF] < HEAVY_THRESHOLD_GB
+
+
+def test_default_tier0_flm_admission_is_not_kv_priced(monkeypatch):
+    """The flm recipe is not a llama.cpp full-ctx KV reservation: the admission gate prices
+    the curated 6.0 GB weight and no KV, even at the 131072 native window."""
+    from cohezion.compound import oom_guard
+
+    entry = {"id": _TIER0, "recipe": "flm", "recipe_options": {}, "size": 6.0}
+    monkeypatch.setattr(oom_guard, "_catalog_entry", lambda *_a, **_k: entry)
+    risk = oom_guard.check_oom_risk(_TIER0, available_gb=100.0, npu_exempt=False)
+    assert risk.safe
+    assert risk.footprint_gb == pytest.approx(6.0)
 
 
 def test_inference_products_routing_product_is_tier0():
@@ -190,17 +210,22 @@ def test_base_recipe_bounds_tier0_ctx():
     from cohezion.compound.lemonade_recipes import BASE_RECIPES
 
     recipe = BASE_RECIPES[_TIER0]
-    assert recipe["ctx_size"] == 4096
-    assert recipe["llamacpp_backend"] == "auto"  # device probe -> Vulkan iGPU; not "rocm"/"cpu"
-    assert recipe["llamacpp_args"].split()[-2:] == ["-np", "1"]
-    # The opt-in override stays bounded too.
+    # FLM rounds ctx up to a power of two (min 512): 4096 is served as-is.
+    assert recipe == {"ctx_size": 4096}, "flm recipe: ctx only, no llama.cpp keys"
+    # The opt-in overrides stay bounded too.
+    gguf = BASE_RECIPES[_GGUF]
+    assert gguf["ctx_size"] == 4096
+    assert gguf["llamacpp_backend"] == "auto"  # device probe -> Vulkan iGPU; not "rocm"/"cpu"
+    assert gguf["llamacpp_args"].split()[-2:] == ["-np", "1"]
     assert BASE_RECIPES["Llama-3.2-1B-Instruct-GGUF"]["ctx_size"] == 4096
 
 
-def test_ops_manifest_matches_base_recipe_for_tier0():
+@pytest.mark.parametrize("model", [_TIER0, _GGUF])
+def test_ops_manifest_matches_base_recipe_for_tier0(model):
     """Two appliers write lemonade's saved options for the same id: BASE_RECIPES
     (scripts/apply_lemonade_recipes.py) and the ops manifest (scripts/ops/...). Any field
-    that differs is re-stamped by whichever ran last -- two ctx/backend authorities."""
+    that differs is re-stamped by whichever ran last -- two ctx/backend authorities. A key
+    absent from one side must be absent from the other (the FLM entry has no llamacpp keys)."""
     from pathlib import Path
 
     import yaml
@@ -209,16 +234,17 @@ def test_ops_manifest_matches_base_recipe_for_tier0():
 
     manifest = Path(__file__).resolve().parents[2] / "scripts/ops/lemonade-recipes.md"
     front = yaml.safe_load(manifest.read_text().split("---", 2)[1])
-    entries = [e for e in front["recipes"] if e["model"] == _TIER0]
-    assert len(entries) == 1, "tier 0 must have exactly one ops-manifest entry"
+    entries = [e for e in front["recipes"] if e["model"] == model]
+    assert len(entries) == 1, f"{model} must have exactly one ops-manifest entry"
     entry = entries[0]
-    ops = {k: entry[k] for k in ("ctx_size", "llamacpp_backend", "llamacpp_args")}
-    assert ops == dict(BASE_RECIPES[_TIER0])
+    keys = ("ctx_size", "llamacpp_backend", "llamacpp_args")
+    ops = {k: entry[k] for k in keys if k in entry}
+    assert ops == dict(BASE_RECIPES[model])
 
 
 def _e2b_entry(ctx_size: int) -> dict:
     return {
-        "id": _TIER0,
+        "id": _GGUF,
         "recipe": "llamacpp",
         "recipe_options": {"ctx_size": ctx_size},
         "max_context_window": 131072,
@@ -226,29 +252,30 @@ def _e2b_entry(ctx_size: int) -> dict:
     }
 
 
-def test_default_tier0_kv_rate_is_from_gguf_architecture():
+def test_gguf_tier0_kv_rate_is_from_gguf_architecture():
     """15 KV-owning layers (35 - 20 shared): 3 full x 512 + 12 SWA x 256, 1 KV head, f16."""
     from cohezion.compound.oom_guard import KV_KIB_PER_TOKEN
 
-    assert KV_KIB_PER_TOKEN[_TIER0] == 2 * 1 * (3 * 512 + 12 * 256) * 2 / 1024 == 18.0
+    assert _TIER0 not in KV_KIB_PER_TOKEN  # FLM KV is unmeasured; no GGUF price carried over
+    assert KV_KIB_PER_TOKEN[_GGUF] == 2 * 1 * (3 * 512 + 12 * 256) * 2 / 1024 == 18.0
 
 
-def test_default_tier0_admission_prices_kv_not_weights_only(monkeypatch):
+def test_gguf_tier0_admission_prices_kv_not_weights_only(monkeypatch):
     """ctx_size=0 reserves the 131072 native window: 18 KiB x 131072 = 2.25 GB of KV on top of
     4.09 GB weights. 13 GB clears weights + buffer (12.09) but not + KV (14.34)."""
     from cohezion.compound import oom_guard
 
     monkeypatch.setattr(oom_guard, "_catalog_entry", lambda *_a, **_k: _e2b_entry(0))
-    risk = oom_guard.check_oom_risk(_TIER0, available_gb=13.0)
+    risk = oom_guard.check_oom_risk(_GGUF, available_gb=13.0)
     assert risk.reason != "small model — no gate needed"
     assert risk.footprint_gb == pytest.approx(4.09 + 2.25)
     assert not risk.safe
 
 
-def test_default_tier0_admission_admits_at_bounded_ctx(monkeypatch):
+def test_gguf_tier0_admission_admits_at_bounded_ctx(monkeypatch):
     from cohezion.compound import oom_guard
 
     monkeypatch.setattr(oom_guard, "_catalog_entry", lambda *_a, **_k: _e2b_entry(4096))
-    risk = oom_guard.check_oom_risk(_TIER0, available_gb=13.0)
+    risk = oom_guard.check_oom_risk(_GGUF, available_gb=13.0)
     assert risk.safe
     assert risk.footprint_gb == pytest.approx(4.09 + 18.0 * 4096 / (1024 * 1024))

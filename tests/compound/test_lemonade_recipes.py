@@ -12,6 +12,10 @@ They guard:
 from cohezion.compound.lemonade_recipes import BASE_RECIPES, USER_VARIANTS
 
 
+# FastFlowLM (NPU) recipes carry ctx_size only: the flm recipe has no llama.cpp backend/args.
+_LLAMACPP_RECIPES = {n: o for n, o in BASE_RECIPES.items() if not n.endswith("-FLM")}
+
+
 class TestBaseRecipeCtxSize:
     def test_all_have_ctx_size(self) -> None:
         for name, opts in BASE_RECIPES.items():
@@ -56,7 +60,7 @@ class TestBaseRecipeBackend:
 
     def test_all_other_llms_use_auto_backend(self) -> None:
         """Every model except Gemma-4-E2B should use 'auto' so Lemonade picks vulkan/cpu."""
-        for name, opts in BASE_RECIPES.items():
+        for name, opts in _LLAMACPP_RECIPES.items():
             if name == "Gemma-4-E2B-it-GGUF":
                 continue
             backend = opts.get("llamacpp_backend")
@@ -72,13 +76,13 @@ class TestBaseRecipeBackend:
 
 class TestBaseRecipeArgs:
     def test_all_have_llamacpp_args(self) -> None:
-        for name, opts in BASE_RECIPES.items():
+        for name, opts in _LLAMACPP_RECIPES.items():
             assert "llamacpp_args" in opts, f"{name}: missing llamacpp_args"
 
     def test_batch_sizes_present_in_llm_args(self) -> None:
         """LLM models (not embedding) should have -b flag for prefill batch size."""
         embedding_models = {"nomic-embed-text-v2-moe-GGUF", "Qwen3-Embedding-0.6B-GGUF"}
-        for name, opts in BASE_RECIPES.items():
+        for name, opts in _LLAMACPP_RECIPES.items():
             if name in embedding_models:
                 continue
             args = opts.get("llamacpp_args", "")
@@ -114,11 +118,26 @@ class TestBaseRecipeArgs:
             )
 
 
+class TestFlmRecipes:
+    def test_flm_recipes_have_no_llamacpp_keys(self) -> None:
+        flm = {n: o for n, o in BASE_RECIPES.items() if n.endswith("-FLM")}
+        assert flm, "no FLM recipe -- the tier-0 NPU default lost its ctx authority"
+        for name, opts in flm.items():
+            assert set(opts) == {"ctx_size"}, f"{name}: flm recipe carries {sorted(opts)}"
+
+    def test_flm_ctx_is_a_power_of_two_at_least_512(self) -> None:
+        """FLM rounds ctx up to a power of 2 (min 512); a non-power would be silently grown."""
+        for name, opts in BASE_RECIPES.items():
+            if name.endswith("-FLM"):
+                ctx = opts["ctx_size"]
+                assert ctx >= 512 and ctx & (ctx - 1) == 0, f"{name}: ctx_size={ctx}"
+
+
 class TestBaseRecipeCount:
     def test_recipe_count(self) -> None:
-        """18 LLM models with crafted recipes (tier-0 Llama-3.2-1B GGUF added 2026-10-23)."""
-        assert len(BASE_RECIPES) == 18, (
-            f"Expected 18 BASE_RECIPES, got {len(BASE_RECIPES)}. "
+        """19 models with crafted recipes (tier-0 gemma4-it-e2b-FLM added 2026-10-24)."""
+        assert len(BASE_RECIPES) == 19, (
+            f"Expected 19 BASE_RECIPES, got {len(BASE_RECIPES)}. "
             "Update this count if you intentionally add/remove a model."
         )
 

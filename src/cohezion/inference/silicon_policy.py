@@ -87,13 +87,13 @@ class ResidencyPolicy:
 #                                    what makes a big model viable on CPU at all
 DEFAULT_POLICY = ResidencyPolicy(
     slots=(
-        # Tier 0 moved OFF the single-slot NPU 2026-10-23 (it thrashed against other FLM
-        # workloads): the model is config.defaults.tier0_model() -- an iGPU GGUF by default --
-        # and ctx_size=None, because its saved lemonade recipe is the ONLY ctx/backend
-        # authority (a `--ctx-size` here would make --heal a second one). tier0_model() is read
-        # when this module is imported; a later COHEZION_TIER0_MODEL change needs a re-import.
+        # Tier 0 is NPU-first (2026-10-24): config.defaults.tier0_model() -- the shared
+        # single-slot NPU FLM model by default, an iGPU slot for a GGUF override -- with
+        # ctx_size=None, because its saved lemonade recipe is the ONLY ctx authority (a
+        # `--ctx-size` here would make --heal a second one). tier0_model() is read when this
+        # module is imported; a later COHEZION_TIER0_MODEL change needs a re-import.
         SiliconSlot(
-            device="igpu",
+            device="npu" if tier0_model().endswith("-FLM") else "igpu",
             model=tier0_model(),
             ctx_size=None,
             role="classify/route (tier 0)",

@@ -38,8 +38,12 @@ recipes:
     llamacpp_backend: vulkan
     llamacpp_args: "--temp 1.0 --top-p 0.95 --top-k 64 --cache-type-k q4_0 --cache-type-v q4_0"
     verify_card: true
+  - model: gemma4-it-e2b-FLM
+    role: cascade tier 0 (default since 2026-10-24; NPU FastFlowLM, every request sends think=false)
+    ctx_size: 4096      # single tier-0 ctx authority; MUST equal BASE_RECIPES in lemonade_recipes.py
+    verify_card: false  # flm recipe: no llama.cpp backend/args; FLM rounds ctx to a power of 2
   - model: Gemma-4-E2B-it-GGUF
-    role: cascade tier 0 (default since 2026-10-23; thinking model, one slot for CoT + answer)
+    role: opt-in tier 0 via COHEZION_TIER0_MODEL (thinking model, one slot for CoT + answer)
     ctx_size: 4096      # single tier-0 ctx authority; MUST equal BASE_RECIPES in lemonade_recipes.py
     llamacpp_backend: auto  # same string as BASE_RECIPES (probe -> vulkan); a mismatch re-stamps
     llamacpp_args: "--temp 1.0 --top-p 0.95 --top-k 64 -b 2048 -ub 512 -np 1"

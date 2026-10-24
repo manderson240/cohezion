@@ -74,8 +74,8 @@ _QUARTER_MODELS: dict[str, str] = {
     "routine": "llama3.2-1b-FLM",  # NPU (XDNA2), 42 TPS — classify/route/short
     "synthesis": "Gemma-4-E4B-it-GGUF",  # iGPU (RDNA3.5) — code/structured
     "orchestration": "Gemma-4-E4B-it-GGUF",  # iGPU — multi-step reasoning
-    # The tier-0 id. Chat only (no load, no ctx/backend): the router auto-loads it from its
-    # saved lemonade recipe, the only ctx/backend authority -- Vulkan iGPU today, not CPU.
+    # The iGPU GGUF (tier 0 2026-10-23..24, now an opt-in override). Chat only (no load, no
+    # ctx/backend): the router auto-loads it from its saved lemonade recipe -- Vulkan iGPU.
     "review": "Gemma-4-E2B-it-GGUF",  # audit/completion
 }
 

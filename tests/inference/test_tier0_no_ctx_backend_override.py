@@ -99,12 +99,15 @@ def test_quarter_review_lane_uses_saved_recipe(fake_lemonade_raw):
     base, calls = fake_lemonade_raw
     from cohezion.inference.direct_tier import quarter_on_a_string_tier
 
+    # The review lane is the former tier-0 GGUF (an opt-in tier 0 since the 2026-10-24 move
+    # to the NPU); it must still chat from its saved recipe and never pin ctx/backend.
+    review_id = "Gemma-4-E2B-it-GGUF"
     tier = quarter_on_a_string_tier("review", port=int(base.rsplit(":", 1)[1]))
-    assert tier.model_id == TIER0, "review lane no longer the tier-0 id -- update this test"
+    assert tier.model_id == review_id, "review lane changed model -- update this test"
     tier._base_url = f"{base}/v1/chat/completions"  # 127.0.0.1, the only host the guard allows
     out = tier.call("Review: is this diff safe?")
     assert out["error"] is None, out["error"]
-    reqs = _tier0_requests(calls)
+    reqs = [c for c in calls if c[0] == "POST" and c[2].get("model") == review_id]
     assert reqs, f"review lane never reached the fake: {calls}"
     for _m, _p, body in reqs:
         _assert_no_override_body(body)

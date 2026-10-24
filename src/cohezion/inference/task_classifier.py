@@ -136,7 +136,7 @@ def _preferred_model(output_type: str, node: str) -> str:
 
     Priority:
     1. output_type-specific override: code → ThinkingCoder, reasoning/math_reasoning → Gemma31B
-    2. NPU node → the cascade tier-0 model (config.defaults.tier0_model; iGPU GGUF by default)
+    2. NPU node → the cascade tier-0 model (config.defaults.tier0_model; NPU FLM by default)
     3. GPU node default → registry best for Task.GOVERNANCE/iGPU (falls back to Gemma-4-E4B-it-GGUF)
 
     Advisory only -- the caller is free to use any model. This is a routing hint to help
@@ -146,7 +146,7 @@ def _preferred_model(output_type: str, node: str) -> str:
     if output_type in _MODEL_HINTS:
         return _MODEL_HINTS[output_type]
     if node == "npu":
-        # Fast-tier hint follows the cascade tier 0, which is no longer on the NPU.
+        # Fast-tier hint follows the cascade tier 0 (the shared NPU FLM model by default).
         return tier0_model()
     return _IGPU_DEFAULT_MODEL
 

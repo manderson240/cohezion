@@ -7,9 +7,11 @@ one instance and one saved option set per id, so tiers 0 and 2 collapsed onto on
 tier 2 became a TRUST-gated resample of tier 0, not a more capable tier.
 
 Fix: tier 2 is configurable (COHEZION_TIER2_MODEL) and tiers are DEDUPLICATED by model id,
-first occurrence wins, so the default cascade is [Gemma-4-E2B, Gemma-4-E4B] until a measured
-more-capable tier 2 is chosen (pending the large-model sweep). The last surviving tier keeps
-the TRUST gate so a cascade always completes.
+first occurrence wins. 2026-10-24: tier 0 is NPU-first (gemma4-it-e2b-FLM) and the tier-2
+default is the E4B id, so the default cascade is [gemma4-it-e2b-FLM, Gemma-4-E4B] -- the iGPU
+only as the quality-gate escalation -- for ANY tier-0 override, until a measured more-capable
+tier 2 is chosen (pending the large-model sweep). The last surviving tier keeps the TRUST
+gate so a cascade always completes.
 """
 
 import pytest
@@ -21,6 +23,7 @@ from cohezion.inference.triune_orchestrator import build_triune_omni_orchestrato
 # no_network: building the cascade must not touch the live router (refused AND recorded).
 pytestmark = pytest.mark.usefixtures("_clean_tier_env", "no_network")
 
+_T0 = "gemma4-it-e2b-FLM"
 _E2B = "Gemma-4-E2B-it-GGUF"
 _E4B = "Gemma-4-E4B-it-GGUF"
 
@@ -35,9 +38,16 @@ def _tier_models(orch):
     return [getattr(getattr(t, "agent", None), "_model", None) for t, _gate in orch.tiers]
 
 
-def test_default_cascade_is_deduplicated_to_e2b_then_e4b():
+def test_default_cascade_is_npu_tier0_then_e4b():
     models = _tier_models(build_triune_omni_orchestrator())
-    assert models == [_E2B, _E4B], models
+    assert models == [_T0, _E4B], models
+
+
+def test_gguf_tier0_override_still_dedupes_to_two_tiers(monkeypatch):
+    """The tier-2 default dedupes against E4B, not against the tier-0 id, so overriding tier 0
+    back to the GGUF never resurrects the NPU model as a TRUST tier."""
+    monkeypatch.setenv("COHEZION_TIER0_MODEL", _E2B)
+    assert _tier_models(build_triune_omni_orchestrator()) == [_E2B, _E4B]
 
 
 def test_tiers_are_never_duplicated_by_model_id():
@@ -54,24 +64,26 @@ def test_last_tier_is_trust_gated_so_the_cascade_completes():
 def test_tier2_env_adds_a_third_distinct_tier(monkeypatch):
     monkeypatch.setenv("COHEZION_TIER2_MODEL", "Qwen3-8B-GGUF")
     orch = build_triune_omni_orchestrator()
-    assert _tier_models(orch) == [_E2B, _E4B, "Qwen3-8B-GGUF"]
+    assert _tier_models(orch) == [_T0, _E4B, "Qwen3-8B-GGUF"]
     assert orch.tiers[-1][1] is QualityGate.TRUST
     assert orch.tiers[1][1] is not QualityGate.TRUST  # E4B keeps its escalation gate
 
 
 def test_tier2_equal_to_tier0_is_deduplicated(monkeypatch):
-    monkeypatch.setenv("COHEZION_TIER2_MODEL", _E2B)
-    assert _tier_models(build_triune_omni_orchestrator()) == [_E2B, _E4B]
+    monkeypatch.setenv("COHEZION_TIER2_MODEL", _T0)
+    assert _tier_models(build_triune_omni_orchestrator()) == [_T0, _E4B]
 
 
 def test_tier0_equal_to_tier1_keeps_first_occurrence(monkeypatch):
     monkeypatch.setenv("COHEZION_TIER0_MODEL", _E4B)
-    models = _tier_models(build_triune_omni_orchestrator())
-    assert models == [_E4B, _E2B], models
+    orch = build_triune_omni_orchestrator()
+    assert _tier_models(orch) == [_E4B]  # tier 1 and the default tier 2 collapse onto it
+    assert orch.tiers[-1][1] is QualityGate.TRUST
 
 
-def test_tier0_override_restores_three_distinct_models(monkeypatch):
+def test_tier0_and_tier2_overrides_give_three_distinct_models(monkeypatch):
     monkeypatch.setenv("COHEZION_TIER0_MODEL", "Llama-3.2-1B-Instruct-GGUF")
+    monkeypatch.setenv("COHEZION_TIER2_MODEL", _E2B)
     models = _tier_models(build_triune_omni_orchestrator())
     assert models == ["Llama-3.2-1B-Instruct-GGUF", _E4B, _E2B], models
 

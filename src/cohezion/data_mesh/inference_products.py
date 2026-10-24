@@ -30,13 +30,13 @@ from cohezion.governance.autonomy_engine import AutonomyTier
 
 
 _OMNI_ROUTER = "http://localhost:13305"
-# Tier-0 routing model (iGPU GGUF since 2026-10-23; resolved once at import).
+# Tier-0 routing model (the shared NPU FLM model by default; resolved once at import).
 _TIER0 = tier0_model()
 _FETCH_TIMEOUT_S = 2.0
 
 # The 4 models the compound loop uses: SkillRefiner (x2) + SemanticCache + routing
 COMPOUND_LOOP_MODELS: list[str] = [
-    _TIER0,  # iGPU (llama.cpp Vulkan): routing/classification -- off the NPU 2026-10-23
+    _TIER0,  # NPU FLM by default (config.defaults.tier0_model): routing/classification
     "Bonsai-8B-gguf",  # llamacpp: SkillRefiner fast tier
     "nomic-embed-text-v2-moe-GGUF",  # llamacpp: SemanticCache 768D embeddings, 6ms (CA1)
     "deepseek-r1-0528-8b-FLM",  # FLM NPU: SkillRefiner reasoning tier, 10.6 TPS (N1)
@@ -44,7 +44,7 @@ COMPOUND_LOOP_MODELS: list[str] = [
 
 # SLA: latency targets and quality tiers (source: harness.md N1, measured 2026-06-22).
 # The _TIER0 row's targets were measured on llama3.2-1b-FLM (NPU); they are NOT yet
-# re-measured for the iGPU GGUF tier-0 model that now fills that row.
+# re-measured for gemma4-it-e2b-FLM, the tier-0 model that now fills that row.
 _SLA: dict[str, dict[str, Any]] = {
     _TIER0: {
         "max_latency_ms": 100,

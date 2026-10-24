@@ -17,16 +17,22 @@ LEMONADE_API_URL: str = f"{LEMONADE_BASE_URL}/api/v1"
 LEMONADE_NPU_BASE_URL: str = "http://localhost:13305"
 
 # ── Tier 0 (fast classify/route) model — single source of truth ──────────────
-# Moved OFF the NPU 2026-10-23: the XDNA2 NPU holds one FLM model and every swap evicts/
-# reloads it under lemond's lock; the cascade's llama3.2-1b-FLM thrashed it against the
-# Kaggle worker's FLM models.
-# Default is Gemma-4-E2B-it-GGUF (llama.cpp Vulkan, iGPU), not the 1B, per the calibrated
-# capability sweep of 2026-10-23 (gauntlet, 6 roles, exact/exec graders, calibration PASS):
-# Gemma-4-E2B mean 0.973 (n=37), Gemma-4-E4B 0.923, Llama-3.2-1B-Instruct-GGUF 0.487
-# (triage 0.1, robustness 0.0). Priorities: tasks complete > quality > speed.
-# E2B is a THINKING model: every tier-0 caller must read reasoning_content when content is
-# empty and give it a token budget that fits the CoT (tests/inference/test_tier0_*).
-DEFAULT_TIER0_MODEL: str = "Gemma-4-E2B-it-GGUF"
+# NPU-first (user directive 2026-10-23/24): run inference on the XDNA2 NPU (FastFlowLM,
+# "-FLM" ids served by lemonade on :13305) unless a task needs an iGPU-only model -- less
+# power, and it keeps the iGPU/CPU free. Priorities: tasks complete (no OOM) > quality > speed.
+# Measured (calibrated 6-role gauntlet, exact/exec graders, n=39): gemma4-it-e2b-FLM with
+# think=false 1.000 (every role 1.0) -- best on any silicon; same model think=true 0.949;
+# Gemma-4-E2B-it-GGUF (iGPU, the previous default) 0.973; qwen3.5-4b-FLM think=false 0.897;
+# llama3.2-1b-FLM 0.513.
+# SINGLE SLOT: the NPU holds ONE LLM at a time and requesting another FLM model swaps it
+# (slow, under lemond's lock), so tier 0 is the one shared NPU model -- the llama3.2-1b-FLM
+# tier 0 of 2026-10-22 thrashed the slot against other FLM workloads.
+# STICKY THINK: FLM's "think" flag persists on the loaded model across callers; a request
+# that omits it inherits whatever the last caller set. EVERY tier-0 request to an FLM id
+# must therefore send top-level "think": false -- merge tier0_request_extras() into the
+# payload (the one chokepoint). Gemma-4-E2B-it-GGUF stays a valid COHEZION_TIER0_MODEL
+# override (thinking GGUF: callers read reasoning_content; no think flag is sent).
+DEFAULT_TIER0_MODEL: str = "gemma4-it-e2b-FLM"
 
 
 def tier0_model() -> str:
@@ -34,12 +40,18 @@ def tier0_model() -> str:
     return os.environ.get("COHEZION_TIER0_MODEL") or DEFAULT_TIER0_MODEL
 
 
+def tier0_request_extras(model_id: str) -> dict[str, bool]:
+    """Payload fields every tier-0 request must carry: ``{"think": False}`` for an FLM id
+    (the flag is sticky on the loaded NPU model), else nothing. Callers pass the tier-0 id."""
+    return {"think": False} if model_id.endswith("-FLM") else {}
+
+
 # ── Tier 2 (cascade completion) model ────────────────────────────────────────
 # AWAITING THE LARGE-MODEL SWEEP: no measured more-capable tier 2 has been chosen yet. The
-# legacy default is the same id as the tier-0 default, so build_triune_omni_orchestrator
-# deduplicates it away and the default cascade is [tier 0, Gemma-4-E4B]. Set
-# COHEZION_TIER2_MODEL to add a distinct third tier.
-DEFAULT_TIER2_MODEL: str = "Gemma-4-E2B-it-GGUF"
+# default is the cascade's tier-1 id (Gemma-4-E4B), so build_triune_omni_orchestrator
+# deduplicates it away for ANY tier 0 and the default cascade is [tier 0, Gemma-4-E4B]: the
+# iGPU only as the quality-gate escalation. Set COHEZION_TIER2_MODEL to add a third tier.
+DEFAULT_TIER2_MODEL: str = "Gemma-4-E4B-it-GGUF"
 
 
 def tier2_model() -> str:
@@ -50,7 +62,8 @@ def tier2_model() -> str:
 # Tier-0 ctx has exactly ONE authority: lemonade's saved per-model option, written from
 # compound.lemonade_recipes.BASE_RECIPES by scripts/apply_lemonade_recipes.py. No client
 # pins it per load -- a second authority makes lemond unload/reload the model whenever two
-# callers disagree (the slot thrash this move off the NPU exists to remove).
+# callers disagree (a slot thrash). FLM honours a saved "ctx_size" too (rounded up to a
+# power of two, min 512).
 
 
 # ── SurrealDB ─────────────────────────────────────────────────────────────────
@@ -70,7 +83,7 @@ OLLAMA_BASE_URL: str = "http://localhost:11434"
 # on demand); the deprecated per-lane ports (:13306-:13309) are down and redundant.
 LANE_PORTS: dict[str, int] = {"npu": 13305, "igpu": 13305, "cpu": 13305}
 LANE_MODELS: dict[str, str] = {
-    "npu": "llama3.2-1b-FLM",
+    "npu": DEFAULT_TIER0_MODEL,
     "igpu": "Gemma-4-E4B-it-GGUF",
     "cpu": "Gemma-4-26B-A4B-it-GGUF",
 }
@@ -97,7 +110,7 @@ CPU_SMALL_MODELS: list[str] = [
 ]
 
 LANE_MODELS: dict[str, str] = {
-    "npu": "Gemma-4-E2B-it-GGUF",
+    "npu": DEFAULT_TIER0_MODEL,
     "igpu_rocwmma": "Gemma-4-E4B-it-GGUF",
     "igpu_unified": "Gemma-4-26B-A4B-it-GGUF",
     "cpu": "Gemma-4-31B-it-GGUF",

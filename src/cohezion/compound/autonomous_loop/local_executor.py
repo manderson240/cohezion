@@ -23,7 +23,12 @@ import urllib.request
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from typing import Any
 
-from cohezion.config.defaults import LEMONADE_BASE_URL, tier0_model
+from cohezion.config.defaults import (
+    DEFAULT_TIER0_MODEL,
+    LEMONADE_BASE_URL,
+    tier0_model,
+    tier0_request_extras,
+)
 from cohezion.inference.oom_guard import check_ram
 
 
@@ -32,10 +37,12 @@ logger = logging.getLogger(__name__)
 # Model tier map: classifier node → OmniRouter model name
 # All model names must exist in the OmniRouter catalog at /api/v1/models.
 _TIER_MODEL: dict[str, str] = {
-    "npu": "llama3.2-1b-FLM",  # XDNA2 NPU via FLM backend
+    # XDNA2 NPU: the shared tier-0 FLM model (resolved via tier0_model() at call time); any
+    # other FLM id here would swap the single NPU slot away from tier 0.
+    "npu": DEFAULT_TIER0_MODEL,
     "gpu": "Gemma-4-E4B-it-GGUF",  # RDNA 3.5 iGPU via vulkan
     "igpu": "Gemma-4-E4B-it-GGUF",  # same
-    "cpu": "Gemma-4-E2B-it-GGUF",  # tier-0 id: backend/ctx from its saved lemonade recipe
+    "cpu": "Gemma-4-E2B-it-GGUF",  # iGPU GGUF (the former tier 0): ctx from its saved recipe
     "reasoning": "Qwen3.5-35B-A3B-GGUF",  # iGPU vulkan, heavy reasoning
 }
 _DEFAULT_MODEL = "Gemma-4-E4B-it-GGUF"
@@ -43,14 +50,13 @@ _MIN_FREE_RAM_GB = 8.0
 
 # Tiers to pre-load at warmup: (logical_name, model_name, extra_lemonade_flags)
 _WARMUP_TIERS: list[tuple[str, str, list[str]]] = [
-    ("npu", "llama3.2-1b-FLM", ["--ctx-size", "16384"]),
+    # The tier-0 id (resolved at call time): NO ctx flags, its saved recipe is the authority.
+    ("npu", DEFAULT_TIER0_MODEL, []),
     ("igpu", "Gemma-4-E4B-it-GGUF", ["--ctx-size", "16384", "--llamacpp", "vulkan"]),
-    # The tier-0 id: NO ctx/backend flags. Lemonade's saved per-model recipe is its only
-    # ctx/backend authority; a client pin here made lemond reload it whenever another caller
-    # had it loaded at the recipe ctx (single ctx authority, config.defaults).
+    # No ctx/backend flags: lemonade's saved per-model recipe is its only ctx/backend authority.
     ("cpu", "Gemma-4-E2B-it-GGUF", []),
 ]
-# NOTE (out of scope, flagged): the FLM / E4B entries above still pin ctx 16384 client-side.
+# NOTE (out of scope, flagged): the E4B entry above still pins ctx 16384 client-side.
 
 
 def _load_flags(model_name: str, flags: list[str]) -> list[str]:
@@ -71,6 +77,8 @@ def warmup_tiers(base_url: str = LEMONADE_BASE_URL) -> dict[str, bool]:
     port = base_url.rstrip("/").rsplit(":", 1)[-1]
     results: dict[str, bool] = {}
     for tier_name, model_name, flags in _WARMUP_TIERS:
+        if tier_name == "npu":
+            model_name = tier0_model()  # one shared NPU model; honours COHEZION_TIER0_MODEL
         cmd = ["lemonade", "--port", port, "load", model_name, *_load_flags(model_name, flags)]
         logger.info("warmup: loading %s tier (%s) …", tier_name, model_name)
         try:
@@ -203,14 +211,15 @@ def _chat_complete(
     Thinking-mode models (Gemma-4-*) return content="" with reasoning_content set;
     we promote reasoning_content → content when the latter is empty.
     """
-    payload = json.dumps(
-        {
-            "model": model,
-            "messages": [{"role": "user", "content": prompt}],
-            "max_tokens": max_tokens,
-            "temperature": 0.3,
-        }
-    ).encode()
+    body: dict[str, Any] = {
+        "model": model,
+        "messages": [{"role": "user", "content": prompt}],
+        "max_tokens": max_tokens,
+        "temperature": 0.3,
+    }
+    if model == tier0_model():
+        body.update(tier0_request_extras(model))  # sticky FLM think flag (config.defaults)
+    payload = json.dumps(body).encode()
     req = urllib.request.Request(  # noqa: S310
         f"{base_url.rstrip('/')}/v1/chat/completions",
         data=payload,
@@ -345,7 +354,7 @@ class LocalImprovementExecutor:
         verification: str = getattr(task, "verification", "")
 
         node = _classify_node(description)
-        model = _TIER_MODEL.get(node, _DEFAULT_MODEL)
+        model = tier0_model() if node == "npu" else _TIER_MODEL.get(node, _DEFAULT_MODEL)
 
         prompt = (
             f"You are a compound engineering assistant. Complete this task concisely.\n\n"

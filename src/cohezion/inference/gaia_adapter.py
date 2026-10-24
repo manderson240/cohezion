@@ -574,6 +574,13 @@ def build_gaia_llm_tier(
         extra_sampling.setdefault("reasoning_format", "none")
     if request_extras:
         extra_sampling = {**extra_sampling, **request_extras}  # caller wins over the card
+    # Tier 0 on an FLM id: "think" is sticky on the loaded NPU model, so every tier-0 request
+    # sends think=false (config.defaults.tier0_request_extras). Merged last so no caller can
+    # drop it; gated on the tier-0 id so other FLM lanes keep their own behaviour.
+    from cohezion.config.defaults import tier0_model, tier0_request_extras
+
+    if model_id == tier0_model():
+        extra_sampling = {**extra_sampling, **tier0_request_extras(model_id)}
 
     client = client_factory(base_url=base_url, model=model_id, verbose=not silent)
     shim = _GaiaLLMClientShim(

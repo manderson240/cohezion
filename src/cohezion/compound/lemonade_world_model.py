@@ -83,7 +83,7 @@ class FlumeWorldModel:
 
     Extends the FLUME latent-space backbone: instead of encoding via the VAE, this component
     uses the fast cascade tier-0 model (config.defaults.tier0_model, via the :13305 OmniRouter;
-    an iGPU GGUF since 2026-10-23 — it ran on the XDNA2 NPU before)
+    the shared XDNA2 NPU FLM model by default -- build_gaia_llm_tier sends it think=false)
     as a tractability probe in the manifold's quality dimension.  The protocol is:
     task description → tractability prompt → scalar coherence → 12D state vector.
 
