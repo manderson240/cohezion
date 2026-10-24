@@ -42,7 +42,8 @@ _FLOAT_RE = re.compile(r"(\d?\.\d+|\d+\.?\d*)")
 # scale (trivial HIGH, intractable LOW); verified LIVE on llama3.2-1b-FLM: "add two numbers" → 0.93,
 # "derive a full theory of quantum gravity with proof" → 0.01 (and the intractable prompt is the
 # LONGER one, so the estimate tracks tractability, not verbosity).
-# Thinking-safe budget for the coherence probe (tier 0 is a thinking model by default). The
+# Thinking-safe budget for the coherence probe (a GGUF tier-0 override thinks; the default FLM
+# tier 0 is sent think=false but the budget stays safe for either). The
 # prompt is ~200 tokens, so this fits the tier-0 recipe's ctx 4096 on one slot.
 _COHERENCE_MAX_TOKENS = 1024
 
@@ -131,9 +132,9 @@ class FlumeWorldModel:
             # Lazy GAIA path through the blessed builder (gemma4-thinking-mode-output): it sends
             # reasoning_format="none" for thinking models, uses the model-card sampling (greedy
             # 0.0 degenerates on Gemma cards), never /loads (auto_download=False), and its shim
-            # falls back to reasoning_content when content is empty. The default tier 0
-            # (Gemma-4-E2B) thinks before answering: the old max_tokens=8 could never reach
-            # the number, so every estimate fell back to the prior.
+            # falls back to reasoning_content when content is empty. A thinking tier 0 (e.g. the
+            # Gemma-4-E2B-it-GGUF override) reasons before answering: the old max_tokens=8 could
+            # never reach the number, so every estimate fell back to the prior.
             from cohezion.inference.gaia_adapter import build_gaia_llm_tier
 
             self._shim = build_gaia_llm_tier(

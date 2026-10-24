@@ -10,7 +10,8 @@ Quarter-on-a-String Protocol (user directive, recurring):
   Claude (cloud, expensive) = orchestration and planning only.
   Local Lemonade = execution. Always. Cost = $0.
   Dispatcher: quarter_on_a_string_tier(complexity)
-  - "routine"       → llama3.2-1b-FLM  (NPU, 42 TPS, classification/routing)
+  - "routine"       → config.defaults.tier0_model() (the one shared NPU tier-0 model,
+                      sent think=false; classification/routing)
   - "synthesis"     → Bonsai-8B-gguf   (iGPU-class, structured output)
   - "orchestration" → Qwen3-8B-GGUF (8B, reasoning)
   - "review"        → Qwen3-8B-GGUF (same tier, review context)
@@ -43,6 +44,8 @@ from concurrent.futures import as_completed as _futs_done
 from dataclasses import dataclass, field
 from typing import Any
 
+from cohezion.config.defaults import DEFAULT_TIER0_MODEL, tier0_model, tier0_request_extras
+
 
 logger = logging.getLogger(__name__)
 
@@ -71,7 +74,10 @@ def _strip_think(text: str) -> str:
 # review=the tier-0 id on whatever device its saved recipe selects (2026-10-23: no longer a
 # CPU-backend pin; single ctx/backend authority, config.defaults).
 _QUARTER_MODELS: dict[str, str] = {
-    "routine": "llama3.2-1b-FLM",  # NPU (XDNA2), 42 TPS — classify/route/short
+    # NPU (XDNA2) — classify/route/short. The shared tier-0 model, resolved via tier0_model()
+    # at call time (quarter_on_a_string_tier): any other FLM id here would swap the single NPU
+    # slot away from tier 0. This entry is the default for documentation/fallback only.
+    "routine": DEFAULT_TIER0_MODEL,
     "synthesis": "Gemma-4-E4B-it-GGUF",  # iGPU (RDNA3.5) — code/structured
     "orchestration": "Gemma-4-E4B-it-GGUF",  # iGPU — multi-step reasoning
     # The iGPU GGUF (tier 0 2026-10-23..24, now an opt-in override). Chat only (no load, no
@@ -136,15 +142,16 @@ class DirectLemonadeTier:
 
     def call(self, prompt: str) -> dict[str, Any]:
         """Synchronous call via urllib (stdlib-only, no httpx dependency)."""
-        payload = json.dumps(
-            {
-                "model": self.model_id,
-                "messages": self._build_messages(prompt),
-                "max_tokens": self.max_tokens,
-                "temperature": self.temperature,
-                "stream": False,
-            }
-        ).encode()
+        body: dict[str, Any] = {
+            "model": self.model_id,
+            "messages": self._build_messages(prompt),
+            "max_tokens": self.max_tokens,
+            "temperature": self.temperature,
+            "stream": False,
+        }
+        if self.model_id == tier0_model():
+            body.update(tier0_request_extras(self.model_id))  # sticky FLM think flag
+        payload = json.dumps(body).encode()
 
         start = time.perf_counter()
         try:
@@ -324,7 +331,7 @@ def multi_node_batch(
     needing a running event loop. Each task hits a different local model — the
     OmniRouter dispatches to the right silicon backend:
 
-      routine       → llama3.2-1b-FLM  (NPU, XDNA2)
+      routine       → tier0_model()    (NPU, XDNA2; think=false)
       synthesis     → Bonsai-8B-gguf   (iGPU-class)
       orchestration → Qwen3-8B-GGUF    (CPU AVX-512)
 
@@ -373,7 +380,7 @@ def quarter_on_a_string_tier(
 
     Complexity levels (each maps to a model RESIDENT on its device lane — no eviction)
     -----------------
-    routine       → llama3.2-1b-FLM     (NPU, 42 TPS)  — classify, route, short answers
+    routine       → tier0_model()       (NPU, shared slot) — classify, route, short answers
     synthesis     → Gemma-4-E4B-it-GGUF (iGPU)         — code gen, structured output
     orchestration → Gemma-4-E4B-it-GGUF (iGPU)         — multi-step reasoning
     review        → Gemma-4-E2B-it-GGUF (saved recipe) — adversarial review, audit
@@ -384,7 +391,10 @@ def quarter_on_a_string_tier(
     >>> result = tier.call("Classify this task: write a haiku")
     >>> print(result["text"], result["cost_usd"])  # some text, 0.0
     """
-    model_id = _QUARTER_MODELS.get(task_complexity, _QUARTER_MODELS["routine"])
+    key = task_complexity if task_complexity in _QUARTER_MODELS else "routine"
+    # Routine work is tier-0 work: resolve the shared tier-0 model at call time (honours
+    # COHEZION_TIER0_MODEL) so this lane never swaps a different FLM id into the NPU slot.
+    model_id = tier0_model() if key == "routine" else _QUARTER_MODELS[key]
     max_tokens = _QUARTER_MAX_TOKENS.get(task_complexity, 512)
     logger.debug(
         "Quarter-on-a-String: complexity=%s → model=%s port=%d",

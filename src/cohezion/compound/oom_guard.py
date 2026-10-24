@@ -108,7 +108,8 @@ UMA_TIERS: frozenset[ComputeTier] = frozenset(
 # Static tier per model — derived from /api/v1/health device/recipe_options fields.
 # All llamacpp+vulkan models land on iGPU even when catalog shows llamacpp_backend=N/A.
 MODEL_TIER: dict[str, ComputeTier] = {
-    # NPU — FLM recipe (XDNA2 SRAM, NOT in MODEL_FOOTPRINT_GB)
+    # NPU — FLM recipe (XDNA2 compute; weights live in host RAM. Most FLM ids are absent from
+    # MODEL_FOOTPRINT_GB, but the tier-0 default gemma4-it-e2b-FLM is priced there)
     "llama3.2-1b-FLM": ComputeTier.NPU,
     "gemma4-it-e2b-FLM": ComputeTier.NPU,  # tier 0 default (one shared NPU slot)
     "deepseek-r1-0528-8b-FLM": ComputeTier.NPU,

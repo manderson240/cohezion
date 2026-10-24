@@ -1,7 +1,8 @@
 """SystemResourceAgent — Lemonade-powered silicon resource advisor.
 
 Polls SiliconGuard (temp) + ResourceMonitor (memory) + /tmp/cohezion_pressure.lock,
-then calls llama3.2-1b-FLM via :13305 for a structured routing recommendation.
+then asks the shared tier-0 model (config.defaults.tier0_model(), the NPU FLM model by default,
+sent think=false) via :13305 for a structured routing recommendation.
 Falls back to deterministic thresholds when Lemonade is unavailable.
 
 The result feeds:
@@ -25,12 +26,16 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
+from cohezion.config.defaults import DEFAULT_TIER0_MODEL, tier0_model, tier0_request_extras
+
 
 logger = logging.getLogger(__name__)
 
 _PRESSURE_LOCK = Path("/tmp/cohezion_pressure.lock")
 _LEMONADE_URL = "http://localhost:13305/v1/chat/completions"
-_MODEL_ID = "llama3.2-1b-FLM"
+# Default only: the request resolves tier0_model() at call time (one shared NPU slot; a
+# different FLM id here swapped it on every daemon iteration).
+_MODEL_ID = DEFAULT_TIER0_MODEL
 
 # Deterministic thresholds (mirror OverloadCoordinator._determine_level pressure boundaries)
 _TEMP_PAUSE = 85.0  # °C — thermal limit (harness N3)
@@ -192,7 +197,7 @@ class SystemResourceAgent:
         )
 
     def _lemonade_recommendation(self, m: dict[str, Any]) -> ResourceRecommendation | None:
-        """Ask llama3.2-1b-FLM for a structured recommendation. Returns None on any failure."""
+        """Ask the tier-0 model for a structured recommendation. Returns None on any failure."""
         prompt = (
             f"Metrics: temp={m['temp_c']}C memory={m['memory_percent']}% "
             f"available={m['available_gb']}GB pressure_lock={m['pressure_lock']}\n\n"
@@ -204,12 +209,14 @@ class SystemResourceAgent:
             "- proceed+npu otherwise\n"
             "- pressure_score: 0.0=healthy 1.0=critical"
         )
+        model_id = tier0_model()
         payload = json.dumps(
             {
-                "model": _MODEL_ID,
+                "model": model_id,
                 "messages": [{"role": "user", "content": prompt}],
                 "max_tokens": 80,
                 "temperature": 0,
+                **tier0_request_extras(model_id),  # sticky FLM think flag (config.defaults)
             }
         ).encode()
         try:

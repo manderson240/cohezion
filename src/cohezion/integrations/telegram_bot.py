@@ -24,7 +24,12 @@ from typing import Any, NamedTuple
 
 import httpx
 
-from cohezion.config.defaults import LEMONADE_BASE_URL
+from cohezion.config.defaults import (
+    DEFAULT_TIER0_MODEL,
+    LEMONADE_BASE_URL,
+    tier0_model,
+    tier0_request_extras,
+)
 
 
 # Fail-open: if oom_guard is unavailable the RAM gate is simply skipped.
@@ -156,8 +161,9 @@ _COMPLEX_TOKENS: frozenset[str] = frozenset(
 _COMPLEXITY_HINTS: dict[QueryComplexity, list[str]] = {
     QueryComplexity.SIMPLE: [
         "user.cohezion-router",
-        "llama3.2-1b-FLM",
-        "qwen3-4b-FLM",
+        # The shared tier-0 NPU model: substituted with tier0_model() at call time and sent
+        # think=false (_resolve_hints). One FLM id only -- any other swaps the single NPU slot.
+        DEFAULT_TIER0_MODEL,
         "Gemma-4-E2B-it-GGUF",
         "Gemma-4-E4B-it-GGUF",
     ],
@@ -178,6 +184,16 @@ _COMPLEXITY_HINTS: dict[QueryComplexity, list[str]] = {
         "Gemma-4-26B-A4B-it-GGUF",
     ],
 }
+
+
+def _resolve_hints(complexity: QueryComplexity) -> list[str]:
+    """The hint list for *complexity* with the tier-0 entry resolved at call time (honours
+    COHEZION_TIER0_MODEL), order-preserving and de-duplicated (a GGUF override may already
+    appear later in the list)."""
+    hints = _COMPLEXITY_HINTS.get(complexity, _COMPLEXITY_HINTS[QueryComplexity.MEDIUM])
+    tier0 = tier0_model()
+    resolved = [tier0 if h == DEFAULT_TIER0_MODEL else h for h in hints]
+    return list(dict.fromkeys(resolved))
 
 
 @dataclass
@@ -310,7 +326,8 @@ class TelegramCommunicationHub:
                 messages = []
 
         telem = _OmniTelemetry(port=13305, backend="lemonade-omnirouter")
-        hints = list(_COMPLEXITY_HINTS.get(complexity, _COMPLEXITY_HINTS[QueryComplexity.MEDIUM]))
+        hints = _resolve_hints(complexity)
+        tier0 = tier0_model()
         last_error: str | None = None
 
         for attempt, hint_model in enumerate(hints, 1):
@@ -339,6 +356,8 @@ class TelegramCommunicationHub:
                             "messages": messages,
                             "max_tokens": max_tokens,
                             "stream": False,
+                            # Tier 0 on an FLM id: think is sticky on the loaded NPU model.
+                            **(tier0_request_extras(hint_model) if hint_model == tier0 else {}),
                         },
                         timeout=60.0,
                     )

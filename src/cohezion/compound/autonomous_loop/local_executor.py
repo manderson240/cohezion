@@ -2,9 +2,9 @@
 
 All inference routes through the single Lemonade OmniRouter on :13305.
 Model selection follows task_classifier node routing:
-  npu       → llama3.2-1b-FLM       (XDNA2 NPU, 42 TPS, short tasks)
+  npu       → tier0_model()        (XDNA2 NPU, the one shared tier-0 FLM model; think=false)
   gpu/igpu  → Gemma-4-E4B-it-GGUF  (RDNA 3.5 / vulkan, 6GB, balanced)
-  cpu       → Gemma-4-E2B-it-GGUF  (the tier-0 id; runs where its saved lemonade recipe puts it)
+  cpu       → Gemma-4-E2B-it-GGUF  (iGPU GGUF, the former tier 0; ctx from its saved recipe)
   reasoning → Qwen3.5-35B-A3B-GGUF (vulkan, 23GB, deep analysis)
 
 Since FLM (NPU) and llamacpp (iGPU/CPU) run on separate silicon, concurrent

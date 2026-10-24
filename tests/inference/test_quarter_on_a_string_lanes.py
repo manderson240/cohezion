@@ -7,14 +7,15 @@ map to a model resident on one of the three device lanes established by
 build_triune_omni_orchestrator, so no dispatch auto-loads/evicts a model.
 """
 
+from cohezion.config.defaults import DEFAULT_TIER0_MODEL
 from cohezion.inference.direct_tier import _QUARTER_MODELS, quarter_on_a_string_tier
 
 
 # The three device-lane models (NPU / iGPU / CPU) that stay resident.
 _LANE_MODELS = {
-    "llama3.2-1b-FLM",  # NPU
+    DEFAULT_TIER0_MODEL,  # NPU: the shared tier-0 FLM model (resolved via tier0_model())
     "Gemma-4-E4B-it-GGUF",  # iGPU
-    "Gemma-4-E2B-it-GGUF",  # tier-0 id; device from its saved recipe (Vulkan iGPU today)
+    "Gemma-4-E2B-it-GGUF",  # former tier 0 (review lane); device from its saved recipe
 }
 
 
@@ -24,9 +25,9 @@ def test_every_quarter_model_is_lane_resident():
 
 
 def test_all_three_lanes_are_used():
-    # routine=NPU, synthesis/orchestration=iGPU, review=the tier-0 id (saved-recipe device)
-    assert _QUARTER_MODELS["routine"] == "llama3.2-1b-FLM"
-    assert _QUARTER_MODELS["review"] == "Gemma-4-E2B-it-GGUF"  # the tier-0 id
+    # routine=NPU tier 0, synthesis/orchestration=iGPU, review=the former tier-0 GGUF
+    assert _QUARTER_MODELS["routine"] == DEFAULT_TIER0_MODEL
+    assert _QUARTER_MODELS["review"] == "Gemma-4-E2B-it-GGUF"
     assert set(_QUARTER_MODELS.values()) == _LANE_MODELS
 
 

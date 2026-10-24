@@ -26,13 +26,20 @@ import urllib.request
 from dataclasses import dataclass, field
 from typing import Any
 
-from cohezion.config.defaults import LEMONADE_BASE_URL
+from cohezion.config.defaults import (
+    DEFAULT_TIER0_MODEL,
+    LEMONADE_BASE_URL,
+    tier0_model,
+    tier0_request_extras,
+)
 
 
 logger = logging.getLogger(__name__)
 
 # Model routing — both via OmniRouter :13305
-_CHALLENGER_MODEL = "llama3.2-1b-FLM"  # NPU: fast, task proposal generation
+# NPU: fast, task proposal generation. The shared tier-0 model, resolved via tier0_model() at
+# call time; a different FLM id here would swap the single NPU slot away from tier 0.
+_CHALLENGER_MODEL = DEFAULT_TIER0_MODEL
 _SOLVER_MODEL = "Gemma-4-E4B-it-GGUF"  # iGPU: stronger, attempts tasks
 
 _SURREAL_URL = "http://localhost:8001/sql"
@@ -78,14 +85,15 @@ def _chat(
     temperature: float = 0.7,
 ) -> tuple[str, dict[str, Any]]:
     """POST /v1/chat/completions via OmniRouter. Returns (text, raw_response)."""
-    payload = json.dumps(
-        {
-            "model": model,
-            "messages": [{"role": "user", "content": prompt}],
-            "max_tokens": max_tokens,
-            "temperature": temperature,
-        }
-    ).encode()
+    body: dict[str, Any] = {
+        "model": model,
+        "messages": [{"role": "user", "content": prompt}],
+        "max_tokens": max_tokens,
+        "temperature": temperature,
+    }
+    if model == tier0_model():
+        body.update(tier0_request_extras(model))  # sticky FLM think flag (config.defaults)
+    payload = json.dumps(body).encode()
     req = urllib.request.Request(  # noqa: S310
         f"{base_url.rstrip('/')}/v1/chat/completions",
         data=payload,
@@ -190,7 +198,7 @@ def _push_episode_to_vault(episode: EpisodeResult) -> None:
 class ChallengerAgent:
     """Generates skill improvement tasks calibrated to ~50% Solver success.
 
-    Uses the NPU model (llama3.2-1b-FLM, fast) to propose tasks at the edge
+    Uses the shared tier-0 NPU model (tier0_model(), think=false) to propose tasks at the edge
     of the Solver's ability. WebSearch context and vault quality history enrich
     the Challenger's prompt for more targeted problem generation.
     """
@@ -228,7 +236,7 @@ class ChallengerAgent:
 
         text, _ = _chat(
             self._base_url,
-            _CHALLENGER_MODEL,
+            tier0_model(),
             prompt,
             max_tokens=n * 90,
             temperature=0.85,
