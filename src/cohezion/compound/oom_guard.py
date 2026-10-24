@@ -70,7 +70,7 @@ MODEL_FOOTPRINT_GB: dict[str, float] = {
     # live admission gate estimated ~10.2 GB resident: this 6.0 is the catalog WEIGHT figure,
     # not a measured residency. No KV entry: FLM manages its own KV (the "flm" recipe is not
     # in _KV_PRICED_RECIPES) and its per-token KV cost is UNMEASURED.
-    "gemma4-it-e2b-FLM": 6.0,
+    "gemma4-it-e2b-FLM": 6.4,  # measured flm-real RSS 6.33 GB at ctx 32768 (2026-10-24)
     # ── Heavy LLMs (require available_ram > footprint + RAM_LOAD_BUFFER_GB) ──
     "Qwen3.6-27B-GGUF": 16.0,
     "Gemma-4-26B-A4B-it-GGUF": 18.1,

@@ -40,7 +40,7 @@ recipes:
     verify_card: true
   - model: gemma4-it-e2b-FLM
     role: cascade tier 0 (default since 2026-10-24; NPU FastFlowLM, every request sends think=false)
-    ctx_size: 4096      # single tier-0 ctx authority; MUST equal BASE_RECIPES in lemonade_recipes.py
+    ctx_size: 32768     # single tier-0 ctx authority; MUST equal BASE_RECIPES in lemonade_recipes.py
     verify_card: false  # flm recipe: no llama.cpp backend/args; FLM rounds ctx to a power of 2
   - model: Gemma-4-E2B-it-GGUF
     role: opt-in tier 0 via COHEZION_TIER0_MODEL (thinking model, one slot for CoT + answer)

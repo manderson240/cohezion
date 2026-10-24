@@ -102,10 +102,13 @@ BASE_RECIPES: dict[str, RecipeOptions] = {
         # Cascade tier 0 (default since 2026-10-24, NPU-first). This saved recipe is the ONLY
         # tier-0 ctx authority: tier-0 callers never /load it, so the router auto-loads it at
         # these options. Without it FLM serves the 131072 context_length. FLM rounds ctx up to
-        # a power of two (min 512); 4096 is one. NO llamacpp keys: the flm recipe has no
-        # llama.cpp backend. MUST stay identical to the entry in scripts/ops/lemonade-recipes.md
-        # (tests/inference/test_tier0_model.py pins this).
-        "ctx_size": 4096,
+        # a power of two (min 512). 32768 because this one model also serves the router's chat
+        # traffic (history + answer); 4096 overflowed a 10-turn chat. Measured 2026-10-24 (FLM
+        # 1.0.9, flm-real RSS): 4096 -> 5.93 GB, 16384 -> 6.20 GB, 32768 -> 6.33 GB; a ~17k-token
+        # prompt answered in 41 s at 32768, and overflow fails loudly (HTTP 400 "Max length
+        # reached!"). NO llamacpp keys: the flm recipe has no llama.cpp backend. MUST stay
+        # identical to the entry in scripts/ops/lemonade-recipes.md (test_tier0_model.py pins it).
+        "ctx_size": 32768,
     },
     # ── Tiny LLMs (always-warm routing, classification, short QA) ────────────
     "Llama-3.2-1B-Instruct-GGUF": {

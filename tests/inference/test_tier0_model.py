@@ -116,11 +116,11 @@ def test_gguf_override_gets_reasoning_format_none_and_flm_default_does_not():
     assert not _is_llamacpp_thinking_model(_TIER0)
 
 
-def test_default_tier0_is_classified_npu_with_catalog_weight():
+def test_default_tier0_is_classified_npu_with_measured_weight():
     from cohezion.compound.oom_guard import MODEL_FOOTPRINT_GB, ComputeTier, tier_for_model
 
     assert tier_for_model(_TIER0) is ComputeTier.NPU
-    assert MODEL_FOOTPRINT_GB[_TIER0] == 6.0  # catalog weight, not a measured residency
+    assert MODEL_FOOTPRINT_GB[_TIER0] == 6.4  # measured flm-real RSS at the saved ctx 32768
 
 
 def test_gguf_override_is_classified_igpu_and_light():
@@ -144,7 +144,7 @@ def test_default_tier0_flm_admission_is_not_kv_priced(monkeypatch):
     monkeypatch.setattr(oom_guard, "_catalog_entry", lambda *_a, **_k: entry)
     risk = oom_guard.check_oom_risk(_TIER0, available_gb=100.0, npu_exempt=False)
     assert risk.safe
-    assert risk.footprint_gb == pytest.approx(6.0)
+    assert risk.footprint_gb == pytest.approx(6.4)
 
 
 def test_inference_products_routing_product_is_tier0():
@@ -210,8 +210,8 @@ def test_base_recipe_bounds_tier0_ctx():
     from cohezion.compound.lemonade_recipes import BASE_RECIPES
 
     recipe = BASE_RECIPES[_TIER0]
-    # FLM rounds ctx up to a power of two (min 512): 4096 is served as-is.
-    assert recipe == {"ctx_size": 4096}, "flm recipe: ctx only, no llama.cpp keys"
+    # FLM rounds ctx up to a power of two (min 512): 32768 is served as-is.
+    assert recipe == {"ctx_size": 32768}, "flm recipe: ctx only, no llama.cpp keys"
     # The opt-in overrides stay bounded too.
     gguf = BASE_RECIPES[_GGUF]
     assert gguf["ctx_size"] == 4096
@@ -298,3 +298,30 @@ def test_router_policy_sends_tier0_class_rules_to_the_shared_npu_model() -> None
     retired = {"llama3.2-1b-FLM", "qwen3-4b-FLM"}
     assert not retired & set(policy["components"])
     assert not retired & set(routing["candidates"])
+
+
+def test_router_long_context_rule_is_not_shadowed_by_tier0_rules() -> None:
+    """The shared tier-0 model has a bounded saved ctx; long-context must route elsewhere.
+
+    Rules are first-match. Any rule sending prompts to the tier-0 model without its own
+    max_chars bound must come AFTER the long-context rule, or long prompts that also match it
+    (e.g. "analyze this log" + a pasted log) overflow the tier-0 ctx instead."""
+    import json
+    from pathlib import Path
+
+    policy = json.loads(
+        (Path(__file__).resolve().parents[2] / "config/router/cohezion-router.json").read_text()
+    )
+    rules = policy["routing"]["rules"]
+    ids = [rule["id"] for rule in rules]
+    long_ctx = ids.index("long-context")
+    assert rules[long_ctx]["route_to"] != DEFAULT_TIER0_MODEL
+
+    def bounded(match: dict) -> bool:
+        if "max_chars" in match:
+            return True
+        return any(bounded(m) for m in match.get("all", []))
+
+    for i, rule in enumerate(rules[:long_ctx]):
+        if rule["route_to"] == DEFAULT_TIER0_MODEL:
+            assert bounded(rule["match"]), f"{rule['id']} shadows long-context unbounded"

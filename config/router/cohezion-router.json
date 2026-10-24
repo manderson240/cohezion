@@ -118,6 +118,16 @@
         }
       },
       {
+        "id": "long-context",
+        "match": {
+          "min_chars": 6000
+        },
+        "route_to": "deepseek-r1-0528-8b-FLM",
+        "outputs": {
+          "reason": "long context (repointed 2026-08-30: qwen3.6-moe-35b-a3b-FLM FLM build is degenerate)"
+        }
+      },
+      {
         "id": "reason",
         "match": {
           "all": [
@@ -168,16 +178,6 @@
         "route_to": "gemma4-it-e2b-FLM",
         "outputs": {
           "reason": "reasoning (shared NPU tier-0 model, 2026-10-24: one resident FLM, calibrated 1.000)"
-        }
-      },
-      {
-        "id": "long-context",
-        "match": {
-          "min_chars": 6000
-        },
-        "route_to": "deepseek-r1-0528-8b-FLM",
-        "outputs": {
-          "reason": "long context (repointed 2026-08-30: qwen3.6-moe-35b-a3b-FLM FLM build is degenerate)"
         }
       },
       {
