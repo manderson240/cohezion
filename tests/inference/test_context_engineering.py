@@ -54,12 +54,18 @@ class TestModelCardRegistryExactMatch:
             )
 
     def test_no_flm_model_gets_26b_card(self, registry):
-        """FLM (NPU) models must not fuzzy-match to the 26B card (wrong family)."""
+        """FLM (NPU) models must not fuzzy-match to the 26B card (wrong family).
+
+        The ctx bound is the model's saved lemonade recipe ctx (8192 when it has none): the
+        shared tier-0 NPU model legitimately serves 32768, a fuzzy 26B match would not equal it."""
+        from cohezion.compound.lemonade_recipes import BASE_RECIPES
+
         for model_id in ("gemma3-4b-FLM", "gemma4-it-e2b-FLM", "qwen3.5-4b-FLM"):
             card = registry.get_card(model_id)
             assert card is not None
             assert card.model_id == model_id, f"{model_id} fuzzy-matched to {card.model_id}"
-            assert card.context_window <= 8192, (
+            bound = BASE_RECIPES.get(model_id, {}).get("ctx_size", 8192)
+            assert card.context_window <= bound, (
                 f"FLM model {model_id} got unexpectedly large ctx={card.context_window}"
             )
 
