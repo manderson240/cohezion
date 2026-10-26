@@ -1,0 +1,6 @@
+interface:
+  display_name: "Cohezion"
+  short_description: "Repo-specific patterns and workflows for cohezion"
+  default_prompt: "Use the cohezion repo skill to follow existing architecture, testing, and workflow conventions."
+policy:
+  allow_implicit_invocation: true
