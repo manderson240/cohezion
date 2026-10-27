@@ -31,7 +31,6 @@ import hashlib
 import json
 import sys
 import time
-import urllib.error
 import urllib.request
 from datetime import UTC, datetime
 from pathlib import Path
@@ -93,7 +92,7 @@ def _query_lemonade(prompt: str, *, timeout: float = 15.0) -> str | None:
             "temperature": 0.2,
         }
     ).encode()
-    req = urllib.request.Request(  # noqa: S310
+    req = urllib.request.Request(
         _LEMONADE_URL,
         data=payload,
         headers={"Content-Type": "application/json"},
@@ -106,7 +105,7 @@ def _query_lemonade(prompt: str, *, timeout: float = 15.0) -> str | None:
         msg = choices[0].get("message", {})
         content = msg.get("content") or msg.get("reasoning_content") or ""
         return content.strip() or None
-    except (urllib.error.URLError, urllib.error.HTTPError, Exception):
+    except Exception:  # L359: was (URLError, HTTPError, Exception), identical semantics
         return None
 
 

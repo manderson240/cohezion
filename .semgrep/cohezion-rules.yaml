@@ -45,7 +45,9 @@ rules:
   # (mirrors the pre-commit hook no-hardcoded-home-paths)
   # -------------------------------------------------------------------------
   - id: cohezion-sys-path-insert-home
-    pattern: sys.path.insert(0, "/home/...")
+    # Fixed 2026-10-20: the previous pattern "/home/..." is not string-ellipsis syntax; it matched only
+    # that literal, so this ERROR rule could never fire (verified with a planted violation).
+    pattern: sys.path.insert($IDX, "=~/^\/home\//")
     message: >
       sys.path.insert with hardcoded /home/ path is forbidden. Use relative imports
       or set PYTHONPATH. This breaks when run outside the developer's machine.
