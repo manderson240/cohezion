@@ -520,7 +520,7 @@ def _surreal_sql_post(url: str, ns: str, db: str, surql: str, timeout_s: float) 
         method="POST",
     )
     with urllib.request.urlopen(req, timeout=timeout_s) as resp:  # noqa: S310
-        return resp.read()
+        return bytes(resp.read())
 
 
 def _iso_timestamp(row: Mapping[str, Any]) -> str:
@@ -570,8 +570,8 @@ def _record_from_row(table: str, row: Mapping[str, Any]) -> DiscoveryRecord | No
                 break
     cost = row.get("cost")
     cost_f = float(cost) if isinstance(cost, (int, float)) and not isinstance(cost, bool) else None
-    metrics_raw = row.get("metrics") if isinstance(row.get("metrics"), Mapping) else {}
-    outcome_metrics: dict[str, Any] = dict(metrics_raw)
+    metrics_raw = row.get("metrics")
+    outcome_metrics: dict[str, Any] = dict(metrics_raw) if isinstance(metrics_raw, Mapping) else {}
     for key, value in row.items():
         if key in _SCALAR_CONTEXT_EXCLUDE:
             continue
