@@ -736,30 +736,32 @@ class UnifiedHybridRouter:
                     await self._publish_routing_event(cpu_resp, "cpu_overflow_success")
                     return cpu_resp
 
+        # None here means "no local lane admitted": fall through to Tier-2 cloud.
+        tier1_model: str | None = chosen_tier1_model
         if not tier1_admitted:
             if pin_backend is not Backend.IGPU and tier1_available:
                 # Both the NPU pin and the CPU lane refused: fall to the
                 # iGPU-hosted GGUF only when its own admission passes.
                 if await self._admission_prefers(_IGPU_FALLBACK_MODEL):
-                    chosen_tier1_model = _IGPU_FALLBACK_MODEL
+                    tier1_model = _IGPU_FALLBACK_MODEL
                     tier_label = "Tier 1 (iGPU Fallback)"
                 else:
-                    chosen_tier1_model = None
+                    tier1_model = None
             else:
                 # The iGPU-hosted pin itself was refused: no local lane
                 # admitted — go to Tier-2 cloud.
-                chosen_tier1_model = None
+                tier1_model = None
 
-        if tier1_available and chosen_tier1_model is not None:
+        if tier1_available and tier1_model is not None:
             # Blessed path: aquery_lemonade_local carries model-aligned params,
             # local-ledger recording, and the content->reasoning_content fallback.
-            local_out = await self.aquery_lemonade_local(prompt, chosen_tier1_model)
+            local_out = await self.aquery_lemonade_local(prompt, tier1_model)
             if local_out is not None:
                 dt_ms = (time.perf_counter() - t0) * 1000.0
                 resp = HybridRouteResponse(
                     content=local_out,
                     tier_used=tier_label,
-                    model_name=chosen_tier1_model,
+                    model_name=tier1_model,
                     latency_ms=round(dt_ms, 2),
                     verified=True,
                     task_class=task_class,
