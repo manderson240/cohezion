@@ -8,7 +8,7 @@ full GAIA integration test runs only when the gaia package is installed.
 
 from __future__ import annotations
 
-from typing import Any, Dict
+from typing import Any
 
 import pytest
 
@@ -16,6 +16,7 @@ from cohezion.agi.gaia_autoharness_bridge import (
     GAIA_AVAILABLE,
     extract_tool_call,
 )
+
 
 # --- parser (dependency-free, always runs) --------------------------------
 
@@ -39,7 +40,7 @@ class TestExtractToolCall:
     def test_nested_args_with_suffix(self) -> None:
         """The exact live 2026-09-15 failure: nested tool_args + <|tool_call|>."""
         live = (
-            '{"thought": "The change in \'.pi/git/\' is adding \'-dirty\'", '
+            "{\"thought\": \"The change in '.pi/git/' is adding '-dirty'\", "
             '"tool": "append_log", '
             '"tool_args": {"entry": "[DECISION] File: .pi | Classification: Daemon"}}'
             "<|tool_call|>"
@@ -63,18 +64,13 @@ class TestExtractToolCall:
         assert out["tool"] == "second_call"
 
     def test_braces_inside_strings(self) -> None:
-        out = extract_tool_call(
-            '{"tool":"run_bash","tool_args":{"cmd":"echo \'{\\"a\\":1}\'"}}'
-        )
+        out = extract_tool_call('{"tool":"run_bash","tool_args":{"cmd":"echo \'{\\"a\\":1}\'"}}')
         assert out is not None
         assert out["tool"] == "run_bash"
 
     def test_true_final_answer_is_none(self) -> None:
         assert (
-            extract_tool_call(
-                "I have completed the task. Everything is done and verified."
-            )
-            is None
+            extract_tool_call("I have completed the task. Everything is done and verified.") is None
         )
 
     def test_empty_and_whitespace(self) -> None:
@@ -104,9 +100,7 @@ class TestAutoHarnessGaiaBridge:
 
     def test_parse_delegates_to_extract(self, monkeypatch: pytest.MonkeyPatch) -> None:
         agent = self._make_agent()
-        out = agent._parse_llm_response(
-            'preamble {"tool":"run_bash","tool_args":{"cmd":"ls"}}'
-        )
+        out = agent._parse_llm_response('preamble {"tool":"run_bash","tool_args":{"cmd":"ls"}}')
         assert out["tool"] == "run_bash"
         assert agent.harness_stats["deterministic_reparses"] == 1
 
@@ -126,27 +120,25 @@ class TestAutoHarnessGaiaBridge:
         assert agent.harness_stats["policy_blocks"] == 1
 
     def test_gate_allows_registered_tool(self) -> None:
-        from gaia.agents.base.agent import Agent as _A
+        from gaia.agents.base.agent import Agent as agent_cls
 
         agent = self._make_agent()
         agent.__dict__["_instance_tools"] = {"read_charter": object()}
-        seen: Dict[str, str] = {}
+        seen: dict[str, str] = {}
 
-        def fake_execute(
-            self: Any, tool_name: str, tool_args: Dict[str, Any]
-        ) -> Dict[str, Any]:
+        def fake_execute(self: Any, tool_name: str, tool_args: dict[str, Any]) -> dict[str, Any]:
             seen["name"] = tool_name
             return {"status": "success"}
 
-        orig = getattr(_A, "_execute_tool", None)
-        setattr(_A, "_execute_tool", fake_execute)
+        orig = getattr(agent_cls, "_execute_tool", None)
+        agent_cls._execute_tool = fake_execute
         try:
             out = agent._execute_tool("read_charter", {})
         finally:
             if orig is not None:
-                setattr(_A, "_execute_tool", orig)
+                agent_cls._execute_tool = orig
             else:
-                delattr(_A, "_execute_tool")
+                delattr(agent_cls, "_execute_tool")
         assert out == {"status": "success"}
         assert seen["name"] == "read_charter"
         assert agent.harness_stats["gated_tool_calls"] == 1

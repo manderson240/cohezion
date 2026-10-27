@@ -104,7 +104,7 @@ class _PostCapture:
         self.posts: list[tuple[str, dict]] = []
         self._patcher: Any = None
 
-    def __enter__(self) -> "_PostCapture":
+    def __enter__(self) -> _PostCapture:
         self._patcher = patch("httpx.AsyncClient")
         mock_client_cls = self._patcher.__enter__()
         client = AsyncMock()
