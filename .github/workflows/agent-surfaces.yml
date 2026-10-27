@@ -14,6 +14,11 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.13"
+      # --self-test FIRST (PA1 pattern): it plants an unowned, an ambiguous and an owned path
+      # against a throwaway map and requires RED, RED, GREEN. A checker that cannot go red
+      # otherwise reads as "every path is owned". The meta-gate in ci.yml also runs it.
+      - name: Checker can still fail (self-test)
+        run: python scripts/ci/check_agent_surfaces.py --self-test
       - name: Every changed path resolves to exactly one owner
         run: |
           git remote set-branches origin "${{ github.base_ref }}"
