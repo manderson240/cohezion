@@ -61,7 +61,7 @@ was green only because tests exercised the easy paths. Corrections (all committe
   out-of-process `sandboxed_exec.run_untrusted` is wired at agi_reasoning / aimo_reasoning / symbolic_executor / llm_fallback / arc.local_qwen_ast_proposer (bwrap `--unshare-all` when available; else rlimit floor NOFILE=3/NPROC=0/FSIZE=0/AS/CPU — it RUNS, does not refuse, when bwrap is absent); in-process `safe_exec` gate retained as defense in depth with `gate_refusal` diagnostics; CI gate `scripts/ci/unrestricted_exec_scan.py`.
   Rlimit-only floor is availability + speed bump, NOT an FS boundary (path-based os.mkdir/rename/unlink work); bwrap is. Post-exec results are UNTRUSTED (forgeable) — consumers validate; `SandboxResult.stage` marks pre-/post-exec.
   NOT behind the out-of-process boundary today (deliberate/pending): `agent/unified_harness._python_tool` + Kaggle `arc_prize{,_2}/submission.py` (arbitrary-Python contract; branch agent-1789419784 pending user policy);
-  `agents/factory` + `testing/mutation_tester` (codegen; per a80da6714 first-party stubs — mutation_tester's input provenance not re-verified), `inference/dynamic_model_evaluator.py:208` (in-process; a80da6714 records it as stricter: no `__import__` at all).
+  `agents/factory` + `testing/mutation_tester` (codegen; per a80da6714 first-party stubs — mutation_tester's input provenance not re-verified), `inference/dynamic_model_evaluator.py:247` (in-process; a80da6714 records it as stricter: no `__import__` at all).
 
 ## Verification Commands
 

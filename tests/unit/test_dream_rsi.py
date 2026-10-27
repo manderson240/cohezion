@@ -109,6 +109,34 @@ class TestDiscoveryTreeLoader:
         assert len(errors) == 3
         assert all("boom" in e for e in errors)
 
+    def test_load_from_surrealdb_err_statement_is_a_failed_read(self):
+        """HTTP 200 carrying status ERR is a failed read, not an empty table.
+
+        Discriminating for the checked_statements call: delete it and the ERR
+        body parses as zero rows with errors == [] (the 2026-09-19 vault-MCP defect).
+        """
+        body = json.dumps(
+            [{"status": "ERR", "result": "Specify a namespace to use", "time": "1ms"}]
+        ).encode()
+
+        class ErrResponse:
+            def read(self) -> bytes:
+                return body
+
+            def __enter__(self):
+                return self
+
+            def __exit__(self, *args: object) -> None:
+                return None
+
+        with patch_urlopen(lambda req, timeout: ErrResponse()):
+            records, errors = load_from_surrealdb(tables=("delegation_log",))
+
+        assert records == []
+        assert len(errors) == 1
+        assert errors[0].startswith("delegation_log: ")
+        assert "Specify a namespace" in errors[0]
+
     def test_load_from_surrealdb_success_path(self):
         """One healthy table parses into a record; erroring tables are captured."""
         payload = {

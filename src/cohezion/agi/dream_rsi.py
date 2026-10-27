@@ -50,10 +50,11 @@ Wire-in (deliberately NOT wired here): the perpetual loop and retrospective
 extraction (``cohezion.agi.recursive_learning``) are the consumers — after each
 retrospective lands in SurrealDB/vault, the loop calls ``refine_policy`` over
 the refreshed history and adopts the winning routing/exploration policy for
-the next campaign. This module is a self-contained pure-stdlib library like
-``kst_eval.py``: no cohezion imports, no model loads, all I/O offline-mockable.
-The SurrealDB reader mirrors the auth pattern of
-``cohezion.data_mesh.kanban_bridge`` (env-var credentials, never hardcoded).
+the next campaign. This module is a self-contained library like ``kst_eval.py``:
+no model loads, all I/O offline-mockable, and its only cohezion import is the
+stdlib-only ``cohezion.storage.surreal_http.checked_statements``. The SurrealDB
+reader mirrors the auth pattern of ``cohezion.data_mesh.kanban_bridge`` (env-var
+credentials, never hardcoded).
 """
 
 from __future__ import annotations

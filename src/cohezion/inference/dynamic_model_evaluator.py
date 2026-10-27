@@ -80,10 +80,11 @@ class DynamicModelEvaluator:
         request, so a raw POST here would otherwise bypass the fleet's weight-fit safety
         gate entirely (the Sep-14 OOM spiral). A gate refusal is a SUCCESSFUL gate
         outcome — it means "fall back to another lane", so we skip the Lemonade lane.
-        Direct-port lanes (8002/8003/8004) host the SAME model on their own servers and
+        Direct-port lanes (``DIRECT_PORTS``) host the SAME model on their own servers and
         would auto-load the exact footprint the gate just refused, so they are skipped
-        too rather than used as a blind bypass; the error-return shape (measured
-        latency, zero tps) is unchanged.
+        too rather than used as a blind bypass; when the gate passes they are tried
+        only as the fallback after :13305. The error-return shape (measured latency,
+        zero tps) is unchanged.
         """
         t0 = time.perf_counter()
 

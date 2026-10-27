@@ -295,7 +295,6 @@ cohezion-vault/executions/
 /morning_report_*.md
 /team_*.py
 /run_*.py
-!scripts/run_agentic_loop.py
 /run_*.sh
 /e70_*.py
 /e70_*.json

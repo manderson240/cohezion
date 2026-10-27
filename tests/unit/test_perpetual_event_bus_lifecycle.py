@@ -107,6 +107,18 @@ async def test_master_cycle_publishes_agent_complete_to_running_bus(mock_daemon,
         patch.object(
             mock_daemon.evaluator, "evaluate_model_on_task", side_effect=RuntimeError("skip")
         ),
+        # Phases 5 and 6 persist to live SurrealDB when unpatched; this test is about
+        # the bus, so keep them hermetic.
+        patch.object(
+            mock_daemon,
+            "run_trace_refactor_phase",
+            return_value=PhaseResult("trace_goal_refactor", True, 10.0, "OK"),
+        ),
+        patch.object(
+            mock_daemon,
+            "run_sentry_phase",
+            return_value=PhaseResult("control_sentry", True, 10.0, "OK"),
+        ),
         patch("asyncio.sleep", new_callable=AsyncMock),
     ):
         outcome = await mock_daemon.execute_master_cycle(cycle_num=1)

@@ -20,9 +20,15 @@ Resolution rules (enforced by `scripts/ci/check_agent_surfaces.py`):
 | `CLAUDE.md` | @docs-keeper |
 | `docs/**` | @docs-keeper |
 | `src/cohezion/skills/**` | @docs-keeper |
+| `.claude/**` | @docs-keeper |
+| `tests/skills/**` | @docs-keeper |
 | `.github/**` | @ci-governance |
+| `.githooks/**` | @ci-governance |
+| `.gitignore` | @ci-governance |
 | `scripts/ci/**` | @ci-governance |
 | `scripts/hooks/**` | @ci-governance |
+| `tests/scripts/**` | @ci-governance |
+| `src/cohezion/ops/**` | @ops-fleet |
 | `pyproject.toml` | @ci-governance |
 | `uv.lock` | @ci-governance |
 | `tests/property/**` | @ci-governance |

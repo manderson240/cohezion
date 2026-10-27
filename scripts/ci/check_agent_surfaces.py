@@ -89,7 +89,9 @@ def self_test() -> int:
             "| Surface | Owner |\n|---|---|\n"
             "| `src/a/**` | @alpha |\n"
             "| `src/**/gen_*.py` | @alpha |\n"
-            "| `src/xy/gen_*.py` | @beta |\n",
+            "| `src/xy/gen_*.py` | @beta |\n"
+            "| `src/b/**` | @alpha |\n"
+            "| `src/b/x.py` | @beta |\n",
             encoding="utf-8",
         )
         rows = parse_map(planted)
@@ -99,6 +101,10 @@ def self_test() -> int:
         failures: list[str] = []
         if resolve_owner("src/a/x.py", rows) != ("@alpha", []):
             failures.append("owned path did not resolve to its owner (cannot go GREEN)")
+        if resolve_owner("src/b/x.py", rows) != ("@beta", []):
+            failures.append(
+                "longest glob did not win (a shortest-wins mutant passes the other probes)"
+            )
         if resolve_owner("docs/x.md", rows) != (None, []):
             failures.append("unowned path was not reported unowned (cannot go RED)")
         owner, ties = resolve_owner("src/xy/gen_1.py", rows)
