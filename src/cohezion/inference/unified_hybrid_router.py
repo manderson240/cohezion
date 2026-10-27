@@ -115,7 +115,7 @@ _TIER2_PINS: dict[TaskClass, str] = {
     TaskClass.CREATIVE_SYNTHESIS: "minimax-m3:cloud",  # Nuanced Narrative, PRD & Creative Synthesis
     TaskClass.EMBEDDINGS: "gemma4:31b-cloud",  # Dense Multilingual Semantic Vectors & Vision
     TaskClass.GENERAL: "gpt-oss:120b-cloud",  # Transparent Broad General Intelligence
-    TaskClass.CPU_PARALLEL: "deepseek-v4-flash:cloud",  # CPU-lane overflow escape hatch
+    TaskClass.CPU_PARALLEL: "deepseek-v4.1-flash:cloud",  # CPU-lane overflow escape hatch (v4-flash retired 2026-09-25)
 }
 
 
