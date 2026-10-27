@@ -64,7 +64,7 @@ import logging
 import os
 import re
 import urllib.request
-from collections.abc import Callable, Iterable, Mapping, Sequence
+from collections.abc import Callable, Iterable, Iterator, Mapping, Sequence
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from pathlib import Path
@@ -165,8 +165,8 @@ class DiscoveryTree:
     def __len__(self) -> int:
         return len(self.records)
 
-    def __iter__(self) -> tuple[DiscoveryRecord, ...]:  # type: ignore[override]
-        return self.records
+    def __iter__(self) -> Iterator[DiscoveryRecord]:
+        return iter(self.records)
 
     @classmethod
     def from_records(

@@ -43,7 +43,7 @@ try:  # pragma: no cover - import guard verified by tests
 
     GAIA_AVAILABLE = True
 except ImportError:  # pragma: no cover
-    Agent = object  # type: ignore[assignment, misc]
+    Agent = object
     GAIA_AVAILABLE = False
 
 
