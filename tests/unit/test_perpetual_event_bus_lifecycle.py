@@ -238,6 +238,11 @@ async def test_preexisting_park_gate_unchanged(mock_daemon, caplog):
         ),
         patch.object(
             mock_daemon,
+            "run_trace_refactor_phase",
+            return_value=PhaseResult("trace_goal_refactor", True, 10.0, "OK"),
+        ),
+        patch.object(
+            mock_daemon,
             "run_sentry_phase",
             return_value=PhaseResult("control_sentry", True, 10.0, "OK"),
         ),
@@ -247,7 +252,9 @@ async def test_preexisting_park_gate_unchanged(mock_daemon, caplog):
         outcome = await mock_daemon.execute_master_cycle(cycle_num=7)
 
     assert outcome.success is True
-    assert len(outcome.phases) == 5
+    # Mirrors tests/unit/test_unified_perpetual_orchestrator.py on main: six phases
+    # since trace_goal_refactor joined the cycle (#294).
+    assert len(outcome.phases) == 6
     mock_sleep.assert_any_await(30)  # the park pause is intact
     assert "Memory constrained before Cycle 7" in caplog.text
 
