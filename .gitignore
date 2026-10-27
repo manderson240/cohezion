@@ -285,29 +285,33 @@ cohezion-vault/dreaming/
 cohezion-vault/research/
 cohezion-vault/brainstem/
 cohezion-vault/executions/
-overnight*.sh
-overnight*.py
-overnight*.pid
-morning_report_*.md
-team_*.py
-run_*.py
+# Root-level scratch scripts only. These were unanchored until 2026-10-27, so they
+# also matched tracked modules deep in the tree (src/cohezion/swarm/team_*.py,
+# scripts/run_*.py, src/cohezion/simulations/, ...): rg skipped them and a
+# `git rm --cached` sweep of ignored-but-tracked paths deleted 160 real files.
+/overnight*.sh
+/overnight*.py
+/overnight*.pid
+/morning_report_*.md
+/team_*.py
+/run_*.py
 !scripts/run_agentic_loop.py
-run_*.sh
-e70_*.py
-e70_*.json
-speculative_decoding*.sh
-convert_*.py
-convert_*.sh
-gemma4_*.py
-gemma4_*.json
-gemma4_*.sh
-deep_analysis*.py
-research_synthesis*.py
-optimization_orchestrator*.py
-analyze_overnight*.py
-sandbox/*.py
-simulations/
-conductor/
+/run_*.sh
+/e70_*.py
+/e70_*.json
+/speculative_decoding*.sh
+/convert_*.py
+/convert_*.sh
+/gemma4_*.py
+/gemma4_*.json
+/gemma4_*.sh
+/deep_analysis*.py
+/research_synthesis*.py
+/optimization_orchestrator*.py
+/analyze_overnight*.py
+/sandbox/*.py
+/simulations/
+/conductor/
 
 # Aider AI assistant cache
 .aider.chat.history.md
