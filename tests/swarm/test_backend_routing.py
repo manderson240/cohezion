@@ -82,9 +82,7 @@ def _stub_census(monkeypatch):
     def _empty_census(*args: Any, **kwargs: Any) -> dict:
         return {}
 
-    monkeypatch.setattr(
-        "cohezion.swarm.model_pool_manager.resident_by_backend", _empty_census
-    )
+    monkeypatch.setattr("cohezion.swarm.model_pool_manager.resident_by_backend", _empty_census)
     return _empty_census
 
 
@@ -184,9 +182,7 @@ class TestLoadDispatch:
             (_CPU_NAME, "cpu"),
         ],
     )
-    async def test_load_payload_carries_classified_backend(
-        self, model_name, expected_backend
-    ):
+    async def test_load_payload_carries_classified_backend(self, model_name, expected_backend):
         mgr = _make_pool(hot=[model_name])
         with _PostCapture() as cap:
             assert await mgr._load_model(model_name, ModelTierPolicy.HOT) is True

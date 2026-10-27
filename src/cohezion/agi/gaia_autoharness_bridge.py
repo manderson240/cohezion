@@ -28,13 +28,15 @@ importable; the agent mix-in requires the ``gaia`` package and is gated
 behind ``GAIA_AVAILABLE`` so CI environments without GAIA still run the
 parser test suite.
 """
+
 from __future__ import annotations
 
 import json
 import re
-from typing import Any, Dict, Optional
+from typing import Any
 
 from cohezion.agi.autoharness_policy import AutoHarnessPolicy
+
 
 try:  # pragma: no cover - import guard verified by tests
     from gaia.agents.base.agent import Agent
@@ -76,16 +78,15 @@ def _top_level_json_objects(text: str) -> list[str]:
             if depth == 0:
                 start = i
             depth += 1
-        elif ch == "}":
-            if depth > 0:
-                depth -= 1
-                if depth == 0 and start >= 0:
-                    objects.append(text[start : i + 1])
-                    start = -1
+        elif ch == "}" and depth > 0:
+            depth -= 1
+            if depth == 0 and start >= 0:
+                objects.append(text[start : i + 1])
+                start = -1
     return objects
 
 
-def extract_tool_call(response: str) -> Optional[Dict[str, Any]]:
+def extract_tool_call(response: str) -> dict[str, Any] | None:
     """Deterministically extract a GAIA tool-call dict from an LLM response.
 
     Order (all zero-cost, no LLM):
@@ -113,9 +114,7 @@ def extract_tool_call(response: str) -> Optional[Dict[str, Any]]:
         pass
 
     # 2. Balanced candidates (unfenced), scan from the last backwards
-    candidates = [
-        s for s in _top_level_json_objects(response) if _TOOL_KEY_RE.search(s)
-    ]
+    candidates = [s for s in _top_level_json_objects(response) if _TOOL_KEY_RE.search(s)]
     for s in reversed(candidates):
         try:
             obj = json.loads(s)
@@ -165,7 +164,7 @@ if GAIA_AVAILABLE:
             }
 
         # --- Seam 1: deterministic response parsing -----------------------
-        def _parse_llm_response(self, response: str) -> Dict[str, Any]:
+        def _parse_llm_response(self, response: str) -> dict[str, Any]:
             # Fast path: GAIA's own direct-JSON success case is kept
             # (identical behaviour, zero regression).
             try:
@@ -188,7 +187,7 @@ if GAIA_AVAILABLE:
             return {"thought": "", "goal": "", "answer": response}
 
         # --- Seam 2: pre-execution deterministic gate ---------------------
-        def _execute_tool(self, tool_name: str, tool_args: Dict[str, Any]) -> Any:
+        def _execute_tool(self, tool_name: str, tool_args: dict[str, Any]) -> Any:
             registry = getattr(self, "_tools_registry", {}) or {}
             normalized = (tool_name or "").removesuffix("()").replace("-", "_")
 
@@ -210,9 +209,7 @@ if GAIA_AVAILABLE:
                 "tool": normalized,
                 "available_gb": getattr(self, "_harness_available_gb", None) or 64.0,
             }
-            result = self.autoharness.evaluate_policy(
-                action_type="memory_safe", state=state
-            )
+            result = self.autoharness.evaluate_policy(action_type="memory_safe", state=state)
             if not result.allowed:
                 self.harness_stats["policy_blocks"] += 1
                 return {

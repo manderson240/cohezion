@@ -273,7 +273,7 @@ class DelegationLogger:
         # 1. SurrealDB primary read (mirrors the write path's auth + headers)
         try:
             sql = f"SELECT * FROM delegation_log ORDER BY timestamp DESC LIMIT {limit};"
-            req = urllib.request.Request(
+            req = urllib.request.Request(  # noqa: S310
                 f"{self.surreal_url}/sql",
                 method="POST",
                 data=sql.encode("utf-8"),
@@ -284,7 +284,7 @@ class DelegationLogger:
                     "Authorization": _surreal_basic_auth(),
                 },
             )
-            with urllib.request.urlopen(req, timeout=2) as resp:
+            with urllib.request.urlopen(req, timeout=2) as resp:  # noqa: S310
                 body = json.loads(resp.read())
             rows: list[dict[str, Any]] = []
             if isinstance(body, list):
