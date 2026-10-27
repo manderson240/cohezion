@@ -321,16 +321,17 @@ Use when:
 
 Route via `UnifiedHybridRouter` using `backend="ollama_cloud"` parameter.
 
-### Tier 3 — Premium APIs & Thinking Models (agy 1.1.21 Spec)
+### Tier 3 — Premium APIs & Thinking Models (agy 1.4.8 Spec)
 
 | Tier 3 Model | Effort / Mode | Best For |
 |---|---|---|
-| `gemini-3.7-flash-high` | High (Thinking) | Complex orchestration, fast reasoning, multi-turn architecture |
-| `gemini-3.7-flash-medium` | Medium | Iterative development, fast agentic loop synthesis |
-| `gemini-3.1-pro-high` | High | Deepest multi-modal reasoning & mathematical proofs |
-| `claude-sonnet-4-6` | High (Thinking) | Large-scale multi-file refactoring & code generation |
-| `claude-opus-4-6-thinking` | Deep (Thinking) | Frontier systems engineering & formal verification |
-| `gpt-oss-120b-medium` | Medium | Transparent open-weight benchmark validation |
+| `gemini-4-argon-high` | High (Thinking) | Deepest multi-modal reasoning, mathematical proofs, frontier architecture |
+| `gemini-4-argon-medium` | Medium | Complex multi-turn architecture and cross-domain synthesis |
+| `gemini-3.8-flash-high` | High (Thinking) | Fast agentic loop synthesis, active orchestration, verification checking |
+| `gemini-3.8-flash-medium` | Medium | Rapid iterative development, prompt-cached tool calls, routine tasks |
+| `claude-opus-5-5-high` | Deep (Thinking) | Frontier systems engineering, formal verification, complex invariant proofs |
+| `claude-sonnet-5-5-high` | High (Thinking) | Large-scale multi-file refactoring, code generation, and test scaffolding |
+| `gpt-oss-120b-medium` | Medium | Transparent open-weight benchmark validation and cross-model audits |
 
 **Reserved exclusively for**:
 - Architecture decisions requiring synthesis across >100K token context
