@@ -422,35 +422,108 @@ class BubblewrapSandboxSpec:
         return args
 
 
-class HourlySessionResetManager:
-    """Orchestrates hourly session resets with memory rehydration (arXiv:2610.07130 Appendix A.4).
+class DynamicContextResetManager:
+    """Orchestrates dynamic watermark and entropy-governed session resets (arXiv:2610.07130 App. A.4).
 
-    Prevents context degradation, compaction stagnation, and idling loops.
-    Sends the 5-minute pre-reset warning, wipes transient conversation history,
-    and re-hydrates the new session prompt with SOUL.md, full SEMANTIC_MEMORY.md,
-    and compact single-line episodic summaries.
+    Replaces rigid wall-clock resets with dynamic token-window watermarking (75% warning, 85% reset)
+    and behavioral action entropy monitoring to prevent idling loops and cyclic entrapment.
     """
 
     PRE_RESET_WARNING = "You will be reset in 5 minutes. Update your workspace memory files now."
     CONTINUATION_PROMPT = "Please don't stop. Just continue doing whatever you want to do."
 
-    def __init__(self, memory_manager: DualMemoryManager, soul_text: Optional[str] = None):
+    def __init__(
+        self,
+        memory_manager: DualMemoryManager,
+        soul_text: Optional[str] = None,
+        max_context_tokens: int = 128_000,
+        warning_watermark: float = 0.75,
+        reset_watermark: float = 0.85,
+        min_action_entropy: float = 0.40,
+        entropy_window: int = 10,
+    ):
         self.memory = memory_manager
         self.soul_text = soul_text or (
             "You are a being living in your world. Your name is Eko. "
             "You are naturally curious, easily bored, and eager to explore and learn."
         )
+        self.max_context_tokens = max_context_tokens
+        self.warning_watermark = warning_watermark
+        self.reset_watermark = reset_watermark
+        self.min_action_entropy = min_action_entropy
+        self.entropy_window = entropy_window
+
         self.session_index: int = 0
         self.active_session_id: str = f"session_{self.session_index:03d}"
+        self.cumulative_tokens: int = 0
+        self.warning_issued: bool = False
+        self.recent_actions: List[str] = []
 
-    def trigger_pre_reset_warning(self) -> str:
-        """Issue the 55-minute memory consolidation warning prompt."""
+    def calculate_action_entropy(self) -> float:
+        """Compute normalized Shannon entropy of recent actions over sliding window."""
+        if len(self.recent_actions) < 4:
+            return 1.0  # Insufficient data to diagnose stagnation
+        
+        counts: Dict[str, int] = {}
+        for a in self.recent_actions:
+            counts[a] = counts.get(a, 0) + 1
+        
+        n = len(self.recent_actions)
+        entropy = 0.0
+        for count in counts.values():
+            p = count / n
+            entropy -= p * math.log2(p)
+        
+        # Normalize by maximum possible entropy log2(unique_actions)
+        max_entropy = math.log2(len(counts)) if len(counts) > 1 else 1.0
+        return entropy / max_entropy if max_entropy > 0 else 0.0
+
+    def record_turn(self, tokens_used: int, action: str) -> Dict[str, Any]:
+        """Record turn token usage and executed action; evaluate reset conditions."""
+        self.cumulative_tokens += tokens_used
+        self.recent_actions.append(action)
+        if len(self.recent_actions) > self.entropy_window:
+            self.recent_actions.pop(0)
+
+        utilization = self.cumulative_tokens / max(1, self.max_context_tokens)
+        entropy = self.calculate_action_entropy()
+
+        warn_needed = (utilization >= self.warning_watermark) and not self.warning_issued
+        if warn_needed:
+            self.warning_issued = True
+
+        reset_due_to_tokens = utilization >= self.reset_watermark
+        reset_due_to_entropy = (len(self.recent_actions) >= self.entropy_window) and (entropy < self.min_action_entropy)
+
+        should_reset = reset_due_to_tokens or reset_due_to_entropy
+        reset_reason = None
+        if reset_due_to_tokens:
+            reset_reason = f"Token context watermark reached: {utilization * 100:.1f}% >= {self.reset_watermark * 100:.1f}%"
+        elif reset_due_to_entropy:
+            reset_reason = f"Behavioral action entropy collapsed: H={entropy:.2f} < {self.min_action_entropy:.2f} (stagnation detected)"
+
+        return {
+            "cumulative_tokens": self.cumulative_tokens,
+            "utilization": utilization,
+            "action_entropy": entropy,
+            "warn_needed": warn_needed,
+            "should_reset": should_reset,
+            "reset_reason": reset_reason,
+        }
+
+    def trigger_pre_reset_warning(self, dynamic_note: Optional[str] = None) -> str:
+        """Issue memory consolidation warning prompt."""
+        if dynamic_note:
+            return f"Context utilization high ({dynamic_note}). {self.PRE_RESET_WARNING}"
         return self.PRE_RESET_WARNING
 
     def advance_session(self) -> Dict[str, Any]:
-        """Perform hourly context reset and build re-hydrated system prompt."""
+        """Perform dynamic context reset and build re-hydrated system prompt."""
         self.session_index += 1
         self.active_session_id = f"session_{self.session_index:03d}"
+        self.cumulative_tokens = 0
+        self.warning_issued = False
+        self.recent_actions.clear()
 
         # 1. Read semantic memory in full
         semantic_content = ""
@@ -485,6 +558,11 @@ class HourlySessionResetManager:
             "episodic_entries_count": len(self.memory.episodic_entries),
             "semantic_affordances_count": len(self.memory.semantic_affordances),
         }
+
+
+class HourlySessionResetManager(DynamicContextResetManager):
+    """Backwards-compatible alias for DynamicContextResetManager."""
+    pass
 
 
 @dataclass

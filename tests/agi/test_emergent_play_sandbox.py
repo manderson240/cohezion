@@ -12,6 +12,7 @@ from cohezion.agi.emergent_play_sandbox import (
     ARC3PlaygroundAdapter,
     BubblewrapSandboxSpec,
     DualMemoryManager,
+    DynamicContextResetManager,
     EmergentPlayEngine,
     EmpiricalPlayBenchmarkScorecard,
     EndogenousChallenge,
@@ -254,3 +255,61 @@ def test_empirical_play_benchmark_scorecard():
     assert lift["objects_on_spire_lift"] == pytest.approx(233.33, abs=1.0)
     assert lift["tallest_tower_lift"] == pytest.approx(53.33, abs=1.0)
     assert lift["throw_success_delta"] == 1.0
+
+
+def test_dynamic_context_reset_manager_watermarking(temp_workspace: Path):
+    """Test dynamic context token watermarking (75% warning, 85% reset) replacing fixed hourly clock."""
+    memory = DualMemoryManager(temp_workspace)
+    manager = DynamicContextResetManager(
+        memory_manager=memory,
+        max_context_tokens=10_000,
+        warning_watermark=0.75,
+        reset_watermark=0.85,
+    )
+
+    # 1. Turn 1: 5,000 tokens (50% utilization) -> No warning, no reset
+    turn1 = manager.record_turn(tokens_used=5000, action="MOVE_FORWARD")
+    assert turn1["utilization"] == 0.50
+    assert turn1["warn_needed"] is False
+    assert turn1["should_reset"] is False
+
+    # 2. Turn 2: 2,600 tokens (76% cumulative) -> Triggers warning watermark
+    turn2 = manager.record_turn(tokens_used=2600, action="JUMP")
+    assert turn2["utilization"] == 0.76
+    assert turn2["warn_needed"] is True
+    assert turn2["should_reset"] is False
+
+    # 3. Turn 3: 1,000 tokens (86% cumulative) -> Triggers dynamic reset watermark
+    turn3 = manager.record_turn(tokens_used=1000, action="THROW")
+    assert turn3["utilization"] == 0.86
+    assert turn3["should_reset"] is True
+    assert "Token context watermark reached: 86.0%" in turn3["reset_reason"]
+
+    # Advance session resets tokens and clears warning
+    adv = manager.advance_session()
+    assert adv["session_index"] == 1
+    assert adv["new_session_id"] == "session_001"
+    assert manager.cumulative_tokens == 0
+    assert manager.warning_issued is False
+
+
+def test_dynamic_context_reset_manager_entropy_stagnation(temp_workspace: Path):
+    """Test behavioral stagnation reset when action entropy collapses due to idling loops."""
+    memory = DualMemoryManager(temp_workspace)
+    manager = DynamicContextResetManager(
+        memory_manager=memory,
+        max_context_tokens=100_000,
+        min_action_entropy=0.40,
+        entropy_window=10,
+    )
+
+    # Simulate 10 turns of identical action (cyclic entrapment: IDLE, IDLE, IDLE...)
+    for step in range(9):
+        status = manager.record_turn(tokens_used=100, action="IDLE")
+        assert status["should_reset"] is False
+
+    # 10th consecutive identical action causes Shannon entropy to hit 0.0 < 0.40
+    status_10 = manager.record_turn(tokens_used=100, action="IDLE")
+    assert status_10["action_entropy"] == pytest.approx(0.0)
+    assert status_10["should_reset"] is True
+    assert "Behavioral action entropy collapsed" in status_10["reset_reason"]
