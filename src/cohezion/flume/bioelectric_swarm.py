@@ -510,7 +510,7 @@ class BioelectricSwarm:
                 "latency_ms": response.latency_ms,
                 "verified": response.verified,
             }
-        except (TimeoutError, Exception) as err:
+        except Exception as err:  # L359: was (TimeoutError, Exception), identical semantics
             logger.warning("Inference delegation fallback triggered: %s", err)
             return {
                 "content": (
