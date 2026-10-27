@@ -70,6 +70,8 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
+from cohezion.storage.surreal_http import checked_statements
+
 
 __all__ = [
     "DiscoveryRecord",
@@ -626,11 +628,14 @@ def load_from_surrealdb(
             body = _surreal_sql_post(url, ns, db, surql, timeout_s)
             results: Any = json.loads(body)
             # SurrealDB /sql returns a list of per-statement results; tolerate a
-            # bare dict response shape from proxies.
+            # bare dict response shape from proxies. SurrealDB answers HTTP 200
+            # even when a statement failed, so the parsed body goes through the
+            # shared checker: an ERR statement is a failed read for this table.
             if isinstance(results, Mapping):
                 results = [results]
+            results = checked_statements(results)
             rows: list[Any] = []
-            for entry in results if isinstance(results, list) else []:
+            for entry in results:
                 result = entry.get("result") if isinstance(entry, dict) else None
                 if isinstance(result, list):
                     rows.extend(result)
