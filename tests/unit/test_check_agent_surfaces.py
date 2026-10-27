@@ -129,3 +129,22 @@ def test_fnmatch_crosses_slashes_so_globstar_is_transitive():
     # fnmatch '*' matches across '/' -- document the semantics the map relies on.
     owner, _ = _resolve("src/cohezion/inference/deep/nested/module.py")
     assert owner == "@inference-fabric"
+
+
+def test_self_test_flag_plants_each_defect_and_passes():
+    """The meta-gate (scripts/ci/self_test_coverage.py) RUNS every CI gate's --self-test.
+
+    Without the flag this script was the one gate that could not prove it still detects
+    anything, which kept the blocking meta-gate red (found 2026-10-27).
+    """
+    assert main(["--self-test"]) == 0
+
+
+def test_self_test_is_wired_before_the_gate_in_ci():
+    workflow = Path(__file__).resolve().parents[2] / ".github" / "workflows" / "agent-surfaces.yml"
+    text = workflow.read_text(encoding="utf-8")
+    self_test = text.find("check_agent_surfaces.py --self-test")
+    gate = text.find("check_agent_surfaces.py $paths")
+    assert self_test != -1, "agent-surfaces.yml never self-tests the checker"
+    assert gate != -1, "agent-surfaces.yml never runs the checker"
+    assert self_test < gate, "self-test must run before the gate so a broken checker cannot pass"
