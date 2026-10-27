@@ -136,6 +136,14 @@ jobs:
           uv run python scripts/ci/phantom_attr_scan.py --self-test
           uv run python scripts/ci/phantom_attr_scan.py
 
+      # Learning-359 stealth-except gate. The detector and this gate script both existed, but nothing
+      # invoked the gate (found 2026-10-20: a live `except (TimeoutError, Exception)` on main) -- the
+      # exact dormancy its own docstring warns about. --self-test first, as for phantom-attr.
+      - name: Stealth-except scan (gating)
+        run: |
+          uv run python scripts/ci/check_stealth_excepts.py --self-test
+          uv run python scripts/ci/check_stealth_excepts.py
+
       # Coding-standard guard (AGENTS.md "Card-Aligned Recipes"): no direct
       # port hits to local inference backends — everything routes through
       # UnifiedHybridRouter. Verified exit 0 locally 2026-09-08.

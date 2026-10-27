@@ -218,6 +218,10 @@ step "doc-code consistency" uv run python scripts/ci/doc_code_consistency.py
 # defect, silent on the fix.
 step "phantom-attr self-test" uv run python scripts/ci/phantom_attr_scan.py --self-test
 step "phantom-attr scan" uv run python scripts/ci/phantom_attr_scan.py
+# Learning-359 stealth-except gate: existed since issue #94 but no gate ran it (live violation found
+# 2026-10-20). Self-test first so a broken detector cannot read as a clean pass.
+step "stealth-except self-test" uv run python scripts/ci/check_stealth_excepts.py --self-test
+step "stealth-except scan" uv run python scripts/ci/check_stealth_excepts.py
 
 # Step 6c-quater: META-gate. The scans above ask questions about the CODE; this asks whether
 # the gates themselves can still answer. It RUNS each gate's --self-test rather than

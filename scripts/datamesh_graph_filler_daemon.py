@@ -48,7 +48,7 @@ async def _tick() -> bool:
     try:
         await asyncio.wait_for(bridge._handle(event), timeout=15)
         return True
-    except (TimeoutError, Exception):
+    except Exception:  # L359: was (TimeoutError, Exception), identical semantics
         return False
 
 
