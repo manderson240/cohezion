@@ -401,6 +401,13 @@ def run_batch(
             summary["actioned"].append({"id": item_id, "route": route})
         except Exception as exc:
             err_msg = str(exc)
+            # A resource-guard block is transient (busy box), not a property of the item:
+            # leave it eligible for the next run and stop, since every later item would hit
+            # the same block. Before this, 1,094 APPLY items were terminally rejected.
+            if "Resources constrained" in err_msg or "System at capacity" in err_msg:
+                logger.info("actioner: deferring %s and stopping batch: %s", item_id, err_msg)
+                summary.setdefault("deferred", []).append(item_id)
+                break
             logger.warning("actioner: item %s failed: %s", item_id, err_msg)
             # If the item failed due to guardrail injection detection, reject it
             # so it does not poison the queue and cause an infinite crash loop (Learning 414).

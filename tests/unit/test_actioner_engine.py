@@ -281,3 +281,51 @@ def test_rc2_failure_reason_is_surfaced_not_empty(tmp_path):
     assert "guardrail" in reason.lower() or "override" in reason.lower(), (
         f"real cause not surfaced: {reason!r}"
     )
+
+
+class _RejectRecordingAPI(FakeAPI):
+    def __init__(self, items):
+        super().__init__(items)
+        self.rejected: list[str] = []
+
+    def mark_rejected(self, item_id, note):
+        self.rejected.append(item_id)
+        return {"id": item_id, "status": "rejected"}
+
+
+def test_resource_block_defers_instead_of_rejecting(tmp_path):
+    """A RESOURCE guardrail block is transient; it must not terminally reject the item.
+
+    Measured 2026-10-26: 1,094 APPLY items in the vault kanban were marked
+    `rejected` with "Input blocked by guardrails: Resources constrained: CPU=97%...":
+    the injection-block rule (Learning 414) also matched the resource guard's message,
+    so every item tried while the box was busy was discarded for good.
+    """
+    api = _RejectRecordingAPI([_item(1), _item(2)])
+    executor = _RealShapeExecutor(
+        reason="Input blocked by guardrails: Resources constrained: CPU=97.2%, Memory=62.2%"
+    )
+    summary = run_batch(
+        executor,
+        api=api,
+        chat_fn=_chat,
+        proposals_path=tmp_path / "p.jsonl",
+        vault_dir=tmp_path / "v",
+    )
+    assert api.rejected == []
+    assert summary["deferred"] == ["item001"]
+    assert executor.calls == 1, "a busy box blocks every later item too; stop the batch"
+    assert not summary["failed"]
+
+
+def test_injection_block_still_rejects(tmp_path):
+    """Discriminating twin: a real injection block keeps the Learning-414 rejection."""
+    api = _RejectRecordingAPI([_item(1)])
+    run_batch(
+        _RealShapeExecutor(),
+        api=api,
+        chat_fn=_chat,
+        proposals_path=tmp_path / "p.jsonl",
+        vault_dir=tmp_path / "v",
+    )
+    assert api.rejected == ["item001"]
