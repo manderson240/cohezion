@@ -37,7 +37,7 @@ def compute_roofline(
     bandwidth_gb_s: float,
     peak_tops: float,
     layers: int = 32,
-    hidden_dim: int = 4096
+    hidden_dim: int = 4096,
 ) -> dict:
     """Compute theoretical ceiling, memory bound vs compute bound, and expected decode tokens/s."""
     # 1. Memory Traffic per Token Generation (Auto-regressive decode is predominantly Memory-Bound)
@@ -79,7 +79,9 @@ def compute_roofline(
         "mem_limit_tps": theoretical_decode_tps_mem,
         "compute_limit_tps": theoretical_decode_tps_compute,
         "roofline_tps": roofline_tps,
-        "bound_type": "Memory-Bound (UMA Bandwidth)" if is_memory_bound else "Compute-Bound (TOPS/TFLOPS)"
+        "bound_type": "Memory-Bound (UMA Bandwidth)"
+        if is_memory_bound
+        else "Compute-Bound (TOPS/TFLOPS)",
     }
 
 
@@ -104,7 +106,7 @@ def main() -> None:
         kv_bits=4.0,
         silicon="Radeon 8060S iGPU (MXFP4)",
         bandwidth_gb_s=UMA_BANDWIDTH_GB_S,
-        peak_tops=IGPU_MXFP4_TOPS
+        peak_tops=IGPU_MXFP4_TOPS,
     )
 
     # Scenario 2: Qwen3.6-MoE-35B (35B total, 3B active) on XDNA2 NPU
@@ -117,7 +119,7 @@ def main() -> None:
         kv_bits=4.0,
         silicon="XDNA2 NPU (FastLane flm)",
         bandwidth_gb_s=UMA_BANDWIDTH_GB_S,
-        peak_tops=NPU_PEAK_TOPS
+        peak_tops=NPU_PEAK_TOPS,
     )
 
     # Scenario 3: Dense 4B Model (waslmedia-4B) on XDNA2 NPU
@@ -130,7 +132,7 @@ def main() -> None:
         kv_bits=4.0,
         silicon="XDNA2 NPU (FastLane flm)",
         bandwidth_gb_s=UMA_BANDWIDTH_GB_S,
-        peak_tops=NPU_PEAK_TOPS
+        peak_tops=NPU_PEAK_TOPS,
     )
 
     # Scenario 4: Mistral-Medium-128B with 128k context on CPU
@@ -145,15 +147,19 @@ def main() -> None:
         bandwidth_gb_s=UMA_BANDWIDTH_GB_S,
         peak_tops=CPU_AVX512_TOPS,
         layers=88,
-        hidden_dim=8192
+        hidden_dim=8192,
     )
 
     results = [res_igpu_coder, res_npu_moe, res_npu_dense4b, res_cpu_128b]
 
-    print(f"{'Model & Workload':<36} | {'Target Silicon':<24} | {'Bytes/Tok':<10} | {'I (FLOP/B)':<10} | {'Ceiling TPS':<12} | {'Bound Type'}")
+    print(
+        f"{'Model & Workload':<36} | {'Target Silicon':<24} | {'Bytes/Tok':<10} | {'I (FLOP/B)':<10} | {'Ceiling TPS':<12} | {'Bound Type'}"
+    )
     print("-" * 130)
     for r in results:
-        print(f"{r['model']:<36} | {r['silicon']:<24} | {r['bytes_per_token_mb']:>7.2f} MB | {r['arithmetic_intensity']:>8.2f}   | {r['roofline_tps']:>8.1f} t/s | {r['bound_type']}")
+        print(
+            f"{r['model']:<36} | {r['silicon']:<24} | {r['bytes_per_token_mb']:>7.2f} MB | {r['arithmetic_intensity']:>8.2f}   | {r['roofline_tps']:>8.1f} t/s | {r['bound_type']}"
+        )
 
     print("\n" + "=" * 100)
     print("  📊 RIGOROUS MATHEMATICAL DERIVATION & WHY THIS CONVERGES:")

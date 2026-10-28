@@ -32,9 +32,18 @@ SYSTEM_MODULES = [
     ("Agentic Kanban Bridge & Sinks", "src/cohezion/data_mesh/kanban_bridge.py"),
     ("AMD GAIA SDK Tool Mixins", "src/cohezion/integrations/amd_gaia_tool_mixins.py"),
     ("Google Workspace Bridge Gateway", "src/cohezion/integrations/google_workspace_bridge.py"),
-    ("Write Budget & I/O Throttling Governor", "src/cohezion/core/resource_management/write_budget_governor.py"),
-    ("OpenZFS Dataset & Snapshot Manager", "src/cohezion/core/resource_management/zfs_guardrail_manager.py"),
-    ("Proactive Disk Guardrail System", "src/cohezion/core/resource_management/disk_guardrail_daemon.py"),
+    (
+        "Write Budget & I/O Throttling Governor",
+        "src/cohezion/core/resource_management/write_budget_governor.py",
+    ),
+    (
+        "OpenZFS Dataset & Snapshot Manager",
+        "src/cohezion/core/resource_management/zfs_guardrail_manager.py",
+    ),
+    (
+        "Proactive Disk Guardrail System",
+        "src/cohezion/core/resource_management/disk_guardrail_daemon.py",
+    ),
     ("EventBus & Cross-Session Bridge", "src/cohezion/core/event_bus.py"),
     ("Premier MCP Production Server (10 Tools)", "src/cohezion/mcp/cohezion_agi_server.py"),
     ("Reactive Marimo Multimodal Manifold", "notebooks/marimo/new_science_multimodal_manifold.py"),
@@ -60,7 +69,9 @@ def audit_full_platform() -> None:
 
     pct = (active_count / len(SYSTEM_MODULES)) * 100.0
     print("\n" + "=" * 100)
-    print(f"📊 FULL-PLATFORM INTEGRATION SCORE: {pct:.1f}% ({active_count}/{len(SYSTEM_MODULES)} Subsystems Online)")
+    print(
+        f"📊 FULL-PLATFORM INTEGRATION SCORE: {pct:.1f}% ({active_count}/{len(SYSTEM_MODULES)} Subsystems Online)"
+    )
     print("=" * 100)
 
 

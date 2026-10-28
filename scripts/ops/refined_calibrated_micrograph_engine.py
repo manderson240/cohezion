@@ -14,7 +14,9 @@ out_dir = Path("/home/mike-anderson/dev/cohezion/docs/assets/renderings/calibrat
 out_dir.mkdir(parents=True, exist_ok=True)
 
 
-def apply_fft_grain_filter(img_gray: np.ndarray, low_cutoff: float = 0.05, high_cutoff: float = 0.40) -> np.ndarray:
+def apply_fft_grain_filter(
+    img_gray: np.ndarray, low_cutoff: float = 0.05, high_cutoff: float = 0.40
+) -> np.ndarray:
     """Apply 2D FFT bandpass filter to suppress silver-halide grain noise."""
     f = np.fft.fft2(img_gray)
     fshift = np.fft.fftshift(f)
@@ -23,11 +25,13 @@ def apply_fft_grain_filter(img_gray: np.ndarray, low_cutoff: float = 0.05, high_
     crow, ccol = rows // 2, cols // 2
 
     y, x = np.ogrid[:rows, :cols]
-    dist_from_center = np.sqrt((x - ccol)**2 + (y - crow)**2)
+    dist_from_center = np.sqrt((x - ccol) ** 2 + (y - crow) ** 2)
     max_dist = np.sqrt(crow**2 + ccol**2)
     norm_dist = dist_from_center / max_dist
 
-    mask = (1.0 - np.exp(-(norm_dist / low_cutoff)**2)) * np.exp(-(norm_dist / high_cutoff)**4)
+    mask = (1.0 - np.exp(-((norm_dist / low_cutoff) ** 2))) * np.exp(
+        -((norm_dist / high_cutoff) ** 4)
+    )
 
     fshift_filtered = fshift * mask
     f_ishift = np.fft.ifftshift(fshift_filtered)
@@ -37,10 +41,15 @@ def apply_fft_grain_filter(img_gray: np.ndarray, low_cutoff: float = 0.05, high_
     return img_back
 
 
-def generate_calibrated_shoulders_borehole_mesh(image_path: Path, output_obj: Path, grid_res: int = 180) -> None:
+def generate_calibrated_shoulders_borehole_mesh(
+    image_path: Path, output_obj: Path, grid_res: int = 180
+) -> None:
     """Reconstruct Ken Shoulders Figure 5:13 with full calibrated -14.2 μm depth and +2.5 μm ejecta lip."""
     img = Image.open(image_path).convert("L")
-    img_arr = np.array(img.resize((grid_res, grid_res), Image.Resampling.LANCZOS), dtype=np.float32) / 255.0
+    img_arr = (
+        np.array(img.resize((grid_res, grid_res), Image.Resampling.LANCZOS), dtype=np.float32)
+        / 255.0
+    )
 
     h, w = img_arr.shape
     vertices = []
@@ -50,11 +59,11 @@ def generate_calibrated_shoulders_borehole_mesh(image_path: Path, output_obj: Pa
     z_matrix = np.zeros_like(img_arr)
     # Deep borehole depressions (dark pixels < 0.45)
     dark_mask = img_arr < 0.45
-    z_matrix[dark_mask] = -14.2 * ((0.45 - img_arr[dark_mask]) / 0.45)**1.4
+    z_matrix[dark_mask] = -14.2 * ((0.45 - img_arr[dark_mask]) / 0.45) ** 1.4
 
     # Raised melt lips (bright pixels > 0.55)
     bright_mask = img_arr > 0.55
-    z_matrix[bright_mask] = 2.5 * ((img_arr[bright_mask] - 0.55) / 0.45)**1.2
+    z_matrix[bright_mask] = 2.5 * ((img_arr[bright_mask] - 0.55) / 0.45) ** 1.2
 
     z_matrix = gaussian_filter(z_matrix, sigma=0.8)
 
@@ -76,22 +85,31 @@ def generate_calibrated_shoulders_borehole_mesh(image_path: Path, output_obj: Pa
             faces.append((p1, p3, p4))
 
     with open(output_obj, "w", encoding="utf-8") as f:
-        f.write("# Calibrated Ken Shoulders SEM Borehole 3D Mesh (Borehole: -14.2 um, Melt Lip: +2.5 um)\n")
+        f.write(
+            "# Calibrated Ken Shoulders SEM Borehole 3D Mesh (Borehole: -14.2 um, Melt Lip: +2.5 um)\n"
+        )
         for v in vertices:
             f.write(f"v {v[0]:.4f} {v[1]:.4f} {v[2]:.4f}\n")
         for face in faces:
             f.write(f"f {face[0]} {face[1]} {face[2]}\n")
 
-    print(f"  ✓ Calibrated Shoulders Borehole Mesh saved: {output_obj.name} ({len(vertices)} vertices, depth span: [{np.min(z_matrix):.2f}, {np.max(z_matrix):.2f}] μm)")
+    print(
+        f"  ✓ Calibrated Shoulders Borehole Mesh saved: {output_obj.name} ({len(vertices)} vertices, depth span: [{np.min(z_matrix):.2f}, {np.max(z_matrix):.2f}] μm)"
+    )
 
 
-def generate_calibrated_matsumoto_emulsion_mesh(image_path: Path, output_obj: Path, grid_res: int = 180) -> None:
+def generate_calibrated_matsumoto_emulsion_mesh(
+    image_path: Path, output_obj: Path, grid_res: int = 180
+) -> None:
     """Reconstruct Matsumoto Plate 140 with 2D FFT grain noise removal and verified 42-satellite periodicity."""
     img = Image.open(image_path).convert("L")
-    img_arr = np.array(img.resize((grid_res, grid_res), Image.Resampling.LANCZOS), dtype=np.float32) / 255.0
+    img_arr = (
+        np.array(img.resize((grid_res, grid_res), Image.Resampling.LANCZOS), dtype=np.float32)
+        / 255.0
+    )
 
     filtered_arr = apply_fft_grain_filter(img_arr)
-    z_matrix = (1.0 - filtered_arr)**1.6 * 6.0
+    z_matrix = (1.0 - filtered_arr) ** 1.6 * 6.0
 
     h, w = z_matrix.shape
     vertices = []
@@ -121,15 +139,21 @@ def generate_calibrated_matsumoto_emulsion_mesh(image_path: Path, output_obj: Pa
         for face in faces:
             f.write(f"f {face[0]} {face[1]} {face[2]}\n")
 
-    print(f"  ✓ Calibrated Matsumoto Emulsion Mesh saved: {output_obj.name} ({len(vertices)} vertices, height span: [{np.min(z_matrix):.2f}, {np.max(z_matrix):.2f}] μm)")
+    print(
+        f"  ✓ Calibrated Matsumoto Emulsion Mesh saved: {output_obj.name} ({len(vertices)} vertices, height span: [{np.min(z_matrix):.2f}, {np.max(z_matrix):.2f}] μm)"
+    )
 
 
 def main() -> None:
-    sh_crop = Path("/home/mike-anderson/dev/cohezion/docs/assets/shoulders_plates/crop_shoulders_fig513_boreholes.png")
+    sh_crop = Path(
+        "/home/mike-anderson/dev/cohezion/docs/assets/shoulders_plates/crop_shoulders_fig513_boreholes.png"
+    )
     sh_obj = out_dir / "calibrated_shoulders_fig513_borehole_lip_3d.obj"
     generate_calibrated_shoulders_borehole_mesh(sh_crop, sh_obj)
 
-    mat_crop = Path("/home/mike-anderson/dev/cohezion/docs/assets/matsumoto_plates/crop_matsumoto_fig4_giant_ring.png")
+    mat_crop = Path(
+        "/home/mike-anderson/dev/cohezion/docs/assets/matsumoto_plates/crop_matsumoto_fig4_giant_ring.png"
+    )
     mat_obj = out_dir / "calibrated_matsumoto_fig4_giant_ring_fft_3d.obj"
     generate_calibrated_matsumoto_emulsion_mesh(mat_crop, mat_obj)
 

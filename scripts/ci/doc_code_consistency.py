@@ -48,7 +48,11 @@ from pathlib import Path
 REPO = Path(__file__).resolve().parents[2]
 SRC = REPO / "src"
 
-DOCS = [REPO / "CLAUDE.md", REPO / ".claude/rules/harness.md"]
+DOCS = [
+    REPO / "CLAUDE.md",
+    REPO / ".claude/rules/harness.md",
+    REPO / "docs/harness-invariants-catalogue.md",
+]
 DOCS += sorted(SRC.rglob("CLAUDE.md"))
 
 FILE_RE = re.compile(r"`?((?:src/cohezion|scripts|tests)/[\w./-]+\.py)`?")
@@ -255,7 +259,7 @@ def scan(docs: list[Path] | None = None) -> tuple[list[str], list[str]]:
         # E6: every cited test must exist. A phantom SYMBOL and a phantom TEST NAME are
         # both invisible to the path checks above — RTG1/RGA1/RGA2/MB1/TR1 all shipped
         # citing tests defined nowhere. Only harness/CLAUDE docs make test claims.
-        if doc.name in ("harness.md", "CLAUDE.md"):
+        if doc.name in ("harness.md", "CLAUDE.md", "harness-invariants-catalogue.md"):
             defined = _defined_test_names()
             # Burial exemption: a section whose heading says REMOVED/PHANTOM is a
             # tombstone — naming the dead test there keeps it on record so nobody

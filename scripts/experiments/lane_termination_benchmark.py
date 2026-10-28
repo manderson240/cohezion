@@ -79,13 +79,21 @@ def classify(raw: str, max_tokens: int) -> dict:
     ceiling_chars = max_tokens * 4  # ~4 chars/token, the empirical ratio on this fleet
     at_ceiling = len(raw) >= 0.9 * ceiling_chars
     if MARKER not in raw:
-        return {"terminated": False, "why": "no-marker", "answer_chars": 0,
-                "at_ceiling": at_ceiling}
+        return {
+            "terminated": False,
+            "why": "no-marker",
+            "answer_chars": 0,
+            "at_ceiling": at_ceiling,
+        }
     answer = raw.rsplit(MARKER, 1)[1].strip()
     missing = [f for f in FIELDS if f.lower() not in answer.lower()]
     if missing:
-        return {"terminated": False, "why": f"missing{missing}", "answer_chars": len(answer),
-                "at_ceiling": at_ceiling}
+        return {
+            "terminated": False,
+            "why": f"missing{missing}",
+            "answer_chars": len(answer),
+            "at_ceiling": at_ceiling,
+        }
     return {"terminated": True, "why": "", "answer_chars": len(answer), "at_ceiling": at_ceiling}
 
 
@@ -98,12 +106,27 @@ async def one_rep(model: str, max_tokens: int) -> dict:
         gen_tokens = int(getattr(res, "gen_tokens", 0) or 0)
         dropped = int(getattr(res, "dropped_reasoning_chars", 0) or 0)
     except Exception as exc:  # a dead lane is a RESULT to record, not an abort of the survey
-        return {"model": model, "secs": round(time.time() - t0, 1), "raw_chars": 0,
-                "terminated": False, "why": f"{type(exc).__name__}", "answer_chars": 0,
-                "at_ceiling": False, "gen_tokens": 0, "dropped_reasoning_chars": 0}
+        return {
+            "model": model,
+            "secs": round(time.time() - t0, 1),
+            "raw_chars": 0,
+            "terminated": False,
+            "why": f"{type(exc).__name__}",
+            "answer_chars": 0,
+            "at_ceiling": False,
+            "gen_tokens": 0,
+            "dropped_reasoning_chars": 0,
+        }
     out = classify(raw or "", max_tokens)
-    out.update({"model": model, "secs": round(time.time() - t0, 1), "raw_chars": len(raw or ""),
-                "gen_tokens": gen_tokens, "dropped_reasoning_chars": dropped})
+    out.update(
+        {
+            "model": model,
+            "secs": round(time.time() - t0, 1),
+            "raw_chars": len(raw or ""),
+            "gen_tokens": gen_tokens,
+            "dropped_reasoning_chars": dropped,
+        }
+    )
     return out
 
 
@@ -116,14 +139,18 @@ async def main() -> None:
 
     models = [m.strip() for m in args.models.split(",") if m.strip()]
     if not models:
-        print("--models is required (comma-separated). Only benchmark RESIDENT models: loading "
-              "evicts other sessions' work and this box hard-hung twice on 2026-08-15.",
-              file=sys.stderr)
+        print(
+            "--models is required (comma-separated). Only benchmark RESIDENT models: loading "
+            "evicts other sessions' work and this box hard-hung twice on 2026-08-15.",
+            file=sys.stderr,
+        )
         raise SystemExit(2)
 
     run = DurableRun("lane-termination-benchmark", meta={"models": models, "reps": args.reps})
-    print(f"{'model':<34} {'term':>5} {'GEN_TOK':>8} {'rawch':>7} {'ovhd':>6} {'ceil':>5} "
-          f"{'p50s':>7}  notes")
+    print(
+        f"{'model':<34} {'term':>5} {'GEN_TOK':>8} {'rawch':>7} {'ovhd':>6} {'ceil':>5} "
+        f"{'p50s':>7}  notes"
+    )
     print("-" * 100)
     stripped: list[tuple[str, int]] = []
 
@@ -137,7 +164,8 @@ async def main() -> None:
         ceil_rate = sum(1 for r in reps if r["at_ceiling"]) / len(reps)
         ovhd = [
             (r["raw_chars"] - r["answer_chars"]) / r["raw_chars"]
-            for r in reps if r["raw_chars"] > 0
+            for r in reps
+            if r["raw_chars"] > 0
         ]
         p50 = statistics.median(r["secs"] for r in reps)
         raw_med = statistics.median(r["raw_chars"] for r in reps)
@@ -146,9 +174,12 @@ async def main() -> None:
         if drop_med > 0:
             stripped.append((model, int(drop_med)))
         whys = {r["why"] for r in reps if r["why"]}
-        print(f"{model:<34} {term:>5.2f} {gen_med:>8.0f} {raw_med:>7.0f} "
-              f"{statistics.mean(ovhd) if ovhd else 0:>6.2f} "
-              f"{ceil_rate:>5.2f} {p50:>7.1f}  {','.join(sorted(whys)) or 'ok'}", flush=True)
+        print(
+            f"{model:<34} {term:>5.2f} {gen_med:>8.0f} {raw_med:>7.0f} "
+            f"{statistics.mean(ovhd) if ovhd else 0:>6.2f} "
+            f"{ceil_rate:>5.2f} {p50:>7.1f}  {','.join(sorted(whys)) or 'ok'}",
+            flush=True,
+        )
 
     run.finalize({"reps": args.reps, "max_tokens": args.max_tokens})
 

@@ -18,13 +18,17 @@ What are the 3 highest-leverage NEXT steps we should execute right now to accele
 Keep it actionable, highly technical, and under 150 words."""
 
 try:
-    resp = httpx.post("http://127.0.0.1:11434/api/generate", json={
-        "model": "deepseek-v4-flash:cloud",
-        "prompt": prompt,
-        "stream": False,
-        "options": {"temperature": 0.2, "num_predict": 400}
-    }, timeout=30.0)
-    
+    resp = httpx.post(
+        "http://127.0.0.1:11434/api/generate",
+        json={
+            "model": "deepseek-v4-flash:cloud",
+            "prompt": prompt,
+            "stream": False,
+            "options": {"temperature": 0.2, "num_predict": 400},
+        },
+        timeout=30.0,
+    )
+
     if resp.status_code == 200:
         res = resp.json().get("response", "").strip()
         print("💡 MODEL STRATEGIC RECOMMENDATION:")

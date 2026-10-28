@@ -7,7 +7,9 @@ sys.path.insert(0, "/home/mike-anderson/dev/cohezion/src")
 from cohezion.core.resource_management.write_budget_governor import WriteBudgetGovernor
 
 
-out_file = Path("/home/mike-anderson/dev/cohezion/docs/research/grand_breadth_depth_fanout_sprint_report.md")
+out_file = Path(
+    "/home/mike-anderson/dev/cohezion/docs/research/grand_breadth_depth_fanout_sprint_report.md"
+)
 
 md_content = """# Grand Breadth & Depth Fan-Out Sprint: 24-Lane Master Synthesis Report
 **Timestamp**: 2026-08-18 13:30:00 EDT

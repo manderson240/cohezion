@@ -28,9 +28,9 @@ try:
             "model": "nemotron-3-ultra:cloud",
             "prompt": prompt,
             "stream": False,
-            "options": {"temperature": 0.1, "num_predict": 450}
+            "options": {"temperature": 0.1, "num_predict": 450},
         },
-        timeout=40.0
+        timeout=40.0,
     )
     if resp.status_code == 200:
         print("🖥️ AMD STRIX HALO MULTI-SILICON SUBSTRATE ALLOCATION:")

@@ -17,8 +17,11 @@ from cohezion.reliability.system_wide_fleet_lock import SystemWideFleetLock
 from cohezion.reliability.oom_guard import OOMGuard
 from cohezion.data_mesh.kanban_bridge import persist_item
 
-KERNEL_PATH = Path("src/cohezion/competitions/datasets/arc_quantum_kernels/quantum_arc_geometric_kernel.npy")
+KERNEL_PATH = Path(
+    "src/cohezion/competitions/datasets/arc_quantum_kernels/quantum_arc_geometric_kernel.npy"
+)
 META_PATH = Path("src/cohezion/competitions/datasets/arc_quantum_kernels/canonical_patterns.json")
+
 
 def audit_mathematical_properties(K: np.ndarray) -> dict:
     """Computes exact linear algebraic and quantum state invariants."""
@@ -45,8 +48,9 @@ def audit_mathematical_properties(K: np.ndarray) -> dict:
         "is_positive_semi_definite": is_psd,
         "spectral_entropy_bits": spectral_entropy,
         "effective_hilbert_dim": eff_dim,
-        "top_3_eigenvalues": [float(e) for e in sorted(eigvals, reverse=True)[:3]]
+        "top_3_eigenvalues": [float(e) for e in sorted(eigvals, reverse=True)[:3]],
     }
+
 
 def main():
     print("=" * 90)
@@ -56,14 +60,16 @@ def main():
 
     # 1. Hardware & Memory Gating
     mem = OOMGuard.get_memory_state()
-    print(f"Memory Status: {mem.available_gb:.2f} GiB Avail / {mem.dynamic_floor_gb:.2f} GiB Dynamic Floor (Safe={mem.is_safe})")
+    print(
+        f"Memory Status: {mem.available_gb:.2f} GiB Avail / {mem.dynamic_floor_gb:.2f} GiB Dynamic Floor (Safe={mem.is_safe})"
+    )
 
     # 2. Load and Compute Numerical Invariants
     t0 = time.perf_counter()
     K = np.load(KERNEL_PATH)
     with open(META_PATH) as f:
         patterns = json.load(f)
-        
+
     math_audit = audit_mathematical_properties(K)
     dt_math_ms = (time.perf_counter() - t0) * 1000.0
 
@@ -71,7 +77,9 @@ def main():
     print(f"  • Matrix Shape             : {math_audit['shape']}")
     print(f"  • Symmetry Error           : {math_audit['symmetry_max_error']:.8e}")
     print(f"  • Diagonal Unity Error     : {math_audit['diagonal_max_error']:.8e}")
-    print(f"  • Min Eigenvalue           : {math_audit['min_eigenvalue']:.6f} (PSD = {math_audit['is_positive_semi_definite']})")
+    print(
+        f"  • Min Eigenvalue           : {math_audit['min_eigenvalue']:.6f} (PSD = {math_audit['is_positive_semi_definite']})"
+    )
     print(f"  • Spectral Entropy         : {math_audit['spectral_entropy_bits']:.4f} bits")
     print(f"  • Effective Hilbert Dim    : {math_audit['effective_hilbert_dim']:.2f} / 16.0")
     print(f"  • Top 3 Eigenvalues        : {math_audit['top_3_eigenvalues']}")
@@ -81,12 +89,12 @@ def main():
 We have executed a 16-state BlueQubit quantum simulation and computed the Quantum Bhattacharyya State Fidelity Kernel Matrix K_ij across canonical ARC geometric patterns.
 
 Mathematical Invariant Audit:
-- Matrix Dimension: {math_audit['shape']}
-- Symmetry Max Error: {math_audit['symmetry_max_error']:.2e} (K = K^T)
-- Diagonal Max Error: {math_audit['diagonal_max_error']:.2e} (K_ii = 1.0)
-- Min Eigenvalue: {math_audit['min_eigenvalue']:.4f} (Positive Semi-Definite: {math_audit['is_positive_semi_definite']})
-- Spectral Entropy: {math_audit['spectral_entropy_bits']:.4f} bits (Effective Hilbert Subspace Dimension: {math_audit['effective_hilbert_dim']:.2f})
-- Top Eigenvalues: {math_audit['top_3_eigenvalues']}
+- Matrix Dimension: {math_audit["shape"]}
+- Symmetry Max Error: {math_audit["symmetry_max_error"]:.2e} (K = K^T)
+- Diagonal Max Error: {math_audit["diagonal_max_error"]:.2e} (K_ii = 1.0)
+- Min Eigenvalue: {math_audit["min_eigenvalue"]:.4f} (Positive Semi-Definite: {math_audit["is_positive_semi_definite"]})
+- Spectral Entropy: {math_audit["spectral_entropy_bits"]:.4f} bits (Effective Hilbert Subspace Dimension: {math_audit["effective_hilbert_dim"]:.2f})
+- Top Eigenvalues: {math_audit["top_3_eigenvalues"]}
 
 In under 180 words, provide an authoritative formal verification statement confirming that:
 1. The kernel satisfies Mercer's Theorem and defines a valid reproducing kernel Hilbert space (RKHS).
@@ -100,11 +108,15 @@ In under 180 words, provide an authoritative formal verification statement confi
                 "model": "deepseek-v4-pro:cloud",
                 "prompt": audit_prompt,
                 "stream": False,
-                "options": {"temperature": 0.1, "num_predict": 450}
+                "options": {"temperature": 0.1, "num_predict": 450},
             },
-            timeout=40.0
+            timeout=40.0,
         )
-        audit_text = resp.json().get("response", "").strip() if resp.status_code == 200 else f"HTTP {resp.status_code}"
+        audit_text = (
+            resp.json().get("response", "").strip()
+            if resp.status_code == 200
+            else f"HTTP {resp.status_code}"
+        )
     except Exception as e:
         audit_text = f"Notice: {e}"
 
@@ -115,19 +127,19 @@ In under 180 words, provide an authoritative formal verification statement confi
     report_path.parent.mkdir(parents=True, exist_ok=True)
     report_content = f"""# BlueQubit Quantum State Fidelity Kernel: Local Silicon V&V Audit
 
-**Date:** {time.strftime('%Y-%m-%d %H:%M:%S UTC', time.gmtime())}  
+**Date:** {time.strftime("%Y-%m-%d %H:%M:%S UTC", time.gmtime())}  
 **Hardware Substrate:** AMD Strix Halo (128GB Unified Memory, XDNA2 NPU, Radeon 8060S iGPU)  
 **Memory Status:** {mem.available_gb:.2f} GiB Avail / {mem.dynamic_floor_gb:.2f} GiB Floor  
 
 ---
 
 ## 1. Mathematical & Spectral Invariants
-- **Matrix Shape:** `{math_audit['shape']}`
-- **Symmetry Error:** `{math_audit['symmetry_max_error']:.2e}`
-- **Diagonal Unity Error:** `{math_audit['diagonal_max_error']:.2e}`
-- **Positive Semi-Definiteness:** `{'PASS (min lambda >= 0)' if math_audit['is_positive_semi_definite'] else 'FAIL'}` (min $\\lambda = {math_audit['min_eigenvalue']:.6f}$)
-- **Spectral Entropy:** `{math_audit['spectral_entropy_bits']:.4f} bits`
-- **Effective Hilbert Dimension:** `{math_audit['effective_hilbert_dim']:.2f}`
+- **Matrix Shape:** `{math_audit["shape"]}`
+- **Symmetry Error:** `{math_audit["symmetry_max_error"]:.2e}`
+- **Diagonal Unity Error:** `{math_audit["diagonal_max_error"]:.2e}`
+- **Positive Semi-Definiteness:** `{"PASS (min lambda >= 0)" if math_audit["is_positive_semi_definite"] else "FAIL"}` (min $\\lambda = {math_audit["min_eigenvalue"]:.6f}$)
+- **Spectral Entropy:** `{math_audit["spectral_entropy_bits"]:.4f} bits`
+- **Effective Hilbert Dimension:** `{math_audit["effective_hilbert_dim"]:.2f}`
 
 ---
 
@@ -144,17 +156,20 @@ In under 180 words, provide an authoritative formal verification statement confi
     report_path.write_text(report_content)
     print(f"✓ Saved Formal Audit Report to: {report_path}")
 
-    persist_item({
-        "id": "bluequbit_quantum_kernel_audit",
-        "title": "BlueQubit Quantum Kernel Formally Audited & Mercer Verified",
-        "status": "done",
-        "priority": "critical",
-        "source": "LocalSiliconAuditor",
-        "category": "quantum_verification",
-        "details": f"Verified PSD (min lambda={math_audit['min_eigenvalue']:.4f}), Symmetry (<1e-8), and RKHS compliance for offline Kaggle ARC solver.",
-    })
+    persist_item(
+        {
+            "id": "bluequbit_quantum_kernel_audit",
+            "title": "BlueQubit Quantum Kernel Formally Audited & Mercer Verified",
+            "status": "done",
+            "priority": "critical",
+            "source": "LocalSiliconAuditor",
+            "category": "quantum_verification",
+            "details": f"Verified PSD (min lambda={math_audit['min_eigenvalue']:.4f}), Symmetry (<1e-8), and RKHS compliance for offline Kaggle ARC solver.",
+        }
+    )
     print("✓ Persisted verification card to SurrealDB and Obsidian Kanban")
     print("=" * 90)
+
 
 if __name__ == "__main__":
     main()

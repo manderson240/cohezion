@@ -60,14 +60,28 @@ class AudioQualityEvaluator:
 
         # 2. Pythagorean Harmonic Coherence Index (PHCI)
         # Check energy concentration around 432 Hz and exact Pythagorean multiples (108, 216, 324, 432, 540, 648)
-        pythagorean_targets = [108.0, 162.0, 216.0, 270.0, 324.0, 360.0, 405.0, 432.0, 486.0, 528.0, 648.0]
+        pythagorean_targets = [
+            108.0,
+            162.0,
+            216.0,
+            270.0,
+            324.0,
+            360.0,
+            405.0,
+            432.0,
+            486.0,
+            528.0,
+            648.0,
+        ]
         in_band_energy = 0.0
         total_energy = np.sum(magnitudes**2) + 1e-12
 
         for pt in pythagorean_targets:
             idx = np.argmin(np.abs(fft_freqs - pt))
             window = 5  # +/- 5 bins (~2 Hz)
-            in_band_energy += np.sum(magnitudes[max(0, idx - window):min(len(magnitudes), idx + window)]**2)
+            in_band_energy += np.sum(
+                magnitudes[max(0, idx - window) : min(len(magnitudes), idx + window)] ** 2
+            )
 
         phci = min(1.0, float(in_band_energy / (total_energy * 0.40)))  # Normalized score
 
@@ -75,8 +89,8 @@ class AudioQualityEvaluator:
         # Energy in vocal presence band (1.5 kHz to 3.5 kHz) vs low-mid clutter
         vocal_idx_start = np.argmin(np.abs(fft_freqs - 1500.0))
         vocal_idx_end = np.argmin(np.abs(fft_freqs - 3500.0))
-        vocal_energy = np.sum(magnitudes[vocal_idx_start:vocal_idx_end]**2)
-        fii = min(1.0, float((vocal_energy / (total_energy * 0.15))**0.5))
+        vocal_energy = np.sum(magnitudes[vocal_idx_start:vocal_idx_end] ** 2)
+        fii = min(1.0, float((vocal_energy / (total_energy * 0.15)) ** 0.5))
 
         # 4. Signal-to-Noise Ratio (SNR in dB)
         peak = np.max(np.abs(samples))
@@ -119,7 +133,9 @@ def run_evaluation_and_optimization_loop() -> None:
         if path.exists():
             metrics = evaluator.evaluate_track(path, target_bpm=bpm)
             status = "PASSED (>=0.85)" if metrics["passed_gate"] else "OPTIMIZATION REQUIRED"
-            print(f"  ✓ [{fn}] Score: {metrics['composite_score']} | PHCI: {metrics['phci_score']} | FII: {metrics['fii_score']} | SNR: {metrics['snr_db']} dB -> {status}")
+            print(
+                f"  ✓ [{fn}] Score: {metrics['composite_score']} | PHCI: {metrics['phci_score']} | FII: {metrics['fii_score']} | SNR: {metrics['snr_db']} dB -> {status}"
+            )
             eval_results.append(metrics)
 
     # Re-tuning Optimization Pass
@@ -133,11 +149,15 @@ def run_evaluation_and_optimization_loop() -> None:
         # Run optimized synthesis
         composer.compose_song_with_style(style_key, opt_file)
         opt_metrics = evaluator.evaluate_track(opt_file, target_bpm=bpm)
-        print(f"  🌟 [OPTIMIZED V2: {opt_file.name}] Score: {opt_metrics['composite_score']} (PHCI: {opt_metrics['phci_score']}, FII: {opt_metrics['fii_score']}) -> 100% GREEN")
+        print(
+            f"  🌟 [OPTIMIZED V2: {opt_file.name}] Score: {opt_metrics['composite_score']} (PHCI: {opt_metrics['phci_score']}, FII: {opt_metrics['fii_score']}) -> 100% GREEN"
+        )
         optimized_results.append(opt_metrics)
 
     # Save Quality Report
-    out_file = Path("/home/mike-anderson/dev/cohezion/docs/research/music_quality_and_optimization_report.md")
+    out_file = Path(
+        "/home/mike-anderson/dev/cohezion/docs/research/music_quality_and_optimization_report.md"
+    )
     report = [
         "# Closed-Loop AI Music Quality Evaluation & Acoustic Optimization Report",
         f"**Timestamp**: {time.strftime('%Y-%m-%d %H:%M:%S EDT')}",
@@ -152,29 +172,37 @@ def run_evaluation_and_optimization_loop() -> None:
 
     for er in eval_results:
         st = "✅ PASSED" if er["passed_gate"] else "⚠️ RE-TUNED"
-        report.append(f"| `{er['file']}` | {er['duration_s']}s | {er['phci_score']} | {er['fii_score']} | {er['snr_db']} dB | **{er['composite_score']}** | {st} |")
+        report.append(
+            f"| `{er['file']}` | {er['duration_s']}s | {er['phci_score']} | {er['fii_score']} | {er['snr_db']} dB | **{er['composite_score']}** | {st} |"
+        )
 
-    report.extend([
-        "",
-        "---",
-        "",
-        "## 🌟 2. Optimized V2 Scores After Closed-Loop Formant Boosting",
-        "| Optimized Track | Duration | PHCI (Harmonics) | FII (Formants) | Dynamic SNR | Composite Score | Status |",
-        "|---|:---:|:---:|:---:|:---:|:---:|:---:|",
-    ])
+    report.extend(
+        [
+            "",
+            "---",
+            "",
+            "## 🌟 2. Optimized V2 Scores After Closed-Loop Formant Boosting",
+            "| Optimized Track | Duration | PHCI (Harmonics) | FII (Formants) | Dynamic SNR | Composite Score | Status |",
+            "|---|:---:|:---:|:---:|:---:|:---:|:---:|",
+        ]
+    )
 
     for opr in optimized_results:
-        report.append(f"| `{opr['file']}` | {opr['duration_s']}s | {opr['phci_score']} | {opr['fii_score']} | {opr['snr_db']} dB | **{opr['composite_score']}** | 🎯 **EXEMPLARY** |")
+        report.append(
+            f"| `{opr['file']}` | {opr['duration_s']}s | {opr['phci_score']} | {opr['fii_score']} | {opr['snr_db']} dB | **{opr['composite_score']}** | 🎯 **EXEMPLARY** |"
+        )
 
-    report.extend([
-        "",
-        "---",
-        "",
-        "## 🧠 Closed-Loop Improvement Mechanism",
-        "1. **Continuous Metric Evaluation**: Evaluates acoustic harmonic alignment to Pythagorean 432 Hz scale.",
-        "2. **Adaptive Formant Filter Modulation**: Automatically raises formant Q-factors in the 1.5-3.5 kHz intelligibility band if lyrics sound muffled.",
-        "3. **Zero-Distortion Tanh Compression**: Prevents clipping while maintaining dynamic warmth.",
-    ])
+    report.extend(
+        [
+            "",
+            "---",
+            "",
+            "## 🧠 Closed-Loop Improvement Mechanism",
+            "1. **Continuous Metric Evaluation**: Evaluates acoustic harmonic alignment to Pythagorean 432 Hz scale.",
+            "2. **Adaptive Formant Filter Modulation**: Automatically raises formant Q-factors in the 1.5-3.5 kHz intelligibility band if lyrics sound muffled.",
+            "3. **Zero-Distortion Tanh Compression**: Prevents clipping while maintaining dynamic warmth.",
+        ]
+    )
 
     gov = WriteBudgetGovernor()
     gov.safe_write_text(out_file, "\n".join(report))

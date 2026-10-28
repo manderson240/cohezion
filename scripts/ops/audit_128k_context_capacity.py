@@ -31,7 +31,9 @@ import json
 import logging
 import os
 
-logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] [128K_AUDIT] %(message)s")
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s [%(levelname)s] [128K_AUDIT] %(message)s"
+)
 logger = logging.getLogger("128k_audit")
 
 CONTEXT_128K_SPECS = [
@@ -43,7 +45,7 @@ CONTEXT_128K_SPECS = [
         "kv_cache_128k": 12.0,
         "total_ram": 30.5,
         "headroom_left": 49.5,
-        "status": "🟢 FULL 128K NATIVE SUPPORT"
+        "status": "🟢 FULL 128K NATIVE SUPPORT",
     },
     {
         "model": "DeepSeek-R1-8B-FLM",
@@ -53,7 +55,7 @@ CONTEXT_128K_SPECS = [
         "kv_cache_128k": 4.0,
         "total_ram": 9.2,
         "headroom_left": 70.8,
-        "status": "🟢 FULL 128K NATIVE SUPPORT"
+        "status": "🟢 FULL 128K NATIVE SUPPORT",
     },
     {
         "model": "gpt-oss-20b",
@@ -63,7 +65,7 @@ CONTEXT_128K_SPECS = [
         "kv_cache_128k": 5.0,
         "total_ram": 16.2,
         "headroom_left": 63.8,
-        "status": "🟢 FULL 128K NATIVE SUPPORT"
+        "status": "🟢 FULL 128K NATIVE SUPPORT",
     },
     {
         "model": "qwen3.6-moe-35b-FLM",
@@ -73,9 +75,10 @@ CONTEXT_128K_SPECS = [
         "kv_cache_128k": 1.76,
         "total_ram": 11.56,
         "headroom_left": 68.4,
-        "status": "🟢 FULL 64K-128K SUPPORT"
-    }
+        "status": "🟢 FULL 64K-128K SUPPORT",
+    },
 ]
+
 
 def main():
     print("\n" + "=" * 115)
@@ -92,8 +95,11 @@ def main():
         print(f"  └─ Hardware Posture  : {item['status']}")
 
     print("\n" + "=" * 115)
-    print("🎯 VERDICT: You have the physical RAM to run 128K context across all local models simultaneously.")
+    print(
+        "🎯 VERDICT: You have the physical RAM to run 128K context across all local models simultaneously."
+    )
     print("=" * 115 + "\n")
+
 
 if __name__ == "__main__":
     main()

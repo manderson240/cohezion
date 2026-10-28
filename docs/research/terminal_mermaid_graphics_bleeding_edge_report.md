@@ -66,6 +66,7 @@ The response can be read from stdin (if the terminal is attached) or via a tempo
 ```python
 import sys, os, select
 
+
 def kitty_supported():
     # Send query
     sys.stdout.write("\033_Gi=1\033\\")
@@ -160,6 +161,7 @@ ESC _ G a=T,f=100,s=<width>,v=<height>,c=<columns>,r=<rows>; <base64 data> ESC \
 ```python
 import base64, sys
 
+
 def kitty_display_png(png_path):
     with open(png_path, "rb") as f:
         data = base64.b64encode(f.read()).decode("ascii")
@@ -192,6 +194,7 @@ img2sixel diagram.png
 ```python
 import subprocess
 
+
 def sixel_display_png(png_path):
     subprocess.run(["chafa", "--format", "sixel", png_path])
 ```
@@ -215,12 +218,14 @@ ESC ] 1337 ; File=name=<base64 name>;inline=1;size=<bytes>;width=<px>;height=<px
 ```python
 import base64, sys
 
+
 def iterm2_display_png(png_path):
     with open(png_path, "rb") as f:
         raw = f.read()
     b64 = base64.b64encode(raw).decode("ascii")
     # Get image dimensions (using PIL or similar)
     from PIL import Image
+
     with Image.open(png_path) as img:
         w, h = img.size
     sys.stdout.write(f"\033]1337;File=inline=1;size={len(raw)};width={w}px;height={h}px:{b64}\a")
@@ -490,7 +495,7 @@ from blessed import Terminal
 term = Terminal()
 width, height = term.width, term.height
 # Aspect Ratio Correction (Fonts are usually 2:1 height:width)
-ASPECT = 0.5 
+ASPECT = 0.5
 
 # Manifold Parameters (Torus)
 R, r = 10, 4
@@ -503,42 +508,44 @@ X = (R + r * np.cos(v)) * np.cos(u)
 Y = (R + r * np.cos(v)) * np.sin(u)
 Z = r * np.sin(v)
 
+
 def rotate(points, angle, axis):
     """Rotate points around an axis."""
     c, s = np.cos(angle), np.sin(angle)
-    if axis == 'z':
+    if axis == "z":
         M = np.array([[c, -s, 0], [s, c, 0], [0, 0, 1]])
-    elif axis == 'x':
+    elif axis == "x":
         M = np.array([[1, 0, 0], [0, c, -s], [0, s, c]])
     else:
         M = np.array([[c, 0, s], [0, 1, 0], [-s, 0, c]])
     return np.dot(points, M.T)
 
+
 def render_frame(angle):
     # 1. Transform
     pts = np.stack([X.flatten(), Y.flatten(), Z.flatten()])
-    pts = rotate(pts.T, angle, 'z')
-    pts = rotate(pts, angle * 0.5, 'x')
-    
+    pts = rotate(pts.T, angle, "z")
+    pts = rotate(pts, angle * 0.5, "x")
+
     # 2. Project (Orthographic for simplicity)
     # Scale to terminal size
     x_proj = (pts[:, 0] * 2 + width / 2).astype(int)
     y_proj = (pts[:, 1] * ASPECT * 2 + height / 2).astype(int)
     z_depth = pts[:, 2]
-    
+
     # 3. Rasterize to Braille Buffer
     canvas = drawille.Canvas()
-    
+
     # Z-Buffering simulation (simple painter's algorithm sort)
     order = np.argsort(z_depth)
-    
+
     for i in order:
         px, py = x_proj[i], y_proj[i]
-        if 0 <= px < width * 2 and 0 <= py < height * 4: # Drawille uses sub-pixel coords
+        if 0 <= px < width * 2 and 0 <= py < height * 4:  # Drawille uses sub-pixel coords
             # Map depth to ANSI Color (256 grayscale)
             depth_norm = int((z_depth[i] - r) / (2 * r) * 23) + 232
             color_code = f"\033[38;5;{depth_norm}m"
-            
+
             # Drawille works on integer pixel coords (2x4 per char)
             # We must scale our terminal coords to drawille coords
             canvas.set_pixel(px, py)
@@ -547,11 +554,12 @@ def render_frame(angle):
     # Note: Drawille outputs plain text. We must inject color based on depth.
     # For advanced shading, custom Braille mapping is required instead of drawille's binary buffer.
     frame_str = canvas.frame()
-    
+
     # Clear and Print
     sys.stdout.write(term.home + term.clear)
     sys.stdout.write(frame_str)
     sys.stdout.flush()
+
 
 # Animation Loop
 try:

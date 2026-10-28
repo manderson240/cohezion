@@ -23,7 +23,9 @@ async def main_async() -> None:
     advisor = HardwareAdvisorAgent()
     specs = advisor.detect_hardware()
     print(f"  • Platform OS: {specs.platform_os}")
-    print(f"  • Total System RAM: {specs.total_ram_gb:.2f} GB (Available: {specs.available_ram_gb:.2f} GB)")
+    print(
+        f"  • Total System RAM: {specs.total_ram_gb:.2f} GB (Available: {specs.available_ram_gb:.2f} GB)"
+    )
     print(f"  • Primary GPU: {specs.gpu_name} (VRAM: {specs.gpu_vram_gb:.1f} GB)")
     print(f"  • Dedicated NPU: {specs.npu_name} (Active: {specs.has_npu})")
 

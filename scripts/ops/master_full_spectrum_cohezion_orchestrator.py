@@ -50,16 +50,27 @@ async def run_full_spectrum_orchestration():
 
     # 2. FLUME 2048D Poincaré Manifold Check
     point_2048d = PoincareManifoldND.project([0.001] * 2048, target_dim=2048)
-    logger.info("🌌 [FLUME Poincaré 2048D] Projected Point Norm: %.4f (Bounded: True)", sum(x**2 for x in point_2048d.coords)**0.5)
+    logger.info(
+        "🌌 [FLUME Poincaré 2048D] Projected Point Norm: %.4f (Bounded: True)",
+        sum(x**2 for x in point_2048d.coords) ** 0.5,
+    )
 
     # 3. Deterministic AutoHarness Compiler Check
     verifier = AutoHarnessVerifier()
-    v_res = verifier.verify_code("def verify_cohezion_invariant(coherence: float) -> bool:\n    return coherence == 0.5\n")
-    logger.info("⚡ [AutoHarness AST] Zero-Cost Policy Verification: %s (Latency: <0.2ms)", v_res.get("verified"))
+    v_res = verifier.verify_code(
+        "def verify_cohezion_invariant(coherence: float) -> bool:\n    return coherence == 0.5\n"
+    )
+    logger.info(
+        "⚡ [AutoHarness AST] Zero-Cost Policy Verification: %s (Latency: <0.2ms)",
+        v_res.get("verified"),
+    )
 
     # 4. Hardware Memory Headroom
     mem = OOMGuard.get_memory_state()
-    logger.info("💻 [Hardware UMA] Available Headroom: %.1f GiB (Quarter-on-a-String Floor: 20.0 GiB)", mem.available_gb)
+    logger.info(
+        "💻 [Hardware UMA] Available Headroom: %.1f GiB (Quarter-on-a-String Floor: 20.0 GiB)",
+        mem.available_gb,
+    )
 
     # 5. Connect to Live Never-Idle Engine
     logger.info("🌙 Full-Spectrum Sovereign Engine Synchronized with Live Overnight Swarm.")

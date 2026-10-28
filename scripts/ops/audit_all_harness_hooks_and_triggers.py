@@ -44,9 +44,15 @@ HARNESS_MODULES = [
     ("Smart OOM Governor", "cohezion.inference.smart_oom_governor", "SmartOOMGovernor"),
 ]
 
+
 def audit_harnesses():
     console.print("\n")
-    console.print(Panel("[bold cyan]🔍 COMPREHENSIVE HOOK & TRIGGER AUDIT: ALL COHEZION HARNESSES[/bold cyan]", box=box.DOUBLE_EDGE))
+    console.print(
+        Panel(
+            "[bold cyan]🔍 COMPREHENSIVE HOOK & TRIGGER AUDIT: ALL COHEZION HARNESSES[/bold cyan]",
+            box=box.DOUBLE_EDGE,
+        )
+    )
 
     table = Table(title="Harness Hook, Trigger, and EventBus Alignment Matrix", box=box.ROUNDED)
     table.add_column("Harness Name", style="bold white", no_wrap=True)
@@ -62,13 +68,29 @@ def audit_harnesses():
         try:
             mod = importlib.import_module(mod_path)
             cls_obj = getattr(mod, cls_name, None)
-            
+
             src = inspect.getsource(mod)
-            has_pre_trigger = "pre" in src.lower() or "validate" in src.lower() or "check" in src.lower()
-            has_ast_gate = "ast" in src.lower() or "compile" in src.lower() or "verify" in src.lower()
-            has_post_hook = "post" in src.lower() or "complete" in src.lower() or "publish" in src.lower() or "report" in src.lower()
-            has_event_bus = "event" in src.lower() or "event_bus" in src.lower() or "eventbus" in src.lower()
-            has_fleet_lock = "lock" in src.lower() or "oom" in src.lower() or "memory" in src.lower() or "floor" in src.lower()
+            has_pre_trigger = (
+                "pre" in src.lower() or "validate" in src.lower() or "check" in src.lower()
+            )
+            has_ast_gate = (
+                "ast" in src.lower() or "compile" in src.lower() or "verify" in src.lower()
+            )
+            has_post_hook = (
+                "post" in src.lower()
+                or "complete" in src.lower()
+                or "publish" in src.lower()
+                or "report" in src.lower()
+            )
+            has_event_bus = (
+                "event" in src.lower() or "event_bus" in src.lower() or "eventbus" in src.lower()
+            )
+            has_fleet_lock = (
+                "lock" in src.lower()
+                or "oom" in src.lower()
+                or "memory" in src.lower()
+                or "floor" in src.lower()
+            )
 
             table.add_row(
                 name,
@@ -85,6 +107,7 @@ def audit_harnesses():
 
     console.print(table)
     console.print("\n")
+
 
 if __name__ == "__main__":
     audit_harnesses()

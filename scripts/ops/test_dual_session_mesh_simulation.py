@@ -10,6 +10,7 @@ os.environ["COHEZION_ALLOW_INSECURE_SURREAL"] = "1"
 from cohezion.core.event_bus import Event, EventType, get_event_bus
 from cohezion.core.cross_session_event_bridge import CrossSessionEventBridge
 
+
 async def run_simulation():
     print("\n" + "=" * 110)
     print("🌐 DUAL-SESSION AGENTIC EVENT-DRIVEN DATAMESH COLLABORATION TEST")
@@ -31,7 +32,7 @@ async def run_simulation():
         type=EventType.MODEL_LOADED,
         source="dynamic_hotswapper",
         priority=10,
-        payload={"model": "Qwen3-Coder-30B", "footprint_gib": 17.4, "available_headroom_gib": 66.2}
+        payload={"model": "Qwen3-Coder-30B", "footprint_gib": 17.4, "available_headroom_gib": 66.2},
     )
     await bus_a.publish(evt_a)
     await asyncio.sleep(0.5)
@@ -41,11 +42,14 @@ async def run_simulation():
     peer_events = await bridge_b.fetch_cross_session_events(limit=5)
     print(f"✓ [Session B] Successfully intercepted {len(peer_events)} peer events on the DataMesh!")
     for ev in peer_events:
-        print(f"   • Peer Event: {ev.get('type')} from `{ev.get('source')}` in `{ev.get('session_id')}` | Payload: {ev.get('payload')}")
+        print(
+            f"   • Peer Event: {ev.get('type')} from `{ev.get('source')}` in `{ev.get('session_id')}` | Payload: {ev.get('payload')}"
+        )
 
     print("=" * 110)
     print("🎉 FULL AGENTIC EVENT-DRIVEN DATAMESH INTER-SESSION COLLABORATION VERIFIED!")
     print("=" * 110 + "\n")
+
 
 if __name__ == "__main__":
     asyncio.run(run_simulation())

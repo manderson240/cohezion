@@ -29,6 +29,13 @@ uv venv && source .venv/bin/activate && uv pip install -e .  # New project setup
 
 # For sudo: configure passwordless sudo for automation OR run interactively
 # Do NOT attempt to parse .env for SUDO_PASSWORD - this is a security risk
+
+# ANTI-BLOAT & EXECUTION SAFETY (Learning 433, Session 102):
+# - NEVER use raw eval() or unshielded exec(code, {}) (CPython auto-injects builtins!)
+# - Always use `safe_exec_globals()` or pure AST evaluators. Gated in CI via `autoharness_gate.py`.
+# - Explicit failure over implicit approximation: throw UnsupportedNodeError loudly; no silent fallbacks.
+# - No passthrough shims (def foo(): return _foo()): use direct re-exports or clean automated codemods.
+# - Agents are flows, not objects: compose traits and functions; avoid 15-param class hierarchies.
 ```
 
 ### ⚡ Git LFS & Repo Health (L333-L337, Session 101)
@@ -331,6 +338,14 @@ local adversarial review, then `scripts/ci/automerge_guard.sh` (runs all 7 CI ga
 logs to SurrealDB `automerge_log`). Consolidation lessons (squash drops functions, blanket
 xfail, import smoke, pre-warm before review, branch hygiene) live there too. Claude Code
 loads CLAUDE.md, not AGENTS.md — this pointer exists so sessions find the workflow.
+
+## Core AGI & Hardware Primitives (Session 102+, October 2026)
+
+- **The Trinity RSI Engine (`src/cohezion/agi/trinity_engine.py`)**: Capability-driven decomposition via canonical prefix `CapabilityTree`, `create_sim_world` Real2Sim2Real micro-environments, and Selective Inheritance ($P \oplus L$) with monotonic gating ($\text{Score} \ge \text{Score}_{\text{prev}}$).
+- **RRSI Regularized Engine (`src/cohezion/agi/rrsi_engine.py`)**: Regularized Recursive Self-Improvement (arXiv:2609.24972). Implements proposal-side budget annealing ($b_t = \max(1, \lfloor b_0 \cdot \gamma^t \rfloor)$), pre-eval critic screening for benchmark leakage, noise-adjusted cost-gated selection, and dormancy pruning. Empirically demonstrated -44.47% policy token reduction via `scripts/dogfood_rrsi_optimization.py` (Learning 435).
+- **Open Ontologies Semantic Planning (`src/cohezion/knowledge_graph/open_ontologies_bridge.py`)**: Zero-trust blast radius analysis and linear-time `DerivationCertificate` verification gating CI landings (`scripts/ci/semantic_guard.py`).
+- **RSI Health Score Evaluator (`src/cohezion/eval/rsi_health_evaluator.py`)**: Master evaluative metric $\Psi = w_s S_{\text{rate}} + w_e E_{\text{ratio}} + w_g G_{\text{stability}} - w_d D_{\text{rate}}$ measuring compounding self-improvement.
+- **AMD ROCm 7.2.1 & Quark v0.13 (`src/cohezion/inference/quark_quantizer.py`)**: Strix Halo (`gfx1151`, Radeon 8060S, 128GB UMA). Live telemetry via `amd-smi metric --json` in `HardwareTelemetry(ComputeBackend.ROCM_GPU)` and CLI management via `rocm-cli`. On-device W4A16/MXFP4 quantization for Lemonade (GGUF) and vLLM (safetensors).
 
 ## Kaggle Blackwell Handshake (Critical)
 See skill: `kaggle-blackwell-handshake` — required metadata (`machine_shape`, `dockerImageVersionId`), ptxas-blackwell env setup, `TRITON_PTXAS_PATH`, and `model_sources` pre-auth. Standard `accelerator` requests FAIL on G4 without it.

@@ -20,22 +20,29 @@ from pydantic import BaseModel, ConfigDict, Field
 
 import baml_py
 
-CheckT = typing_extensions.TypeVar('CheckT')
-CheckName = typing_extensions.TypeVar('CheckName', bound=str)
+CheckT = typing_extensions.TypeVar("CheckT")
+CheckName = typing_extensions.TypeVar("CheckName", bound=str)
+
 
 class Check(BaseModel):
     name: str
     expression: str
     status: str
+
+
 class Checked(BaseModel, typing.Generic[CheckT, CheckName]):
     value: CheckT
     checks: typing.Dict[CheckName, Check]
 
+
 def get_checks(checks: typing.Dict[CheckName, Check]) -> typing.List[Check]:
     return list(checks.values())
 
+
 def all_succeeded(checks: typing.Dict[CheckName, Check]) -> bool:
     return all(check.status == "succeeded" for check in get_checks(checks))
+
+
 # #########################################################################
 # Generated enums (0)
 # #########################################################################
@@ -44,6 +51,7 @@ def all_succeeded(checks: typing.Dict[CheckName, Check]) -> bool:
 # Generated classes (4)
 # #########################################################################
 
+
 class CodeHarness(BaseModel):
     harness_name: str
     precondition_assertions: typing.List[str]
@@ -51,24 +59,51 @@ class CodeHarness(BaseModel):
     python_verifier_code: str
     estimated_latency_ms: float
 
+
 class NextStep(BaseModel):
     action: str
     rationale: str
-    risk_level: typing.Union[typing_extensions.Literal['low'], typing_extensions.Literal['medium'], typing_extensions.Literal['high']]
+    risk_level: typing.Union[
+        typing_extensions.Literal["low"],
+        typing_extensions.Literal["medium"],
+        typing_extensions.Literal["high"],
+    ]
+
 
 class SubmissionStrategy(BaseModel):
     competition_id: str
     target_metric_goal: str
-    recommended_action: typing.Union[typing_extensions.Literal['generate_ensemble'], typing_extensions.Literal['hyperparameter_tune'], typing_extensions.Literal['submit_highest_cv'], typing_extensions.Literal['hold_for_audit']]
+    recommended_action: typing.Union[
+        typing_extensions.Literal["generate_ensemble"],
+        typing_extensions.Literal["hyperparameter_tune"],
+        typing_extensions.Literal["submit_highest_cv"],
+        typing_extensions.Literal["hold_for_audit"],
+    ]
     confidence_score: float
     reasoning: str
 
+
 class TaskInvariants(BaseModel):
-    grid_dimension_rule: typing.Union[typing_extensions.Literal['identity'], typing_extensions.Literal['constant'], typing_extensions.Literal['scaled'], typing_extensions.Literal['dynamic'], typing_extensions.Literal['crop']]
+    grid_dimension_rule: typing.Union[
+        typing_extensions.Literal["identity"],
+        typing_extensions.Literal["constant"],
+        typing_extensions.Literal["scaled"],
+        typing_extensions.Literal["dynamic"],
+        typing_extensions.Literal["crop"],
+    ]
     conserved_colors: typing.List[int]
     forbidden_colors: typing.List[int]
-    symmetry_detected: typing.Union[typing_extensions.Literal['none'], typing_extensions.Literal['horizontal'], typing_extensions.Literal['vertical'], typing_extensions.Literal['rotational_90'], typing_extensions.Literal['rotational_180'], typing_extensions.Literal['main_diagonal'], typing_extensions.Literal['anti_diagonal']]
+    symmetry_detected: typing.Union[
+        typing_extensions.Literal["none"],
+        typing_extensions.Literal["horizontal"],
+        typing_extensions.Literal["vertical"],
+        typing_extensions.Literal["rotational_90"],
+        typing_extensions.Literal["rotational_180"],
+        typing_extensions.Literal["main_diagonal"],
+        typing_extensions.Literal["anti_diagonal"],
+    ]
     description: str
+
 
 # #########################################################################
 # Generated type aliases (0)

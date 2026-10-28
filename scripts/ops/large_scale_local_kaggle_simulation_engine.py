@@ -21,11 +21,15 @@ from concurrent.futures import ProcessPoolExecutor
 from cohezion.competitions.arc.dsl_synthesizer import ARCDSLSynthesizer
 from cohezion.competitions.pokemon_tcg.ismcts_cfr_engine import ISMCTSWithCFR
 
-logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] [LOCAL_SIM] %(message)s")
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s [%(levelname)s] [LOCAL_SIM] %(message)s"
+)
 logger = logging.getLogger("local_sim")
 
+
 def get_free_ram_gb() -> float:
-    return psutil.virtual_memory().available / (1024 ** 3)
+    return psutil.virtual_memory().available / (1024**3)
+
 
 def simulate_batch_pokemon_games(batch_size: int) -> dict:
     """Worker function executing a parallel batch of Pokemon TCG games."""
@@ -45,7 +49,7 @@ def simulate_batch_pokemon_games(batch_size: int) -> dict:
                 "player_hp": player_hp,
                 "opponent_hp": opp_hp,
                 "energy_attached": energy,
-                "legal_actions": ["attach_energy", "attack"]
+                "legal_actions": ["attach_energy", "attack"],
             }
             action = engine.search_action(obs, num_rollouts=100)
             actions_chosen[action] += 1
@@ -68,8 +72,9 @@ def simulate_batch_pokemon_games(batch_size: int) -> dict:
         "games": batch_size,
         "wins": wins,
         "turns": turns_total,
-        "actions": dict(actions_chosen)
+        "actions": dict(actions_chosen),
     }
+
 
 async def run_large_scale_simulation():
     print("\n" + "=" * 110)
@@ -83,11 +88,18 @@ async def run_large_scale_simulation():
     num_workers = min(8, os.cpu_count() or 4)
     batch_size = total_simulations // num_workers
 
-    logger.info("Spawning %d parallel workers to run %d Pokemon TCG CFR matches...", num_workers, total_simulations)
+    logger.info(
+        "Spawning %d parallel workers to run %d Pokemon TCG CFR matches...",
+        num_workers,
+        total_simulations,
+    )
 
     loop = asyncio.get_running_loop()
     with ProcessPoolExecutor(max_workers=num_workers) as executor:
-        futures = [loop.run_in_executor(executor, simulate_batch_pokemon_games, batch_size) for _ in range(num_workers)]
+        futures = [
+            loop.run_in_executor(executor, simulate_batch_pokemon_games, batch_size)
+            for _ in range(num_workers)
+        ]
         results = await asyncio.gather(*futures)
 
     dt = time.perf_counter() - t0
@@ -101,7 +113,9 @@ async def run_large_scale_simulation():
     print("🏆 POKEMON TCG 5,000-GAME MASSIVE SIMULATION BENCHMARK")
     print("-" * 110)
     print(f"  • Total Matches Simulated : {total_games:,}")
-    print(f"  • Overall Agent Win-Rate  : {win_rate:.2f}% ({total_wins:,} / {total_games:,} matches won)")
+    print(
+        f"  • Overall Agent Win-Rate  : {win_rate:.2f}% ({total_wins:,} / {total_games:,} matches won)"
+    )
     print(f"  • Average Match Length    : {total_turns / total_games:.1f} turns")
     print(f"  • Execution Time          : {dt:.2f} seconds")
     print(f"  • Simulation Throughput   : {throughput:,.1f} games/second (Zero API Token Cost)")
@@ -119,10 +133,13 @@ async def run_large_scale_simulation():
         f.write(f"- **Throughput**: {throughput:,.1f} games/sec\n")
         f.write(f"- **Duration**: {dt:.2f}s\n\n")
         f.write(f"## Key Strategic Finding\n")
-        f.write("Information-Set MCTS with Counterfactual Regret Matching converges to a 90%+ win-rate policy by prioritizing early turn-1/2 energy attachment before transitioning to lethal attacks.\n")
+        f.write(
+            "Information-Set MCTS with Counterfactual Regret Matching converges to a 90%+ win-rate policy by prioritizing early turn-1/2 energy attachment before transitioning to lethal attacks.\n"
+        )
 
     print(f"\n📄 Simulation report saved to: {report_file}")
     print("=" * 110 + "\n")
+
 
 if __name__ == "__main__":
     asyncio.run(run_large_scale_simulation())

@@ -11,16 +11,17 @@ payload = {
     "model": "omnirouter",  # or custom cohezion router
     "messages": [
         {"role": "system", "content": "You are Hermes assistant."},
-        {"role": "user", "content": "Hello Hermes! Check system status and tell me what model you are routing through."}
+        {
+            "role": "user",
+            "content": "Hello Hermes! Check system status and tell me what model you are routing through.",
+        },
     ],
     "temperature": 0.3,
-    "max_tokens": 200
+    "max_tokens": 200,
 }
 
 req = urllib.request.Request(
-    url,
-    headers={"Content-Type": "application/json"},
-    data=json.dumps(payload).encode("utf-8")
+    url, headers={"Content-Type": "application/json"}, data=json.dumps(payload).encode("utf-8")
 )
 
 print(f"Sending test chat completion to Lemonade ({url})...")

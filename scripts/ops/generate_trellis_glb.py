@@ -10,7 +10,9 @@ import urllib.request
 from pathlib import Path
 
 
-plate_path = Path("/home/mike-anderson/dev/cohezion/docs/assets/matsumoto_plates/track_photo_page_139.png")
+plate_path = Path(
+    "/home/mike-anderson/dev/cohezion/docs/assets/matsumoto_plates/track_photo_page_139.png"
+)
 out_dir = Path("/home/mike-anderson/dev/cohezion/docs/assets/renderings/trellis_generated_assets")
 out_dir.mkdir(parents=True, exist_ok=True)
 out_file = out_dir / "matsumoto_ring_trellis.glb"
@@ -24,19 +26,18 @@ print("=" * 80)
 with open(plate_path, "rb") as f:
     img_b64 = base64.b64encode(f.read()).decode("utf-8")
 
-payload = {
-    "model": "TRELLIS-3D",
-    "image": f"data:image/png;base64,{img_b64}"
-}
+payload = {"model": "TRELLIS-3D", "image": f"data:image/png;base64,{img_b64}"}
 
 req = urllib.request.Request(
     "http://localhost:13305/v1/3d/generations",
     headers={"Content-Type": "application/json"},
-    data=json.dumps(payload).encode("utf-8")
+    data=json.dumps(payload).encode("utf-8"),
 )
 
 t0 = time.perf_counter()
-print("Sending request to Lemonade server (this will take 20-60+ seconds for real 3D latent flow diffusion)...")
+print(
+    "Sending request to Lemonade server (this will take 20-60+ seconds for real 3D latent flow diffusion)..."
+)
 try:
     with urllib.request.urlopen(req, timeout=300) as resp:
         dt = time.perf_counter() - t0

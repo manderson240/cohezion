@@ -35,7 +35,10 @@ class CrossSessionEventBridge:
         if not self._subscribed:
             self.event_bus.register_handler(self._on_local_event, event_type=None)
             self._subscribed = True
-            logger.info("CrossSessionEventBridge subscribed to local EventBus for session: %s", self.session_id)
+            logger.info(
+                "CrossSessionEventBridge subscribed to local EventBus for session: %s",
+                self.session_id,
+            )
 
     async def _on_local_event(self, event: Event) -> None:
         """Persist local events to SurrealDB event_log for cross-session visibility."""
@@ -68,7 +71,7 @@ class CrossSessionEventBridge:
     ) -> list[dict[str, Any]]:
         """Fetch recent cross-session events published by other active agent sessions via parameterized SurrealQL."""
         bindings: dict[str, Any] = {"session_id": self.session_id, "limit": limit}
-        
+
         if target_event_type:
             sql = "SELECT * FROM event_log WHERE session_id != $session_id AND type = $target_type ORDER BY timestamp DESC LIMIT $limit;"
             bindings["target_type"] = target_event_type

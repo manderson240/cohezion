@@ -78,6 +78,7 @@ def benchmark_cpu_simd_poincare_batch(n_vectors: int = 10000, dim: int = 2048) -
 
 def compute_chunk_entropy(texts: list[str]) -> float:
     from collections import Counter
+
     total_entropy = 0.0
     for t in texts:
         if not t:
@@ -90,7 +91,9 @@ def compute_chunk_entropy(texts: list[str]) -> float:
 
 def benchmark_cpu_parallel_text_entropy(n_chunks: int = 32) -> dict[str, Any]:
     """Measure multi-core CPU throughput across 32 threads."""
-    sample_text = ("The New Science Framework: Quadrature, 12 Parameters, 4 Fabrics, HIHO 0.5 Coherence " * 500)
+    sample_text = (
+        "The New Science Framework: Quadrature, 12 Parameters, 4 Fabrics, HIHO 0.5 Coherence " * 500
+    )
     data = [sample_text for _ in range(n_chunks)]
 
     t0 = time.perf_counter()
@@ -118,19 +121,27 @@ def main() -> None:
     # 1. GEMM Matrix Multiplication (AVX-512)
     print("\n1. Benchmarking AVX-512 GEMM Matrix Throughput...")
     gemm_res = benchmark_cpu_gemm(2048)
-    print(f"  ✓ {gemm_res['matrix_dim']} Float32 GEMM: {gemm_res['avg_time_ms']} ms | Throughput: {gemm_res['gflops']} GFLOPS")
+    print(
+        f"  ✓ {gemm_res['matrix_dim']} Float32 GEMM: {gemm_res['avg_time_ms']} ms | Throughput: {gemm_res['gflops']} GFLOPS"
+    )
 
     # 2. 10,000 Vector Poincaré 2048D Distance (SIMD)
     print("\n2. Benchmarking SIMD Vectorized 2048D Poincaré Metric Calculations...")
     poincare_res = benchmark_cpu_simd_poincare_batch(10000, 2048)
-    print(f"  ✓ Processed {poincare_res['n_vectors']} vectors (2048D): {poincare_res['total_time_ms']} ms | Throughput: {poincare_res['throughput_vectors_per_sec']} vectors/sec")
+    print(
+        f"  ✓ Processed {poincare_res['n_vectors']} vectors (2048D): {poincare_res['total_time_ms']} ms | Throughput: {poincare_res['throughput_vectors_per_sec']} vectors/sec"
+    )
 
     # 3. Parallel 32-Thread Information Entropy
     print("\n3. Benchmarking 16-Core / 32-Thread CPU Information Entropy Scanners...")
     entropy_res = benchmark_cpu_parallel_text_entropy(32)
-    print(f"  ✓ 16-Core Parallel Token Scanner: {entropy_res['time_ms']} ms | Processing Speed: {entropy_res['throughput_mb_per_sec']} MB/s")
+    print(
+        f"  ✓ 16-Core Parallel Token Scanner: {entropy_res['time_ms']} ms | Processing Speed: {entropy_res['throughput_mb_per_sec']} MB/s"
+    )
 
-    out_file = Path("/home/mike-anderson/dev/cohezion/docs/research/cpu_zen4_avx512_optimization_report.md")
+    out_file = Path(
+        "/home/mike-anderson/dev/cohezion/docs/research/cpu_zen4_avx512_optimization_report.md"
+    )
     report = [
         "# AMD Ryzen 9 7945HX (Zen 4 / AVX-512) CPU Optimization Scorecard",
         f"**Timestamp**: {time.strftime('%Y-%m-%d %H:%M:%S EDT')}",

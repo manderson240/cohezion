@@ -58,7 +58,9 @@ async def sync_with_active_sessions() -> None:
         priority=10,
     )
     await bus.publish(online_evt)
-    print(f"  ✓ [Local Broadcast] Published registration event ({online_evt.source}) onto EventBus.")
+    print(
+        f"  ✓ [Local Broadcast] Published registration event ({online_evt.source}) onto EventBus."
+    )
 
     # 2. Fetch cross-session events from other running sessions (e.g., overnight daemon, swarm orchestrator, Telegram bot)
     print("\n🔍 Fetching active events published by peer sessions in SurrealDB `event_log`...")
@@ -71,7 +73,9 @@ async def sync_with_active_sessions() -> None:
             e_type = pe.get("type", "UNKNOWN")
             src = pe.get("source", "unknown_source")
             t_stamp = pe.get("valid_from", "N/A")
-            print(f"    [{idx}] Session: {s_id:<30} | Type: {e_type:<15} | Source: {src:<25} | Time: {t_stamp}")
+            print(
+                f"    [{idx}] Session: {s_id:<30} | Type: {e_type:<15} | Source: {src:<25} | Time: {t_stamp}"
+            )
     else:
         print("  ℹ️ No preceding peer events found in event_log (Clean start after reboot).")
 

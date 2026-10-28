@@ -10,7 +10,9 @@ from pathlib import Path
 from cohezion.inference.unified_hybrid_router import UnifiedHybridRouter
 
 
-out_report = Path("/home/mike-anderson/dev/cohezion/docs/research/bleeding_edge_model_roster_research_2026.md")
+out_report = Path(
+    "/home/mike-anderson/dev/cohezion/docs/research/bleeding_edge_model_roster_research_2026.md"
+)
 out_report.parent.mkdir(parents=True, exist_ok=True)
 
 
@@ -49,7 +51,7 @@ Research & recommend the most optimal, bleeding-edge open-weights model architec
 
     models_to_query = [
         ("deepseek-v4-pro:cloud", "DeepSeek-V4 Pro (Frontier Architecture & Reasoning Specialist)"),
-        ("glm-5.2:cloud", "GLM-5.2 (Frontier Hardware & Open-Weights Specialist)")
+        ("glm-5.2:cloud", "GLM-5.2 (Frontier Hardware & Open-Weights Specialist)"),
     ]
 
     responses = {}
@@ -60,17 +62,13 @@ Research & recommend the most optimal, bleeding-edge open-weights model architec
             content = await router.aquery_ollama_cloud(prompt=prompt, model=model_id)
             dt = time.perf_counter() - t0
             print(f"  ✓ Received response in {dt:.2f}s ({len(content or '')} chars)")
-            responses[model_id] = {
-                "label": label,
-                "content": content,
-                "latency_s": dt
-            }
+            responses[model_id] = {"label": label, "content": content, "latency_s": dt}
         except Exception as e:
             print(f"  ✗ Error querying {model_id}: {e}")
 
     report = f"""# Bleeding-Edge Model Roster Research (Strix Halo NPU / iGPU / CPU)
 
-**Research Date**: {time.strftime('%Y-%m-%d %H:%M:%S')}  
+**Research Date**: {time.strftime("%Y-%m-%d %H:%M:%S")}  
 **Target Architecture**: AMD Strix Halo (AMD Ryzen AI MAX+ 395 w/ Radeon 8060S, 128GB Unified Memory)  
 **Inference Engine**: Lemonade OmniRouter (port `13305`)  
 

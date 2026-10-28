@@ -9,6 +9,7 @@ from cohezion.competitions.arc.deep_compositional_solver import DeepCompositiona
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] [ARC_DEEP] %(message)s")
 logger = logging.getLogger("arc_deep")
 
+
 def main():
     print("\n" + "=" * 105)
     print("🚀 BREADTH & DEPTH ARC PROGRAM SYNTHESIS BENCHMARK (1,000 OFFICIAL TASKS)")
@@ -41,8 +42,9 @@ def main():
     print("-" * 105)
     print(f"• Total Tasks Tested         : {total}")
     print(f"• Solved Exactly (Ground Truth): {solved} / {total} ({acc:.2f}%)")
-    print(f"• Duration                   : {dt:.2f}s ({total/dt:.1f} tasks/sec)")
+    print(f"• Duration                   : {dt:.2f}s ({total / dt:.1f} tasks/sec)")
     print("=" * 105 + "\n")
+
 
 if __name__ == "__main__":
     main()

@@ -18,7 +18,9 @@ import time
 from dataclasses import dataclass
 import httpx
 
-logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] [BATCH_2_HARVEST] %(message)s")
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s [%(levelname)s] [BATCH_2_HARVEST] %(message)s"
+)
 logger = logging.getLogger("batch_2_harvest")
 
 LEMONADE_BASE = "http://localhost:13305"
@@ -28,29 +30,30 @@ BATCH_2_MODELS = [
     (
         "Qwen3-0.6B-GGUF",
         "Edge Verification & Micro-Transformers",
-        "State why sub-1B parameter models running locally on CPU/NPU provide deterministic low-latency security guardrails for agent swarms in 2 dense sentences."
+        "State why sub-1B parameter models running locally on CPU/NPU provide deterministic low-latency security guardrails for agent swarms in 2 dense sentences.",
     ),
     (
         "Bonsai-4B-gguf",
         "Ternary Quantization & Sparse SVD",
-        "Explain how ternary {-1, 0, +1} weight matrices reduce memory bandwidth saturation on unified memory architectures in 2 sentences."
+        "Explain how ternary {-1, 0, +1} weight matrices reduce memory bandwidth saturation on unified memory architectures in 2 sentences.",
     ),
     (
         "LFM2.5-2.6B-GGUF-BF16",
         "Liquid Foundation Models & Continuous Neural ODEs",
-        "Formulate how continuous-time Liquid Neural Networks adapt state transitions smoothly under irregular sensor timesteps in 2 mathematical sentences."
+        "Formulate how continuous-time Liquid Neural Networks adapt state transitions smoothly under irregular sensor timesteps in 2 mathematical sentences.",
     ),
     (
         "Gemma-4-E2B-it-GGUF",
         "Compact Multimodal Embeddings & J-Space",
-        "Explain how compact 2B multimodal models map spatial and perceptual embeddings into a unified Poincaré manifold in 2 concise sentences."
+        "Explain how compact 2B multimodal models map spatial and perceptual embeddings into a unified Poincaré manifold in 2 concise sentences.",
     ),
     (
         "SmolLM3-3B-IQ4_XS-GGUF-IQ4_XS",
         "Extreme Quantization & KV-Cache Compression",
-        "Explain why IQ4_XS extreme low-bit quantization preserves high-order attention entropy during long-context inference in 2 sentences."
-    )
+        "Explain why IQ4_XS extreme low-bit quantization preserves high-order attention entropy during long-context inference in 2 sentences.",
+    ),
 ]
+
 
 @dataclass
 class HarvestResult:
@@ -62,24 +65,34 @@ class HarvestResult:
     duration_sec: float
     ram_headroom_gb: float
 
+
 def get_free_ram_gb() -> float:
-    return psutil.virtual_memory().available / (1024 ** 3)
+    return psutil.virtual_memory().available / (1024**3)
+
 
 async def harvest_single(model: str, domain: str, prompt: str) -> HarvestResult | None:
     avail_ram = get_free_ram_gb()
     if avail_ram < MIN_AVAIL_RAM_GB:
-        logger.warning("⚠️ OOM Guard: Available RAM (%.2f GB) < floor (%.2f GB). Skipping %s.", avail_ram, MIN_AVAIL_RAM_GB, model)
+        logger.warning(
+            "⚠️ OOM Guard: Available RAM (%.2f GB) < floor (%.2f GB). Skipping %s.",
+            avail_ram,
+            MIN_AVAIL_RAM_GB,
+            model,
+        )
         return None
 
     t0 = time.perf_counter()
     payload = {
         "model": model,
         "messages": [
-            {"role": "system", "content": f"You are a world-class AI researcher synthesizing insights for Cohezion's {domain} knowledge graph. Answer in 2 dense, precise sentences."},
-            {"role": "user", "content": prompt}
+            {
+                "role": "system",
+                "content": f"You are a world-class AI researcher synthesizing insights for Cohezion's {domain} knowledge graph. Answer in 2 dense, precise sentences.",
+            },
+            {"role": "user", "content": prompt},
         ],
         "temperature": 0.1,
-        "max_tokens": 256
+        "max_tokens": 256,
     }
 
     try:
@@ -98,13 +111,14 @@ async def harvest_single(model: str, domain: str, prompt: str) -> HarvestResult 
                     insight=text,
                     tokens=len(text.split()),
                     duration_sec=round(dt_s, 2),
-                    ram_headroom_gb=round(get_free_ram_gb(), 2)
+                    ram_headroom_gb=round(get_free_ram_gb(), 2),
                 )
             else:
                 logger.info("Model '%s' status %d: %s", model, r.status_code, r.text[:80])
     except Exception as exc:
         logger.info("Model '%s' inference skipped/timed out: %s", model, exc)
     return None
+
 
 async def run_batch_2():
     print("\n" + "=" * 105)
@@ -133,12 +147,15 @@ async def run_batch_2():
         f.write("| :--- | :--- | :--- | :--- | :--- |\n")
         for r in results:
             clean_text = r.insight.replace("\n", " ").replace("|", "\\|")
-            f.write(f"| `{r.model}` | {r.domain} | {r.duration_sec}s | {r.ram_headroom_gb} GiB | {clean_text} |\n")
+            f.write(
+                f"| `{r.model}` | {r.domain} | {r.duration_sec}s | {r.ram_headroom_gb} GiB | {clean_text} |\n"
+            )
 
     print("\n" + "=" * 105)
     print(f"🎉 BATCH 2 HARVEST COMPLETED ({len(results)} New Model Insights Ingested)!")
     print(f"📄 Appended to {out_file}")
     print("=" * 105 + "\n")
+
 
 if __name__ == "__main__":
     asyncio.run(run_batch_2())

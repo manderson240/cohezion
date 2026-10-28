@@ -1,0 +1,26 @@
+name: agent-surfaces
+
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  exclusive-write-surfaces:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - name: Every changed path resolves to exactly one owner
+        run: |
+          git remote set-branches origin "${{ github.base_ref }}"
+          git fetch origin "${{ github.base_ref }}"
+          paths=$(git diff --name-only "origin/${{ github.base_ref }}...HEAD")
+          if [ -z "$paths" ]; then
+            echo "no changed paths"
+            exit 0
+          fi
+          python scripts/ci/check_agent_surfaces.py $paths

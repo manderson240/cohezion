@@ -14,17 +14,19 @@ payload = {
         {"role": "user", "content": "Explain what you are doing in 2 short bullet points."}
     ],
     "max_tokens": 50,
-    "stream": True
+    "stream": True,
 }
 
-req = urllib.request.Request(url, headers={"Content-Type": "application/json"}, data=json.dumps(payload).encode())
+req = urllib.request.Request(
+    url, headers={"Content-Type": "application/json"}, data=json.dumps(payload).encode()
+)
 t0 = time.perf_counter()
 ttft = None
 tokens = 0
 
 with urllib.request.urlopen(req, timeout=30) as resp:
     for line in resp:
-        l = line.decode('utf-8').strip()
+        l = line.decode("utf-8").strip()
         if l.startswith("data: ") and l != "data: [DONE]":
             try:
                 d = json.loads(l[6:])

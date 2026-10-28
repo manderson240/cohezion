@@ -13,6 +13,7 @@ import time
 import httpx
 import signal
 
+
 def main():
     print("=" * 80)
     print("⚡ LIVE PROOF: QWEN3.6-MoE (35B-A3B) Q4_K HARDWARE EXECUTION ON XDNA2 NPU")
@@ -24,7 +25,7 @@ def main():
         stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT,
         text=True,
-        preexec_fn=os.setsid
+        preexec_fn=os.setsid,
     )
 
     server_ready = False
@@ -57,9 +58,9 @@ def main():
                 "model": "qwen3.6-moe:35b-a3b",
                 "messages": [{"role": "user", "content": prompt_text}],
                 "max_tokens": 50,
-                "temperature": 0.2
+                "temperature": 0.2,
             },
-            timeout=25.0
+            timeout=25.0,
         )
         t1 = time.perf_counter()
         dur_ms = (t1 - t0) * 1000.0
@@ -69,7 +70,7 @@ def main():
             choice = data.get("choices", [{}])[0]
             content = choice.get("message", {}).get("content", "").strip()
             print(f"\n3. 🟢 LIVE 35B MoE HARDWARE GENERATION PROOF:")
-            print(f"   • Response Content : \"{content}\"")
+            print(f'   • Response Content : "{content}"')
             print(f"   • Latency          : {dur_ms:.2f} ms")
             print(f"   • Hardware Engine  : AMD XDNA2 NPU (/dev/accel/accel0, 8 columns)")
             print(f"   • Status           : 100% PROVEN & OPERATIONAL")
@@ -84,6 +85,7 @@ def main():
         print("   ✓ Server shutdown complete.")
 
     print("=" * 80)
+
 
 if __name__ == "__main__":
     main()

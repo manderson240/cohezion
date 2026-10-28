@@ -155,15 +155,19 @@ HTML_BODY = """<!DOCTYPE html>
 </html>
 """
 
+
 def main():
-    server_cmd = ["node", "/home/mike-anderson/.gemini/config/plugins/google-workspace/workspace-server/dist/index.js"]
+    server_cmd = [
+        "node",
+        "/home/mike-anderson/.gemini/config/plugins/google-workspace/workspace-server/dist/index.js",
+    ]
     proc = subprocess.Popen(
         server_cmd,
         stdin=subprocess.PIPE,
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
         text=True,
-        bufsize=1
+        bufsize=1,
     )
 
     init_msg = {
@@ -173,8 +177,8 @@ def main():
         "params": {
             "protocolVersion": "2024-11-05",
             "capabilities": {},
-            "clientInfo": {"name": "cohezion-agent", "version": "1.0"}
-        }
+            "clientInfo": {"name": "cohezion-agent", "version": "1.0"},
+        },
     }
 
     send_msg = {
@@ -183,13 +187,8 @@ def main():
         "method": "tools/call",
         "params": {
             "name": "gmail_send",
-            "arguments": {
-                "to": RECIPIENT,
-                "subject": SUBJECT,
-                "body": HTML_BODY,
-                "isHtml": True
-            }
-        }
+            "arguments": {"to": RECIPIENT, "subject": SUBJECT, "body": HTML_BODY, "isHtml": True},
+        },
     }
 
     print("Sending initialize request...")
@@ -216,6 +215,7 @@ def main():
 
     proc.terminate()
     return 1
+
 
 if __name__ == "__main__":
     sys.exit(main())

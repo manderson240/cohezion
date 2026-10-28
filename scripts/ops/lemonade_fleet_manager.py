@@ -19,6 +19,7 @@ from cohezion.reliability.oom_guard import OOMGuard
 
 logger = logging.getLogger(__name__)
 
+
 class LemonadeFleetManager:
     """Manages Lemonade Server models and execution via the official CLI."""
 
@@ -33,12 +34,18 @@ class LemonadeFleetManager:
     @classmethod
     def list_downloaded_models(cls) -> List[str]:
         """Lists all downloaded models ready for immediate instantiation."""
-        res = subprocess.run([cls.LEMONADE_BIN, "list", "--downloaded"], capture_output=True, text=True)
-        lines = res.stdout.strip().split("\n")[3:] # skip header
+        res = subprocess.run(
+            [cls.LEMONADE_BIN, "list", "--downloaded"], capture_output=True, text=True
+        )
+        lines = res.stdout.strip().split("\n")[3:]  # skip header
         models = []
         for line in lines:
             parts = line.split()
-            if parts and parts[0] != "----------------------------------------------------------------------------------------------------":
+            if (
+                parts
+                and parts[0]
+                != "----------------------------------------------------------------------------------------------------"
+            ):
                 models.append(parts[0])
         return models
 
@@ -50,20 +57,27 @@ class LemonadeFleetManager:
             if not acquired:
                 logger.error(f"Failed to acquire lock for loading {model_name}")
                 return False
-            
+
             mem = OOMGuard.get_memory_state()
             if not mem.is_safe:
-                logger.warning(f"Memory unsafe for loading {model_name}: {mem.available_gb} GiB Avail")
+                logger.warning(
+                    f"Memory unsafe for loading {model_name}: {mem.available_gb} GiB Avail"
+                )
                 return False
 
-            res = subprocess.run([cls.LEMONADE_BIN, "load", model_name], capture_output=True, text=True)
+            res = subprocess.run(
+                [cls.LEMONADE_BIN, "load", model_name], capture_output=True, text=True
+            )
             return res.returncode == 0
 
     @classmethod
     def unload_model(cls, model_name: str) -> bool:
         """Unloads a model from Lemonade memory."""
-        res = subprocess.run([cls.LEMONADE_BIN, "unload", model_name], capture_output=True, text=True)
+        res = subprocess.run(
+            [cls.LEMONADE_BIN, "unload", model_name], capture_output=True, text=True
+        )
         return res.returncode == 0
+
 
 if __name__ == "__main__":
     print("=" * 80)

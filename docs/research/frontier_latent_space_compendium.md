@@ -543,11 +543,12 @@ resource_bounds:
 ```python
 import ast
 
+
 def verify(source: str) -> bool:
     # All of the following become frozen constants in the bytecode.
     ALLOWED_NODES = frozenset({...})
-    DENIED_NODES  = frozenset({...})
-    BLOCKED_IDS   = frozenset({...})
+    DENIED_NODES = frozenset({...})
+    BLOCKED_IDS = frozenset({...})
     BLOCKED_ATTRS = frozenset({...})
     ALLOWED_CALLS = frozenset({...})
     MAX_BYTES, MAX_NODES, MAX_DEPTH = 8192, 512, 64
@@ -555,7 +556,7 @@ def verify(source: str) -> bool:
     if len(source) > MAX_BYTES:
         return False
     try:
-        tree = ast.parse(source, mode='exec')
+        tree = ast.parse(source, mode="exec")
     except SyntaxError:
         return False
 
@@ -572,14 +573,14 @@ def verify(source: str) -> bool:
         t = type(node)
         if t in DENIED_NODES:
             return False
-        if t not in ALLOWED_NODES:   # catch any node type not explicitly allowed
+        if t not in ALLOWED_NODES:  # catch any node type not explicitly allowed
             return False
 
         if t is ast.Name:
-            if node.id in BLOCKED_IDS or node.id.startswith('__') or node.id.endswith('__'):
+            if node.id in BLOCKED_IDS or node.id.startswith("__") or node.id.endswith("__"):
                 return False
         elif t is ast.Attribute:
-            if node.attr in BLOCKED_ATTRS or node.attr.startswith('__') or node.attr.endswith('__'):
+            if node.attr in BLOCKED_ATTRS or node.attr.startswith("__") or node.attr.endswith("__"):
                 return False
         elif t is ast.Call:
             f = node.func

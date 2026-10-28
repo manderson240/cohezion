@@ -18,8 +18,9 @@ SURREAL_HEADERS = {
     "surreal-ns": "cohezion",
     "surreal-db": "main",
     "Authorization": "Basic cm9vdDpyb290",
-    "Content-Type": "text/plain"
+    "Content-Type": "text/plain",
 }
+
 
 async def search_and_dispatch():
     print("\n" + "=" * 115)
@@ -28,7 +29,7 @@ async def search_and_dispatch():
 
     task_query = "manifold"
     print(f"\n▶ [1] Querying SurrealDB for top matching PRIME skills for '{task_query}'...")
-    
+
     t0 = time.perf_counter()
     search_sql = f"""
     SELECT id, name, domain, concepts, path
@@ -39,7 +40,7 @@ async def search_and_dispatch():
     async with httpx.AsyncClient(timeout=10.0) as client:
         r = await client.post(SURREAL_URL, headers=SURREAL_HEADERS, content=search_sql)
         dt_search = round((time.perf_counter() - t0) * 1000, 3)
-        
+
         skills = []
         if r.status_code == 200:
             data = r.json()
@@ -55,10 +56,12 @@ async def search_and_dispatch():
 
     # Select Top Skill
     selected_skill = skills[0]
-    print(f"\n▶ [2] Binding Selected Skill `{selected_skill['name']}` to Local iGPU/NPU Resident Model...")
+    print(
+        f"\n▶ [2] Binding Selected Skill `{selected_skill['name']}` to Local iGPU/NPU Resident Model..."
+    )
 
-    prompt = f"""You are operating with the active PRIME Skill: {selected_skill['name']}
-Domain: {selected_skill['domain']}
+    prompt = f"""You are operating with the active PRIME Skill: {selected_skill["name"]}
+Domain: {selected_skill["domain"]}
 
 Task: Formulate a 2-sentence mathematical theorem on maintaining HIHO 0.5 attractor stability in 12D state manifolds."""
 
@@ -67,11 +70,14 @@ Task: Formulate a 2-sentence mathematical theorem on maintaining HIHO 0.5 attrac
         payload = {
             "model": "gpt-oss-20b-mxfp4-GGUF",
             "messages": [
-                {"role": "system", "content": f"You are a specialized agent executing {selected_skill['name']}."},
-                {"role": "user", "content": prompt}
+                {
+                    "role": "system",
+                    "content": f"You are a specialized agent executing {selected_skill['name']}.",
+                },
+                {"role": "user", "content": prompt},
             ],
             "temperature": 0.1,
-            "max_tokens": 160
+            "max_tokens": 160,
         }
         r = await client.post(LEMONADE_URL, json=payload)
         dt_npu = round(time.perf_counter() - t0, 2)
@@ -80,13 +86,14 @@ Task: Formulate a 2-sentence mathematical theorem on maintaining HIHO 0.5 attrac
             msg = data["choices"][0]["message"]
             response_text = msg.get("content") or msg.get("reasoning_content") or ""
             print(f"  ✓ Local Silicon Execution Completed in {dt_npu}s:")
-            print(f"\n  \"{response_text.strip()}\"\n")
+            print(f'\n  "{response_text.strip()}"\n')
         else:
             print(f"  ✗ Inference error: HTTP {r.status_code} - {r.text[:100]}")
 
     print("=" * 115)
     print("🎉 SURREALDB SEMANTIC SEARCH & LOCAL SILICON DISPATCH VERIFIED (0ms CLOUD EGRESS)!")
     print("=" * 115 + "\n")
+
 
 if __name__ == "__main__":
     asyncio.run(search_and_dispatch())

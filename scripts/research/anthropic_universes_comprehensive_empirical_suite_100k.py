@@ -16,6 +16,7 @@ import time
 from pathlib import Path
 import numpy as np
 
+
 def run_vectorized_trajectories(
     mode: str,
     n_trajectories: int,
@@ -28,7 +29,7 @@ def run_vectorized_trajectories(
     np.random.seed(seed)
     # 7 brane dimensions: physics, biology, logic, quantum, field, control, novelty
     states = np.full((n_trajectories, 7), 0.50, dtype=np.float32)
-    
+
     use_pinch = "pinch" in mode or mode == "full_flume_evo"
     use_poincare = "poincare" in mode or mode == "full_flume_evo"
     use_dirichlet = mode == "full_flume_evo"
@@ -51,7 +52,7 @@ def run_vectorized_trajectories(
         shocks = np.where(
             shock_mask,
             np.random.choice([-shock_magnitude, shock_magnitude], size=n_trajectories),
-            0.0
+            0.0,
         ).astype(np.float32)[:, None]
 
         # Restoration toward HIHO 0.50
@@ -76,7 +77,9 @@ def run_vectorized_trajectories(
         survived[newly_failed] = False
 
         if use_poincare:
-            poincare_norms = np.clip(poincare_norms * decay + np.random.normal(0, 0.01, n_trajectories), 0.0, 0.98)
+            poincare_norms = np.clip(
+                poincare_norms * decay + np.random.normal(0, 0.01, n_trajectories), 0.0, 0.98
+            )
             # Dirichlet energy: derivative magnitude on manifold
             diff_sq = (poincare_norms * (1.0 - decay)) ** 2
             dirichlet_energy = 0.5 * diff_sq * 2048.0
@@ -118,7 +121,9 @@ def main():
 
     for h in horizons:
         print(f"  Evaluating Horizon T={h} (N={n_per_horizon} seeds/arm)...")
-        res_evo = run_vectorized_trajectories("full_flume_evo", n_per_horizon, num_steps=h, seed=1000 + h)
+        res_evo = run_vectorized_trajectories(
+            "full_flume_evo", n_per_horizon, num_steps=h, seed=1000 + h
+        )
         res_base = run_vectorized_trajectories("naive", n_per_horizon, num_steps=h, seed=2000 + h)
         horizon_results[h] = {
             "flume_evo": res_evo,
@@ -147,16 +152,22 @@ def main():
         row = []
         for n_idx, noise_s in enumerate(noises):
             seed = 30000 + s_idx * 10 + n_idx
-            res_evo = run_vectorized_trajectories("full_flume_evo", n_per_cell, noise_sigma=noise_s, shock_prob=shock_p, seed=seed)
-            res_base = run_vectorized_trajectories("naive", n_per_cell, noise_sigma=noise_s, shock_prob=shock_p, seed=seed + 500)
-            row.append({
-                "noise": noise_s,
-                "shock_prob": shock_p,
-                "evo_survival": res_evo["survival_rate"],
-                "base_survival": res_base["survival_rate"],
-                "evo_coherence": res_evo["final_coherence"],
-                "base_coherence": res_base["final_coherence"],
-            })
+            res_evo = run_vectorized_trajectories(
+                "full_flume_evo", n_per_cell, noise_sigma=noise_s, shock_prob=shock_p, seed=seed
+            )
+            res_base = run_vectorized_trajectories(
+                "naive", n_per_cell, noise_sigma=noise_s, shock_prob=shock_p, seed=seed + 500
+            )
+            row.append(
+                {
+                    "noise": noise_s,
+                    "shock_prob": shock_p,
+                    "evo_survival": res_evo["survival_rate"],
+                    "base_survival": res_base["survival_rate"],
+                    "evo_coherence": res_evo["final_coherence"],
+                    "base_coherence": res_base["final_coherence"],
+                }
+            )
         phase_matrix.append(row)
         print(f"  Completed Shock Row p={shock_p:.2f} across all 5 noise levels...")
 
@@ -165,7 +176,9 @@ def main():
     mean_phase_evo_surv = float(np.mean(all_evo_surv))
     mean_phase_base_surv = float(np.mean(all_base_surv))
 
-    print(f"  --> Mean Phase Survival: FLUME EVO = {mean_phase_evo_surv*100:.1f}% vs Baseline = {mean_phase_base_surv*100:.1f}%")
+    print(
+        f"  --> Mean Phase Survival: FLUME EVO = {mean_phase_evo_surv * 100:.1f}% vs Baseline = {mean_phase_base_surv * 100:.1f}%"
+    )
 
     # --- SUITE 3: 5-Arm Component Ablation Matrix (N = 30,000) ---
     print("\n[Suite 3/3] 5-Arm Component Ablation Matrix (N=30,000, 6,000 seeds/arm at T=100)...")
@@ -179,12 +192,16 @@ def main():
     n_per_arm = 6000
     ablation_results = {}
     for arm_id, arm_label in arms:
-        res = run_vectorized_trajectories(arm_id, n_per_arm, num_steps=100, seed=50000 + len(ablation_results))
+        res = run_vectorized_trajectories(
+            arm_id, n_per_arm, num_steps=100, seed=50000 + len(ablation_results)
+        )
         ablation_results[arm_id] = {
             "label": arm_label,
             "metrics": res,
         }
-        print(f"  Arm: {arm_label:<32} | Coherence: {res['final_coherence']:.4f} | Survival: {res['survival_rate']*100:.1f}% | Dirichlet: {res['mean_dirichlet_energy']:.4f}")
+        print(
+            f"  Arm: {arm_label:<32} | Coherence: {res['final_coherence']:.4f} | Survival: {res['survival_rate'] * 100:.1f}% | Dirichlet: {res['mean_dirichlet_energy']:.4f}"
+        )
 
     # One-way ANOVA F-statistic calculation across arms
     coherence_means = [ablation_results[a]["metrics"]["final_coherence"] for a, _ in arms]
@@ -199,7 +216,9 @@ def main():
     total_n = 20000 + 50000 + 30000
 
     print("\n" + "=" * 80)
-    print(f"✅ MASSIVE N={total_n:,} BENCHMARK COMPLETE IN {total_time:.2f}s ({total_n/total_time:.1f} trajectories/sec)")
+    print(
+        f"✅ MASSIVE N={total_n:,} BENCHMARK COMPLETE IN {total_time:.2f}s ({total_n / total_time:.1f} trajectories/sec)"
+    )
     print(f"One-Way ANOVA: F({df_between}, {df_within}) = {f_stat:.2f} (p < 1e-15)")
     print("=" * 80)
 
@@ -232,6 +251,7 @@ def main():
     out_file = repo_root / "docs/career/anthropic_universes_empirical_evidence_100k.json"
     out_file.write_text(json.dumps(output_data, indent=2))
     print(f"Saved dataset to {out_file}")
+
 
 if __name__ == "__main__":
     main()

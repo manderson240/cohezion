@@ -75,9 +75,26 @@ else
   fi
 fi
 
-# 2. rocm-smi (optional — only if the binary exists)
+# 2. amd-smi / rocm-smi (optional — checks AMD GPU telemetry and VRAM state)
 echo "Checking AMD GPU state..."
-if command -v rocm-smi >/dev/null 2>&1; then
+AMD_SMI_BIN=""
+if command -v amd-smi >/dev/null 2>&1; then
+  AMD_SMI_BIN=$(command -v amd-smi)
+elif [[ -x "/opt/rocm-7.2.1/bin/amd-smi" ]]; then
+  AMD_SMI_BIN="/opt/rocm-7.2.1/bin/amd-smi"
+elif [[ -x "/opt/rocm/bin/amd-smi" ]]; then
+  AMD_SMI_BIN="/opt/rocm/bin/amd-smi"
+fi
+
+if [[ -n "${AMD_SMI_BIN}" ]]; then
+  smi_out=$("${AMD_SMI_BIN}" 2>/dev/null || true)
+  if echo "${smi_out}" | grep -qi "AMD-SMI"; then
+    info "amd-smi online at ${AMD_SMI_BIN}"
+    ok "AMD GPU telemetry online via amd-smi (ROCm 7.x)"
+  else
+    info "amd-smi present but returned no output"
+  fi
+elif command -v rocm-smi >/dev/null 2>&1; then
   rocm_out=$(rocm-smi --showuse 2>/dev/null || true)
   vram_pct=$(echo "${rocm_out}" | grep -oE "GPU use[[:space:]]*\(%\)[[:space:]]+[0-9.]+" | awk '{print $NF}' | head -1)
   if [[ -n "${vram_pct}" ]]; then
@@ -94,7 +111,7 @@ if command -v rocm-smi >/dev/null 2>&1; then
     info "rocm-smi present but no GPU use line found; skipping"
   fi
 else
-  info "rocm-smi not on PATH; skipping GPU check"
+  info "neither amd-smi nor rocm-smi on PATH; skipping GPU check"
 fi
 
 # 3. dmesg (optional — only if readable)

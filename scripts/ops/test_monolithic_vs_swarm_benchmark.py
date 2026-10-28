@@ -18,29 +18,41 @@ import httpx
 from cohezion.competitions.arc.deep_compositional_solver import DeepCompositionalSynthesizer
 from cohezion.competitions.pokemon_tcg.ismcts_cfr_engine import ISMCTSWithCFR
 
-logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] [BENCH_TEST] %(message)s")
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s [%(levelname)s] [BENCH_TEST] %(message)s"
+)
 logger = logging.getLogger("bench_test")
 
 LEMONADE_BASE = "http://localhost:13305"
 
+
 def run_swarm_parallel_simulation():
     """Simulates Swarm mode: High-throughput parallel micro-tasks across Zen 4 CPU & NPU."""
     t0 = time.perf_counter()
-    
+
     # 1. 2,000 Pokemon CFR game decisions
     tcg_engine = ISMCTSWithCFR()
     for _ in range(2000):
-        obs = {"player_hp": 90, "opponent_hp": 50, "energy_attached": 2, "legal_actions": ["attack", "attach_energy"]}
+        obs = {
+            "player_hp": 90,
+            "opponent_hp": 50,
+            "energy_attached": 2,
+            "legal_actions": ["attack", "attach_energy"],
+        }
         _ = tcg_engine.search_action(obs, num_rollouts=5)
-        
+
     # 2. 500 ARC compositional synthesis checks
     solver = DeepCompositionalSynthesizer()
-    dummy_task = {"train": [{"input": [[1, 2], [3, 4]], "output": [[2, 1], [4, 3]]}], "test": [{"input": [[5, 6], [7, 8]]}]}
+    dummy_task = {
+        "train": [{"input": [[1, 2], [3, 4]], "output": [[2, 1], [4, 3]]}],
+        "test": [{"input": [[5, 6], [7, 8]]}],
+    }
     for _ in range(500):
         _ = solver.solve(dummy_task)
-        
+
     dt = time.perf_counter() - t0
     return dt
+
 
 async def run_monolithic_deep_reasoning():
     """Simulates Monolithic mode: Deep monolithic synthesis of a complex multi-file proof."""
@@ -57,9 +69,9 @@ Derive the formal mathematical bridges, energy functionals, and error bounds in 
         "model": "deepseek-r1-0528-8b-FLM",
         "messages": [{"role": "user", "content": proof_prompt}],
         "temperature": 0.6,
-        "max_tokens": 4096
+        "max_tokens": 4096,
     }
-    
+
     async with httpx.AsyncClient(timeout=300.0) as client:
         try:
             r = await client.post(f"{LEMONADE_BASE}/v1/chat/completions", json=payload)
@@ -68,11 +80,17 @@ Derive the formal mathematical bridges, energy functionals, and error bounds in 
                 msg = r.json()["choices"][0]["message"]
                 content = msg.get("content", "")
                 reasoning = msg.get("reasoning_content", "") or ""
-                return {"duration": dt, "tokens_approx": len(content.split()) * 1.3, "status": "SUCCESS", "content_preview": content[:300]}
+                return {
+                    "duration": dt,
+                    "tokens_approx": len(content.split()) * 1.3,
+                    "status": "SUCCESS",
+                    "content_preview": content[:300],
+                }
         except Exception as e:
             return {"duration": time.perf_counter() - t0, "status": f"Error: {e}"}
-            
+
     return {"duration": time.perf_counter() - t0, "status": "FAILED"}
+
 
 async def main():
     print("\n" + "=" * 115)
@@ -80,19 +98,25 @@ async def main():
     print("=" * 115)
 
     vm_before = psutil.virtual_memory()
-    print(f"• Initial System Memory: {vm_before.available / (1024**3):.2f} GiB available / {vm_before.total / (1024**3):.2f} GiB")
+    print(
+        f"• Initial System Memory: {vm_before.available / (1024**3):.2f} GiB available / {vm_before.total / (1024**3):.2f} GiB"
+    )
 
     # Phase 1: Test Swarm High-Throughput Mode
     print("\n[PHASE 1: Heterogeneous Swarm Parallel Simulation Throughput]")
     logger.info("Running 2,000 Pokemon CFR rollouts + 500 ARC compositional chains...")
     dt_swarm = run_swarm_parallel_simulation()
     print(f"  ├─ Total Operations Completed : 2,500 discrete simulations")
-    print(f"  ├─ Execution Duration         : {dt_swarm:.3f} seconds ({2500 / dt_swarm:.1f} ops/sec)")
+    print(
+        f"  ├─ Execution Duration         : {dt_swarm:.3f} seconds ({2500 / dt_swarm:.1f} ops/sec)"
+    )
     print(f"  └─ Swarm Verdict              : 👑 ULTRA FAST (0.00ms per operation)")
 
     # Phase 2: Test Deep Monolithic Reasoning Mode
     print("\n[PHASE 2: Deep Monolithic Reasoning Mode (Unified Mathematical Derivation)]")
-    logger.info("Dispatching unified Sheaf-Poincaré-CFR proof synthesis to deep reasoning engine...")
+    logger.info(
+        "Dispatching unified Sheaf-Poincaré-CFR proof synthesis to deep reasoning engine..."
+    )
     res_mono = await run_monolithic_deep_reasoning()
     print(f"  ├─ Deep Reasoning Duration    : {res_mono['duration']:.2f} seconds")
     print(f"  ├─ Output Generation Status   : {res_mono.get('status')}")
@@ -103,9 +127,14 @@ async def main():
     # Phase 3: Final Comparison Summary
     print("\n" + "-" * 115)
     print("🎯 EMPIRICAL SYNTHESIS:")
-    print(f"  • Swarm Mode      : Processed 2,500 operations in {dt_swarm:.3f}s -> Use for Rollouts, CFR, & Benchmarks.")
-    print(f"  • Monolithic Mode : Synthesized complex unified mathematical proof in {res_mono['duration']:.2f}s -> Use for Deep Invariants & Proofs.")
+    print(
+        f"  • Swarm Mode      : Processed 2,500 operations in {dt_swarm:.3f}s -> Use for Rollouts, CFR, & Benchmarks."
+    )
+    print(
+        f"  • Monolithic Mode : Synthesized complex unified mathematical proof in {res_mono['duration']:.2f}s -> Use for Deep Invariants & Proofs."
+    )
     print("=" * 115 + "\n")
+
 
 if __name__ == "__main__":
     asyncio.run(main())

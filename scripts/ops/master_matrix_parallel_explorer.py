@@ -60,7 +60,9 @@ Analyze and mathematically formalize Node 3 of the Unified Matrix:
 ]
 
 
-async def query_node_cloud_or_local(client: httpx.AsyncClient, node: dict[str, str]) -> dict[str, Any]:
+async def query_node_cloud_or_local(
+    client: httpx.AsyncClient, node: dict[str, str]
+) -> dict[str, Any]:
     t0 = time.perf_counter()
     logger.info("🌌 [Exploring %s...]", node["title"])
 
@@ -98,7 +100,10 @@ async def query_node_cloud_or_local(client: httpx.AsyncClient, node: dict[str, s
                 json={
                     "model": "Qwen3-Coder-30B-A3B-Instruct-GGUF",
                     "messages": [
-                        {"role": "system", "content": "You are a world-class theoretical physicist and syncretic research analyst."},
+                        {
+                            "role": "system",
+                            "content": "You are a world-class theoretical physicist and syncretic research analyst.",
+                        },
                         {"role": "user", "content": node["prompt"]},
                     ],
                     "temperature": 0.2,
@@ -144,7 +149,9 @@ async def main_async() -> None:
         tasks = [query_node_cloud_or_local(client, node) for node in NODES]
         results = await asyncio.gather(*tasks, return_exceptions=False)
 
-    out_file = Path("/home/mike-anderson/dev/cohezion/docs/research/unified_matrix_parallel_exploration_report.md")
+    out_file = Path(
+        "/home/mike-anderson/dev/cohezion/docs/research/unified_matrix_parallel_exploration_report.md"
+    )
     out_file.parent.mkdir(parents=True, exist_ok=True)
 
     md = [

@@ -16,13 +16,14 @@ OFFICIAL_COMMANDS = [
     ("/run print('Hello from Strix Halo local execution')", "Execute sandboxed python code"),
 ]
 
+
 async def test_official():
     hub = TelegramCommunicationHub()
     captured = []
-    
+
     async def mock_send(text: str, reply_to_message_id=None):
         captured.append(text)
-        
+
     hub._send_msg = mock_send
 
     print("\n" + "=" * 100)
@@ -39,11 +40,12 @@ async def test_official():
         }
         await hub._process_message(mock_msg)
         response = captured[0] if captured else "NO RESPONSE"
-        first_line = response.strip().split('\n')[0]
+        first_line = response.strip().split("\n")[0]
         print(f"  ✓ {cmd:<50} -> {first_line[:45]}")
 
     print("=" * 100)
     print("🎉 ALL OFFICIAL TELEGRAM COMMANDS VERIFIED & OPERATIONAL!\n")
+
 
 if __name__ == "__main__":
     asyncio.run(test_official())

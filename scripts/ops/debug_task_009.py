@@ -1,7 +1,8 @@
 import json
 import numpy as np
 
-with open("data/arc_prize/arc-agi_training_challenges.json") as f: challenges = json.load(f)
+with open("data/arc_prize/arc-agi_training_challenges.json") as f:
+    challenges = json.load(f)
 task = challenges["009d5c81"]
 
 for i, ex in enumerate(task["train"]):

@@ -71,8 +71,11 @@ DEFAULT_ROSTER = [
 def _post(path: str, payload: dict, timeout: int = 900) -> dict:
     body = json.dumps(payload).encode()
     # S310: ROUTER is a module-level http:// localhost constant, never caller-supplied.
-    req = urllib.request.Request(f"{ROUTER}/{path}", data=body,  # noqa: S310
-                                 headers={"Content-Type": "application/json"})
+    req = urllib.request.Request(
+        f"{ROUTER}/{path}",
+        data=body,  # noqa: S310
+        headers={"Content-Type": "application/json"},
+    )
     try:
         with urllib.request.urlopen(req, timeout=timeout) as r:  # noqa: S310
             return json.load(r)
@@ -154,12 +157,22 @@ async def sweep(models: list[str], reps: int, ctx: int, min_free: float) -> list
         drop = statistics.median(r.get("dropped_reasoning_chars", 0) for r in reps_out)
         p50 = statistics.median(r["secs"] for r in reps_out)
         whys = {r["why"] for r in reps_out if r["why"]}
-        row = {"model": model, "term": term, "gen_tokens": gen, "raw_chars": raw,
-               "dropped": drop, "p50": p50, "load_s": round(load_s, 1),
-               "why": ",".join(sorted(whys))}
+        row = {
+            "model": model,
+            "term": term,
+            "gen_tokens": gen,
+            "raw_chars": raw,
+            "dropped": drop,
+            "p50": p50,
+            "load_s": round(load_s, 1),
+            "why": ",".join(sorted(whys)),
+        }
         rows.append(row)
-        print(f"{model:<34} {term:>5.2f} {gen:>8.0f} {raw:>7.0f} {drop:>7.0f} {p50:>7.1f}  "
-              f"{row['why'] or 'ok'}", flush=True)
+        print(
+            f"{model:<34} {term:>5.2f} {gen:>8.0f} {raw:>7.0f} {drop:>7.0f} {p50:>7.1f}  "
+            f"{row['why'] or 'ok'}",
+            flush=True,
+        )
 
     _drain()
     run.finalize({"reps": reps, "ctx_size": ctx})

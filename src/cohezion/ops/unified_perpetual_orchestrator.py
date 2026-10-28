@@ -23,6 +23,7 @@ from typing import Any
 
 from cohezion.arc.strix_dsl_search import StrixHaloDSLEngine
 from cohezion.autopoiesis.tri_silicon_engine import TriSiliconAutopoiesisEngine
+from cohezion.core.cross_session_event_bridge import CrossSessionEventBridge
 from cohezion.core.event_bus import Event, EventBus
 from cohezion.data_mesh.kanban_bridge import persist_item
 from cohezion.flume.loop_goal_refactor_engine import MemoryAsPlans
@@ -82,6 +83,10 @@ class UnifiedPerpetualLoopDaemon:
         self.lemonade_port = lemonade_port
 
         self.event_bus = EventBus()
+        self.event_bridge = CrossSessionEventBridge(
+            event_bus=self.event_bus,
+            session_id="unified_perpetual_orchestrator",
+        )
         self.control_plane = CohezionControlPlane()
         self.tri_silicon_engine = TriSiliconAutopoiesisEngine(cpu_threads=cpu_threads)
         self.dsl_engine = StrixHaloDSLEngine(max_depth=2, n_threads=cpu_threads)
@@ -92,8 +97,36 @@ class UnifiedPerpetualLoopDaemon:
         self._shutdown_event = asyncio.Event()
 
     # =========================================================================
-    # Phase 1: Autopoiesis & Negentropy Loop (NPU + My Big TOE)
+    # EventBus Lifecycle (AGENTS.md mandate 5: durable inter-session events)
     # =========================================================================
+    async def start_event_bus(self, timeout: float = 5.0) -> None:
+        """Start the EventBus and subscribe the cross-session bridge.
+
+        Idempotent: EventBus.start() no-ops when already running, and the bridge
+        initialize() is guarded by `_subscribed`, so repeated calls (e.g. after a
+        manual `stop()`) are safe. Startup order is explicit: BUS first (so the
+        processor loop drains the queue), BRIDGE second (so its handler is
+        registered on a live bus and can never observe a not-yet-started bus).
+
+        No I/O happens here — the bridge only registers a handler; its SurrealDB
+        connection is created lazily inside each `query()` call, and handler
+        errors are isolated by EventBus._safe_handle(). The timeout only bounds
+        task scheduling.
+        """
+        await asyncio.wait_for(self.event_bus.start(), timeout=timeout)
+        await asyncio.wait_for(self.event_bridge.initialize(), timeout=timeout)
+        logger.info("EventBus + CrossSessionEventBridge started (idempotent lifecycle)")
+
+    async def stop_event_bus(self, drain_timeout: float = 5.0) -> None:
+        """Stop the EventBus with a bounded drain of queued events.
+
+        EventBus.stop() drains the queue before cancelling the processor task
+        (bounded by its own 30s internal cap); `drain_timeout` here additionally
+        bounds the total shutdown so a hot producer cannot hang daemon teardown.
+        """
+        await asyncio.wait_for(self.event_bus.stop(), timeout=drain_timeout)
+        logger.info("EventBus stopped with drain (bridge handler detached with bus)")
+
     async def run_autopoiesis_phase(self, cycle_num: int) -> PhaseResult:
         """Execute one autopoietic negentropy cycle with NPU goal steering."""
         t0 = time.perf_counter()
@@ -501,22 +534,32 @@ class UnifiedPerpetualLoopDaemon:
         logger.info(f"Log: {LOG_FILE_PATH}")
         logger.info("=" * 90)
 
-        while self._running:
-            try:
-                await self.execute_master_cycle(cycle)
-                cycle += 1
-                if max_cycles is not None and cycle > max_cycles:
-                    logger.info(f"Reached max_cycles ({max_cycles}). Exiting cleanly.")
-                    break
+        # Mandate 5 lifecycle: bus FIRST, bridge SECOND (explicit order). Startup
+        # lives inside the try so a partial start still gets the bounded teardown.
+        try:
+            await self.start_event_bus()
+            while self._running:
+                try:
+                    await self.execute_master_cycle(cycle)
+                    cycle += 1
+                    if max_cycles is not None and cycle > max_cycles:
+                        logger.info(f"Reached max_cycles ({max_cycles}). Exiting cleanly.")
+                        break
 
-                logger.info(f"Sleeping {self.interval_seconds:.1f}s until next master cycle...")
-                await asyncio.sleep(self.interval_seconds)
-            except asyncio.CancelledError:
-                logger.info("Perpetual loop cancelled by signal.")
-                break
+                    logger.info(f"Sleeping {self.interval_seconds:.1f}s until next master cycle...")
+                    await asyncio.sleep(self.interval_seconds)
+                except asyncio.CancelledError:
+                    logger.info("Perpetual loop cancelled by signal.")
+                    break
+                except Exception as exc:
+                    logger.error(f"Unexpected error in master loop: {exc}", exc_info=True)
+                    await asyncio.sleep(10.0)
+        finally:
+            # Bounded teardown: queued events drain before the processor task dies.
+            try:
+                await self.stop_event_bus()
             except Exception as exc:
-                logger.error(f"Unexpected error in master loop: {exc}", exc_info=True)
-                await asyncio.sleep(10.0)
+                logger.warning(f"EventBus teardown issue: {exc}")
 
     def stop(self) -> None:
         """Signal the daemon to stop."""

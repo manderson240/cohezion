@@ -10,12 +10,16 @@ prompt = """Compare Cohezion to the current industry state-of-the-art in 3 areas
 Give a concise markdown table with: Dimension, Industry Standard, Cohezion Advantage, and Cohezion Risk/Vulnerability."""
 
 try:
-    resp = httpx.post("http://localhost:11434/api/generate", json={
-        "model": "deepseek-v4-pro:cloud",
-        "prompt": prompt,
-        "stream": False,
-        "options": {"num_predict": 450}
-    }, timeout=30.0)
+    resp = httpx.post(
+        "http://localhost:11434/api/generate",
+        json={
+            "model": "deepseek-v4-pro:cloud",
+            "prompt": prompt,
+            "stream": False,
+            "options": {"num_predict": 450},
+        },
+        timeout=30.0,
+    )
     print(resp.json().get("response", ""))
 except Exception as e:
     print(f"Error: {e}")

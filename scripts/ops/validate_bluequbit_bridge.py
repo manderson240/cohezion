@@ -10,6 +10,7 @@ Demonstrates:
 import time
 from cohezion.quantum.bluequbit_quantum_bridge import BlueQubitQuantumBridge
 
+
 def validate_bridge():
     print("=" * 80)
     print("⚛️ VALIDATING BLUEQUBIT QUANTUM BRIDGE INTEGRATION")
@@ -26,6 +27,7 @@ def validate_bridge():
     print(f"Latency: {dt_ms:.2f} ms")
     print("✓ BlueQubit Quantum Bridge operational with fallback safety!")
     print("=" * 80)
+
 
 if __name__ == "__main__":
     validate_bridge()

@@ -37,16 +37,18 @@ def serve_dashboard() -> None:
     print("=" * 90)
 
     # Register in SurrealDB
-    registry.sync_to_surrealdb([
-        registry.scan_active_system_ports()[0].__class__(
-            port=free_port,
-            service_name="Marimo WASM Dashboard",
-            protocol="tcp",
-            pid=os.getpid(),
-            status="active",
-            description="Standalone WASM Web Dashboard",
-        )
-    ])
+    registry.sync_to_surrealdb(
+        [
+            registry.scan_active_system_ports()[0].__class__(
+                port=free_port,
+                service_name="Marimo WASM Dashboard",
+                protocol="tcp",
+                pid=os.getpid(),
+                status="active",
+                description="Standalone WASM Web Dashboard",
+            )
+        ]
+    )
 
     with socketserver.TCPServer(("", free_port), handler) as httpd:
         try:

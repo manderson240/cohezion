@@ -50,18 +50,31 @@ calls:
 def warmup(model: str, max_wait_s: float = 180.0) -> dict:
     t0 = time.monotonic()
     # 1. Load (bounded ctx — N3 discipline)
-    urllib.request.urlopen(urllib.request.Request(
-        f"{BASE}/api/v1/load",
-        data=json.dumps({"model_name": model, "ctx_size": 16384}).encode(),
-        headers={"Content-Type": "application/json"}), timeout=300).read()
+    urllib.request.urlopen(
+        urllib.request.Request(
+            f"{BASE}/api/v1/load",
+            data=json.dumps({"model_name": model, "ctx_size": 16384}).encode(),
+            headers={"Content-Type": "application/json"},
+        ),
+        timeout=300,
+    ).read()
     # 2. Probe until it actually serves
-    probe = {"model": model, "max_tokens": 5, "stream": False,
-             "messages": [{"role": "user", "content": "Reply with one word: yes"}]}
+    probe = {
+        "model": model,
+        "max_tokens": 5,
+        "stream": False,
+        "messages": [{"role": "user", "content": "Reply with one word: yes"}],
+    }
     while time.monotonic() - t0 < max_wait_s:
         try:
-            r = urllib.request.urlopen(urllib.request.Request(
-                f"{BASE}/api/v1/chat/completions", data=json.dumps(probe).encode(),
-                headers={"Content-Type": "application/json"}), timeout=90)
+            r = urllib.request.urlopen(
+                urllib.request.Request(
+                    f"{BASE}/api/v1/chat/completions",
+                    data=json.dumps(probe).encode(),
+                    headers={"Content-Type": "application/json"},
+                ),
+                timeout=90,
+            )
             msg = (json.loads(r.read()).get("choices") or [{}])[0].get("message", {}) or {}
             if (msg.get("content") or msg.get("reasoning_content") or "").strip():
                 return {"warm": True, "warmup_s": round(time.monotonic() - t0, 1)}

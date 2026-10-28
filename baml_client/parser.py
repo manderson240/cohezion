@@ -17,6 +17,7 @@ import typing_extensions
 from . import stream_types, types
 from .runtime import DoNotUseDirectlyCallManager, BamlCallOptions
 
+
 class LlmResponseParser:
     __options: DoNotUseDirectlyCallManager
 
@@ -24,30 +25,45 @@ class LlmResponseParser:
         self.__options = options
 
     def AuditLeaderboardNextAction(
-        self, llm_response: str, baml_options: BamlCallOptions = {},
+        self,
+        llm_response: str,
+        baml_options: BamlCallOptions = {},
     ) -> types.SubmissionStrategy:
-        __result__ = self.__options.merge_options(baml_options).parse_response(function_name="AuditLeaderboardNextAction", llm_response=llm_response, mode="request")
+        __result__ = self.__options.merge_options(baml_options).parse_response(
+            function_name="AuditLeaderboardNextAction", llm_response=llm_response, mode="request"
+        )
         return typing.cast(types.SubmissionStrategy, __result__)
 
     def DeriveTaskInvariants(
-        self, llm_response: str, baml_options: BamlCallOptions = {},
+        self,
+        llm_response: str,
+        baml_options: BamlCallOptions = {},
     ) -> types.TaskInvariants:
-        __result__ = self.__options.merge_options(baml_options).parse_response(function_name="DeriveTaskInvariants", llm_response=llm_response, mode="request")
+        __result__ = self.__options.merge_options(baml_options).parse_response(
+            function_name="DeriveTaskInvariants", llm_response=llm_response, mode="request"
+        )
         return typing.cast(types.TaskInvariants, __result__)
 
     def RecommendNextStep(
-        self, llm_response: str, baml_options: BamlCallOptions = {},
+        self,
+        llm_response: str,
+        baml_options: BamlCallOptions = {},
     ) -> types.NextStep:
-        __result__ = self.__options.merge_options(baml_options).parse_response(function_name="RecommendNextStep", llm_response=llm_response, mode="request")
+        __result__ = self.__options.merge_options(baml_options).parse_response(
+            function_name="RecommendNextStep", llm_response=llm_response, mode="request"
+        )
         return typing.cast(types.NextStep, __result__)
 
     def SynthesizeCodeHarness(
-        self, llm_response: str, baml_options: BamlCallOptions = {},
+        self,
+        llm_response: str,
+        baml_options: BamlCallOptions = {},
     ) -> types.CodeHarness:
-        __result__ = self.__options.merge_options(baml_options).parse_response(function_name="SynthesizeCodeHarness", llm_response=llm_response, mode="request")
+        __result__ = self.__options.merge_options(baml_options).parse_response(
+            function_name="SynthesizeCodeHarness", llm_response=llm_response, mode="request"
+        )
         return typing.cast(types.CodeHarness, __result__)
 
-    
 
 class LlmStreamParser:
     __options: DoNotUseDirectlyCallManager
@@ -56,27 +72,41 @@ class LlmStreamParser:
         self.__options = options
 
     def AuditLeaderboardNextAction(
-        self, llm_response: str, baml_options: BamlCallOptions = {},
+        self,
+        llm_response: str,
+        baml_options: BamlCallOptions = {},
     ) -> stream_types.SubmissionStrategy:
-        __result__ = self.__options.merge_options(baml_options).parse_response(function_name="AuditLeaderboardNextAction", llm_response=llm_response, mode="stream")
+        __result__ = self.__options.merge_options(baml_options).parse_response(
+            function_name="AuditLeaderboardNextAction", llm_response=llm_response, mode="stream"
+        )
         return typing.cast(stream_types.SubmissionStrategy, __result__)
 
     def DeriveTaskInvariants(
-        self, llm_response: str, baml_options: BamlCallOptions = {},
+        self,
+        llm_response: str,
+        baml_options: BamlCallOptions = {},
     ) -> stream_types.TaskInvariants:
-        __result__ = self.__options.merge_options(baml_options).parse_response(function_name="DeriveTaskInvariants", llm_response=llm_response, mode="stream")
+        __result__ = self.__options.merge_options(baml_options).parse_response(
+            function_name="DeriveTaskInvariants", llm_response=llm_response, mode="stream"
+        )
         return typing.cast(stream_types.TaskInvariants, __result__)
 
     def RecommendNextStep(
-        self, llm_response: str, baml_options: BamlCallOptions = {},
+        self,
+        llm_response: str,
+        baml_options: BamlCallOptions = {},
     ) -> stream_types.NextStep:
-        __result__ = self.__options.merge_options(baml_options).parse_response(function_name="RecommendNextStep", llm_response=llm_response, mode="stream")
+        __result__ = self.__options.merge_options(baml_options).parse_response(
+            function_name="RecommendNextStep", llm_response=llm_response, mode="stream"
+        )
         return typing.cast(stream_types.NextStep, __result__)
 
     def SynthesizeCodeHarness(
-        self, llm_response: str, baml_options: BamlCallOptions = {},
+        self,
+        llm_response: str,
+        baml_options: BamlCallOptions = {},
     ) -> stream_types.CodeHarness:
-        __result__ = self.__options.merge_options(baml_options).parse_response(function_name="SynthesizeCodeHarness", llm_response=llm_response, mode="stream")
+        __result__ = self.__options.merge_options(baml_options).parse_response(
+            function_name="SynthesizeCodeHarness", llm_response=llm_response, mode="stream"
+        )
         return typing.cast(stream_types.CodeHarness, __result__)
-
-    

@@ -9,7 +9,9 @@ from playwright.sync_api import sync_playwright
 
 
 url = "http://localhost:8082/cohezion_neural_trellis_viewer.html"
-screenshot_path = Path("/home/mike-anderson/dev/cohezion/docs/assets/renderings/trellis_generated_assets/trellis_matsumoto_3d_screenshot.png")
+screenshot_path = Path(
+    "/home/mike-anderson/dev/cohezion/docs/assets/renderings/trellis_generated_assets/trellis_matsumoto_3d_screenshot.png"
+)
 
 print(f"Opening {url} with Playwright...")
 with sync_playwright() as p:

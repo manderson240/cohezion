@@ -8,14 +8,16 @@ AutoHarness compiles this macro pipeline and executes it in 0.002 ms.
 
 import time
 from cohezion.competitions.arc.advanced_geometric_primitives import (
-    connect_matching_pairs_bfs, extract_enclosed_rooms
+    connect_matching_pairs_bfs,
+    extract_enclosed_rooms,
 )
 
 MACRO_PRIMITIVES = {
     "PAIR_CONNECT": connect_matching_pairs_bfs,
     "ROOM_FILL": lambda g: extract_enclosed_rooms(g, wall_color=1, fill_color=4),
-    "ROT90": lambda g: [list(r) for r in zip(*g[::-1])]
+    "ROT90": lambda g: [list(r) for r in zip(*g[::-1])],
 }
+
 
 def execute_macro_plan(plan: list[str], grid: list[list[int]]) -> list[list[int]]:
     curr = [r[:] for r in grid]
@@ -24,17 +26,13 @@ def execute_macro_plan(plan: list[str], grid: list[list[int]]) -> list[list[int]
             curr = MACRO_PRIMITIVES[step](curr)
     return curr
 
+
 def main():
     print("\n" + "=" * 105)
     print("⚡ TOKENIZED MACRO DSL PLANNER (ZERO-SYNTAX-ERROR SOVEREIGN EXECUTION)")
     print("=" * 105)
 
-    test_grid = [
-        [1, 1, 1, 1, 1],
-        [1, 2, 0, 0, 1],
-        [1, 0, 0, 2, 1],
-        [1, 1, 1, 1, 1]
-    ]
+    test_grid = [[1, 1, 1, 1, 1], [1, 2, 0, 0, 1], [1, 0, 0, 2, 1], [1, 1, 1, 1, 1]]
 
     # Model proposes macro plan: Connect red pair (2), then fill enclosed room with yellow (4)
     model_macro_plan = ["PAIR_CONNECT", "ROOM_FILL"]
@@ -53,6 +51,7 @@ def main():
     print("\n" + "=" * 105)
     print("🎉 TOKENIZED MACRO DSL EXECUTION VERIFIED!")
     print("=" * 105 + "\n")
+
 
 if __name__ == "__main__":
     main()

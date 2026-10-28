@@ -23,6 +23,7 @@ from cohezion.inference.smart_oom_governor import SmartOOMGovernor
 
 OPENCODE_BIN = "/home/mike-anderson/.opencode/bin/opencode"
 
+
 async def test_opencode_datamesh_session():
     print("\n" + "=" * 110)
     print("💻 VERIFYING OPENCODE LOCAL INFERENCE & AGENTIC EVENT BUS DATAMESH")
@@ -50,11 +51,13 @@ async def test_opencode_datamesh_session():
             "agent": "OpenCode CLI",
             "task": "Automated Code Review & DataMesh Verification",
             "backend": "Lemonade Local Silicon (:13305) / Ollama",
-            "status": "ACTIVE"
-        }
+            "status": "ACTIVE",
+        },
     )
     await event_bus.publish(opencode_start_event)
-    print(f"   ✓ Emitted `AGENT_START` for OpenCode across in-memory EventBus & SurrealDB `event_log`")
+    print(
+        f"   ✓ Emitted `AGENT_START` for OpenCode across in-memory EventBus & SurrealDB `event_log`"
+    )
 
     # 3. Test Local Inference Connectivity
     print(f"\n▶ [3/4] Testing OpenCode Local Inference Connection to Lemonade (:13305)...")
@@ -65,8 +68,12 @@ async def test_opencode_datamesh_session():
             dt = round(time.perf_counter() - t0, 3)
             if r.status_code == 200:
                 models = [m.get("id") for m in r.json().get("data", [])]
-                print(f"   ✓ OpenCode Local Gateway Verified in {dt}s ({len(models)} local models available)")
-                print(f"     Primary Coder: `Qwen3-Coder-30B-A3B-Instruct-GGUF` | Router: `user.cohezion-hermes-router`")
+                print(
+                    f"   ✓ OpenCode Local Gateway Verified in {dt}s ({len(models)} local models available)"
+                )
+                print(
+                    f"     Primary Coder: `Qwen3-Coder-30B-A3B-Instruct-GGUF` | Router: `user.cohezion-hermes-router`"
+                )
         except Exception as e:
             print(f"   • OpenCode Local Gateway Notice: {e}")
 
@@ -75,7 +82,9 @@ async def test_opencode_datamesh_session():
     peer_events = await bridge.fetch_cross_session_events(limit=5)
     print(f"   ✓ OpenCode intercepted {len(peer_events)} peer events on the DataMesh:")
     for ev in peer_events:
-        print(f"     • [{ev.get('session_id')}] Type: {ev.get('type')} from `{ev.get('source')}` | Payload: {ev.get('payload')}")
+        print(
+            f"     • [{ev.get('session_id')}] Type: {ev.get('type')} from `{ev.get('source')}` | Payload: {ev.get('payload')}"
+        )
 
     # Emit Completion & Persist Kanban Card
     opencode_complete_event = Event(
@@ -84,25 +93,28 @@ async def test_opencode_datamesh_session():
         priority=10,
         payload={
             "status": "COMPLETE",
-            "verdict": "OpenCode verified on local inference gateway and EventBus DataMesh."
-        }
+            "verdict": "OpenCode verified on local inference gateway and EventBus DataMesh.",
+        },
     )
     await event_bus.publish(opencode_complete_event)
 
-    persist_item({
-        "id": "opencode_datamesh_integration_status",
-        "title": "OpenCode DataMesh & Local Inference Active",
-        "status": "done",
-        "priority": "high",
-        "source": "opencode_agent",
-        "category": "agent_tooling",
-        "details": f"OpenCode connected to local inference (:13305) and full cross-session DataMesh. Headroom: {avail_gib} GiB.",
-    })
+    persist_item(
+        {
+            "id": "opencode_datamesh_integration_status",
+            "title": "OpenCode DataMesh & Local Inference Active",
+            "status": "done",
+            "priority": "high",
+            "source": "opencode_agent",
+            "category": "agent_tooling",
+            "details": f"OpenCode connected to local inference (:13305) and full cross-session DataMesh. Headroom: {avail_gib} GiB.",
+        }
+    )
     print("   ✓ Dual-persisted Kanban card to SurrealDB and Obsidian Vault")
 
     print("\n" + "=" * 110)
     print("🎉 OPENCODE LOCAL INFERENCE & AGENTIC DATAMESH VERIFIED!")
     print("=" * 110 + "\n")
+
 
 if __name__ == "__main__":
     asyncio.run(test_opencode_datamesh_session())

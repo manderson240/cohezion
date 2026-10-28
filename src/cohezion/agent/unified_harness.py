@@ -156,11 +156,11 @@ class ToolRegistry:
         sys.stdout, sys.stderr = stdout, stderr
 
         try:
-            # Create isolated namespace
-            namespace = {}
-            # unrestricted-exec-ok: general-purpose `python` tool whose contract IS arbitrary
-            # execution; safe_exec would break it. Real fix = out-of-process sandbox (H5 durable).
-            exec(code, namespace)
+            # H5 hardening: use safe_exec_globals to restrict builtins
+            from cohezion.compound.safe_exec import safe_exec_globals
+
+            namespace = safe_exec_globals()
+            exec(compile(code, "<agent_eval>", "exec"), namespace)
 
             result = {
                 "stdout": stdout.getvalue()[:10000],
@@ -247,7 +247,7 @@ class UnifiedAgent:
           * ``guidance_max_facts=5`` — the injected block is capped regardless of how many guards
             accumulate, bounding the per-step token cost on the local fleet.
         """
-        self.executor = executor or LLMExecutor(model="glm-5.3:cloud")
+        self.executor = executor or LLMExecutor(model="qwen3.5:cloud")
         self.tools = tools or ToolRegistry()
         self.session_mgr = CompoundSessionManager()
         self.max_steps = 50

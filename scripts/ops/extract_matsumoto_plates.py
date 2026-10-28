@@ -14,7 +14,39 @@ out_dir.mkdir(parents=True, exist_ok=True)
 
 # Key photograph pages: review papers, ICCF-3/ICCF-6 photographic plates, micro-ball lightning, ring tracks
 # Let's render key pages across the book
-key_pages = [15, 16, 17, 18, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 98, 100, 101, 102, 110, 115, 120, 130, 150, 180, 200, 220, 240, 260, 270, 280]
+key_pages = [
+    15,
+    16,
+    17,
+    18,
+    20,
+    21,
+    22,
+    23,
+    24,
+    25,
+    26,
+    27,
+    28,
+    29,
+    30,
+    98,
+    100,
+    101,
+    102,
+    110,
+    115,
+    120,
+    130,
+    150,
+    180,
+    200,
+    220,
+    240,
+    260,
+    270,
+    280,
+]
 
 print(f"Converting {len(key_pages)} key pages to PNG images for Vision Model...")
 for page_num in key_pages:

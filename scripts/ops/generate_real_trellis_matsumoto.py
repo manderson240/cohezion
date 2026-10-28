@@ -10,7 +10,9 @@ import urllib.request
 from pathlib import Path
 
 
-plate_path = Path("/home/mike-anderson/dev/cohezion/docs/assets/matsumoto_plates/track_photo_page_139.png")
+plate_path = Path(
+    "/home/mike-anderson/dev/cohezion/docs/assets/matsumoto_plates/track_photo_page_139.png"
+)
 out_dir = Path("/home/mike-anderson/dev/cohezion/docs/assets/renderings/trellis_generated_assets")
 out_dir.mkdir(parents=True, exist_ok=True)
 
@@ -35,16 +37,14 @@ endpoints_to_try = [
     "http://localhost:13305/v1/3d/generate",
     "http://localhost:13305/api/v1/trellis/generate",
     "http://localhost:13305/trellis/generate",
-    "http://localhost:13305/v1/chat/completions"
+    "http://localhost:13305/v1/chat/completions",
 ]
 
 for ep in endpoints_to_try:
     print(f"\nAttempting Lemonade 3D endpoint: {ep}...")
     t0 = time.perf_counter()
     req = urllib.request.Request(
-        ep,
-        headers={"Content-Type": "application/json"},
-        data=json.dumps(payload).encode("utf-8")
+        ep, headers={"Content-Type": "application/json"}, data=json.dumps(payload).encode("utf-8")
     )
     try:
         with urllib.request.urlopen(req, timeout=120) as resp:

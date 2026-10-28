@@ -230,18 +230,19 @@ import random
 
 # Pre-compute random 64-bit integers for every game feature
 ZOBRIST_TABLE = {
-    'card_1': random.getrandbits(64),
-    'card_2': random.getrandbits(64),
+    "card_1": random.getrandbits(64),
+    "card_2": random.getrandbits(64),
     # ... generate for all possible state features
 }
+
 
 class GameState:
     def __init__(self):
         self.hash = 0
-    
+
     def apply_move(self, move):
         # XOR the feature hash to update state hash instantly
-        self.hash ^= ZOBRIST_TABLE[move.feature_id] 
+        self.hash ^= ZOBRIST_TABLE[move.feature_id]
         # No tuple creation, no O(N) hash traversal
 ```
 **Benefit:** Reduces state key generation from microseconds to nanoseconds, constant regardless of board size.
@@ -252,10 +253,11 @@ Replace `class ISMCTSNode` and `dict` with parallel pre-allocated lists. This el
 ```python
 # BEFORE (High Overhead)
 # class Node: def __init__(self): self.visits = 0; self.value = 0.0
-# self.tree = {} 
+# self.tree = {}
 
 # AFTER (Fixed Memory, O(1) Allocation)
 MAX_NODES = 50000  # Hard cap for O(1) memory guarantee
+
 
 class NodeStore:
     def __init__(self):
@@ -263,7 +265,9 @@ class NodeStore:
         self.visits = [0] * MAX_NODES
         self.values = [0.0] * MAX_NODES
         self.parent = [-1] * MAX_NODES
-        self.children = [{}] * MAX_NODES # Dict for children mapping still needed, but node data is flat
+        self.children = [
+            {}
+        ] * MAX_NODES  # Dict for children mapping still needed, but node data is flat
         self.next_free = 0
 
     def alloc_node(self, parent_id):
@@ -284,20 +288,21 @@ Disable the garbage collector during the critical decision path. Rely on referen
 ```python
 import gc
 
+
 def think(game_state, time_limit):
     # 1. Disable GC to prevent stop-the-world pauses
     gc.disable()
-    
+
     try:
         # Run ISMCTS/CFR loop here
         # Ensure all search tree objects are local to this function
         # so they are ref-counted to zero when function exits
-        best_move = run_search(game_state) 
+        best_move = run_search(game_state)
     finally:
         # 2. Force collection BETWEEN turns, not DURING turns
-        gc.collect() 
+        gc.collect()
         gc.enable()
-        
+
     return best_move
 ```
 **Benefit:** Eliminates the risk of a Gen 2 GC pause occurring during the 0.56ms critical window. Moves memory reclamation to the "dead time" between opponent turns.

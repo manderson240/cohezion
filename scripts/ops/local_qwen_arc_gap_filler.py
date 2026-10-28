@@ -16,15 +16,19 @@ import signal
 import time
 import httpx
 
-logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] [GAP_FILLER] %(message)s")
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s [%(levelname)s] [GAP_FILLER] %(message)s"
+)
 logger = logging.getLogger("gap_filler")
 
 LEMONADE_BASE = "http://localhost:13305"
 OFFICIAL_CHALLENGES_PATH = "data/kaggle/arc2/arc-agi_training_challenges.json"
 OFFICIAL_SOLUTIONS_PATH = "data/kaggle/arc2/arc-agi_training_solutions.json"
 
+
 def timeout_handler(signum, frame):
     raise TimeoutError("AST execution exceeded limit")
+
 
 def safe_eval_code(code_str: str, inp_grid: list[list[int]]) -> list[list[int]] | None:
     try:
@@ -48,7 +52,11 @@ def safe_eval_code(code_str: str, inp_grid: list[list[int]]) -> list[list[int]] 
         if "transform" not in local_scope:
             return None
         res = local_scope["transform"](inp_grid)
-        if isinstance(res, list) and len(res) <= 30 and all(isinstance(r, list) and len(r) <= 30 for r in res):
+        if (
+            isinstance(res, list)
+            and len(res) <= 30
+            and all(isinstance(r, list) and len(r) <= 30 for r in res)
+        ):
             return res
     except Exception:
         return None
@@ -56,10 +64,15 @@ def safe_eval_code(code_str: str, inp_grid: list[list[int]]) -> list[list[int]] 
         signal.alarm(0)
     return None
 
-async def synthesize_with_local_qwen(client: httpx.AsyncClient, task_id: str, task: dict) -> str | None:
+
+async def synthesize_with_local_qwen(
+    client: httpx.AsyncClient, task_id: str, task: dict
+) -> str | None:
     train_pairs_text = ""
     for idx, p in enumerate(task.get("train", [])):
-        train_pairs_text += f"\nExample {idx+1}:\nInput: {p.get('input')}\nOutput: {p.get('output')}\n"
+        train_pairs_text += (
+            f"\nExample {idx + 1}:\nInput: {p.get('input')}\nOutput: {p.get('output')}\n"
+        )
 
     prompt = f"""You are an ARC-AGI Python Solver. Write a Python function `def transform(grid):` that converts the input grids to the output grids.
 
@@ -72,7 +85,7 @@ Provide the complete python implementation inside a ```python ``` block.
         "model": "gpt-oss-20b",
         "messages": [{"role": "user", "content": prompt}],
         "temperature": 0.1,
-        "max_tokens": 16384
+        "max_tokens": 16384,
     }
 
     try:
@@ -90,10 +103,11 @@ Provide the complete python implementation inside a ```python ``` block.
                 lines = [l for l in full_text.split("\n") if l.strip()]
                 idx = next((i for i, l in enumerate(lines) if "def transform" in l), None)
                 if idx is not None:
-                    return "\n".join(lines[idx:idx+25]).strip()
+                    return "\n".join(lines[idx : idx + 25]).strip()
     except Exception as e:
         logger.warning("Local inference call failed for task %s: %s", task_id, e)
     return None
+
 
 async def main():
     print("\n" + "=" * 115)
@@ -111,7 +125,9 @@ async def main():
 
     # Select 5 target challenging tasks that failed simple DSL
     target_task_ids = ["007bbfb7", "00d62c1b", "017c7c7b", "025d127b", "045e512c"]
-    logger.info("Evaluating %d challenging target tasks with local Qwen model...", len(target_task_ids))
+    logger.info(
+        "Evaluating %d challenging target tasks with local Qwen model...", len(target_task_ids)
+    )
 
     solved_count = 0
     async with httpx.AsyncClient(timeout=900.0) as client:
@@ -151,8 +167,11 @@ async def main():
                 print(f"• Task [{tid}] ({dt}s) -> ❌ Train Verification Failed")
 
     print("\n" + "-" * 115)
-    print(f"🏆 Local Inference Gap Filler Run Complete: {solved_count} / {len(target_task_ids)} Target Tasks Solved")
+    print(
+        f"🏆 Local Inference Gap Filler Run Complete: {solved_count} / {len(target_task_ids)} Target Tasks Solved"
+    )
     print("=" * 115 + "\n")
+
 
 if __name__ == "__main__":
     asyncio.run(main())

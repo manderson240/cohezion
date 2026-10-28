@@ -88,7 +88,10 @@ async def evaluate_checkpoint(client: httpx.AsyncClient, cp: dict[str, str]) -> 
             json={
                 "model": "Qwen3-Coder-30B-A3B-Instruct-GGUF",
                 "messages": [
-                    {"role": "system", "content": "You are a Principal Systems Engineer and V-Model Quality Architect."},
+                    {
+                        "role": "system",
+                        "content": "You are a Principal Systems Engineer and V-Model Quality Architect.",
+                    },
                     {"role": "user", "content": cp["prompt"]},
                 ],
                 "max_tokens": 800,
@@ -152,7 +155,9 @@ async def main_async() -> None:
         tasks = [evaluate_checkpoint(client, cp) for cp in VMODEL_CHECKPOINTS]
         results = await asyncio.gather(*tasks, return_exceptions=False)
 
-    out_file = Path("/home/mike-anderson/dev/cohezion/docs/research/vmodel_compound_engineering_sweep_report.md")
+    out_file = Path(
+        "/home/mike-anderson/dev/cohezion/docs/research/vmodel_compound_engineering_sweep_report.md"
+    )
     out_file.parent.mkdir(parents=True, exist_ok=True)
 
     md = [
@@ -168,7 +173,9 @@ async def main_async() -> None:
 
     for r in results:
         md.append(f"## 📐 {r['phase']}")
-        md.append(f"**Target Focus**: `{r['focus']}` | **Code Path**: [`{r['code_path']}`](file:///home/mike-anderson/dev/cohezion/{r['code_path']})")
+        md.append(
+            f"**Target Focus**: `{r['focus']}` | **Code Path**: [`{r['code_path']}`](file:///home/mike-anderson/dev/cohezion/{r['code_path']})"
+        )
         md.append(f"**Evaluator**: `{r['evaluator']}` | **Audit Latency**: `{r['latency_s']}s`")
         md.append("")
         md.append(r["analysis"])

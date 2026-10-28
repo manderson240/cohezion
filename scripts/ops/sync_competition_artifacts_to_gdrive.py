@@ -11,8 +11,11 @@ import os
 import shutil
 import time
 
-logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] [GDRIVE_SYNC] %(message)s")
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s [%(levelname)s] [GDRIVE_SYNC] %(message)s"
+)
 logger = logging.getLogger("gdrive_sync")
+
 
 def main():
     print("\n" + "=" * 90)
@@ -26,7 +29,7 @@ def main():
         "local_multiperspective_adversarial_simulation_review.md",
         "large_scale_local_simulation_report.md",
         "local_inference_competition_rules_compliance_audit.md",
-        "ollama_cloud_grand_improvements_compendium.md"
+        "ollama_cloud_grand_improvements_compendium.md",
     ]
 
     archived_count = 0
@@ -47,9 +50,12 @@ def main():
             print(f"  ✓ Synced `{item}` ({sz / 1024:.1f} KB) -> Google Drive Archive")
 
     print("\n" + "-" * 90)
-    print(f"• Total Research Artifacts Synced : {archived_count} files ({total_bytes / 1024:.1f} KB)")
+    print(
+        f"• Total Research Artifacts Synced : {archived_count} files ({total_bytes / 1024:.1f} KB)"
+    )
     print(f"• Local Storage Protected         : 386.6 GB free on NVMe")
     print("=" * 90 + "\n")
+
 
 if __name__ == "__main__":
     main()

@@ -21,19 +21,20 @@ HARVEST_TASKS = [
     (
         "DeepSeek-Qwen3-8B-GGUF",
         "Sheaf Cohomology & Topology",
-        "Formulate how 0-th Cech cohomology Laplacians eliminate semantic consensus drift across distributed agent swarms in 2 dense mathematical sentences."
+        "Formulate how 0-th Cech cohomology Laplacians eliminate semantic consensus drift across distributed agent swarms in 2 dense mathematical sentences.",
     ),
     (
         "Gemma-4-E4B-it-GGUF",
         "Ken Shoulders EVOs & Plasma Physics",
-        "Explain how Ken Shoulders 1.0 um Toroidal Exotic Vacuum Objects achieve charge stabilization via Bohr-Coulomb dielectric shielding in 2 dense sentences."
+        "Explain how Ken Shoulders 1.0 um Toroidal Exotic Vacuum Objects achieve charge stabilization via Bohr-Coulomb dielectric shielding in 2 dense sentences.",
     ),
     (
         "gpt-oss-20b-mxfp4-GGUF",
         "AutoHarness & Formal Verifiers",
-        "State why zero-cost AST bytecode compilers bypass LLM inference calls with 0.00 ms latency during agentic action verification in 2 concise sentences."
-    )
+        "State why zero-cost AST bytecode compilers bypass LLM inference calls with 0.00 ms latency during agentic action verification in 2 concise sentences.",
+    ),
 ]
+
 
 async def run_sequential_harvest():
     enricher = SequentialModelEnricher()
@@ -51,7 +52,9 @@ async def run_sequential_harvest():
             print(f"  ⚠️ Harvest skipped or failed for {model}")
 
     print("\n" + "=" * 105)
-    print(f"🎉 SEQUENTIAL ENRICHMENT HARVEST COMPLETED ({len(enricher.insights)} Insights Ingested)!")
+    print(
+        f"🎉 SEQUENTIAL ENRICHMENT HARVEST COMPLETED ({len(enricher.insights)} Insights Ingested)!"
+    )
     print("=" * 105 + "\n")
 
     # Persist summary
@@ -63,8 +66,11 @@ async def run_sequential_harvest():
         for ins in enricher.insights:
             f.write(f"### Model: `{ins.model_name}` | Domain: `{ins.domain}`\n")
             f.write(f"- **Prompt**: {ins.prompt}\n")
-            f.write(f"- **Synthesis** ({ins.duration_sec}s):\n\n> {ins.synthesized_insight}\n\n---\n\n")
+            f.write(
+                f"- **Synthesis** ({ins.duration_sec}s):\n\n> {ins.synthesized_insight}\n\n---\n\n"
+            )
     logger.info("Saved enrichment harvest report to %s", summary_path)
+
 
 if __name__ == "__main__":
     asyncio.run(run_sequential_harvest())

@@ -15,15 +15,16 @@ SURREAL_HEADERS = {
     "surreal-ns": "cohezion",
     "surreal-db": "main",
     "Authorization": "Basic cm9vdDpyb290",
-    "Content-Type": "text/plain"
+    "Content-Type": "text/plain",
 }
+
 
 def parse_prime_skill(path: str) -> dict:
     with open(path, "r", encoding="utf-8") as f:
         content = f.read()
 
     name = os.path.basename(path).replace(".md", "")
-    
+
     # Extract Domain
     domain_match = re.search(r"## DOMAIN EXPERTISE\s+([^\n#]+)", content)
     domain = domain_match.group(1).strip() if domain_match else f"Domain expertise for {name}"
@@ -39,8 +40,9 @@ def parse_prime_skill(path: str) -> dict:
         "concepts": concepts,
         "body": content[:2500],
         "path": path,
-        "updated_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
+        "updated_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
     }
+
 
 async def sync_skills():
     print("\n" + "=" * 105)
@@ -56,13 +58,13 @@ async def sync_skills():
         for fpath in skill_files:
             skill = parse_prime_skill(fpath)
             upsert_sql = f"""
-            UPSERT {skill['id']} CONTENT {{
-                name: {repr(skill['name'])},
-                domain: {repr(skill['domain'])},
-                concepts: {repr(skill['concepts'])},
-                body: {repr(skill['body'])},
-                path: {repr(skill['path'])},
-                updated_at: {repr(skill['updated_at'])}
+            UPSERT {skill["id"]} CONTENT {{
+                name: {repr(skill["name"])},
+                domain: {repr(skill["domain"])},
+                concepts: {repr(skill["concepts"])},
+                body: {repr(skill["body"])},
+                path: {repr(skill["path"])},
+                updated_at: {repr(skill["updated_at"])}
             }};
             """
             r = await client.post(SURREAL_URL, headers=SURREAL_HEADERS, content=upsert_sql)
@@ -90,6 +92,7 @@ async def sync_skills():
 
     print("\n" + "=" * 105)
     print("🎉 ALL SKILL GAPS FULLY FILLED, INDEXED, AND SYNCHRONIZED!\n")
+
 
 if __name__ == "__main__":
     asyncio.run(sync_skills())

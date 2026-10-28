@@ -15,7 +15,9 @@ import json
 import logging
 import os
 
-logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] [ROUTING_AUDIT] %(message)s")
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s [%(levelname)s] [ROUTING_AUDIT] %(message)s"
+)
 logger = logging.getLogger("routing_audit")
 
 MODEL_TASK_MAPPING = [
@@ -24,30 +26,31 @@ MODEL_TASK_MAPPING = [
         "assigned_model": "DeepSeek-R1-8B (NPU) / DeepSeek-V4 Pro (Cloud)",
         "context_window": "40,960 tokens",
         "recommended_max_tokens": 8192,
-        "rationale": "Thinking models output 3,000 - 6,000 tokens of internal reasoning before emitting final formulas. Constraining to 150-512 truncates the thinking block."
+        "rationale": "Thinking models output 3,000 - 6,000 tokens of internal reasoning before emitting final formulas. Constraining to 150-512 truncates the thinking block.",
     },
     {
         "task_class": "2. Python Code Generation & ARC Invariant Synthesis",
         "assigned_model": "Qwen3-Coder-30B (iGPU / Vulkan)",
         "context_window": "32,768 tokens",
         "recommended_max_tokens": 4096,
-        "rationale": "Full Python functions with edge-case handling require 1,024 - 2,048 tokens."
+        "rationale": "Full Python functions with edge-case handling require 1,024 - 2,048 tokens.",
     },
     {
         "task_class": "3. Tokenized Macro DSL Planning",
         "assigned_model": "qwen3.6-moe-35b-a3b-FLM (NPU) / gpt-oss-20b (iGPU)",
         "context_window": "16,384 tokens",
         "recommended_max_tokens": 2048,
-        "rationale": "Allows structured chain-of-thought analysis of grid symmetries before emitting the 3-5 macro action tokens."
+        "rationale": "Allows structured chain-of-thought analysis of grid symmetries before emitting the 3-5 macro action tokens.",
     },
     {
         "task_class": "4. Multi-Perspective Adversarial Review",
         "assigned_model": "GLM-5.2 (Cloud) / Qwen3-Coder-30B (iGPU)",
         "context_window": "32,768 tokens",
         "recommended_max_tokens": 4096,
-        "rationale": "Red-team critiques need room to outline multi-step attack vectors and test cases."
-    }
+        "rationale": "Red-team critiques need room to outline multi-step attack vectors and test cases.",
+    },
 ]
+
 
 def main():
     print("\n" + "=" * 115)
@@ -70,11 +73,14 @@ def main():
         f.write("| Task Class | Model | Hardware Context | Enforced Max Tokens | Rationale |\n")
         f.write("| :--- | :--- | :--- | :--- | :--- |\n")
         for it in MODEL_TASK_MAPPING:
-            f.write(f"| {it['task_class']} | **{it['assigned_model']}** | `{it['context_window']}` | **{it['recommended_max_tokens']}** | {it['rationale']} |\n")
+            f.write(
+                f"| {it['task_class']} | **{it['assigned_model']}** | `{it['context_window']}` | **{it['recommended_max_tokens']}** | {it['rationale']} |\n"
+            )
 
     print("\n" + "=" * 115)
     print(f"📄 Audit saved to: {report_file}")
     print("=" * 115 + "\n")
+
 
 if __name__ == "__main__":
     main()

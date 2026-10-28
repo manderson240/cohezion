@@ -22,6 +22,7 @@ from cohezion.inference.smart_oom_governor import SmartOOMGovernor
 
 PROMPT = "Provide a 3-bullet technical analysis of how Cohezion can leverage Liquid AI (https://www.liquid.ai/), Liquid Foundation Models (LFM2.5), continuous-time dynamical systems, and edge-native agentic SLMs for our AMD Strix Halo NPU/iGPU architecture."
 
+
 async def run_analysis():
     print("\n" + "=" * 115)
     print("💧 LOCAL SILICON INFERENCE ANALYSIS: LIQUID AI (https://www.liquid.ai/)")
@@ -38,11 +39,9 @@ async def run_analysis():
     print(f"\n▶ [2/3] Querying Local Silicon Gateway (:13305)...")
     payload = {
         "model": "user.cohezion-hermes-router",
-        "messages": [
-            {"role": "user", "content": PROMPT}
-        ],
+        "messages": [{"role": "user", "content": PROMPT}],
         "temperature": 0.2,
-        "max_tokens": 400
+        "max_tokens": 400,
     }
     t0 = time.perf_counter()
     async with httpx.AsyncClient(timeout=60.0) as client:
@@ -54,7 +53,10 @@ async def run_analysis():
             print(f"   • Analysis Sample:\n{analysis[:250]}...\n")
 
             report_path = Path("docs/research/liquid_ai_local_inference_report.md")
-            report_path.write_text(f"# Liquid AI Technical Analysis\n\n**Source**: https://www.liquid.ai/\n**Generated via Local Silicon**: `user.cohezion-hermes-router` (:13305)\n**Execution Latency**: {dt}s | **Memory Headroom**: {avail_gib} GiB\n\n" + analysis)
+            report_path.write_text(
+                f"# Liquid AI Technical Analysis\n\n**Source**: https://www.liquid.ai/\n**Generated via Local Silicon**: `user.cohezion-hermes-router` (:13305)\n**Execution Latency**: {dt}s | **Memory Headroom**: {avail_gib} GiB\n\n"
+                + analysis
+            )
             print(f"   ✓ Saved report to `{report_path}`")
         else:
             print(f"   ❌ Error HTTP {r.status_code}: {r.text[:150]}")
@@ -76,25 +78,28 @@ async def run_analysis():
             "topic": "Liquid Foundation Models (LFM2.5)",
             "latency_sec": dt,
             "headroom_gib": avail_gib,
-            "status": "COMPLETED"
-        }
+            "status": "COMPLETED",
+        },
     )
     await event_bus.publish(ev)
 
-    persist_item({
-        "id": "liquid_ai_research_status",
-        "title": "Liquid AI & LFM2.5 Local Analysis Complete",
-        "status": "done",
-        "priority": "high",
-        "source": "liquid_ai_local_researcher",
-        "category": "frontier_research",
-        "details": f"Local silicon analysis of Liquid Foundation Models (LFM2.5) for NPU/iGPU edge deployment. Latency: {dt}s.",
-    })
+    persist_item(
+        {
+            "id": "liquid_ai_research_status",
+            "title": "Liquid AI & LFM2.5 Local Analysis Complete",
+            "status": "done",
+            "priority": "high",
+            "source": "liquid_ai_local_researcher",
+            "category": "frontier_research",
+            "details": f"Local silicon analysis of Liquid Foundation Models (LFM2.5) for NPU/iGPU edge deployment. Latency: {dt}s.",
+        }
+    )
     print("   ✓ Dual-persisted Kanban card to SurrealDB and Obsidian Vault!")
 
     print("\n" + "=" * 115)
     print("🏆 LIQUID AI LOCAL SILICON RESEARCH COMPLETE!")
     print("=" * 115 + "\n")
+
 
 if __name__ == "__main__":
     asyncio.run(run_analysis())

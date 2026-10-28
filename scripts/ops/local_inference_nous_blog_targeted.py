@@ -18,14 +18,13 @@ from cohezion.data_mesh.kanban_bridge import persist_item
 
 PROMPT = "Provide a 3-bullet technical summary of how Cohezion can leverage Hermes 4.3 (512k context), DeMo (Decentralized Momentum), and Psyche P2P training from the Nous Research Blog."
 
+
 async def run():
     payload = {
         "model": "user.cohezion-hermes-router",
-        "messages": [
-            {"role": "user", "content": PROMPT}
-        ],
+        "messages": [{"role": "user", "content": PROMPT}],
         "temperature": 0.3,
-        "max_tokens": 450
+        "max_tokens": 450,
     }
     t0 = time.perf_counter()
     async with httpx.AsyncClient(timeout=60.0) as client:
@@ -35,10 +34,14 @@ async def run():
             data = r.json()
             analysis = data["choices"][0]["message"]["content"].strip()
             print(f"Raw Output ({dt}s):\n{analysis}")
-            
+
             report_path = Path("docs/research/nous_blog_local_inference_report.md")
-            report_path.write_text(f"# Nous Research Blog Technical Analysis\n\n**Generated via Local Silicon**: `user.cohezion-hermes-router` (:13305)\n**Execution Latency**: {dt}s | **Cloud Cost**: $0.00\n\n" + analysis)
+            report_path.write_text(
+                f"# Nous Research Blog Technical Analysis\n\n**Generated via Local Silicon**: `user.cohezion-hermes-router` (:13305)\n**Execution Latency**: {dt}s | **Cloud Cost**: $0.00\n\n"
+                + analysis
+            )
             print(f"✓ Saved to `{report_path}`")
+
 
 if __name__ == "__main__":
     asyncio.run(run())

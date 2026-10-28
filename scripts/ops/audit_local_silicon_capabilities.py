@@ -16,11 +16,13 @@ import json
 import httpx
 from pathlib import Path
 
+
 def run_cmd(cmd):
     try:
         return subprocess.run(cmd, shell=True, capture_output=True, text=True).stdout.strip()
     except Exception as e:
         return f"Error: {e}"
+
 
 def main():
     print("=" * 90)
@@ -61,7 +63,9 @@ def main():
     print(f"   • AVX-512 Vector Extensions: {'✓ ENABLED' if has_avx512 else 'Not detected'}")
 
     # 4. Memory Bus & ZFS Cache
-    mem_info = run_cmd("free -h | grep Mem: | awk '{print $2, \"total,\", $3, \"used,\", $7, \"avail\"}'")
+    mem_info = run_cmd(
+        'free -h | grep Mem: | awk \'{print $2, "total,", $3, "used,", $7, "avail"}\''
+    )
     arcstats = "/proc/spl/kstat/zfs/arcstats"
     arc_hits = "N/A"
     if os.path.exists(arcstats):
@@ -81,6 +85,7 @@ def main():
     print(f"   • Image Generation        : SD-Turbo (sd-cpp / Vulkan)")
     print(f"   • Dense Embeddings        : nomic-embed-text-v2-moe-GGUF (iGPU)")
     print("=" * 90)
+
 
 if __name__ == "__main__":
     main()

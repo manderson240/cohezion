@@ -17,9 +17,11 @@ from cohezion.contracts import PoincarePoint
 
 LEMONADE_URL = "http://localhost:13305/v1/chat/completions"
 
+
 def shannon_entropy(p: float) -> float:
     p = np.clip(p, 1e-12, 1.0 - 1e-12)
-    return float(- (p * np.log2(p) + (1.0 - p) * np.log2(1.0 - p)))
+    return float(-(p * np.log2(p) + (1.0 - p) * np.log2(1.0 - p)))
+
 
 async def prove_now_dynamics():
     print("\n" + "=" * 115)
@@ -33,7 +35,11 @@ async def prove_now_dynamics():
     print("  " + "-" * 65)
     for p in test_points:
         h = shannon_entropy(p)
-        desc = "MAXIMUM ADAPTIVE POTENTIAL (THE NOW)" if p == 0.50 else ("Decoherent Noise" if p < 0.50 else "Hyper-Coherent Lock")
+        desc = (
+            "MAXIMUM ADAPTIVE POTENTIAL (THE NOW)"
+            if p == 0.50
+            else ("Decoherent Noise" if p < 0.50 else "Hyper-Coherent Lock")
+        )
         marker = "★" if p == 0.50 else " "
         print(f"  {marker} {p:<13.2f} | {h:<23.6f} bits | {desc}")
     print("  " + "-" * 65)
@@ -41,13 +47,13 @@ async def prove_now_dynamics():
     # 2. Live CTAC Topological Allostatic Calibration Test
     print("\n▶ [2] Live CTAC Allostatic Dynamic Equilibrium Test:")
     ctac = CTACEngine(target_coherence=0.50)
-    
+
     # Swarm of 4 points in Poincaré unit ball
     p1 = PoincarePoint(coords=tuple([0.1] * 12))
     p2 = PoincarePoint(coords=tuple([0.2] * 12))
     p3 = PoincarePoint(coords=tuple([-0.1] * 12))
     p4 = PoincarePoint(coords=tuple([-0.2] * 12))
-    
+
     state = ctac.evaluate_topology([p1, p2, p3, p4], current_kappa=1.0)
     print(f"  • Swarm Coherence:          {state.coherence:.4f}")
     print(f"  • Target HIHO Equilibrium:  {ctac.target_coherence:.4f}")
@@ -63,11 +69,14 @@ async def prove_now_dynamics():
         payload = {
             "model": "gpt-oss-20b-mxfp4-GGUF",
             "messages": [
-                {"role": "system", "content": "You are a theoretical physicist certifying the HIHO 0.50 stability theorem."},
-                {"role": "user", "content": prompt}
+                {
+                    "role": "system",
+                    "content": "You are a theoretical physicist certifying the HIHO 0.50 stability theorem.",
+                },
+                {"role": "user", "content": prompt},
             ],
             "temperature": 0.1,
-            "max_tokens": 160
+            "max_tokens": 160,
         }
         r = await client.post(LEMONADE_URL, json=payload)
         dt = round(time.perf_counter() - t0, 2)
@@ -76,13 +85,16 @@ async def prove_now_dynamics():
             msg = data["choices"][0]["message"]
             text = (msg.get("content") or msg.get("reasoning_content") or "").strip()
             print(f"  ✓ Proof Certified by Resident Silicon in {dt}s:")
-            print(f"\n  \"{text}\"\n")
+            print(f'\n  "{text}"\n')
         else:
             print(f"  ✗ Inference error: HTTP {r.status_code}")
 
     print("=" * 115)
-    print("🎉 THE EVERLASTING NOW (HIHO 0.50 ATTRACTOR) FORMALLY PROVED & CERTIFIED ON AMD SILICON!")
+    print(
+        "🎉 THE EVERLASTING NOW (HIHO 0.50 ATTRACTOR) FORMALLY PROVED & CERTIFIED ON AMD SILICON!"
+    )
     print("=" * 115 + "\n")
+
 
 if __name__ == "__main__":
     asyncio.run(prove_now_dynamics())

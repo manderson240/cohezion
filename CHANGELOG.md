@@ -7,6 +7,37 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added — The Trinity RSI, RRSI Regularization, and ROCm 7.2 Integration (1.28.0)
+- `src/cohezion/agi/trinity_engine.py`: Implemented The Trinity RSI engine (arXiv:2610.36077)
+  featuring capability-driven decomposition via canonical prefix `CapabilityTree`, Real2Sim2Real
+  micro-environments (`create_sim_world`), and Selective Inheritance ($P \oplus L$) with monotonic
+  empirical gating.
+- `src/cohezion/agi/rrsi_engine.py`: Implemented Regularized Recursive Self-Improvement
+  (arXiv:2609.24972) featuring proposal-side budget annealing ($b_t$), pre-eval critic screening,
+  noise-adjusted cost-gated selection, and dormancy pruning. Empirically demonstrated -44.47% policy
+  token reduction in `scripts/dogfood_rrsi_optimization.py` (Learning 435).
+- `src/cohezion/knowledge_graph/open_ontologies_bridge.py`: Implemented semantic dependency graph
+  analysis, BFO/BORO 4D spatio-temporal extents, blast radius calculation, and linear-time
+  `DerivationCertificate` verification gating CI landings via `scripts/ci/semantic_guard.py`.
+- `src/cohezion/eval/rsi_health_evaluator.py`: Implemented master evaluative metric $\Psi$ tracking
+  multi-session compounding improvement, exploration ratios, gate stability, and drift rates.
+- `src/cohezion/inference/quark_quantizer.py`: Implemented AMD Quark quantizer wrapper supporting
+  W4A16, FP8, and MXFP4 quantization with online Hadamard rotations and SmoothQuant on Strix Halo
+  (`gfx1151`, Radeon 8060S, 128GB UMA).
+- `scripts/ci/autoharness_gate.py`: Added zero-latency deterministic AST verification gate in CI
+  blocking eval/exec injection, bare excepts, and CWE-682 unit inconsistencies.
+- `scripts/ci/semantic_guard.py`: Added CI blast radius and Horn closure semantic gate.
+- `tests/unit/test_trinity_engine.py`, `tests/unit/test_rrsi_engine.py`,
+  `tests/unit/test_rsi_health_evaluator.py`, `tests/unit/test_open_ontologies_bridge.py`,
+  `tests/unit/test_strix_halo_rocm.py`: 22 unit tests validating all new engines.
+
+### Changed — ROCm 7.2.1 and Strix Halo Telemetry (1.28.0)
+- `src/cohezion/inference/hardware_telemetry.py`: Upgraded from legacy `rocm-smi` to native
+  ROCm 7.x `amd-smi metric --json`, extracting real-time GPU core temperature and live GTT
+  pool memory (98,304 MB aperture).
+- `scripts/preflight_fleet.sh` and `scripts/recover_fleet.sh`: Modernized preflight and recovery
+  checks to detect and report `amd-smi` state.
+
 ## [1.27.1] - 2026-09-27
 
 ### Performance — Lazy package facades (dynamic modularity audit R1/R2)

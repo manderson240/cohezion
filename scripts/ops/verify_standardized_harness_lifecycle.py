@@ -4,13 +4,16 @@
 import asyncio
 from cohezion.actioner.autoharness_middleware import standard_harness_lifecycle
 
+
 @standard_harness_lifecycle("Async_Verification_Harness", require_fleetlock=False)
 async def sample_async_operation():
     return {"status": "SUCCESS", "zkfv_score": 1.0}
 
+
 @standard_harness_lifecycle("Sync_Verification_Harness", require_fleetlock=False)
 def sample_sync_operation():
     return {"status": "SUCCESS", "ast_score": 1.0}
+
 
 async def run_verification():
     print("\n" + "=" * 110)
@@ -32,6 +35,7 @@ async def run_verification():
     print("=" * 110)
     print("🎉 ALL HARNESSES STANDARDIZED UNDER UNIFIED LIFECYCLE!")
     print("=" * 110 + "\n")
+
 
 if __name__ == "__main__":
     asyncio.run(run_verification())

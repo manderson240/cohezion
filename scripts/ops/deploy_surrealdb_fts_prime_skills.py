@@ -15,15 +15,16 @@ SURREAL_HEADERS = {
     "surreal-ns": "cohezion",
     "surreal-db": "main",
     "Authorization": "Basic cm9vdDpyb290",
-    "Content-Type": "text/plain"
+    "Content-Type": "text/plain",
 }
+
 
 def parse_prime_skill(path: str) -> dict:
     with open(path, "r", encoding="utf-8") as f:
         content = f.read()
 
     name = os.path.basename(path).replace(".md", "")
-    
+
     # Extract Domain Expertise
     domain_match = re.search(r"## DOMAIN EXPERTISE\s+([^\n#]+)", content)
     domain = domain_match.group(1).strip() if domain_match else ""
@@ -39,8 +40,9 @@ def parse_prime_skill(path: str) -> dict:
         "concepts": concepts,
         "body": content[:2000],  # First 2k chars for indexing
         "path": path,
-        "updated_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
+        "updated_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
     }
+
 
 async def deploy_fts_and_ingest():
     print("\n" + "=" * 105)
@@ -74,13 +76,13 @@ async def deploy_fts_and_ingest():
         for fpath in skill_files:
             skill_data = parse_prime_skill(fpath)
             upsert_sql = f"""
-            UPSERT {skill_data['id']} CONTENT {{
-                name: {repr(skill_data['name'])},
-                domain: {repr(skill_data['domain'])},
-                concepts: {repr(skill_data['concepts'])},
-                body: {repr(skill_data['body'])},
-                path: {repr(skill_data['path'])},
-                updated_at: {repr(skill_data['updated_at'])}
+            UPSERT {skill_data["id"]} CONTENT {{
+                name: {repr(skill_data["name"])},
+                domain: {repr(skill_data["domain"])},
+                concepts: {repr(skill_data["concepts"])},
+                body: {repr(skill_data["body"])},
+                path: {repr(skill_data["path"])},
+                updated_at: {repr(skill_data["updated_at"])}
             }};
             """
             r = await client.post(SURREAL_URL, headers=SURREAL_HEADERS, content=upsert_sql)
@@ -91,7 +93,9 @@ async def deploy_fts_and_ingest():
         print(f"  ✓ Ingested and indexed {ingest_count} skills into SurrealDB in {dt}s")
 
         # 3. Test BM25 Full-Text Search Query
-        print("\n▶ [3] Testing BM25 Full-Text Search Retrieval for 'Hyperbolic Poincaré Topology'...")
+        print(
+            "\n▶ [3] Testing BM25 Full-Text Search Retrieval for 'Hyperbolic Poincaré Topology'..."
+        )
         search_sql = """
         SELECT id, name, domain, search::score(1) AS relevance
         FROM skill
@@ -104,10 +108,13 @@ async def deploy_fts_and_ingest():
             res_data = r.json()
             hits = res_data[0].get("result", []) if res_data else []
             for hit in hits:
-                print(f"  • [{hit.get('relevance', 0.0):.4f}] {hit.get('name')}: {hit.get('domain')[:80]}...")
+                print(
+                    f"  • [{hit.get('relevance', 0.0):.4f}] {hit.get('name')}: {hit.get('domain')[:80]}..."
+                )
 
     print("\n" + "=" * 105)
     print("🎉 SURREALDB BM25 FULL-TEXT SEARCH OFFICIALLY OPERATIONAL FOR PRIME SKILLS!\n")
+
 
 if __name__ == "__main__":
     asyncio.run(deploy_fts_and_ingest())

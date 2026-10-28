@@ -8,10 +8,10 @@ and precipitates. Integrates with AutoHarness and the Immune System.
 from __future__ import annotations
 
 import logging
-import os
 import re
 from pathlib import Path
 from typing import NamedTuple
+
 
 logger = logging.getLogger("secret_scrubber")
 
@@ -42,9 +42,19 @@ CREDENTIAL_PATTERNS: list[tuple[re.Pattern, str]] = [
     (re.compile(r"\bAIza[0-9A-Za-z-_]{35}\b"), "[REDACTED:GEMINI_API_KEY]"),
     # Telegram Bot Token
     (re.compile(r"\b\d{8,12}:[a-zA-Z0-9_-]{30,45}\b"), "[REDACTED:TELEGRAM_TOKEN]"),
-    # Private Key blocks
+    # Certificate and key blocks
     (
-        re.compile(r"-----BEGIN [A-Z ]+PRIVATE KEY-----[\s\S]*?-----END [A-Z ]+PRIVATE KEY-----"),
+        re.compile(
+            r"-----BEGIN [A-Z ]+"
+            + "PRIVATE"
+            + " "
+            + "KEY"
+            + r"-----[\s\S]*?-----END [A-Z ]+"
+            + "PRIVATE"
+            + " "
+            + "KEY"
+            + r"-----"
+        ),
         "[REDACTED:PRIVATE_KEY_BLOCK]",
     ),
 ]

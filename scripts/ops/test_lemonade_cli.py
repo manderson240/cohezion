@@ -8,6 +8,7 @@ and hardware acceleration parameters.
 import subprocess
 import time
 
+
 def run_cmd(cmd: list[str]):
     print(f"▶ Running: {' '.join(cmd)}")
     t0 = time.perf_counter()
@@ -15,10 +16,17 @@ def run_cmd(cmd: list[str]):
     dt = time.perf_counter() - t0
     print(f"  Exit code: {res.returncode} (Duration: {dt:.2f}s)")
     if res.stdout:
-        print("  Stdout:\n" + "\n".join(["    " + line for line in res.stdout.strip().split("\n")[:10]]))
+        print(
+            "  Stdout:\n"
+            + "\n".join(["    " + line for line in res.stdout.strip().split("\n")[:10]])
+        )
     if res.stderr:
-        print("  Stderr:\n" + "\n".join(["    " + line for line in res.stderr.strip().split("\n")[:5]]))
+        print(
+            "  Stderr:\n"
+            + "\n".join(["    " + line for line in res.stderr.strip().split("\n")[:5]])
+        )
     print()
+
 
 def main():
     print("=" * 80)
@@ -27,7 +35,7 @@ def main():
 
     # 1. Lemonade status / version
     run_cmd(["lemonade", "--version"])
-    
+
     # 2. Show active models on port 13305
     run_cmd(["lemonade", "list", "--downloaded-only"])
 
@@ -35,6 +43,7 @@ def main():
     run_cmd(["lemonade", "show", "Gemma-4-E4B-it-GGUF"])
 
     print("=" * 80)
+
 
 if __name__ == "__main__":
     main()

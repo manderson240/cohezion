@@ -32,6 +32,9 @@ class PooledModel:
     size_gb: float
     loaded: bool = False
     healthy: bool = False
+    # Resident backend lane: 'npu' | 'igpu' | 'cpu' (cloud/edge keep a label of
+    # their own). Stamped from fabric.backend_for_model by the pool manager.
+    backend: str = "igpu"
     last_used: float = 0.0  # 0 = never used, deterministic eviction ordering
     error_count: int = 0
     avg_latency_ms: float = 0.0
@@ -76,6 +79,14 @@ class TierConfig(BaseModel):
         "openai/gpt-oss-20b",
     ]
     max_concurrent_loaded: int = 4
+    # Per-backend residency caps (NPU SRAM fits more residents than iGPU/CPU).
+    # A backend missing from the dict is uncapped; an explicit 0 refuses all
+    # loads for that backend (deliberate kill switch, not a default).
+    per_backend_max_resident: dict[str, int] = {
+        "npu": 5,
+        "igpu": 2,
+        "cpu": 3,
+    }
     health_check_interval_s: float = 300.0
     memory_pressure_threshold: float = 0.80
     promotion_threshold_calls: int = 10

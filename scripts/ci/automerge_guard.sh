@@ -157,6 +157,17 @@ step "ruff debt ratchet" uv run python scripts/ci/ruff_ratchet.py
 step "mypy ratchet self-test" uv run python scripts/ci/mypy_ratchet.py --self-test
 step "mypy debt ratchet" uv run python scripts/ci/mypy_ratchet.py
 
+# Step 3c: AutoHarness AST policy gate (arXiv:2603.03329v1).
+# Catches eval/exec injection, bare excepts, and CWE-682 unit mismatches at 0ms latency.
+# --self-test FIRST: proves the gate can go RED before trusting GREEN.
+step "autoharness gate self-test" uv run python scripts/ci/autoharness_gate.py --self-test
+step "autoharness policy gate" uv run python scripts/ci/autoharness_gate.py
+
+# Step 3d: Semantic blast radius guard (Open Ontologies / BORO 4D).
+# Verifies zero-trust derivation certificates and Horn closure invariants.
+step "semantic guard self-test" uv run python scripts/ci/semantic_guard.py --self-test
+step "semantic blast radius guard" uv run python scripts/ci/semantic_guard.py
+
 
 # Step 4: Unit tests (gating)
 step "unit tests" uv run pytest tests/unit/ -q --tb=short -p no:warnings

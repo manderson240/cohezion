@@ -159,7 +159,12 @@ def initialize_cohezion_environment() -> bool:
             # unnoticed because the skip was reported as success.
             try:
                 if not os.environ.get("COHEZION_NON_INTERACTIVE"):
-                    print(f"[COHEZION_INIT_SKIP] tdd_adversarial unavailable: {exc}")
+                    # stderr, never stdout: this module is imported by stdio MCP
+                    # servers, where stdout IS the JSON-RPC channel.
+                    print(
+                        f"[COHEZION_INIT_SKIP] tdd_adversarial unavailable: {exc}",
+                        file=sys.stderr,
+                    )
             except Exception:
                 pass  # Even error reporting failed, continue silently
             return True  # Consider it "initialized" by skipping
@@ -268,11 +273,15 @@ def initialize_cohezion_environment() -> bool:
             with open(log_dir / "universal_init.log", "a") as f:
                 f.write(f"{init_msg}\n")
         except Exception:
-            # Final fallback to stdout (visible in most environments)
-            # Only print if we're likely in an interactive environment
+            # Final fallback to stderr (visible in most environments).
+            # MUST NOT be stdout: this module is imported by stdio MCP servers,
+            # where stdout is the JSON-RPC message channel -- a banner printed
+            # there corrupts the protocol stream and the client rejects the
+            # handshake. The fallback fires whenever cwd is not writable, so the
+            # breakage is cwd-dependent and looks intermittent.
             try:
                 if not os.environ.get("COHEZION_NON_INTERACTIVE"):
-                    print(init_msg)
+                    print(init_msg, file=sys.stderr)
             except Exception:
                 pass  # Even error reporting failed, continue silently
 
@@ -286,7 +295,7 @@ def initialize_cohezion_environment() -> bool:
             # Only print error if we're likely in an interactive environment
             try:
                 if not os.environ.get("COHEZION_NON_INTERACTIVE"):
-                    print(error_msg)
+                    print(error_msg, file=sys.stderr)
             except Exception:
                 pass  # Even error reporting failed, continue silently
         except Exception:

@@ -6,11 +6,15 @@ import logging
 import time
 from cohezion.competitions.arc.dsl_synthesizer import ARCDSLSynthesizer
 from cohezion.competitions.arc.advanced_grid_reasoner import (
-    extract_subgrid_by_indicator, extract_most_frequent_subgrid_pattern
+    extract_subgrid_by_indicator,
+    extract_most_frequent_subgrid_pattern,
 )
 
-logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] [ARC_BENCHMARK] %(message)s")
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s [%(levelname)s] [ARC_BENCHMARK] %(message)s"
+)
 logger = logging.getLogger("arc_benchmark")
+
 
 def dynamic_solve_task(task: dict, synth: ARCDSLSynthesizer) -> list[list[int]]:
     train = task.get("train", [])
@@ -30,6 +34,7 @@ def dynamic_solve_task(task: dict, synth: ARCDSLSynthesizer) -> list[list[int]]:
 
     # 2. Standard 2-Depth Symbolic DSL Synthesis
     return synth.synthesize(task)
+
 
 def main():
     print("\n" + "=" * 105)
@@ -62,9 +67,10 @@ def main():
     dt = time.perf_counter() - t0
     print("\n" + "-" * 105)
     print(f"• Total Tasks Tested : {total}")
-    print(f"• Exact Ground Truth : {solved} / {total} ({(solved/total)*100:.2f}%)")
-    print(f"• Runtime Duration   : {dt:.2f}s ({total/dt:.1f} tasks/sec)")
+    print(f"• Exact Ground Truth : {solved} / {total} ({(solved / total) * 100:.2f}%)")
+    print(f"• Runtime Duration   : {dt:.2f}s ({total / dt:.1f} tasks/sec)")
     print("=" * 105 + "\n")
+
 
 if __name__ == "__main__":
     main()

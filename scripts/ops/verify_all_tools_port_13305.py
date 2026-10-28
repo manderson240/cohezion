@@ -16,6 +16,7 @@ from pathlib import Path
 
 LEMONADE_PORT_13305 = "http://localhost:13305"
 
+
 async def test_port_13305_readiness():
     print("=" * 90)
     print("🔌 VERIFYING LEMONADE PORT 13305 CONSOLIDATION ACROSS ALL SOVEREIGN TOOLS")
@@ -28,7 +29,9 @@ async def test_port_13305_readiness():
             if resp.status_code == 200:
                 data = resp.json()
                 models = [m.get("id") for m in data.get("data", [])]
-                print(f"✓ Port 13305 Active & Healthy! Available models ({len(models)}): {models[:8]}")
+                print(
+                    f"✓ Port 13305 Active & Healthy! Available models ({len(models)}): {models[:8]}"
+                )
             else:
                 print(f"⚠️ Port 13305 returned status: {resp.status_code}")
         except Exception as e:
@@ -41,9 +44,9 @@ async def test_port_13305_readiness():
                 json={
                     "model": "gpt-oss-20b-mxfp4-GGUF",
                     "messages": [{"role": "user", "content": "Respond with: PORT_13305_VERIFIED"}],
-                    "max_tokens": 20
+                    "max_tokens": 20,
                 },
-                timeout=15.0
+                timeout=15.0,
             )
             print(f"✓ Port 13305 Chat Completion Status: {chat_resp.status_code}")
             if chat_resp.status_code == 200:
@@ -52,6 +55,7 @@ async def test_port_13305_readiness():
             print(f"Notice during port 13305 chat test: {e}")
 
     print("=" * 90)
+
 
 if __name__ == "__main__":
     asyncio.run(test_port_13305_readiness())

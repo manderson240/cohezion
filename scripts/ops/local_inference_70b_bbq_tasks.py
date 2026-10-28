@@ -31,6 +31,7 @@ Under our Core Principle 'Leave plenty of time for the fat to render' (Learning 
 Provide a structured, deep breakdown with concrete execution recipes for each task.
 """
 
+
 async def run():
     print("\n" + "=" * 115)
     print("🥩 'LOW AND SLOW BBQ' 70B LOCAL MODEL AUTONOMOUS TASK SUITE (LOCAL SILICON)")
@@ -44,15 +45,17 @@ async def run():
     print(f"   • 70B Q4_K_M Footprint: ~42.0 GiB (Leaves >45.0 GiB headroom)")
 
     # 2. Local Silicon Inference Call (:13305)
-    print(f"\n▶ [2/3] Dispatching to Local Silicon Router `user.cohezion-hermes-router` (:13305)...")
+    print(
+        f"\n▶ [2/3] Dispatching to Local Silicon Router `user.cohezion-hermes-router` (:13305)..."
+    )
     payload = {
         "model": "user.cohezion-hermes-router",
         "messages": [
             {"role": "system", "content": "You are an elite frontier AGI systems engineer."},
-            {"role": "user", "content": PROMPT}
+            {"role": "user", "content": PROMPT},
         ],
         "temperature": 0.2,
-        "max_tokens": 1400
+        "max_tokens": 1400,
     }
     t0 = time.perf_counter()
     async with httpx.AsyncClient(timeout=180.0) as client:
@@ -61,12 +64,15 @@ async def run():
         data = r.json()
         msg = data["choices"][0]["message"]
         analysis = msg.get("content") or msg.get("reasoning_content") or ""
-        
+
         print(f"   ✓ Local Silicon Responded in {dt}s!")
         print(f"   • Output Sample:\n{analysis[:250]}...\n")
 
         report_path = Path("docs/research/low_and_slow_70b_bbq_tasks_report.md")
-        report_path.write_text(f"# 'Low and Slow BBQ' 70B Parameter Autonomous Tasks\n\n**Generated via Local Silicon**: `user.cohezion-hermes-router` (:13305)\n**Execution Latency**: {dt}s | **Headroom**: {avail_gib} GiB | **Cloud Cost**: $0.00\n\n" + analysis)
+        report_path.write_text(
+            f"# 'Low and Slow BBQ' 70B Parameter Autonomous Tasks\n\n**Generated via Local Silicon**: `user.cohezion-hermes-router` (:13305)\n**Execution Latency**: {dt}s | **Headroom**: {avail_gib} GiB | **Cloud Cost**: $0.00\n\n"
+            + analysis
+        )
         print(f"   ✓ Saved comprehensive report to `{report_path}`")
 
     # 3. Publish to EventBus DataMesh
@@ -85,25 +91,28 @@ async def run():
             "model_used": "user.cohezion-hermes-router",
             "latency_sec": dt,
             "headroom_gib": avail_gib,
-            "status": "COMPLETED"
-        }
+            "status": "COMPLETED",
+        },
     )
     await event_bus.publish(ev)
 
-    persist_item({
-        "id": "70b_bbq_tasks_roadmap",
-        "title": "'Low and Slow BBQ' 70B Local Autonomous Tasks Roadmap",
-        "status": "done",
-        "priority": "high",
-        "source": "local_silicon_bbq_planner",
-        "category": "long_horizon_planning",
-        "details": f"Formulated 5 high-impact overnight BBQ tasks for 70B local models (DeepSeek-R1-70B, Qwen-72B). Latency: {dt}s.",
-    })
+    persist_item(
+        {
+            "id": "70b_bbq_tasks_roadmap",
+            "title": "'Low and Slow BBQ' 70B Local Autonomous Tasks Roadmap",
+            "status": "done",
+            "priority": "high",
+            "source": "local_silicon_bbq_planner",
+            "category": "long_horizon_planning",
+            "details": f"Formulated 5 high-impact overnight BBQ tasks for 70B local models (DeepSeek-R1-70B, Qwen-72B). Latency: {dt}s.",
+        }
+    )
     print("   ✓ Dual-persisted Kanban card to SurrealDB and Obsidian Vault!")
 
     print("\n" + "=" * 115)
     print("🏆 'LOW AND SLOW BBQ' 70B TASK SUITE FORMULATED SUCCESSFULLY!")
     print("=" * 115 + "\n")
+
 
 if __name__ == "__main__":
     asyncio.run(run())

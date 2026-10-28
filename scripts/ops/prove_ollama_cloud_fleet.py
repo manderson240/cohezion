@@ -13,26 +13,77 @@ import time
 from dataclasses import dataclass
 import httpx
 
-logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] [CLOUD_PROOF] %(message)s")
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s [%(levelname)s] [CLOUD_PROOF] %(message)s"
+)
 logger = logging.getLogger("cloud_proof")
 
 OLLAMA_BASE = "http://localhost:11434"
 
 TEST_FLEET = [
-    ("deepseek-v4-pro:cloud", "1.6T Reasoning", "State the core invariant of Sheaf Cohomology restriction maps in 1 sentence."),
-    ("kimi-k3:cloud", "Deep Planning", "Outline a 3-step autonomous recovery plan for an OOM-faulted agent loop in 1 sentence."),
-    ("qwen3.5:397b-cloud", "397B Coding", "Write a Python lambda that checks if a 12D state vector norm is < 1.0 in 1 line."),
-    ("kimi-k2.7-code:cloud", "Code Tools", "Define the AST node type for a Python function call in 1 sentence."),
-    ("glm-5.2:cloud", "Frontier Multimodal", "Explain how Poincaré ball distance scales near the unit boundary in 1 sentence."),
-    ("nemotron-3-ultra:cloud", "Enterprise Research", "State the primary benefit of SurrealDB v2 RELATE graph schema in 1 sentence."),
-    ("nemotron-3-super:cloud", "Frontier Physics", "Explain how Bennett pinch equilibrium stabilizes Ken Shoulders EVOs in 1 sentence."),
+    (
+        "deepseek-v4-pro:cloud",
+        "1.6T Reasoning",
+        "State the core invariant of Sheaf Cohomology restriction maps in 1 sentence.",
+    ),
+    (
+        "kimi-k3:cloud",
+        "Deep Planning",
+        "Outline a 3-step autonomous recovery plan for an OOM-faulted agent loop in 1 sentence.",
+    ),
+    (
+        "qwen3.5:397b-cloud",
+        "397B Coding",
+        "Write a Python lambda that checks if a 12D state vector norm is < 1.0 in 1 line.",
+    ),
+    (
+        "kimi-k2.7-code:cloud",
+        "Code Tools",
+        "Define the AST node type for a Python function call in 1 sentence.",
+    ),
+    (
+        "glm-5.2:cloud",
+        "Frontier Multimodal",
+        "Explain how Poincaré ball distance scales near the unit boundary in 1 sentence.",
+    ),
+    (
+        "nemotron-3-ultra:cloud",
+        "Enterprise Research",
+        "State the primary benefit of SurrealDB v2 RELATE graph schema in 1 sentence.",
+    ),
+    (
+        "nemotron-3-super:cloud",
+        "Frontier Physics",
+        "Explain how Bennett pinch equilibrium stabilizes Ken Shoulders EVOs in 1 sentence.",
+    ),
     ("deepseek-v4-flash:cloud", "Fast QA", "What is the capital of France? Answer in 1 word."),
-    ("deepseek-v4-flash:0731-cloud", "Ultra-Fast Draft", "Summarize why AutoHarness executes in 0ms in 1 sentence."),
-    ("kimi-k2.6:cloud", "2M Long Context", "Explain why 2M context windows enable complete codebase RAG in 1 sentence."),
-    ("minimax-m3:cloud", "Creative Synthesis", "Synthesize a metaphor comparing AI agent swarms to biological ant colonies in 1 sentence."),
-    ("gemma4:31b-cloud", "Dense Embeddings", "Define semantic vector cosine similarity in 1 sentence."),
-    ("gpt-oss:120b-cloud", "120B General", "Confirm your operating status on the cloud inference fleet in 1 sentence.")
+    (
+        "deepseek-v4-flash:0731-cloud",
+        "Ultra-Fast Draft",
+        "Summarize why AutoHarness executes in 0ms in 1 sentence.",
+    ),
+    (
+        "kimi-k2.6:cloud",
+        "2M Long Context",
+        "Explain why 2M context windows enable complete codebase RAG in 1 sentence.",
+    ),
+    (
+        "minimax-m3:cloud",
+        "Creative Synthesis",
+        "Synthesize a metaphor comparing AI agent swarms to biological ant colonies in 1 sentence.",
+    ),
+    (
+        "gemma4:31b-cloud",
+        "Dense Embeddings",
+        "Define semantic vector cosine similarity in 1 sentence.",
+    ),
+    (
+        "gpt-oss:120b-cloud",
+        "120B General",
+        "Confirm your operating status on the cloud inference fleet in 1 sentence.",
+    ),
 ]
+
 
 @dataclass
 class ProofResult:
@@ -43,19 +94,22 @@ class ProofResult:
     duration_sec: float
     status: str
 
-async def verify_cloud_model(client: httpx.AsyncClient, model: str, role: str, prompt: str) -> ProofResult:
+
+async def verify_cloud_model(
+    client: httpx.AsyncClient, model: str, role: str, prompt: str
+) -> ProofResult:
     t0 = time.perf_counter()
     payload = {
         "model": model,
         "messages": [
-            {"role": "system", "content": "You are a specialized frontier AI model. Respond directly, concisely, and accurately."},
-            {"role": "user", "content": prompt}
+            {
+                "role": "system",
+                "content": "You are a specialized frontier AI model. Respond directly, concisely, and accurately.",
+            },
+            {"role": "user", "content": prompt},
         ],
         "stream": False,
-        "options": {
-            "temperature": 0.1,
-            "num_predict": 128
-        }
+        "options": {"temperature": 0.1, "num_predict": 128},
     }
 
     try:
@@ -72,7 +126,7 @@ async def verify_cloud_model(client: httpx.AsyncClient, model: str, role: str, p
                 prompt=prompt,
                 response=text.replace("\n", " "),
                 duration_sec=dt,
-                status="✅ PASS"
+                status="✅ PASS",
             )
         else:
             return ProofResult(
@@ -81,7 +135,7 @@ async def verify_cloud_model(client: httpx.AsyncClient, model: str, role: str, p
                 prompt=prompt,
                 response=f"HTTP {r.status_code}: {r.text[:80]}",
                 duration_sec=dt,
-                status="❌ FAIL"
+                status="❌ FAIL",
             )
     except Exception as e:
         dt = round(time.perf_counter() - t0, 2)
@@ -91,8 +145,9 @@ async def verify_cloud_model(client: httpx.AsyncClient, model: str, role: str, p
             prompt=prompt,
             response=f"Error: {str(e)[:80]}",
             duration_sec=dt,
-            status="❌ TIMEOUT/ERR"
+            status="❌ TIMEOUT/ERR",
         )
+
 
 async def run_fleet_proof():
     print("\n" + "=" * 115)
@@ -114,11 +169,12 @@ async def run_fleet_proof():
     print("📋 OLLAMA CLOUD 13-MODEL LIVE INFERENCE SCORECARD")
     print("=" * 115)
     passed = sum(1 for r in results if r.status == "✅ PASS")
-    print(f"• Success Rate: {passed} / {len(results)} ({passed/len(results)*100:.1f}%)")
+    print(f"• Success Rate: {passed} / {len(results)} ({passed / len(results) * 100:.1f}%)")
     print("-" * 115)
     for r in results:
         print(f"{r.status} | {r.model:<32} | {r.duration_sec:>5.2f}s | {r.response[:60]}")
     print("=" * 115 + "\n")
+
 
 if __name__ == "__main__":
     asyncio.run(run_fleet_proof())

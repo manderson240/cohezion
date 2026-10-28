@@ -25,18 +25,23 @@ Standard speculative decoding uses exact token match or top-$p$ probability rati
 # Standalone execution blueprint:
 from dataclasses import dataclass
 
+
 @dataclass
 class SpeculativeBlock:
     draft_tokens: list[int]
     draft_embeddings: list[list[float]]
     target_logits: list[list[float]]
 
-def evaluate_hyperbolic_acceptance(draft_vec: list[float], target_vec: list[float], threshold: float = 0.45) -> bool:
+
+def evaluate_hyperbolic_acceptance(
+    draft_vec: list[float], target_vec: list[float], threshold: float = 0.45
+) -> bool:
     import math
+
     u, v = tuple(draft_vec[:3]), tuple(target_vec[:3])
-    norm_u = min(sum(x*x for x in u), 0.99)
-    norm_v = min(sum(x*x for x in v), 0.99)
-    diff_sq = sum((x-y)**2 for x, y in zip(u, v))
+    norm_u = min(sum(x * x for x in u), 0.99)
+    norm_v = min(sum(x * x for x in v), 0.99)
+    diff_sq = sum((x - y) ** 2 for x, y in zip(u, v))
     num = 2.0 * diff_sq
     den = (1.0 - norm_u) * (1.0 - norm_v)
     d_p = math.acosh(max(1.0, 1.0 + num / den))

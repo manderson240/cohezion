@@ -1,4 +1,3 @@
-
 path = "/home/mike-anderson/.hermes/config.yaml"
 with open(path) as f:
     text = f.read()

@@ -22,26 +22,34 @@ from cohezion.core.event_bus import Event, EventBus, EventType
 from cohezion.data_mesh.kanban_bridge import persist_item
 from cohezion.security.linux_namespace_sandbox import LinuxNamespaceSandbox
 
-logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] [DUAL_HARNESS] %(message)s")
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s [%(levelname)s] [DUAL_HARNESS] %(message)s"
+)
 logger = logging.getLogger("dual_harness")
 
 LEMONADE_URL = "http://localhost:13305/v1/chat/completions"
+
 
 def call_local_model(prompt: str, system_prompt: str, max_tokens: int = 1024) -> str:
     payload = {
         "model": "gpt-oss-20b-mxfp4-GGUF",
         "messages": [
             {"role": "system", "content": system_prompt},
-            {"role": "user", "content": prompt}
+            {"role": "user", "content": prompt},
         ],
         "temperature": 0.1,
-        "max_tokens": max_tokens
+        "max_tokens": max_tokens,
     }
-    req = urllib.request.Request(LEMONADE_URL, data=json.dumps(payload).encode("utf-8"), headers={"Content-Type": "application/json"})
+    req = urllib.request.Request(
+        LEMONADE_URL,
+        data=json.dumps(payload).encode("utf-8"),
+        headers={"Content-Type": "application/json"},
+    )
     with urllib.request.urlopen(req, timeout=60) as resp:
         data = json.loads(resp.read().decode("utf-8"))
         msg = data["choices"][0]["message"]
         return msg.get("content", "") or msg.get("reasoning_content", "")
+
 
 async def main():
     logger.info("=" * 90)
@@ -51,7 +59,9 @@ async def main():
     # --------------------------------------------------------------------------
     # STAGE 1: Qwen-Code DeepPlanning Engine
     # --------------------------------------------------------------------------
-    logger.info("\n📐 [Stage 1] Qwen-Code DeepPlanning: Decomposing In-Memory KV-Cache Compactor...")
+    logger.info(
+        "\n📐 [Stage 1] Qwen-Code DeepPlanning: Decomposing In-Memory KV-Cache Compactor..."
+    )
     plan_prompt = """Decompose the creation of `src/cohezion/inference/nano_uma_compactor.py` (Karpathy-style, pure NumPy UMA Block-Sparse KV-Cache Compactor) into:
 1. Mathematical Low-Rank Block Decomposition: K = U @ V + E_sparse.
 2. In-place Zero-Copy Pointer Slicing on 128GB UMA bus.
@@ -59,14 +69,16 @@ async def main():
 """
     plan_output = call_local_model(
         plan_prompt,
-        system_prompt="You are a Qwen-Agent DeepPlanning Architect. Output structured DAG execution plan."
+        system_prompt="You are a Qwen-Agent DeepPlanning Architect. Output structured DAG execution plan.",
     )
     logger.info("  • DeepPlanning DAG Generated (%d characters)", len(plan_output))
 
     # --------------------------------------------------------------------------
     # STAGE 2: DeepSeek Harness (dsh Cordis Plugin Specification & Python Code)
     # --------------------------------------------------------------------------
-    logger.info("\n🧩 [Stage 2] DeepSeek Harness: Synthesizing Modular Cordis Plugin & Pure NumPy Implementation...")
+    logger.info(
+        "\n🧩 [Stage 2] DeepSeek Harness: Synthesizing Modular Cordis Plugin & Pure NumPy Implementation..."
+    )
     code_prompt = """Write `src/cohezion/inference/nano_uma_compactor.py` implementing the Karpathy-style minimal (~90-120 lines, pure NumPy only) UMA Block-Sparse KV-Cache Compactor.
 
 Include:
@@ -82,7 +94,7 @@ Output ONLY executable Python code enclosed in ```python ... ```.
 """
     code_raw = call_local_model(
         code_prompt,
-        system_prompt="You are a DeepSeek Harness (dsh) Core Systems Programmer. Write clean, pure NumPy Python code."
+        system_prompt="You are a DeepSeek Harness (dsh) Core Systems Programmer. Write clean, pure NumPy Python code.",
     )
 
     clean_code = code_raw
@@ -93,6 +105,7 @@ Output ONLY executable Python code enclosed in ```python ... ```.
 
     # If truncated or invalid, use certified Karpathy-standard UMA Compactor
     import ast
+
     try:
         ast.parse(clean_code)
         if "class NanoUMACompactor" not in clean_code or "__main__" not in clean_code:
@@ -185,13 +198,18 @@ if __name__ == "__main__":
     logger.info("\n🛡️ [Stage 3] AutoHarness AST Gate & Bubblewrap Execution...")
     verifier = AutoHarnessVerifier()
     ast_res = verifier.verify_code(clean_code)
-    logger.info("  • AutoHarness AST Verification: %s (Hollow Asserts: %d)", 
-                "🟢 PASSED" if ast_res["verified"] else "❌ FAILED", ast_res.get("hollow_asserts", 0))
+    logger.info(
+        "  • AutoHarness AST Verification: %s (Hollow Asserts: %d)",
+        "🟢 PASSED" if ast_res["verified"] else "❌ FAILED",
+        ast_res.get("hollow_asserts", 0),
+    )
     assert ast_res["verified"] is True
 
     sandbox = LinuxNamespaceSandbox(timeout_sec=10.0)
     sb_res = sandbox.execute_python_code(clean_code)
-    logger.info("  • Bubblewrap Namespace Execution: %s", "🟢 PASSED" if sb_res.success else "❌ FAILED")
+    logger.info(
+        "  • Bubblewrap Namespace Execution: %s", "🟢 PASSED" if sb_res.success else "❌ FAILED"
+    )
     logger.info("  • Output: %s", sb_res.stdout.strip())
     if not sb_res.success:
         logger.error("  • Sandbox Stderr: %s", sb_res.stderr)
@@ -210,19 +228,26 @@ if __name__ == "__main__":
         "category": "silicon_optimization",
     }
     persist_res = persist_item(task_card)
-    logger.info("  • Kanban Bridge Written: SurrealDB=%s, Vault=%s, EventBus=%s",
-                persist_res.get("surreal"), persist_res.get("vault"), persist_res.get("event_bus"))
+    logger.info(
+        "  • Kanban Bridge Written: SurrealDB=%s, Vault=%s, EventBus=%s",
+        persist_res.get("surreal"),
+        persist_res.get("vault"),
+        persist_res.get("event_bus"),
+    )
 
     bus = EventBus()
-    await bus.publish(Event(
-        type=EventType.AGENT_COMPLETE,
-        source="dual_harness_workhorse",
-        payload={"deliverable": target_path, "status": "verified_production"}
-    ))
+    await bus.publish(
+        Event(
+            type=EventType.AGENT_COMPLETE,
+            source="dual_harness_workhorse",
+            payload={"deliverable": target_path, "status": "verified_production"},
+        )
+    )
 
     print("\n" + "=" * 90)
     print("🎉 DUAL-HARNESS PIPELINE FULLY EXECUTED & VERIFIED IN REALITY!")
     print("=" * 90 + "\n")
+
 
 if __name__ == "__main__":
     asyncio.run(main())

@@ -86,19 +86,33 @@ Cohezion implements **unprivileged Linux namespace sandboxing** via [`src/cohezi
 # LinuxNamespaceSandbox Execution Contract
 cmd = [
     "bwrap",
-    "--ro-bind", "/usr", "/usr",
-    "--ro-bind", "/lib", "/lib",
-    "--ro-bind", "/lib64", "/lib64",
-    "--ro-bind", "/bin", "/bin",
-    "--dir", "/tmp",
-    "--bind", str(sandbox_dir), str(sandbox_dir),
+    "--ro-bind",
+    "/usr",
+    "/usr",
+    "--ro-bind",
+    "/lib",
+    "/lib",
+    "--ro-bind",
+    "/lib64",
+    "/lib64",
+    "--ro-bind",
+    "/bin",
+    "/bin",
+    "--dir",
+    "/tmp",
+    "--bind",
+    str(sandbox_dir),
+    str(sandbox_dir),
     "--unshare-pid",
-    "--unshare-net",      # Hermetic execution: zero external network leakage
+    "--unshare-net",  # Hermetic execution: zero external network leakage
     "--unshare-ipc",
     "--unshare-uts",
     "--die-with-parent",  # Kills all child processes if parent terminates
-    "--chdir", str(sandbox_dir),
-    "/bin/bash", "-c", command
+    "--chdir",
+    str(sandbox_dir),
+    "/bin/bash",
+    "-c",
+    command,
 ]
 ```
 

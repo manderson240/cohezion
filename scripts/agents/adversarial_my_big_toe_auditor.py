@@ -113,10 +113,15 @@ def run_audit() -> int:
         avg_reduction,
         max_latency,
     )
-    logger.info("Stress Test 2: Chaotic Entropy Inflation Rejection Rate -> %.1f%% (Target: 100%%)", rejection_rate)
+    logger.info(
+        "Stress Test 2: Chaotic Entropy Inflation Rejection Rate -> %.1f%% (Target: 100%%)",
+        rejection_rate,
+    )
 
     assert max_delta_s <= 0.0, f"Violation: Delta S {max_delta_s} > 0"
-    assert rejection_rate == 100.0, f"AutoHarness failed to reject entropy inflation: {rejection_rate}%"
+    assert rejection_rate == 100.0, (
+        f"AutoHarness failed to reject entropy inflation: {rejection_rate}%"
+    )
     assert max_latency < 25.0, f"Latency violation: {max_latency} ms"
 
     # Test 3: Dual-Persistence Verification

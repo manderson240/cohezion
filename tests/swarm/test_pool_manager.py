@@ -6,6 +6,21 @@ from cohezion.swarm.model_pool_config import ModelTierPolicy, TierConfig
 from cohezion.swarm.model_pool_manager import ModelPoolManager
 
 
+@pytest.fixture(autouse=True)
+def _no_fabric_http(monkeypatch):
+    """Keep the per-backend census off the network: pool tests are unit-hermetic.
+
+    The cap gate in ensure_loaded() asks fabric.resident_by_backend() for the
+    live residency map; stub it to "server up, fleet empty" so these tests
+    never touch the loopback Lemonade (a live server with 2 iGPU residents
+    would otherwise trip the igpu cap and fail the capacity tests).
+    """
+    monkeypatch.setattr(
+        "cohezion.swarm.model_pool_manager.resident_by_backend",
+        lambda *args, **kwargs: {},
+    )
+
+
 @pytest.mark.fast
 class TestModelPoolManagerTiers:
     """TDD tests for the new CLOUD and EDGE tiers in ModelPoolManager."""

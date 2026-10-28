@@ -31,13 +31,17 @@ Provide a rigorous, brutally honest comparative analysis between Cohezion and wh
 Synthesize into a crisp, high-impact comparative table and strategic summary under 250 words."""
 
 try:
-    resp = httpx.post("http://localhost:11434/api/generate", json={
-        "model": "deepseek-v4-pro:cloud",
-        "prompt": prompt,
-        "stream": False,
-        "options": {"temperature": 0.1, "num_predict": 700}
-    }, timeout=45.0)
-    
+    resp = httpx.post(
+        "http://localhost:11434/api/generate",
+        json={
+            "model": "deepseek-v4-pro:cloud",
+            "prompt": prompt,
+            "stream": False,
+            "options": {"temperature": 0.1, "num_predict": 700},
+        },
+        timeout=45.0,
+    )
+
     if resp.status_code == 200:
         print("🌐 COHEZION VS. INDUSTRY COMPETITIVE LANDSCAPE:")
         print("=" * 80)

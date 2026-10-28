@@ -35,6 +35,7 @@ Synthesize the latest 2025-2026 arXiv research on Agentic Memory (A-MEM, HIMA, M
 
 Provide a structured 4-section blueprint with concrete implementation steps and extract the new PRIME skill: `AGENTIC_MEMORY_ZETTELKASTEN_PRIME`."""
 
+
 async def run_arxiv_memory_synthesis():
     print("\n" + "=" * 115)
     print("📚 ARXIV 2025-2026 AGENTIC MEMORY FRONTIER RESEARCH SYNTHESIS (AMD STRIX HALO)")
@@ -44,12 +45,12 @@ async def run_arxiv_memory_synthesis():
         "model": "gpt-oss-20b-mxfp4-GGUF",
         "messages": [
             {"role": "system", "content": "You are the Cohezion Principal Cognitive Architect."},
-            {"role": "user", "content": PROMPT}
+            {"role": "user", "content": PROMPT},
         ],
         "temperature": 0.1,
-        "max_tokens": 1024
+        "max_tokens": 1024,
     }
-    
+
     t0 = time.perf_counter()
     async with httpx.AsyncClient(timeout=120.0) as client:
         r = await client.post(LEMONADE_URL, json=payload)
@@ -67,13 +68,16 @@ async def run_arxiv_memory_synthesis():
     with open(report_path, "w", encoding="utf-8") as f:
         f.write("# 📚 arXiv 2025-2026 Agentic Memory Frontier Blueprint\n\n")
         f.write(f"**Date**: {time.strftime('%Y-%m-%d %H:%M:%S UTC', time.gmtime())}  \n")
-        f.write("**Hardware**: AMD Strix Halo (128GB Unified Memory, XDNA2 NPU, Radeon 8060S iGPU, Ryzen 9 CPU)  \n\n")
+        f.write(
+            "**Hardware**: AMD Strix Halo (128GB Unified Memory, XDNA2 NPU, Radeon 8060S iGPU, Ryzen 9 CPU)  \n\n"
+        )
         f.write("---\n\n")
         f.write(content + "\n")
 
     print("=" * 115)
     print(f"📄 Blueprint Saved to: {report_path}")
     print("=" * 115 + "\n")
+
 
 if __name__ == "__main__":
     asyncio.run(run_arxiv_memory_synthesis())

@@ -9,8 +9,12 @@ from playwright.sync_api import sync_playwright
 
 
 url = "http://localhost:8082/cohezion_laboratory_apparatus_simulator.html"
-screenshot_path_shoulders = Path("/home/mike-anderson/dev/cohezion/docs/assets/renderings/shoulders_apparatus_3d_screenshot.png")
-screenshot_path_matsumoto = Path("/home/mike-anderson/dev/cohezion/docs/assets/renderings/matsumoto_apparatus_3d_screenshot.png")
+screenshot_path_shoulders = Path(
+    "/home/mike-anderson/dev/cohezion/docs/assets/renderings/shoulders_apparatus_3d_screenshot.png"
+)
+screenshot_path_matsumoto = Path(
+    "/home/mike-anderson/dev/cohezion/docs/assets/renderings/matsumoto_apparatus_3d_screenshot.png"
+)
 
 print(f"Testing {url} in Headless Chromium...")
 with sync_playwright() as p:

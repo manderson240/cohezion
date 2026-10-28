@@ -32,6 +32,7 @@ OUT_DIR.mkdir(parents=True, exist_ok=True)
 
 INITIAL_PROMPT = "Futuristic scientific wireframe visualization of a 12-dimensional Poincare hyperbolic manifold, glowing cyan and amber geodesics, intricate quantum topological knot, high contrast, clean vector aesthetic, 8k resolution."
 
+
 async def generate_image(prompt: str, filename: str) -> Tuple[bool, str, float]:
     """Generate image via local diffusion endpoint."""
     t0 = time.perf_counter()
@@ -40,7 +41,7 @@ async def generate_image(prompt: str, filename: str) -> Tuple[bool, str, float]:
         "prompt": prompt,
         "n": 1,
         "size": "512x512",
-        "response_format": "b64_json"
+        "response_format": "b64_json",
     }
     async with httpx.AsyncClient(timeout=60.0) as client:
         try:
@@ -51,7 +52,9 @@ async def generate_image(prompt: str, filename: str) -> Tuple[bool, str, float]:
                 img_bytes = base64.b64decode(b64_data)
                 out_path = OUT_DIR / filename
                 out_path.write_bytes(img_bytes)
-                print(f"   ✓ Image generated ({dt}s) -> saved to `{out_path}` ({len(img_bytes)} bytes)")
+                print(
+                    f"   ✓ Image generated ({dt}s) -> saved to `{out_path}` ({len(img_bytes)} bytes)"
+                )
                 return True, b64_data, dt
             else:
                 print(f"   ❌ Image gen failed HTTP {r.status_code}: {r.text[:150]}")
@@ -59,6 +62,7 @@ async def generate_image(prompt: str, filename: str) -> Tuple[bool, str, float]:
         except Exception as e:
             print(f"   ❌ Image gen exception: {e}")
             return False, "", 0.0
+
 
 async def analyze_with_vision_model(image_b64: str) -> str:
     """Analyze image using resident local vision model (`qwen3vl-it-4b-FLM` / router)."""
@@ -72,19 +76,17 @@ async def analyze_with_vision_model(image_b64: str) -> str:
                 "content": [
                     {
                         "type": "text",
-                        "text": "Critique this scientific visualization of a 12D Poincare manifold. Identify 2 visual weaknesses (e.g. contrast, hyperbolic curvature clarity, clutter) and suggest a 1-sentence prompt enhancement to make it publication-grade."
+                        "text": "Critique this scientific visualization of a 12D Poincare manifold. Identify 2 visual weaknesses (e.g. contrast, hyperbolic curvature clarity, clutter) and suggest a 1-sentence prompt enhancement to make it publication-grade.",
                     },
                     {
                         "type": "image_url",
-                        "image_url": {
-                            "url": f"data:image/jpeg;base64,{image_b64}"
-                        }
-                    }
-                ]
+                        "image_url": {"url": f"data:image/jpeg;base64,{image_b64}"},
+                    },
+                ],
             }
         ],
         "temperature": 0.2,
-        "max_tokens": 400
+        "max_tokens": 400,
     }
     async with httpx.AsyncClient(timeout=90.0) as client:
         try:
@@ -92,12 +94,15 @@ async def analyze_with_vision_model(image_b64: str) -> str:
             dt = round(time.perf_counter() - t0, 2)
             if r.status_code == 200:
                 critique = r.json()["choices"][0]["message"]["content"].strip()
-                print(f"   ✓ Vision Model Critique Succeeded in {dt}s!\n   • Critique:\n{critique}\n")
+                print(
+                    f"   ✓ Vision Model Critique Succeeded in {dt}s!\n   • Critique:\n{critique}\n"
+                )
                 return critique
             else:
                 return "Enhance hyperbolic boundary contrast, intensify amber geodesic geodesics at the center, and add dark volumetric background."
         except Exception as e:
             return "Sharpen geodesic lines, deepen black background, and emphasize circular unit disk boundary."
+
 
 async def run_feedback_loop():
     print("\n" + "=" * 115)
@@ -144,25 +149,28 @@ async def run_feedback_loop():
             "vision_critique": critique,
             "output_dir": str(OUT_DIR),
             "memory_headroom_gib": avail_gib,
-            "status": "FEEDBACK_LOOP_COMPLETE"
-        }
+            "status": "FEEDBACK_LOOP_COMPLETE",
+        },
     )
     await event_bus.publish(ev)
 
-    persist_item({
-        "id": "closed_loop_vision_image_gen",
-        "title": "Closed-Loop Image Generation & Vision Feedback Complete",
-        "status": "done",
-        "priority": "high",
-        "source": "closed_loop_vision_generator",
-        "category": "multimodal_generation",
-        "details": f"Generated Pass 1 ({dt1}s) -> Vision Model Critique -> Refined Pass 2 ({dt2}s). Output saved to {OUT_DIR}.",
-    })
+    persist_item(
+        {
+            "id": "closed_loop_vision_image_gen",
+            "title": "Closed-Loop Image Generation & Vision Feedback Complete",
+            "status": "done",
+            "priority": "high",
+            "source": "closed_loop_vision_generator",
+            "category": "multimodal_generation",
+            "details": f"Generated Pass 1 ({dt1}s) -> Vision Model Critique -> Refined Pass 2 ({dt2}s). Output saved to {OUT_DIR}.",
+        }
+    )
     print("   ✓ Dual-persisted Kanban card to SurrealDB and Obsidian Vault!")
 
     print("\n" + "=" * 115)
     print("🏆 CLOSED-LOOP IMAGE GENERATION & VISION FEEDBACK LOOP 100% VERIFIED!")
     print("=" * 115 + "\n")
+
 
 if __name__ == "__main__":
     asyncio.run(run_feedback_loop())

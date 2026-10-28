@@ -20,7 +20,11 @@ async def inspect_browser_console() -> None:
         print("Navigating to http://localhost:8082/cohezion_master_dashboard_wasm.html...")
         try:
             # Wait for domcontentloaded rather than full networkidle to avoid hanging on open websocket/streams
-            await page.goto("http://localhost:8082/cohezion_master_dashboard_wasm.html", wait_until="domcontentloaded", timeout=30000)
+            await page.goto(
+                "http://localhost:8082/cohezion_master_dashboard_wasm.html",
+                wait_until="domcontentloaded",
+                timeout=30000,
+            )
             await asyncio.sleep(10)  # Wait for Pyodide worker to run
         except Exception as e:
             print(f"Navigation error: {e}")

@@ -13,7 +13,10 @@ import time
 from pathlib import Path
 from typing import Any
 
+import numpy as np
+
 from cohezion.agi.autoharness_policy import AutoHarnessPolicy
+from cohezion.agi.sleep_framework import SleepFramework
 from cohezion.agi.zkfv_compiler import ZKFVCompiler
 from cohezion.core.event_bus import EventBus
 from cohezion.inference.strix_halo_optimizer import StrixHaloSiliconOptimizer
@@ -35,6 +38,7 @@ class NightlySwarmDaemon:
         self.zkfv = ZKFVCompiler()
         self.tracker = PoincareManifoldTracker()
         self.event_bus = EventBus()
+        self.sleep_framework = SleepFramework(dimension=12, ewc_lambda=100.0)
 
     async def run_nightly_cycle(self, max_files: int = 5) -> dict[str, Any]:
         """Execute a full autonomous self-healing and verification cycle."""
@@ -79,6 +83,22 @@ class NightlySwarmDaemon:
                     ),
                     timestamp=time.time(),
                 )
+
+                # Record waking experience in SleepFramework episodic buffer
+                hash_bytes = proof.code_hash.encode()[:12]
+                state_vec = [float(b) / 255.0 for b in hash_bytes]
+                if len(state_vec) < 12:
+                    state_vec += [0.0] * (12 - len(state_vec))
+
+                self.sleep_framework.record_experience(
+                    task_description=f"Nightly verification of {target.name}",
+                    action_sequence=("autoharness_verify", "zkfv_compile", "poincare_track"),
+                    state_vector=state_vec,
+                    reward=1.0 if ver_res.valid else 0.2,
+                    loss=0.0 if ver_res.valid else 0.8,
+                    entropy=0.1,
+                    session_id="nightly_swarm",
+                )
             except Exception as exc:
                 logger.warning("Error inspecting %s: %s", target.name, exc)
 
@@ -102,7 +122,17 @@ class NightlySwarmDaemon:
                 remediation_cost=0.1,
             )
 
-        # 4. Retrospective Persistence to Obsidian & Kanban
+        # 4. Offline Sleep Consolidation (Google Research SLEEP Framework)
+        sleep_summary = self.sleep_framework.sleep(batch_size=16, num_dreams=6)
+        logger.info(
+            "Sleep Consolidation: %d experiences consolidated, retention=%.4f, dreams_verified=%d/%d",
+            sleep_summary.consolidation.experiences_consolidated,
+            sleep_summary.consolidation.knowledge_retention_score,
+            sleep_summary.dreaming.dreams_verified,
+            sleep_summary.dreaming.dreams_generated,
+        )
+
+        # 5. Retrospective Persistence to Obsidian & Kanban
         learnings_dir = Path.home() / "vaults" / "cohezion-vault" / "01-Learnings"
         learnings_dir.mkdir(parents=True, exist_ok=True)
         retro_path = learnings_dir / f"nightly_retro_{int(time.time())}.md"
@@ -115,6 +145,11 @@ class NightlySwarmDaemon:
             f"- **Hyperbolic Trajectory Drift**: {self.tracker.get_trajectory_drift():.4f}\n"
             f"- **Self-Healing EVI Score**: {healing_action.evi_score:.4f}\n"
             f"- **Self-Healing Status**: {'APPROVED' if healing_action.approved else 'REJECTED'}\n"
+            f"- **Sleep Cycle ID**: {sleep_summary.cycle_id}\n"
+            f"- **Knowledge Retention**: {sleep_summary.consolidation.knowledge_retention_score:.4f}\n"
+            f"- **EWC Quadratic Penalty**: {sleep_summary.consolidation.ewc_penalty:.4f}\n"
+            f"- **Dream Verification Rate**: {sleep_summary.dreaming.verification_rate * 100:.1f}%\n"
+            f"- **Counterfactual Discoveries**: {sleep_summary.dreaming.counterfactual_discoveries}\n"
         )
         try:
             retro_path.write_text(retro_content, encoding="utf-8")
@@ -128,6 +163,9 @@ class NightlySwarmDaemon:
             "trajectory_drift": self.tracker.get_trajectory_drift(),
             "evi_score": healing_action.evi_score,
             "approved": healing_action.approved,
+            "sleep_cycle_id": sleep_summary.cycle_id,
+            "retention_score": sleep_summary.consolidation.knowledge_retention_score,
+            "dreams_verified": sleep_summary.dreaming.dreams_verified,
         }
 
         logger.info("=== NIGHTLY SWARM CYCLE COMPLETED SUCCESSFULLY ===")

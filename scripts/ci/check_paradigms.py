@@ -18,6 +18,7 @@ Usage:
   python scripts/ci/check_paradigms.py --self-test
   python scripts/ci/check_paradigms.py
 """
+
 from __future__ import annotations
 
 import argparse
@@ -116,7 +117,9 @@ def self_test() -> int:
         wf = root / ".github/workflows"
         wf.mkdir(parents=True)
         wf_text = " ".join(f"uv run pytest {rel}" for rel in PARADIGM_DIRS.values())
-        (wf / "testing-paradigms.yml").write_text(f"jobs:\n  x:\n    steps:\n      - run: {wf_text}\n")
+        (wf / "testing-paradigms.yml").write_text(
+            f"jobs:\n  x:\n    steps:\n      - run: {wf_text}\n"
+        )
         for rel in PARADIGM_DIRS.values():
             d = root / rel
             d.mkdir(parents=True)
@@ -143,7 +146,10 @@ def main() -> int:
     if errors:
         for e in errors:
             print(f"✗ {e}", file=sys.stderr)
-        print("Every paradigm above must exist, carry tests, be marker-registered, and be CI-wired.", file=sys.stderr)
+        print(
+            "Every paradigm above must exist, carry tests, be marker-registered, and be CI-wired.",
+            file=sys.stderr,
+        )
         return 1
     print("✓ all 5 paradigms wired: dirs+tests, markers, workflow refs, mutation scope+baseline")
     return 0

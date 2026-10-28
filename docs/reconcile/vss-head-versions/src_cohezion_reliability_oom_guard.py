@@ -40,7 +40,9 @@ class OOMGuard:
     MIN_AVAILABLE_GB: float = 20.0
 
     @classmethod
-    def calculate_dynamic_floor(cls, largest_model_gb: float = 16.0, shmem_gb: float = 0.0) -> float:
+    def calculate_dynamic_floor(
+        cls, largest_model_gb: float = 16.0, shmem_gb: float = 0.0
+    ) -> float:
         """Compute dynamic memory floor: base 10GB + largest resident model + shmem overhead."""
         return max(cls.DEFAULT_MIN_AVAILABLE_GB, 10.0 + largest_model_gb + (shmem_gb * 1.5))
 
@@ -49,9 +51,7 @@ class OOMGuard:
         """Inspect system available memory, /proc/meminfo Shmem, and GTT pressure."""
         try:
             # 1. Inspect free -m
-            out = subprocess.run(
-                ["free", "-m"], capture_output=True, text=True, timeout=5
-            ).stdout
+            out = subprocess.run(["free", "-m"], capture_output=True, text=True, timeout=5).stdout
             lines = out.strip().split("\n")
             mem_line = [x for x in lines if x.startswith("Mem:")][0].split()
             swap_line = [x for x in lines if x.startswith("Swap:")][0].split()
@@ -105,7 +105,9 @@ class OOMGuard:
         while time.time() - start_time < timeout:
             state = cls.get_memory_state()
             if state.available_gb >= min_gb:
-                logger.info(f"🟢 OOM Guard: {state.available_gb} GiB available (>= {min_gb} GiB floor)")
+                logger.info(
+                    f"🟢 OOM Guard: {state.available_gb} GiB available (>= {min_gb} GiB floor)"
+                )
                 return True
             logger.warning(
                 f"⚠️ OOM Guard: Only {state.available_gb} GiB available (< {min_gb} GiB floor). Waiting..."

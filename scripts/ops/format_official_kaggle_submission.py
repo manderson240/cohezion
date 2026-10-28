@@ -8,6 +8,7 @@ MASTER_FILE = "data/arc_prize/master_ensemble_submission.json"
 SAMPLE_FILE = "data/arc_prize/sample_submission.json"
 FORMATTED_SUBMISSION = "data/arc_prize/official_arc_submission.json"
 
+
 def format_submission():
     with open(SAMPLE_FILE) as f:
         sample_sub = json.load(f)
@@ -34,10 +35,7 @@ def format_submission():
                 att1 = pair_sample["attempt_1"]
                 att2 = pair_sample["attempt_2"]
 
-            official_sub[task_id].append({
-                "attempt_1": att1,
-                "attempt_2": att2
-            })
+            official_sub[task_id].append({"attempt_1": att1, "attempt_2": att2})
 
     with open(FORMATTED_SUBMISSION, "w") as f:
         json.dump(official_sub, f)
@@ -47,9 +45,12 @@ def format_submission():
     print("=" * 115)
     print(f"  • Total Tasks Formatted: {len(official_sub)} ({total_test_pairs} test pairs)")
     print(f"  • Verified Program Predictions Synthesized: {verified_matched} pairs")
-    print(f"  • Alignment with official `sample_submission.json`: 100% Exact Key & Array Schema Match")
+    print(
+        f"  • Alignment with official `sample_submission.json`: 100% Exact Key & Array Schema Match"
+    )
     print(f"  • Output Location: `{FORMATTED_SUBMISSION}`")
     print("=" * 115 + "\n")
+
 
 if __name__ == "__main__":
     format_submission()

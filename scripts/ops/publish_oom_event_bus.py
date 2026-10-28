@@ -18,11 +18,12 @@ async def main() -> None:
             "severity": "critical",
             "category": "system_reliability",
             "available_ram_gib": 76.0,
-            "status": "remediated"
-        }
+            "status": "remediated",
+        },
     )
     await bus.publish(event)
     print("✓ EventBus Event published cleanly with correct schema.")
+
 
 if __name__ == "__main__":
     asyncio.run(main())

@@ -78,6 +78,7 @@ The most probable sequence:
 ```python
 from playwright.async_api import async_playwright
 
+
 async def poll_api(url):
     async with async_playwright() as p:
         browser = await p.chromium.launch(headless=True)
@@ -86,7 +87,7 @@ async def poll_api(url):
             await page.goto(url)
             # ... work ...
         finally:
-            await browser.close()   # kills all child processes
+            await browser.close()  # kills all child processes
 ```
 
 - **Kill orphan Chromium processes** after each job or on a schedule:
@@ -100,6 +101,7 @@ pkill -f "playwright" || true
 
 ```python
 import subprocess, os
+
 proc = subprocess.Popen([...], start_new_session=True)
 # later:
 os.killpg(os.getpgid(proc.pid), signal.SIGTERM)
@@ -114,7 +116,7 @@ with open("mesh.obj", "w") as f:
     for v in vertices:
         f.write(f"v {v[0]} {v[1]} {v[2]}\n")
     for face in faces:
-        f.write(f"f {face[0]+1} {face[1]+1} {face[2]+1}\n")
+        f.write(f"f {face[0] + 1} {face[1] + 1} {face[2] + 1}\n")
 ```
 
 - **Use `np.memmap`** for large intermediate arrays that don’t fit in RAM:
@@ -137,6 +139,7 @@ gc.collect()
 ```python
 import psutil
 
+
 def check_memory(threshold_gb=20):
     avail = psutil.virtual_memory().available / (1024**3)
     if avail < threshold_gb:
@@ -147,6 +150,7 @@ def check_memory(threshold_gb=20):
 
 ```python
 import asyncio
+
 heavy_job_semaphore = asyncio.Semaphore(1)  # only one heavy job at a time
 ```
 
@@ -162,6 +166,7 @@ export PYTORCH_HIP_ALLOC_CONF=expandable_segments:True
 
 ```python
 import torch
+
 torch.cuda.empty_cache()
 ```
 

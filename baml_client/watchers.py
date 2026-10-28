@@ -15,10 +15,12 @@ import threading
 
 T = TypeVar("T")
 
+
 class BlockEvent:
     def __init__(self, block_label: str, event_type: str):
         self.block_label = block_label
         self.event_type = event_type  # "enter" | "exit"
+
 
 class VarEvent(Generic[T]):
     def __init__(self, variable_name: str, value: T, timestamp: str, function_name: str):
@@ -27,9 +29,11 @@ class VarEvent(Generic[T]):
         self.timestamp = timestamp
         self.function_name = function_name
 
+
 BlockHandler = Callable[[BlockEvent], None]
 VarEventHandler = Callable[[VarEvent[T]], None]
 StreamHandler = Callable[[Any], None]  # Stream will be an async iterator
+
 
 class InternalEventBindings(Protocol):
     function_name: str
@@ -38,7 +42,6 @@ class InternalEventBindings(Protocol):
     streams: dict[str, list[StreamHandler]]
     functions: dict[str, "InternalEventBindings"]
 
-class EventCollectorInternal(Protocol):
-    def __handlers__(self) -> InternalEventBindings:
-        ...
 
+class EventCollectorInternal(Protocol):
+    def __handlers__(self) -> InternalEventBindings: ...

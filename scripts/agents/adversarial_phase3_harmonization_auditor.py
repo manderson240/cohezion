@@ -85,7 +85,7 @@ def run_audit() -> int:
     # Test 1: Monte Carlo Latency & HIHO Convergence Stress Test (50 trials)
     latencies: list[float] = []
     convergences: list[bool] = []
-    
+
     for i in range(50):
         branch_count = random.randint(2, 6)
         branches = []
@@ -142,10 +142,14 @@ def run_audit() -> int:
         )
         c_res = orch_service.resolve_conflicting_actions(noisy_branch, harmonic_branch)
         # Winner must be the harmonic branch
-        resolutions.append(c_res.collapsed_branch.branch_id == f"harmonic_{j}" and c_res.conflict_resolved)
+        resolutions.append(
+            c_res.collapsed_branch.branch_id == f"harmonic_{j}" and c_res.conflict_resolved
+        )
 
     resolution_rate = sum(resolutions) / len(resolutions) * 100.0
-    logger.info("Stress Test 2: Conflict Resolution Rate -> %.1f%% (Target >= 95%%)", resolution_rate)
+    logger.info(
+        "Stress Test 2: Conflict Resolution Rate -> %.1f%% (Target >= 95%%)", resolution_rate
+    )
     assert resolution_rate >= 95.0, f"Conflict resolution rate {resolution_rate}% below 95% floor"
 
     # Test 3: AutoHarness Zero-Cost Policy Invariant Check
@@ -190,7 +194,10 @@ def run_audit() -> int:
             db_res = json.loads(resp.read().decode("utf-8"))
             records = db_res[0].get("result", [])
             assert len(records) > 0, "SurrealDB record for phase_3_orch_or_harmonization not found!"
-            logger.info("Stress Test 5: SurrealDB moc_node record verified successfully: %s", records[0]["id"])
+            logger.info(
+                "Stress Test 5: SurrealDB moc_node record verified successfully: %s",
+                records[0]["id"],
+            )
     except Exception as e:
         logger.warning("SurrealDB query check warning: %s", e)
 
