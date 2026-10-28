@@ -23,6 +23,7 @@ Usage:
   python scripts/ci/mypy_ratchet.py                 # gate
   python scripts/ci/mypy_ratchet.py --write-baseline
 """
+
 from __future__ import annotations
 
 import argparse
@@ -33,10 +34,20 @@ from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parent.parent.parent
 BASELINE = Path(__file__).resolve().parent / "mypy_baseline.txt"
-MYPY_CMD = ["uv", "run", "mypy", "src/cohezion/", "--ignore-missing-imports", "--no-error-summary", "--show-error-codes"]
+MYPY_CMD = [
+    "uv",
+    "run",
+    "mypy",
+    "src/cohezion/",
+    "--ignore-missing-imports",
+    "--no-error-summary",
+    "--show-error-codes",
+]
 
 # mypy line: "src/path/file.py:123: error: Message text  [error-code]"
-MYPY_LINE_RE = re.compile(r"^(?P<path>[^:]+):(?P<line>\d+): error: (?P<msg>.*?)\s+\[(?P<code>[\w-]+)\]\s*$")
+MYPY_LINE_RE = re.compile(
+    r"^(?P<path>[^:]+):(?P<line>\d+): error: (?P<msg>.*?)\s+\[(?P<code>[\w-]+)\]\s*$"
+)
 
 
 def signature(path: str, msg: str, code: str) -> str:
@@ -57,10 +68,12 @@ def parse_mypy_output(text: str) -> set[str]:
             continue
         path = m.group("path")
         if path.startswith("src/"):
-            path = path[len("src/"):]
+            path = path[len("src/") :]
         sigs.add(signature(path, m.group("msg"), m.group("code")))
     if not sigs:
-        raise ValueError("No mypy error lines parsed — refuse to gate on an empty/unknown output shape")
+        raise ValueError(
+            "No mypy error lines parsed — refuse to gate on an empty/unknown output shape"
+        )
     return sigs
 
 
@@ -76,8 +89,8 @@ def read_baseline() -> set[str]:
 
 def self_test() -> int:
     sample = (
-        "src/cohezion/a.py:10: error: Need type annotation for \"x\"  [var-annotated]\n"
-        "src/cohezion/b.py:20: error: Value of type \"dict[str, Any] | None\" is not indexable  [index]\n"
+        'src/cohezion/a.py:10: error: Need type annotation for "x"  [var-annotated]\n'
+        'src/cohezion/b.py:20: error: Value of type "dict[str, Any] | None" is not indexable  [index]\n'
         "src/cohezion/b.py:44: error: see line 40 above  [misc]\n"
         "Found 3 errors in 2 files (checked 2 source files)\n"
     )
@@ -89,8 +102,7 @@ def self_test() -> int:
     assert any("see line N" in s for s in sigs), sigs
     # same path+code with different messages -> distinct signatures
     two_same_code = (
-        "src/cohezion/c.py:1: error: first  [misc]\n"
-        "src/cohezion/c.py:2: error: second  [misc]\n"
+        "src/cohezion/c.py:1: error: first  [misc]\nsrc/cohezion/c.py:2: error: second  [misc]\n"
     )
     assert len(parse_mypy_output(two_same_code)) == 2
     # empty output must fail closed
@@ -130,14 +142,19 @@ def main() -> int:
 
     new = sorted(current - base)
     fixed = len(base - current)
-    print(f"mypy: {len(current)} errors in code (baseline {len(base)}; fixed-since-baseline: {fixed})")
+    print(
+        f"mypy: {len(current)} errors in code (baseline {len(base)}; fixed-since-baseline: {fixed})"
+    )
 
     if new:
         for s in new[:40]:
             print(f"✗ new type error: {s}", file=sys.stderr)
         if len(new) > 40:
             print(f"✗ ... and {len(new) - 40} more", file=sys.stderr)
-        print("New code must type-check: fix the errors above. Do NOT re-baseline to make this pass.", file=sys.stderr)
+        print(
+            "New code must type-check: fix the errors above. Do NOT re-baseline to make this pass.",
+            file=sys.stderr,
+        )
         return 1
     if fixed:
         print(f"↑ {fixed} baseline errors no longer reproduce — prune the baseline:")

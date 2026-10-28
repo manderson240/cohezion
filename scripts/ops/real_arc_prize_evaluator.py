@@ -8,23 +8,33 @@ import numpy as np
 CHALLENGES_PATH = "data/arc_prize/arc-agi_training_challenges.json"
 SOLUTIONS_PATH = "data/arc_prize/arc-agi_training_solutions.json"
 
+
 def solve_with_dsl(train_examples, test_input):
     """Real Domain Specific Language (DSL) for ARC grids."""
     inp = np.array(test_input)
-    
+
     # 1. Exact Identity check
     if all(np.array_equal(np.array(ex["input"]), np.array(ex["output"])) for ex in train_examples):
         return inp.tolist()
 
     # 2. Check 90/180/270 Rotations
     for k in [1, 2, 3]:
-        if all(np.array_equal(np.rot90(np.array(ex["input"]), k), np.array(ex["output"])) for ex in train_examples):
+        if all(
+            np.array_equal(np.rot90(np.array(ex["input"]), k), np.array(ex["output"]))
+            for ex in train_examples
+        ):
             return np.rot90(inp, k).tolist()
 
     # 3. Flips
-    if all(np.array_equal(np.fliplr(np.array(ex["input"])), np.array(ex["output"])) for ex in train_examples):
+    if all(
+        np.array_equal(np.fliplr(np.array(ex["input"])), np.array(ex["output"]))
+        for ex in train_examples
+    ):
         return np.fliplr(inp).tolist()
-    if all(np.array_equal(np.flipud(np.array(ex["input"])), np.array(ex["output"])) for ex in train_examples):
+    if all(
+        np.array_equal(np.flipud(np.array(ex["input"])), np.array(ex["output"]))
+        for ex in train_examples
+    ):
         return np.flipud(inp).tolist()
 
     # 4. Monochromatic constant fill check
@@ -36,6 +46,7 @@ def solve_with_dsl(train_examples, test_input):
 
     # Default fallback
     return inp.tolist()
+
 
 def run_real_evaluation(max_tasks=100):
     print("\n" + "=" * 115)
@@ -74,10 +85,11 @@ def run_real_evaluation(max_tasks=100):
     print(f"  • Total Tasks Evaluated: {len(task_ids)} ({total} test cases)")
     print(f"  • Exact Match Solutions: {correct}/{total}")
     print(f"  • Real Empirical Accuracy: {accuracy:.2f}%")
-    print(f"  • Total Execution Latency: {dt}s ({round(dt/total*1000, 2)} ms/task)")
+    print(f"  • Total Execution Latency: {dt}s ({round(dt / total * 1000, 2)} ms/task)")
     print("=" * 115 + "\n")
 
     return accuracy
+
 
 if __name__ == "__main__":
     run_real_evaluation(100)

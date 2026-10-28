@@ -16,13 +16,18 @@ import time
 import httpx
 import numpy as np
 
-from cohezion.physics.amd_silicon_optimizer import AMDQuarkOptimizer, ZenTorchPoincareEngine, QuarkQuantConfig
+from cohezion.physics.amd_silicon_optimizer import (
+    AMDQuarkOptimizer,
+    ZenTorchPoincareEngine,
+    QuarkQuantConfig,
+)
 from cohezion.data_mesh.kanban_bridge import persist_item
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s | %(levelname)s | %(message)s")
 logger = logging.getLogger("dogfood_amd")
 
 LEMONADE_URL = "http://localhost:13305/v1/chat/completions"
+
 
 async def dogfood_pipeline():
     print("\n" + "=" * 115)
@@ -33,21 +38,27 @@ async def dogfood_pipeline():
     print("\n▶ [Stage 1] Simulating 12 GAIA Agents in 2048D Poincaré Manifold...")
     poincare = ZenTorchPoincareEngine()
     agent_embeddings = np.random.randn(12, 2048) * 0.08  # Low curvature distribution
-    
+
     t0 = time.perf_counter()
     frechet_centroid, dt_frechet = poincare.compute_frechet_mean_zen(agent_embeddings)
-    print(f"  ✓ ZenTorch AVX-512 Centroid computed in {dt_frechet} ms | Norm: {np.linalg.norm(frechet_centroid):.6f}")
+    print(
+        f"  ✓ ZenTorch AVX-512 Centroid computed in {dt_frechet} ms | Norm: {np.linalg.norm(frechet_centroid):.6f}"
+    )
 
     # 2. AMD Quark OCP MXFP4 Quantization
     print("\n▶ [Stage 2] Applying AMD Quark OCP MXFP4 Quantization to Swarm State Matrix...")
     quark = AMDQuarkOptimizer(QuarkQuantConfig(scheme="MXFP4", target_device="xdna2_npu"))
     quant_res = quark.quantize_weight_tensor(agent_embeddings)
-    print(f"  ✓ AMD Quark Compressed 12x2048 matrix by {quant_res['compression_ratio']} (SNR: {quant_res['snr_db']} dB, Latency: {quant_res['latency_ms']} ms)")
+    print(
+        f"  ✓ AMD Quark Compressed 12x2048 matrix by {quant_res['compression_ratio']} (SNR: {quant_res['snr_db']} dB, Latency: {quant_res['latency_ms']} ms)"
+    )
 
     # 3. Lemonade Local Silicon NPU/iGPU Inference
-    print("\n▶ [Stage 3] Dispatching Consensus Synthesis to Local Silicon (qwen3.6-moe-35b on NPU)...")
+    print(
+        "\n▶ [Stage 3] Dispatching Consensus Synthesis to Local Silicon (qwen3.6-moe-35b on NPU)..."
+    )
     prompt = f"""You are the Master Evaluator on AMD Strix Halo silicon.
-A 12-agent GAIA swarm converged on Fréchet centroid (norm: {np.linalg.norm(frechet_centroid):.4f}) with MXFP4 SNR {quant_res['snr_db']} dB.
+A 12-agent GAIA swarm converged on Fréchet centroid (norm: {np.linalg.norm(frechet_centroid):.4f}) with MXFP4 SNR {quant_res["snr_db"]} dB.
 Summarize the operational health and sovereign readiness of the AMD silicon stack in 2 crisp sentences."""
 
     t0 = time.perf_counter()
@@ -56,10 +67,10 @@ Summarize the operational health and sovereign readiness of the AMD silicon stac
             "model": "qwen3.6-moe-35b-a3b-FLM",
             "messages": [
                 {"role": "system", "content": "You are the Cohezion AMD Silicon Evaluator."},
-                {"role": "user", "content": prompt}
+                {"role": "user", "content": prompt},
             ],
             "temperature": 0.1,
-            "max_tokens": 256
+            "max_tokens": 256,
         }
         r = await client.post(LEMONADE_URL, json=payload)
         dt_infer = round(time.perf_counter() - t0, 2)
@@ -68,13 +79,15 @@ Summarize the operational health and sovereign readiness of the AMD silicon stac
             msg = data["choices"][0]["message"]
             response_text = msg.get("content") or msg.get("reasoning_content") or ""
             print(f"  ✓ Local Silicon Inference Completed in {dt_infer}s:")
-            print(f"\n  \"{response_text.strip()}\"\n")
+            print(f'\n  "{response_text.strip()}"\n')
         else:
             response_text = f"HTTP {r.status_code}: {r.text[:100]}"
             print(f"  ✗ Inference returned {response_text}")
 
     # 4. Durable Kanban & SurrealDB Event Persistence
-    print("▶ [Stage 4] Persisting Dogfood Certification to SurrealDB, Obsidian Kanban, & EventBus...")
+    print(
+        "▶ [Stage 4] Persisting Dogfood Certification to SurrealDB, Obsidian Kanban, & EventBus..."
+    )
     task_id = f"amd_dogfood_{int(time.time())}"
     card = {
         "id": task_id,
@@ -93,6 +106,7 @@ Summarize the operational health and sovereign readiness of the AMD silicon stac
     print("\n" + "=" * 115)
     print("🎉 FULL AMD SILICON STACK DOGFOOD COMPLETED WITH 100% OPERATIONAL INTEGRITY!")
     print("=" * 115 + "\n")
+
 
 if __name__ == "__main__":
     asyncio.run(dogfood_pipeline())

@@ -270,26 +270,35 @@ Use these two channels:
    monitoring/healing systems can react in real time.
    ```python
    from cohezion.core.event_bus import Event, EventBus
+
    bus = EventBus()
-   await bus.publish(Event.agent_complete(
-       agent="audit-init-modules",
-       result={"finding": "api/__init__.py has 1594 LOC inline logic",
-               "severity": "critical", "category": "tech_debt"},
-   ))
+   await bus.publish(
+       Event.agent_complete(
+           agent="audit-init-modules",
+           result={
+               "finding": "api/__init__.py has 1594 LOC inline logic",
+               "severity": "critical",
+               "category": "tech_debt",
+           },
+       )
+   )
    ```
 
 2. **Agentic Kanban** (`cohezion.data_mesh.kanban_bridge`): Create a
    kanban item that persists to both SurrealDB and the Obsidian vault.
    ```python
    from cohezion.data_mesh.kanban_bridge import persist_item
-   persist_item({
-       "id": "init-audit-api-bloat",
-       "title": "api/__init__.py contains 1594 LOC of inline logic",
-       "status": "backlog",
-       "priority": "high",
-       "source": "audit/init-modules",
-       "category": "tech_debt",
-   })
+
+   persist_item(
+       {
+           "id": "init-audit-api-bloat",
+           "title": "api/__init__.py contains 1594 LOC of inline logic",
+           "status": "backlog",
+           "priority": "high",
+           "source": "audit/init-modules",
+           "category": "tech_debt",
+       }
+   )
    ```
 
 This ensures findings survive session crashes (including OOM) and are

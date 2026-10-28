@@ -27,6 +27,7 @@ logger = logging.getLogger("bughunt")
 
 LEMONADE_URL = "http://localhost:13305/v1/chat/completions"
 
+
 def query_local_bug_hunter(code_snippet: str, file_path: str) -> dict[str, Any]:
     prompt = f"""You are an adversarial security and bug-hunting kernel engineer.
 Analyze the following Python code from `{file_path}` for real bugs, race conditions, memory leaks, or unhandled edge cases:
@@ -53,20 +54,27 @@ Output ONLY raw JSON. No conversational wrapper.
     payload = {
         "model": "gpt-oss-20b-mxfp4-GGUF",
         "messages": [
-            {"role": "system", "content": "You are a deterministic code security and bug audit kernel. Output strictly valid JSON."},
-            {"role": "user", "content": prompt}
+            {
+                "role": "system",
+                "content": "You are a deterministic code security and bug audit kernel. Output strictly valid JSON.",
+            },
+            {"role": "user", "content": prompt},
         ],
         "temperature": 0.1,
-        "max_tokens": 1024
+        "max_tokens": 1024,
     }
 
     try:
-        req = urllib.request.Request(LEMONADE_URL, data=json.dumps(payload).encode("utf-8"), headers={"Content-Type": "application/json"})
+        req = urllib.request.Request(
+            LEMONADE_URL,
+            data=json.dumps(payload).encode("utf-8"),
+            headers={"Content-Type": "application/json"},
+        )
         with urllib.request.urlopen(req, timeout=45) as resp:
             data = json.loads(resp.read().decode("utf-8"))
             msg = data["choices"][0]["message"]
             raw = msg.get("content", "") or msg.get("reasoning_content", "")
-            
+
             # Extract JSON block
             if "```json" in raw:
                 raw = raw.split("```json")[-1].split("```")[0].strip()
@@ -74,14 +82,15 @@ Output ONLY raw JSON. No conversational wrapper.
                 raw = raw.split("```")[1].strip()
             elif "{" in raw and "}" in raw:
                 raw = "{" + raw.split("{", 1)[1].rsplit("}", 1)[0] + "}"
-            
+
             return json.loads(raw)
     except Exception as exc:
         return {
             "bugs_found": [],
             "confidence_score": 0.0,
-            "summary": f"Audit error or parse failure: {exc}"
+            "summary": f"Audit error or parse failure: {exc}",
         }
+
 
 def run_local_bughunt():
     target_files = [
@@ -114,21 +123,30 @@ def run_local_bughunt():
         hunt_ms = (time.perf_counter() - t1) * 1000.0
 
         print(f"\n📁 File: {fpath}")
-        print(f"  • AST Verification : {'🟢 CLEAN' if ast_res['verified'] else '❌ VIOLATIONS'} ({ast_ms:.2f} ms)")
-        print(f"  • Semantic Audit   : {hunt_res.get('summary', 'Audit complete')} ({hunt_ms:.2f} ms)")
-        
+        print(
+            f"  • AST Verification : {'🟢 CLEAN' if ast_res['verified'] else '❌ VIOLATIONS'} ({ast_ms:.2f} ms)"
+        )
+        print(
+            f"  • Semantic Audit   : {hunt_res.get('summary', 'Audit complete')} ({hunt_ms:.2f} ms)"
+        )
+
         bugs = hunt_res.get("bugs_found", [])
         total_findings += len(bugs)
         if bugs:
             for b in bugs:
-                print(f"    ⚠️ [{b.get('severity', 'WARN')}] {b.get('issue')} (Hint: {b.get('line_hint')})")
+                print(
+                    f"    ⚠️ [{b.get('severity', 'WARN')}] {b.get('issue')} (Hint: {b.get('line_hint')})"
+                )
                 print(f"       Fix: {b.get('fix')}")
         else:
             print("    ✅ 0 Critical Bugs Found")
 
     print("\n" + "=" * 95)
-    print(f"🎉 BUGHUNT COMPLETE: {len(target_files)} Files Audited | {total_findings} Findings | 100% Local Inference")
+    print(
+        f"🎉 BUGHUNT COMPLETE: {len(target_files)} Files Audited | {total_findings} Findings | 100% Local Inference"
+    )
     print("=" * 95 + "\n")
+
 
 if __name__ == "__main__":
     run_local_bughunt()

@@ -8,6 +8,7 @@ import numpy as np
 CHALLENGES_PATH = "data/arc_prize/arc-agi_training_challenges.json"
 SOLUTIONS_PATH = "data/arc_prize/arc-agi_training_solutions.json"
 
+
 def synthesize_kronecker_meta_tiler(train_pairs):
     """Detects Kronecker self-similarity fractal expansions (input grid tiles onto non-zero elements of itself)."""
     tr_in = [np.array(ex["input"]) for ex in train_pairs]
@@ -26,7 +27,7 @@ def synthesize_kronecker_meta_tiler(train_pairs):
         for r in range(h):
             for c in range(w):
                 if arr[r, c] != 0:
-                    out[r*h:(r+1)*h, c*w:(c+1)*w] = arr
+                    out[r * h : (r + 1) * h, c * w : (c + 1) * w] = arr
         return out.tolist()
 
     if all(apply_kronecker(ex["input"]) == ex["output"] for ex in train_pairs):
@@ -34,9 +35,12 @@ def synthesize_kronecker_meta_tiler(train_pairs):
 
     return None
 
+
 def run_kronecker_benchmark():
-    with open(CHALLENGES_PATH) as f: challenges = json.load(f)
-    with open(SOLUTIONS_PATH) as f: solutions = json.load(f)
+    with open(CHALLENGES_PATH) as f:
+        challenges = json.load(f)
+    with open(SOLUTIONS_PATH) as f:
+        solutions = json.load(f)
 
     solved = 0
     total = len(challenges)
@@ -51,7 +55,10 @@ def run_kronecker_benchmark():
                 solved += 1
 
     dt = round(time.perf_counter() - t0, 3)
-    print(f"📊 Kronecker Fractal Synthesizer Results: Solved {solved}/{total} ({solved/total*100:.2f}%) in {dt}s")
+    print(
+        f"📊 Kronecker Fractal Synthesizer Results: Solved {solved}/{total} ({solved / total * 100:.2f}%) in {dt}s"
+    )
+
 
 if __name__ == "__main__":
     run_kronecker_benchmark()

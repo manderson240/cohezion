@@ -30,7 +30,7 @@ if agy_settings_path.exists():
     print(f"  • Running LightSpeed: {data.get('runningLightSpeed')} (Target: 'fast')")
     print(f"  • Whitelisted Permissions Count: {len(data.get('permissions', {}).get('allow', []))}")
     print(f"  • Tool Primitives: {', '.join(data.get('permissions', {}).get('allow', [])[:6])}...")
-    assert data.get('runningLightSpeed') == 'fast', "LightSpeed must be 'fast'"
+    assert data.get("runningLightSpeed") == "fast", "LightSpeed must be 'fast'"
     print("  ✅ PROOF 1 VERIFIED: Zero-friction autonomy configuration active.")
 else:
     print("  ❌ PROOF 1 FAILED: File not found.")
@@ -42,8 +42,9 @@ from cohezion.recursive_trace.goal_loop import GoalDrivenTraceLoop, GoalTraceTas
 task = GoalTraceTask(
     goal_id="proof_trace_to_goal_001",
     condition="convergence_reached",
-    initial_failure_class="initial"
+    initial_failure_class="initial",
 )
+
 
 def mock_strategy_step(task, strategy):
     if strategy == "init_probe":
@@ -52,10 +53,11 @@ def mock_strategy_step(task, strategy):
         return True, "Deterministically repaired syntax anomaly", None
     return True, "Converged", None
 
+
 loop = GoalDrivenTraceLoop(
     strategies=["init_probe", "syntax_fix", "verify_gate"],
     failure_map={"initial": ["init_probe"], "syntax_error": ["syntax_fix"]},
-    max_depth=5
+    max_depth=5,
 )
 t0 = time.perf_counter()
 result = loop.run(task, mock_strategy_step)
@@ -74,10 +76,13 @@ print("  ✅ PROOF 2 VERIFIED: Linear trace successfully closed into iterative g
 print("\n[PROOF 3/7] Elegantly Simple Graph Engineering with V-Model Rigor")
 from cohezion.swarm.graph_systems_vmodel_engine import GraphSystemsVModelEngine
 
+
 async def run_vmodel_proof():
     engine = GraphSystemsVModelEngine()
     t0 = time.perf_counter()
-    v_res = await engine.execute_graph_vmodel_cycle("StrixHaloUnifiedMemorySubstrate", "hardware_mesh")
+    v_res = await engine.execute_graph_vmodel_cycle(
+        "StrixHaloUnifiedMemorySubstrate", "hardware_mesh"
+    )
     dt = (time.perf_counter() - t0) * 1000
     print(f"  • Graph Node ID: {v_res.node_id}")
     print(f"  • J-Space Regime: {v_res.j_space_regime}")
@@ -87,6 +92,7 @@ async def run_vmodel_proof():
     print(f"  • V-Model Cycle Latency: {dt:.2f} ms")
     assert v_res.ast_verified is True
     assert v_res.zkfv_verified is True
+
 
 asyncio.run(run_vmodel_proof())
 print("  ✅ PROOF 3 VERIFIED: V-Model graph traversal executed with dual AST + ZK-FV verification.")
@@ -104,7 +110,9 @@ print(f"  • AutoHarness Policy Execution: allowed={eval_res.allowed}, reason='
 print(f"  • AutoHarness Bytecode Execution Latency: {t_eval:.3f} µs (Zero LLM Tokens)")
 assert eval_res.allowed is True
 assert t_eval < 100.0, "Bytecode evaluation must be sub-100 microseconds"
-print("  ✅ PROOF 4 VERIFIED: Compound engineering produces reusable, sub-microsecond deterministic verifiers.")
+print(
+    "  ✅ PROOF 4 VERIFIED: Compound engineering produces reusable, sub-microsecond deterministic verifiers."
+)
 
 # --- PROOF 5: Dynamic Modularity ---
 print("\n[PROOF 5/7] Dynamic Modularity (Factory & Transport Polymorphism)")
@@ -116,17 +124,21 @@ print("  • Factory Interfaces Verified:")
 print(f"    - ExecutorFactory: {[m for m in dir(ExecutorFactory) if not m.startswith('_')]}")
 print(f"    - AgentFactory: {[m for m in dir(AgentFactory) if not m.startswith('_')]}")
 print(f"    - WorkflowBuilder: {[m for m in dir(WorkflowBuilder) if not m.startswith('_')]}")
-print("  ✅ PROOF 5 VERIFIED: High cohesion, loose coupling achieved via dynamic modular factories.")
+print(
+    "  ✅ PROOF 5 VERIFIED: High cohesion, loose coupling achieved via dynamic modular factories."
+)
 
 # --- PROOF 6: BAML Integration ---
 print("\n[PROOF 6/7] BAML (Boundary Abstract Modeling Language) Integration")
 from cohezion.baml.baml_bridge import BAMLSchemaGenerator, BAMLResilientParser
+
 
 class ProofGoalSpec(BaseModel):
     goal_id: str = Field(description="Unique identifier")
     target_metric: str
     target_threshold: float
     max_iterations: int = 10
+
 
 # 1. Schema Generation
 baml_schema = BAMLSchemaGenerator.generate_baml_class(ProofGoalSpec)
@@ -151,7 +163,9 @@ JSON output prepared.
 ```
 """
 parsed_spec = BAMLResilientParser.parse_to_model(adversarial_raw, ProofGoalSpec)
-print(f"  • Resilient Parser Result: goal_id='{parsed_spec.goal_id}', metric='{parsed_spec.target_metric}', threshold={parsed_spec.target_threshold}, max_iter={parsed_spec.max_iterations}")
+print(
+    f"  • Resilient Parser Result: goal_id='{parsed_spec.goal_id}', metric='{parsed_spec.target_metric}', threshold={parsed_spec.target_threshold}, max_iter={parsed_spec.max_iterations}"
+)
 assert parsed_spec.goal_id == "baml_live_proof_42"
 assert parsed_spec.target_threshold == 0.50
 assert parsed_spec.max_iterations == 20
@@ -161,7 +175,9 @@ print("  ✅ PROOF 6 VERIFIED: BAML schema generation & resilient CoT parsing co
 print("\n[PROOF 7/9] Producer-Consumer Invariant Audit (Zero Hollow Seams)")
 import subprocess
 
-audit_res = subprocess.run(["python3", "scripts/ci/producer_consumer_audit.py"], capture_output=True, text=True)
+audit_res = subprocess.run(
+    ["python3", "scripts/ci/producer_consumer_audit.py"], capture_output=True, text=True
+)
 print(f"  • Audit Exit Code: {audit_res.returncode}")
 for line in audit_res.stdout.strip().split("\n"):
     if "VERIFIED" in line or "ALL PRODUCERS" in line:
@@ -190,19 +206,28 @@ final_dirichlet = final_res.dirichlet_energy
 
 print(f"  • Initial Dirichlet Energy E_D: {initial_dirichlet:.6f}")
 print(f"  • Final Diffused Dirichlet Energy E_D: {final_dirichlet:.6f}")
-print(f"  • Energy Reduction: {(initial_dirichlet - final_dirichlet) / initial_dirichlet * 100:.2f}%")
+print(
+    f"  • Energy Reduction: {(initial_dirichlet - final_dirichlet) / initial_dirichlet * 100:.2f}%"
+)
 print(f"  • Diffused Orchestrator Stalk: {np.round(diffused_stalks['orchestrator'], 4).tolist()}")
 print(f"  • Diffused Executor Stalk: {np.round(diffused_stalks['executor'], 4).tolist()}")
-assert final_dirichlet < initial_dirichlet, "Harmonic diffusion must strictly minimize Dirichlet energy"
-print("  ✅ PROOF 8 VERIFIED: Mathematical depth established via cellular sheaf harmonic diffusion.")
+assert final_dirichlet < initial_dirichlet, (
+    "Harmonic diffusion must strictly minimize Dirichlet energy"
+)
+print(
+    "  ✅ PROOF 8 VERIFIED: Mathematical depth established via cellular sheaf harmonic diffusion."
+)
 
 # --- PROOF 9: Grand Unified Compound Pipeline (Full 10-Subsystem Breadth) ---
 print("\n[PROOF 9/9] Grand Unified Compound Pipeline (10-Subsystem Orchestration)")
 from cohezion.compound.grand_unified_compound_pipeline import GrandUnifiedCompoundPipeline
 
+
 async def run_pipeline_proof():
     pipeline = GrandUnifiedCompoundPipeline()
-    res = await pipeline.execute_mission("AutonomousBreadthAndDepthExpansion", target_metric="coherence")
+    res = await pipeline.execute_mission(
+        "AutonomousBreadthAndDepthExpansion", target_metric="coherence"
+    )
     print(f"  • Mission ID: {res.mission_id}")
     print(f"  • Goal ID: {res.goal_id}")
     print(f"  • Classified Inference Tier: {res.classified_tier}")
@@ -210,7 +235,9 @@ async def run_pipeline_proof():
     print(f"  • BAML Schema & Parse Validated: {res.baml_validated}")
     print(f"  • AutoHarness Bytecode Policy Verified: {res.autoharness_verified} (0 ms)")
     print(f"  • ZK-FV Plonkish Safety Gate Verified: {res.zkfv_verified}")
-    print(f"  • Sheaf Dirichlet Energy: {res.sheaf_dirichlet_energy:.6f} (Consistent: {res.sheaf_consistent})")
+    print(
+        f"  • Sheaf Dirichlet Energy: {res.sheaf_dirichlet_energy:.6f} (Consistent: {res.sheaf_consistent})"
+    )
     print(f"  • Dual Kanban Persistence: {res.kanban_persisted} (Obsidian & SurrealDB)")
     print(f"  • Bus Telemetry Emitted: {res.telemetry_emitted}")
     print(f"  • End-to-End Orchestration Latency: {res.execution_latency_ms:.2f} ms")
@@ -220,8 +247,11 @@ async def run_pipeline_proof():
     assert res.kanban_persisted is True
     assert res.telemetry_emitted is True
 
+
 asyncio.run(run_pipeline_proof())
-print("  ✅ PROOF 9 VERIFIED: Grand Unified 10-subsystem pipeline seamlessly orchestrated in a single cycle.")
+print(
+    "  ✅ PROOF 9 VERIFIED: Grand Unified 10-subsystem pipeline seamlessly orchestrated in a single cycle."
+)
 
 print("\n" + "=" * 80)
 print("🎯 ALL 9 PROOFS EMPIRICALLY DEMONSTRATED WITH 100% PASSING CRITERIA (BREADTH & DEPTH)")

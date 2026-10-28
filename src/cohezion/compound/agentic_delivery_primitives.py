@@ -65,7 +65,10 @@ class DeliveryContract:
     def validate_handover(self, artifact: DeliveryArtifact) -> tuple[bool, str]:
         """Validate whether the artifact satisfies the formal stage boundary contract."""
         if artifact.stage != self.source_stage:
-            return False, f"Artifact stage {artifact.stage} does not match expected source {self.source_stage}"
+            return (
+                False,
+                f"Artifact stage {artifact.stage} does not match expected source {self.source_stage}",
+            )
 
         if artifact.artifact_type not in self.required_artifact_types:
             return (
@@ -79,7 +82,10 @@ class DeliveryContract:
         for validator in self.custom_validators:
             try:
                 if not validator(artifact):
-                    return False, f"Custom validator {validator.__name__} failed for artifact {artifact.artifact_id}"
+                    return (
+                        False,
+                        f"Custom validator {validator.__name__} failed for artifact {artifact.artifact_id}",
+                    )
             except Exception as e:
                 return False, f"Validator error: {e}"
 
@@ -193,9 +199,7 @@ class AgenticSoftwareDeliveryPipeline:
             source_stage=DeliveryStage.BUILD,
             target_stage=DeliveryStage.VERIFY,
             required_artifact_types=[DeliveryArtifactType.CANDIDATE_IMPLEMENTATION],
-            custom_validators=[
-                lambda a: "diff_or_code" in a.content and "rationale" in a.content
-            ],
+            custom_validators=[lambda a: "diff_or_code" in a.content and "rationale" in a.content],
         )
         # Verify -> Observe
         self._contracts[(DeliveryStage.VERIFY, DeliveryStage.OBSERVE)] = DeliveryContract(
@@ -220,7 +224,7 @@ class AgenticSoftwareDeliveryPipeline:
             enhanced_constraints.append(f"Defense against past defect: {pm['failure']}")
 
         artifact = DeliveryArtifact(
-            artifact_id=f"plan_{component}_{int(time.time()*1000)}",
+            artifact_id=f"plan_{component}_{int(time.time() * 1000)}",
             stage=DeliveryStage.PLAN,
             artifact_type=DeliveryArtifactType.GOAL_SPEC,
             title=f"Plan: {component} Intent & Acceptance Criteria",
@@ -251,7 +255,7 @@ class AgenticSoftwareDeliveryPipeline:
         result = build_handler(plan_artifact.content)
 
         artifact = DeliveryArtifact(
-            artifact_id=f"build_{plan_artifact.content.get('component')}_{int(time.time()*1000)}",
+            artifact_id=f"build_{plan_artifact.content.get('component')}_{int(time.time() * 1000)}",
             stage=DeliveryStage.BUILD,
             artifact_type=DeliveryArtifactType.CANDIDATE_IMPLEMENTATION,
             title=f"Build: Candidate Implementation for {plan_artifact.content.get('component')}",
@@ -283,7 +287,7 @@ class AgenticSoftwareDeliveryPipeline:
         passed, traces, failures = verifier_handler(build_artifact.content)
 
         artifact = DeliveryArtifact(
-            artifact_id=f"verify_{build_artifact.content.get('component')}_{int(time.time()*1000)}",
+            artifact_id=f"verify_{build_artifact.content.get('component')}_{int(time.time() * 1000)}",
             stage=DeliveryStage.VERIFY,
             artifact_type=DeliveryArtifactType.VERIFICATION_EVIDENCE,
             title=f"Verify: Validation Evidence for {build_artifact.content.get('component')}",
@@ -315,7 +319,7 @@ class AgenticSoftwareDeliveryPipeline:
         telemetry = telemetry_handler(verify_artifact.content)
 
         artifact = DeliveryArtifact(
-            artifact_id=f"observe_{verify_artifact.content.get('component')}_{int(time.time()*1000)}",
+            artifact_id=f"observe_{verify_artifact.content.get('component')}_{int(time.time() * 1000)}",
             stage=DeliveryStage.OBSERVE,
             artifact_type=DeliveryArtifactType.OPERATIONAL_SIGNAL,
             title=f"Observe: Operational Signals for {verify_artifact.content.get('component')}",
@@ -326,7 +330,9 @@ class AgenticSoftwareDeliveryPipeline:
                 "synthesized_learnings": telemetry.get("synthesized_learnings", []),
                 "failures": telemetry.get("runtime_failures", []),
             },
-            evidence=[f"Telemetry snapshot: {k}={v}" for k, v in telemetry.get("metrics", {}).items()],
+            evidence=[
+                f"Telemetry snapshot: {k}={v}" for k, v in telemetry.get("metrics", {}).items()
+            ],
         )
         self.memory.record_artifact(artifact)
         self._artifacts[artifact.artifact_id] = artifact

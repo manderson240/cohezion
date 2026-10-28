@@ -22,6 +22,7 @@ logger = logging.getLogger("KYCWatcher")
 
 CDP_JSON_URL = "http://127.0.0.1:9222/json"
 
+
 async def check_button_state():
     try:
         targets = json.loads(urllib.request.urlopen(CDP_JSON_URL).read().decode())
@@ -36,8 +37,17 @@ async def check_button_state():
 
     ws_url = h1_tab["webSocketDebuggerUrl"]
     async with websockets.connect(ws_url) as ws:
+
         async def eval_js(expr):
-            await ws.send(json.dumps({"id": 1, "method": "Runtime.evaluate", "params": {"expression": expr, "returnByValue": True}}))
+            await ws.send(
+                json.dumps(
+                    {
+                        "id": 1,
+                        "method": "Runtime.evaluate",
+                        "params": {"expression": expr, "returnByValue": True},
+                    }
+                )
+            )
             res = json.loads(await ws.recv())
             return res.get("result", {}).get("result", {}).get("value")
 
@@ -54,9 +64,12 @@ async def check_button_state():
         })()""")
         return ws, btn_info
 
+
 async def main():
     logger.info("Starting KYC Clearance Watcher for HackerOne Report Intent #408860...")
-    logger.info("Awaiting identity clearance at https://hackerone.com/cohezion/clearances?type=user")
+    logger.info(
+        "Awaiting identity clearance at https://hackerone.com/cohezion/clearances?type=user"
+    )
 
     while True:
         ws, btn_info = await check_button_state()
@@ -67,11 +80,14 @@ async def main():
                 logger.info("Ready to submit Report #1 immediately.")
                 break
             else:
-                logger.info("Submit button currently disabled (KYC clearance pending)... checking again in 15s")
+                logger.info(
+                    "Submit button currently disabled (KYC clearance pending)... checking again in 15s"
+                )
         else:
             logger.warning("Waiting for Report #408860 tab to be available...")
 
         await asyncio.sleep(15)
+
 
 if __name__ == "__main__":
     asyncio.run(main())

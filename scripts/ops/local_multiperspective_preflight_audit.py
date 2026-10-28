@@ -37,27 +37,28 @@ PERSONAS = [
         "id": "cynical_runtime",
         "name": "Cynical In-Container Runtime Architect",
         "model": "Qwen3-Coder-30B-A3B-Instruct-GGUF",
-        "sys": "You are a brutally cynical Kaggle container runtime architect. Attack edge cases, execution timeouts, memory leaks, and dependency failures in ARC kernels."
+        "sys": "You are a brutally cynical Kaggle container runtime architect. Attack edge cases, execution timeouts, memory leaks, and dependency failures in ARC kernels.",
     },
     {
         "id": "formal_verifier",
         "name": "Formal Verification & Invariant Auditor",
         "model": "gpt-oss-20b-mxfp4-GGUF",
-        "sys": "You are a Formal Verification Lead. Audit AutoHarness AST verification proofs, mathematical bounds, and false positive risks."
+        "sys": "You are a Formal Verification Lead. Audit AutoHarness AST verification proofs, mathematical bounds, and false positive risks.",
     },
     {
         "id": "ml_grandmaster",
         "name": "Competitive ML Grandmaster",
         "model": "qwen3.6-moe-35b-a3b-FLM",
-        "sys": "You are a Kaggle Grandmaster. Evaluate leaderboard score upside, test-time compute search depth, and submission slot strategy."
+        "sys": "You are a Kaggle Grandmaster. Evaluate leaderboard score upside, test-time compute search depth, and submission slot strategy.",
     },
     {
         "id": "hardware_governor",
         "name": "Sovereign Hardware & Memory Governor",
         "model": "waslmedia-qwen3-4b-Q4_K_M",
-        "sys": "You are a Hardware Safety Governor. Evaluate UMA memory footprint, NPU/iGPU execution stability, and thermal limits."
-    }
+        "sys": "You are a Hardware Safety Governor. Evaluate UMA memory footprint, NPU/iGPU execution stability, and thermal limits.",
+    },
 ]
+
 
 async def query_persona(persona: dict) -> tuple[str, str, float]:
     prompt = f"{AUDIT_SCOPE}\n\nDeliver your rigorous adversarial audit from your persona's perspective. Highlight critical vulnerabilities, failure modes, and your final GO / NO-GO verdict."
@@ -65,10 +66,10 @@ async def query_persona(persona: dict) -> tuple[str, str, float]:
         "model": persona["model"],
         "messages": [
             {"role": "system", "content": persona["sys"]},
-            {"role": "user", "content": prompt}
+            {"role": "user", "content": prompt},
         ],
         "temperature": 0.2,
-        "max_tokens": 600
+        "max_tokens": 600,
     }
     t0 = time.perf_counter()
     async with httpx.AsyncClient(timeout=90.0) as client:
@@ -84,6 +85,7 @@ async def query_persona(persona: dict) -> tuple[str, str, float]:
             return persona["name"], f"Local model execution note: {e}", -1.0
     return persona["name"], "No response", -1.0
 
+
 async def run_local_multiperspective_audit():
     print("\n" + "=" * 115)
     print("🛡️ LAUNCHING 4-PERSONA LOCAL ADVERSARIAL PRE-FLIGHT AUDIT (:13305)")
@@ -95,14 +97,14 @@ async def run_local_multiperspective_audit():
         f"**Date:** {time.strftime('%Y-%m-%d %H:%M:%S UTC', time.gmtime())}",
         "**Infrastructure:** Lemonade OmniRouter (:13305) on AMD Strix Halo Local Silicon",
         "**Scope:** ARC Prize 2 & 3 Anchor Submissions (384D Poincaré + 5 Synthesized Primitives)",
-        "\n---\n"
+        "\n---\n",
     ]
 
     for persona in PERSONAS:
         print(f"\n▶ Auditing with `{persona['name']}` ({persona['model']})...")
         name, review, dt = await query_persona(persona)
         print(f"   ✓ {name} completed in {dt}s")
-        
+
         report_sections.append(f"## Persona: {name} (`{persona['model']}`)\n")
         report_sections.append(f"**Latency:** {dt}s\n")
         report_sections.append(f"{review}\n\n---\n")
@@ -112,6 +114,7 @@ async def run_local_multiperspective_audit():
     print("\n" + "=" * 115)
     print(f"🏆 ALL 4 LOCAL PERSONA AUDITS COMPLETE! Saved to `{REPORT_PATH}`")
     print("=" * 115 + "\n")
+
 
 if __name__ == "__main__":
     asyncio.run(run_local_multiperspective_audit())

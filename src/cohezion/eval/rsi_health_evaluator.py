@@ -77,7 +77,8 @@ class RSIHealthEvaluator:
                 current_iteration=latest.iteration,
                 learning_velocity=0.0,
                 is_monotonic=True,
-                generalization_ratio=latest.unseen_generalization_rate / max(0.01, latest.empirical_pass_rate),
+                generalization_ratio=latest.unseen_generalization_rate
+                / max(0.01, latest.empirical_pass_rate),
                 retention_ratio=latest.retention_score,
                 alignment_score=latest.invariant_safety_score,
                 complexity_index=comp,
@@ -95,7 +96,9 @@ class RSIHealthEvaluator:
         is_monotonic = latest.empirical_pass_rate >= (prev.empirical_pass_rate - 0.001)
 
         # 3. Generalization: P(unseen) / P(known)
-        generalization_ratio = latest.unseen_generalization_rate / max(0.01, latest.empirical_pass_rate)
+        generalization_ratio = latest.unseen_generalization_rate / max(
+            0.01, latest.empirical_pass_rate
+        )
 
         # 4. Retention (catastrophic forgetting guard)
         retention_ratio = latest.retention_score / max(0.01, prev.retention_score)
@@ -111,7 +114,9 @@ class RSIHealthEvaluator:
         stability_guardrail = min(1.0, retention_ratio) * alignment
         psi = (growth_engine * stability_guardrail) / comp
 
-        diagnosis = self._diagnose(velocity, is_monotonic, generalization_ratio, retention_ratio, psi)
+        diagnosis = self._diagnose(
+            velocity, is_monotonic, generalization_ratio, retention_ratio, psi
+        )
 
         return RSIMetaEvaluation(
             current_iteration=latest.iteration,

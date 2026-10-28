@@ -51,7 +51,9 @@ class NovelCoherentFusionDiscovery:
         self.persistence = DurablePrecipitationBridge()
 
     def run_discovery(self) -> dict[str, Any]:
-        logger.info("🚀 Initiating Triune Autonomous Discovery: Lattice-Screened Electro-Nuclear Coalescence...")
+        logger.info(
+            "🚀 Initiating Triune Autonomous Discovery: Lattice-Screened Electro-Nuclear Coalescence..."
+        )
         t0 = time.perf_counter()
 
         # Exploration space: Current density j in [1e10, 1e13] A/m^2, lattice radius r in [0.2e-10, 1.0e-10] m
@@ -73,14 +75,25 @@ class NovelCoherentFusionDiscovery:
                     current_density_a_m2=float(j),
                     cluster_radius_m=float(r),
                 )
-                
+
                 # 2. Evaluate Alice Bailey Cosmic Fire balance
                 # Vector encodes: [r, j, E_barrier, screening, temp, spin, ...]
-                vec_12d = np.array([
-                    r * 1e10, j * 1e-11, itonic_state.coulomb_barrier_ev,
-                    itonic_state.screening_length_meters * 1e12, 0.5, 0.5, 0.5, 0.5,
-                    itonic_state.hiho_coherence_factor, 0.8, 0.8, 0.8
-                ])
+                vec_12d = np.array(
+                    [
+                        r * 1e10,
+                        j * 1e-11,
+                        itonic_state.coulomb_barrier_ev,
+                        itonic_state.screening_length_meters * 1e12,
+                        0.5,
+                        0.5,
+                        0.5,
+                        0.5,
+                        itonic_state.hiho_coherence_factor,
+                        0.8,
+                        0.8,
+                        0.8,
+                    ]
+                )
                 fire_state = self.cosmic_fire.calculate_triune_fires(vec_12d)
 
                 # 3. LENR reaction rate via beta-binomial kernel
@@ -107,7 +120,11 @@ class NovelCoherentFusionDiscovery:
                 }
                 evaluations.append(eval_record)
 
-                if itonic_state.is_enc_triggered and is_soliton_stable and deviation < best_deviation:
+                if (
+                    itonic_state.is_enc_triggered
+                    and is_soliton_stable
+                    and deviation < best_deviation
+                ):
                     best_deviation = deviation
                     best_candidate = eval_record
 
@@ -124,7 +141,9 @@ class NovelCoherentFusionDiscovery:
         )
 
         # 6. Twistor Lightcone Verification & Orch-OR Collapse
-        twistor = self.twistor_engine.spacetime_to_twistor((0.0, 0.0, 0.0, best_candidate["cluster_radius_m"]))
+        twistor = self.twistor_engine.spacetime_to_twistor(
+            (0.0, 0.0, 0.0, best_candidate["cluster_radius_m"])
+        )
         orch_event = self.orch_engine.compute_reduction_time(tubulin_count=100_000_000)
 
         duration_s = round(time.perf_counter() - t0, 3)
@@ -150,12 +169,12 @@ class NovelCoherentFusionDiscovery:
         witness_body = f"""## Discovery of Non-Thermal Clean Coherent Fusion Invariant
 
 ### Core Parameters Discovered
-- **Current Density ($j$)**: {best_candidate['current_density_a_m2']:.2e} A/m²
-- **Lattice Cavity Radius ($r$)**: {best_candidate['cluster_radius_m']:.2e} m
-- **Debye Screening Length**: {best_candidate['screening_length_pm']:.4f} pm
-- **Residual Coulomb Barrier**: {best_candidate['coulomb_barrier_ev']:.6f} eV (Effectively Zero)
-- **HIHO Coherence**: {best_candidate['hiho_coherence']} (Optimal 0.50 Attractor)
-- **Reaction Rate**: {best_candidate['reaction_rate']} (Normalized Maximum = 1.00)
+- **Current Density ($j$)**: {best_candidate["current_density_a_m2"]:.2e} A/m²
+- **Lattice Cavity Radius ($r$)**: {best_candidate["cluster_radius_m"]:.2e} m
+- **Debye Screening Length**: {best_candidate["screening_length_pm"]:.4f} pm
+- **Residual Coulomb Barrier**: {best_candidate["coulomb_barrier_ev"]:.6f} eV (Effectively Zero)
+- **HIHO Coherence**: {best_candidate["hiho_coherence"]} (Optimal 0.50 Attractor)
+- **Reaction Rate**: {best_candidate["reaction_rate"]} (Normalized Maximum = 1.00)
 
 ### Transmutation Outcome
 - **Reaction**: 4H -> 4He + 23.84 MeV

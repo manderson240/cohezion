@@ -23,7 +23,9 @@ from cohezion.actioner.autoharness_verifier import AutoHarnessVerifier
 from cohezion.core.event_bus import Event, EventBus, EventType
 from cohezion.reliability.oom_guard import OOMGuard
 
-logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] [DOC_SYNTH] %(message)s")
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s [%(levelname)s] [DOC_SYNTH] %(message)s"
+)
 logger = logging.getLogger("doc_synth")
 
 LEMONADE_URL = "http://localhost:13305/v1/chat/completions"
@@ -57,12 +59,14 @@ class AutoDocstringSynthesizer:
                                 start_line = node.lineno - 1
                                 end_line = node.end_lineno or (start_line + 5)
                                 snippet = "\n".join(lines[start_line:end_line])
-                                targets.append({
-                                    "filepath": filepath,
-                                    "func_name": node.name,
-                                    "lineno": node.lineno,
-                                    "snippet": snippet,
-                                })
+                                targets.append(
+                                    {
+                                        "filepath": filepath,
+                                        "func_name": node.name,
+                                        "lineno": node.lineno,
+                                        "snippet": snippet,
+                                    }
+                                )
                                 if len(targets) >= max_items:
                                     return targets
         return targets
@@ -71,7 +75,7 @@ class AutoDocstringSynthesizer:
         prompt = (
             f"Generate a clean, professional NumPy-style docstring for this Python function:\n\n"
             f"```python\n{snippet}\n```\n\n"
-            f"Output ONLY the triple-quoted docstring (e.g. \"\"\"Summary...\"\"\") and nothing else."
+            f'Output ONLY the triple-quoted docstring (e.g. """Summary...""") and nothing else.'
         )
         payload = {
             "model": "gpt-oss-20b-mxfp4-GGUF",
@@ -102,7 +106,9 @@ class AutoDocstringSynthesizer:
 
         mem = OOMGuard.get_memory_state(largest_model_gb=16.0)
         if mem.available_gb < 20.0:
-            logger.warning("⚠️ Memory under floor (%.1f GiB < 20.0 GiB). Aborting doc batch.", mem.available_gb)
+            logger.warning(
+                "⚠️ Memory under floor (%.1f GiB < 20.0 GiB). Aborting doc batch.", mem.available_gb
+            )
             return
 
         targets = self.find_undocumented_functions(max_items=batch_size)
@@ -110,7 +116,11 @@ class AutoDocstringSynthesizer:
 
         for item in targets:
             t0 = time.perf_counter()
-            logger.info("Generating docstring for %s in %s...", item["func_name"], os.path.basename(item["filepath"]))
+            logger.info(
+                "Generating docstring for %s in %s...",
+                item["func_name"],
+                os.path.basename(item["filepath"]),
+            )
             doc = self.query_local_docstring(item["func_name"], item["snippet"])
             dt = (time.perf_counter() - t0) * 1000.0
 
@@ -118,7 +128,7 @@ class AutoDocstringSynthesizer:
                 self.documented_count += 1
                 logger.info("  ✓ Generated Docstring in %.2f ms (Length: %d chars)", dt, len(doc))
                 logger.info("  Snippet Doc Preview: %s", doc.splitlines()[0] if doc else "")
-                
+
                 # Broadcast event
                 evt = Event(
                     type=EventType.CUSTOM,
@@ -133,7 +143,10 @@ class AutoDocstringSynthesizer:
                 await self.bus.publish(evt)
 
         logger.info("📚 ===================================================================")
-        logger.info("📚 Batch complete: %d functions documented on local silicon ($0 spend).", self.documented_count)
+        logger.info(
+            "📚 Batch complete: %d functions documented on local silicon ($0 spend).",
+            self.documented_count,
+        )
         logger.info("📚 ===================================================================")
 
 

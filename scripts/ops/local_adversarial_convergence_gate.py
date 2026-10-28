@@ -31,7 +31,7 @@ payload = {
     "model": "gpt-oss-20b-mxfp4-GGUF",
     "messages": [
         {"role": "system", "content": "You are a precise, adversarial Linux systems architect."},
-        {"role": "user", "content": AUDIT_PROMPT}
+        {"role": "user", "content": AUDIT_PROMPT},
     ],
     "max_tokens": 1024,
     "temperature": 0.1,

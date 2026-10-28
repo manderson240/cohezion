@@ -13,14 +13,16 @@ payload = {
     "model": model,
     "messages": [
         {"role": "system", "content": "You are Hermes Agent on AMD Strix Halo."},
-        {"role": "user", "content": "Confirm that you are operational in exactly 3 words."}
+        {"role": "user", "content": "Confirm that you are operational in exactly 3 words."},
     ],
     "max_tokens": 30,
-    "stream": True
+    "stream": True,
 }
 
 print(f"1. Testing SSE Stream against {url}...")
-req = urllib.request.Request(url, headers={"Content-Type": "application/json"}, data=json.dumps(payload).encode())
+req = urllib.request.Request(
+    url, headers={"Content-Type": "application/json"}, data=json.dumps(payload).encode()
+)
 
 t0 = time.perf_counter()
 first_token_time = None
@@ -29,7 +31,7 @@ collected_text = ""
 try:
     with urllib.request.urlopen(req, timeout=30) as resp:
         for line in resp:
-            l = line.decode('utf-8').strip()
+            l = line.decode("utf-8").strip()
             if l.startswith("data: ") and l != "data: [DONE]":
                 data = json.loads(l[6:])
                 delta = data["choices"][0]["delta"]

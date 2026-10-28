@@ -506,6 +506,8 @@ def _surreal_basic_auth() -> str:
 
 def _surreal_sql_post(url: str, ns: str, db: str, surql: str, timeout_s: float) -> bytes:
     """POST one read-only SurQL statement; returns the raw response body."""
+    from cohezion.storage.surreal_http import checked_statements
+
     req = urllib.request.Request(  # noqa: S310
         url,
         data=surql.encode(),
@@ -518,7 +520,9 @@ def _surreal_sql_post(url: str, ns: str, db: str, surql: str, timeout_s: float) 
         method="POST",
     )
     with urllib.request.urlopen(req, timeout=timeout_s) as resp:  # noqa: S310
-        return resp.read()
+        raw = resp.read()
+        checked_statements(json.loads(raw), status_code=resp.status)
+        return raw
 
 
 def _iso_timestamp(row: Mapping[str, Any]) -> str:

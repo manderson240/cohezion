@@ -18,7 +18,9 @@ import logging
 import time
 import urllib.request
 
-logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] [CLOUD_REVIEW] %(message)s")
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s [%(levelname)s] [CLOUD_REVIEW] %(message)s"
+)
 logger = logging.getLogger("cloud_review")
 
 OLLAMA_URL = "http://localhost:11434/api/generate"
@@ -83,9 +85,11 @@ async def query_perspective(p: dict) -> dict:
             method="POST",
         )
         loop = asyncio.get_running_loop()
-        resp_bytes = await loop.run_in_executor(None, lambda: urllib.request.urlopen(req, timeout=90).read())
+        resp_bytes = await loop.run_in_executor(
+            None, lambda: urllib.request.urlopen(req, timeout=90).read()
+        )
         data = json.loads(resp_bytes.decode("utf-8"))
-        dt = (time.perf_counter() - t0)
+        dt = time.perf_counter() - t0
         logger.info("  ✓ Received review from %s in %.2fs", p["model"], dt)
         return {
             "model": p["model"],
@@ -95,16 +99,21 @@ async def query_perspective(p: dict) -> dict:
         }
     except Exception as e:
         logger.warning("  ⚠️ Query failed for %s: %s", p["model"], e)
-        return {"model": p["model"], "role": p["role"], "response": f"Failed: {e}", "duration_s": 0.0}
+        return {
+            "model": p["model"],
+            "role": p["role"],
+            "response": f"Failed: {e}",
+            "duration_s": 0.0,
+        }
 
 
 async def main():
     logger.info("🚀 ===================================================================")
     logger.info("🚀 OLLAMA CLOUD MULTI-PERSPECTIVE ADVERSARIAL REVIEW")
     logger.info("🚀 ===================================================================")
-    
+
     results = await asyncio.gather(*(query_perspective(p) for p in PERSPECTIVES))
-    
+
     # Save combined report
     report_lines = [
         "# 🛡️ Frontier Ollama Cloud Multi-Perspective Adversarial Review",
@@ -122,7 +131,7 @@ async def main():
     report_path = "/home/mike-anderson/.gemini/antigravity-cli/brain/54146dc4-dff4-4b47-a2cb-abb16f9e3812/ollama_cloud_adversarial_review.md"
     with open(report_path, "w", encoding="utf-8") as f:
         f.write(report_content)
-    
+
     logger.info("🎉 Multi-Perspective Review Saved to: %s", report_path)
 
 

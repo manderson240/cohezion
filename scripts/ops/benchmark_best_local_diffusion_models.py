@@ -25,12 +25,8 @@ PROMPT = (
     "mathematical formulas, dark navy blue technical grid background, photorealistic 8k render, ultra sharp focus."
 )
 
-CANDIDATES = [
-    "SDXL-Turbo",
-    "Flux-2-Klein-4B",
-    "Z-Image-Turbo",
-    "SD-Turbo"
-]
+CANDIDATES = ["SDXL-Turbo", "Flux-2-Klein-4B", "Z-Image-Turbo", "SD-Turbo"]
+
 
 async def test_candidate(model_id: str):
     payload = {
@@ -38,7 +34,7 @@ async def test_candidate(model_id: str):
         "prompt": PROMPT,
         "n": 1,
         "size": "512x512",
-        "response_format": "b64_json"
+        "response_format": "b64_json",
     }
     t0 = time.perf_counter()
     async with httpx.AsyncClient(timeout=180.0) as client:
@@ -52,13 +48,16 @@ async def test_candidate(model_id: str):
                     img_bytes = base64.b64decode(b64_str)
                     out_file = OUTPUT_DIR / f"{model_id.lower().replace('-', '_')}_sample.jpg"
                     out_file.write_bytes(img_bytes)
-                    print(f"✓ `{model_id}`: SUCCESS! Generated `{out_file.name}` ({len(img_bytes)} bytes in {dt}s)")
+                    print(
+                        f"✓ `{model_id}`: SUCCESS! Generated `{out_file.name}` ({len(img_bytes)} bytes in {dt}s)"
+                    )
                     return True
             else:
                 print(f"• `{model_id}` notice (HTTP {r.status_code}): {r.text[:200]}")
         except Exception as e:
             print(f"• `{model_id}` error: {e}")
     return False
+
 
 async def main():
     print("\n" + "=" * 115)
@@ -72,6 +71,7 @@ async def main():
     print("\n" + "=" * 115)
     print(f"🏆 COMPARISON SAMPLES SAVED TO: `{OUTPUT_DIR}`")
     print("=" * 115 + "\n")
+
 
 if __name__ == "__main__":
     asyncio.run(main())

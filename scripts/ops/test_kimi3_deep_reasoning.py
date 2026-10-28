@@ -14,19 +14,20 @@ TEST_PROMPTS = [
     {
         "model": "kimi-k3:cloud",
         "task": "ARC-AGI Invariant Synthesis",
-        "prompt": "You are a Kaggle Grandmaster. In 50 words, explain why combining Michael Levin's bioelectric voltage diffusion with Yann LeCun's JEPA latent energy minimization creates a superior solver for ARC-AGI-2 compared to pure autoregressive LLM prompting."
+        "prompt": "You are a Kaggle Grandmaster. In 50 words, explain why combining Michael Levin's bioelectric voltage diffusion with Yann LeCun's JEPA latent energy minimization creates a superior solver for ARC-AGI-2 compared to pure autoregressive LLM prompting.",
     },
     {
         "model": "minimax-m3:cloud",
         "task": "Hierarchical MCTS Planning",
-        "prompt": "You are a Game Theory Grandmaster. In 50 words, explain how hierarchical goal-conditioned planning prevents value estimation collapse in imperfect-information games like Pokémon TCG."
+        "prompt": "You are a Game Theory Grandmaster. In 50 words, explain how hierarchical goal-conditioned planning prevents value estimation collapse in imperfect-information games like Pokémon TCG.",
     },
     {
         "model": "nemotron-3-super:cloud",
         "task": "AMD Strix Halo Roofline Saturation",
-        "prompt": "You are a Hardware Systems Architect. In 50 words, explain how UMA contiguous KV paging and FP4 quantization maximize memory bandwidth saturation on AMD Strix Halo."
-    }
+        "prompt": "You are a Hardware Systems Architect. In 50 words, explain how UMA contiguous KV paging and FP4 quantization maximize memory bandwidth saturation on AMD Strix Halo.",
+    },
 ]
+
 
 async def run_reasoning_test(item: dict) -> dict:
     model = item["model"]
@@ -41,19 +42,38 @@ async def run_reasoning_test(item: dict) -> dict:
                     "model": model,
                     "prompt": prompt,
                     "stream": False,
-                    "options": {"temperature": 0.1, "num_predict": 250}
+                    "options": {"temperature": 0.1, "num_predict": 250},
                 },
-                timeout=45.0
+                timeout=45.0,
             )
             dt = time.perf_counter() - t0
             if resp.status_code == 200:
                 out = resp.json().get("response", "").strip()
-                return {"model": model, "task": task, "latency_s": dt, "output": out, "status": "SUCCESS"}
+                return {
+                    "model": model,
+                    "task": task,
+                    "latency_s": dt,
+                    "output": out,
+                    "status": "SUCCESS",
+                }
             else:
-                return {"model": model, "task": task, "latency_s": dt, "output": f"HTTP {resp.status_code}", "status": "FAIL"}
+                return {
+                    "model": model,
+                    "task": task,
+                    "latency_s": dt,
+                    "output": f"HTTP {resp.status_code}",
+                    "status": "FAIL",
+                }
         except Exception as e:
             dt = time.perf_counter() - t0
-            return {"model": model, "task": task, "latency_s": dt, "output": str(e), "status": "ERROR"}
+            return {
+                "model": model,
+                "task": task,
+                "latency_s": dt,
+                "output": str(e),
+                "status": "ERROR",
+            }
+
 
 async def main():
     print("=" * 80)
@@ -66,6 +86,7 @@ async def main():
         print(f"\n--- 🤖 [{r['model']}] ({r['task']}) | Latency: {r['latency_s']:.2f}s ---")
         print(f"Output:\n{r['output']}\n")
     print("=" * 80)
+
 
 if __name__ == "__main__":
     asyncio.run(main())

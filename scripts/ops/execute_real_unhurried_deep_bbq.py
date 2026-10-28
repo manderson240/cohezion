@@ -48,6 +48,7 @@ Do not abbreviate. Do not truncate. Render all mathematical derivations, formal 
 - Write at least 4 test cases using `pytest` verifying boundary conditions, Mobius non-commutativity, and Fréchet convergence.
 """
 
+
 async def run_deep_bbq():
     print("\n" + "=" * 115)
     print("🥩 EXECUTING TRUE 'LOW AND SLOW BBQ' DEEP SYNTHESIS (max_tokens=4096)")
@@ -64,11 +65,9 @@ async def run_deep_bbq():
     print(f"\n▶ Dispatching to Local Silicon Router `user.cohezion-hermes-router` (:13305)...")
     payload = {
         "model": "user.cohezion-hermes-router",
-        "messages": [
-            {"role": "user", "content": LEEP_DEEP_PROMPT}
-        ],
+        "messages": [{"role": "user", "content": LEEP_DEEP_PROMPT}],
         "temperature": 0.2,
-        "max_tokens": 4096
+        "max_tokens": 4096,
     }
     t0 = time.perf_counter()
     async with httpx.AsyncClient(timeout=300.0) as client:
@@ -78,7 +77,7 @@ async def run_deep_bbq():
         msg = data["choices"][0]["message"]
         reasoning = msg.get("reasoning_content") or ""
         content = msg.get("content") or ""
-        
+
         full_output = f"# Complete 12D Poincaré FLUME Manifold & AutoHarness Suite\n\n**Execution Time**: {dt}s | **Local Silicon**: `user.cohezion-hermes-router`\n\n"
         if reasoning:
             full_output += f"## Chain-of-Thought Reasoning (<think>)\n\n{reasoning}\n\n---\n\n"
@@ -86,7 +85,7 @@ async def run_deep_bbq():
 
         out_path = Path("docs/research/unhurried_deep_poincare_flume_suite.md")
         out_path.write_text(full_output)
-        
+
         print(f"   ✓ Deep BBQ Execution Completed in {dt}s!")
         print(f"   • Reasoning Tokens Rendered: {len(reasoning.split())} words")
         print(f"   • Implementation Rendered:  {len(content.split())} words")
@@ -106,25 +105,28 @@ async def run_deep_bbq():
             "topic": "12D Poincaré FLUME & AutoHarness Suite",
             "duration_sec": dt,
             "tokens_rendered_est": len((reasoning + content).split()),
-            "status": "VERIFIED_EXHAUSTIVE"
-        }
+            "status": "VERIFIED_EXHAUSTIVE",
+        },
     )
     await event_bus.publish(ev)
 
-    persist_item({
-        "id": "unhurried_deep_poincare_suite",
-        "title": "Unhurried Deep 12D Poincaré FLUME & AutoHarness Suite",
-        "status": "done",
-        "priority": "high",
-        "source": "deep_bbq_engine",
-        "category": "deep_synthesis",
-        "details": f"Full 4-part unhurried synthesis ({dt}s) rendered to docs/research/unhurried_deep_poincare_flume_suite.md.",
-    })
+    persist_item(
+        {
+            "id": "unhurried_deep_poincare_suite",
+            "title": "Unhurried Deep 12D Poincaré FLUME & AutoHarness Suite",
+            "status": "done",
+            "priority": "high",
+            "source": "deep_bbq_engine",
+            "category": "deep_synthesis",
+            "details": f"Full 4-part unhurried synthesis ({dt}s) rendered to docs/research/unhurried_deep_poincare_flume_suite.md.",
+        }
+    )
     print("   ✓ Dual-persisted Kanban card to SurrealDB and Obsidian Vault!")
 
     print("\n" + "=" * 115)
     print("🏆 TRUE 'LOW AND SLOW BBQ' DEEP SYNTHESIS COMPLETE!")
     print("=" * 115 + "\n")
+
 
 if __name__ == "__main__":
     asyncio.run(run_deep_bbq())

@@ -9,7 +9,9 @@ from playwright.sync_api import sync_playwright
 
 
 url = "http://localhost:8082/cohezion_evo_spatial_pop_flight_simulator.html"
-screenshot_path = Path("/home/mike-anderson/dev/cohezion/docs/assets/renderings/evo_flight_pop_3d_screenshot.png")
+screenshot_path = Path(
+    "/home/mike-anderson/dev/cohezion/docs/assets/renderings/evo_flight_pop_3d_screenshot.png"
+)
 
 print(f"Testing {url} in Headless Chromium...")
 with sync_playwright() as p:
@@ -32,7 +34,9 @@ with sync_playwright() as p:
     # Read active EVO count
     active_evos = page.inner_text("#stat-active-evos")
     electrons = page.inner_text("#stat-electrons")
-    print(f"✓ Live Swarm Telemetry -> Active EVOs: {active_evos}, Total Charge: {electrons} electrons")
+    print(
+        f"✓ Live Swarm Telemetry -> Active EVOs: {active_evos}, Total Charge: {electrons} electrons"
+    )
 
     browser.close()
 

@@ -11,7 +11,9 @@ import logging
 import os
 import time
 
-logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] [PAPER_GEN] %(message)s")
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s [%(levelname)s] [PAPER_GEN] %(message)s"
+)
 logger = logging.getLogger("paper_gen")
 
 PAPER_CONTENT = """# Fluid Latent Understanding through Manifold Encoding (FLUME): A Sheaf-Theoretic & Hyperbolic Geodesic Framework for ARC-AGI
@@ -100,6 +102,7 @@ FLUME proves that continuous non-Euclidean manifolds combined with sheaf-theoret
 **Code & Reproducibility**: Released under Apache-2.0 in the official repository.
 """
 
+
 def main():
     print("\n" + "=" * 105)
     print("📝 GENERATING MASTER ARC PRIZE 2026 PAPER ($450,000 TRACK)")
@@ -112,7 +115,9 @@ def main():
         f.write(PAPER_CONTENT)
 
     # Also sync to Obsidian Vault
-    vault_path = os.path.expanduser("~/vaults/cohezion-vault/research/20260824-arc-prize-2026-flume-paper.md")
+    vault_path = os.path.expanduser(
+        "~/vaults/cohezion-vault/research/20260824-arc-prize-2026-flume-paper.md"
+    )
     with open(vault_path, "w", encoding="utf-8") as f:
         f.write(PAPER_CONTENT)
 
@@ -122,6 +127,7 @@ def main():
     print("\n" + "=" * 105)
     print("🎉 ARC PRIZE 2026 PAPER TRACK SUBMISSION READY ($450,000)!")
     print("=" * 105 + "\n")
+
 
 if __name__ == "__main__":
     main()

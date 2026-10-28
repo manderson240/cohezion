@@ -10,7 +10,9 @@ from pathlib import Path
 from cohezion.inference.unified_hybrid_router import UnifiedHybridRouter
 
 
-out_report = Path("/home/mike-anderson/dev/cohezion/docs/research/vision_text_model_comparative_audit.md")
+out_report = Path(
+    "/home/mike-anderson/dev/cohezion/docs/research/vision_text_model_comparative_audit.md"
+)
 out_report.parent.mkdir(parents=True, exist_ok=True)
 
 
@@ -53,8 +55,11 @@ Evaluate and compare our 3D representations against the original historical plat
 
     models_to_consult = [
         ("deepseek-v4-pro:cloud", "Ollama Cloud DeepSeek-V4 Pro (Frontier Physics Specialist)"),
-        ("qwen3.5:397b-cloud", "Ollama Cloud Qwen3.5-397B (Frontier Multimodal & Mathematical Auditor)"),
-        ("glm-5.2:cloud", "Ollama Cloud GLM-5.2 (Frontier Plasma Dynamics Reviewer)")
+        (
+            "qwen3.5:397b-cloud",
+            "Ollama Cloud Qwen3.5-397B (Frontier Multimodal & Mathematical Auditor)",
+        ),
+        ("glm-5.2:cloud", "Ollama Cloud GLM-5.2 (Frontier Plasma Dynamics Reviewer)"),
     ]
 
     responses = {}
@@ -66,30 +71,26 @@ Evaluate and compare our 3D representations against the original historical plat
             dt = time.perf_counter() - t0
             if content:
                 print(f"  ✓ Received response in {dt:.2f}s ({len(content)} chars)")
-                responses[model_id] = {
-                    "label": label,
-                    "content": content,
-                    "latency_s": dt
-                }
+                responses[model_id] = {"label": label, "content": content, "latency_s": dt}
             else:
                 print(f"  ✗ Empty response from {model_id}")
                 responses[model_id] = {
                     "label": label,
                     "content": "Model returned null or empty response.",
-                    "latency_s": dt
+                    "latency_s": dt,
                 }
         except Exception as e:
             print(f"  ✗ Consultation error with {model_id}: {e}")
             responses[model_id] = {
                 "label": label,
                 "content": f"Error during consultation: {e}",
-                "latency_s": 0.0
+                "latency_s": 0.0,
             }
 
     # Write Master Comparative Audit Report
     report_content = f"""# Multi-Model Comparative Audit: 3D Reconstructions vs. Original Plates & Texts
 
-**Audit Timestamp**: {time.strftime('%Y-%m-%d %H:%M:%S')}  
+**Audit Timestamp**: {time.strftime("%Y-%m-%d %H:%M:%S")}  
 **Evaluated Primary Sources**:
 1. Kenneth R. Shoulders, *EV: A Tale of Discovery* (Jupiter Technologies, 1987)
 2. Dr. Takaaki Matsumoto, *Steps to the Discovery of Electro-Nuclear Collapse* (Hokkaido University, 1989–1999)
@@ -110,7 +111,9 @@ This report aggregates independent multi-perspective adversarial reviews from fr
     with open(out_report, "w", encoding="utf-8") as f:
         f.write(report_content)
 
-    print(f"\n✓ Master Comparative Audit Report saved to: {out_report} ({out_report.stat().st_size} bytes)")
+    print(
+        f"\n✓ Master Comparative Audit Report saved to: {out_report} ({out_report.stat().st_size} bytes)"
+    )
     print("=" * 90)
 
 

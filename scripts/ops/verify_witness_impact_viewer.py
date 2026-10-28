@@ -9,7 +9,9 @@ from playwright.sync_api import sync_playwright
 
 
 url = "http://localhost:8082/cohezion_witness_plate_impact_3d_viewer.html"
-screenshot_path = Path("/home/mike-anderson/dev/cohezion/docs/assets/renderings/plate_3d_surfaces/borehole_impact_3d_screenshot.png")
+screenshot_path = Path(
+    "/home/mike-anderson/dev/cohezion/docs/assets/renderings/plate_3d_surfaces/borehole_impact_3d_screenshot.png"
+)
 
 print(f"Testing {url} in Headless Chromium...")
 with sync_playwright() as p:

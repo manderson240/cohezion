@@ -35,6 +35,7 @@ Synthesize 4 bleeding-edge mathematical/computational approaches to integrate in
 Deliver clean mathematical formulations, concise production Python algorithms, and integration hooks.
 """
 
+
 async def run_local_synthesis():
     print("\n" + "=" * 115)
     print(f"🧠 EXECUTING LOCAL SILICON BLEEDING-EDGE SYNTHESIS VIA `{MODEL_ID}` (:13305)")
@@ -46,11 +47,14 @@ async def run_local_synthesis():
     payload = {
         "model": MODEL_ID,
         "messages": [
-            {"role": "system", "content": "You are a Principal Frontier AGI & Computational Physics Architect. Deliver structured, mathematically rigorous code architectures."},
-            {"role": "user", "content": PROMPT}
+            {
+                "role": "system",
+                "content": "You are a Principal Frontier AGI & Computational Physics Architect. Deliver structured, mathematically rigorous code architectures.",
+            },
+            {"role": "user", "content": PROMPT},
         ],
         "temperature": 0.15,
-        "max_tokens": 1500
+        "max_tokens": 1500,
     }
 
     async with httpx.AsyncClient(timeout=120.0) as client:
@@ -61,8 +65,10 @@ async def run_local_synthesis():
         if r.status_code == 200:
             content = (r.json()["choices"][0]["message"].get("content") or "").strip()
             tool_item = store.insert(content, ContextType.TOOL_OUTPUT, f"local_agent:{MODEL_ID}")
-            ev_item = store.transform(tool_item, ContextType.EVIDENCE, validator=lambda s: len(s) > 50)
-            
+            ev_item = store.transform(
+                tool_item, ContextType.EVIDENCE, validator=lambda s: len(s) > 50
+            )
+
             sections = [
                 "# Local Silicon Bleeding-Edge Architecture Integration Report",
                 f"\n**Synthesizer Model:** `{MODEL_ID}` (Local Resident on AMD Radeon 8060S iGPU :13305)",
@@ -75,7 +81,7 @@ async def run_local_synthesis():
                 "1. **Continuous Geodesic ODEs**: Projections clamped to $\|u\| \le 0.95$ to prevent Riemannian Christoffel symbol divergence.",
                 "2. **Sheaf-Theoretic Consistency**: Restriction maps verify pairwise state agreements across multi-session swarms.",
                 "3. **In-Container TTC MCTS**: 0ms AutoHarness AST action-verifiers gate all LLM-synthesized grid transformations.",
-                "4. **Bioelectric Self-Repair**: Dynamic gap-junction coupling expands swarm light cones $R_c \ge 23.65\\times$."
+                "4. **Bioelectric Self-Repair**: Dynamic gap-junction coupling expands swarm light cones $R_c \ge 23.65\\times$.",
             ]
 
             REPORT_PATH.parent.mkdir(parents=True, exist_ok=True)
@@ -86,6 +92,7 @@ async def run_local_synthesis():
             print(f"❌ Lemonade Error HTTP {r.status_code}: {r.text}")
 
     print("=" * 115 + "\n")
+
 
 if __name__ == "__main__":
     asyncio.run(run_local_synthesis())

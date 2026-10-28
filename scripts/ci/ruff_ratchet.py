@@ -157,17 +157,30 @@ def main() -> int:
         # config state that CI will actually run against defines the floor);
         # --at only identifies the merge being absorbed.
         argv = sys.argv
-        reason = argv[argv.index("--reason") + 1] if "--reason" in argv and argv.index("--reason") + 1 < len(argv) else None
-        at = argv[argv.index("--at") + 1] if "--at" in argv and argv.index("--at") + 1 < len(argv) else "HEAD"
+        reason = (
+            argv[argv.index("--reason") + 1]
+            if "--reason" in argv and argv.index("--reason") + 1 < len(argv)
+            else None
+        )
+        at = (
+            argv[argv.index("--at") + 1]
+            if "--at" in argv and argv.index("--at") + 1 < len(argv)
+            else "HEAD"
+        )
         if not reason or not reason.strip() or reason.startswith("--"):
-            print('ruff_ratchet: --merge-reset requires: --merge-reset --reason "<why>" [--at <merge-ref>]')
+            print(
+                'ruff_ratchet: --merge-reset requires: --merge-reset --reason "<why>" [--at <merge-ref>]'
+            )
             return 1
         if any(f in argv for f in ("--update", "--self-test")):
             print("ruff_ratchet: --merge-reset cannot be combined with --update/--self-test")
             return 1
         revs = subprocess.run(
             ["git", "rev-list", "--parents", "-n", "1", at],
-            cwd=REPO, capture_output=True, text=True)
+            cwd=REPO,
+            capture_output=True,
+            text=True,
+        )
         if revs.returncode != 0:
             print(f"ruff_ratchet: --at ref {at!r} not resolvable: {revs.stderr.strip()[:200]}")
             return 1

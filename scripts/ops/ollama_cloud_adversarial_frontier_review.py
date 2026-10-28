@@ -13,7 +13,9 @@ import logging
 import time
 import urllib.request
 
-logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] [CLOUD_AUDIT] %(message)s")
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s [%(levelname)s] [CLOUD_AUDIT] %(message)s"
+)
 logger = logging.getLogger("cloud_audit")
 
 OLLAMA_URL = "http://localhost:11434/api/generate"

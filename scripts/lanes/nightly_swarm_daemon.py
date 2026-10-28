@@ -120,7 +120,7 @@ class NightlySwarmDaemon:
                 quality_gap=0.0,
                 issue_severity=0.1,
                 remediation_cost=0.1,
-                )
+            )
 
         # 4. Offline Sleep Consolidation (Google Research SLEEP Framework)
         sleep_summary = self.sleep_framework.sleep(batch_size=16, num_dreams=6)

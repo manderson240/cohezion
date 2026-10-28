@@ -17,7 +17,13 @@ out_dir = Path("/home/mike-anderson/dev/cohezion/docs/assets/renderings/plate_3d
 out_dir.mkdir(parents=True, exist_ok=True)
 
 
-def generate_micrograph_depth_mesh(image_path: Path, output_obj: Path, grid_res: int = 140, z_scale: float = 3.5, invert: bool = False) -> None:
+def generate_micrograph_depth_mesh(
+    image_path: Path,
+    output_obj: Path,
+    grid_res: int = 140,
+    z_scale: float = 3.5,
+    invert: bool = False,
+) -> None:
     img = Image.open(image_path).convert("L")
     img = img.resize((grid_res, grid_res), Image.Resampling.LANCZOS)
     pixels = img.load()
@@ -35,7 +41,7 @@ def generate_micrograph_depth_mesh(image_path: Path, output_obj: Path, grid_res:
             if invert:
                 raw_val = 1.0 - raw_val
             # Apply non-linear elevation transfer function (smooth crater depression)
-            elevation = (raw_val ** 1.3) * z_scale
+            elevation = (raw_val**1.3) * z_scale
             vertices.append((norm_x, norm_y, elevation))
 
     # Generate Triangulated Grid Faces
@@ -55,7 +61,9 @@ def generate_micrograph_depth_mesh(image_path: Path, output_obj: Path, grid_res:
         for face in faces:
             f.write(f"f {face[0]} {face[1]} {face[2]}\n")
 
-    print(f"✓ Generated 3D Topographical Surface: {output_obj.name} ({len(vertices)} vertices, {len(faces)} faces, {output_obj.stat().st_size} bytes)")
+    print(
+        f"✓ Generated 3D Topographical Surface: {output_obj.name} ({len(vertices)} vertices, {len(faces)} faces, {output_obj.stat().st_size} bytes)"
+    )
 
 
 def main() -> None:
@@ -64,12 +72,16 @@ def main() -> None:
     print("=" * 80)
 
     # 1. Ken Shoulders SEM Figure 3:3 Bead Loop
-    sh_crop = Path("/home/mike-anderson/dev/cohezion/docs/assets/shoulders_plates/crop_shoulders_fig33_bead_loop.png")
+    sh_crop = Path(
+        "/home/mike-anderson/dev/cohezion/docs/assets/shoulders_plates/crop_shoulders_fig33_bead_loop.png"
+    )
     sh_obj = out_dir / "shoulders_sem_fig33_3d_topography.obj"
     generate_micrograph_depth_mesh(sh_crop, sh_obj, grid_res=150, z_scale=2.8, invert=False)
 
     # 2. Takaaki Matsumoto Giant Soliton Ring (Figure 4)
-    mat_crop = Path("/home/mike-anderson/dev/cohezion/docs/assets/matsumoto_plates/crop_matsumoto_fig4_giant_ring.png")
+    mat_crop = Path(
+        "/home/mike-anderson/dev/cohezion/docs/assets/matsumoto_plates/crop_matsumoto_fig4_giant_ring.png"
+    )
     mat_obj = out_dir / "matsumoto_fig4_giant_ring_3d_topography.obj"
     generate_micrograph_depth_mesh(mat_crop, mat_obj, grid_res=150, z_scale=2.5, invert=True)
 

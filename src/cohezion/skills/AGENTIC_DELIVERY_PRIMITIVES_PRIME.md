@@ -37,6 +37,7 @@ Expertise in structuring and governing end-to-end agentic software delivery syst
            "evidence": ["Compiled clean with solc 0.8.29"],
        }
 
+
    build_art = pipeline.execute_build(plan_art, build_adapter)
    ```
 
@@ -46,6 +47,7 @@ Expertise in structuring and governing end-to-end agentic software delivery syst
    def verify_adapter(build_content):
        # Run AutoHarness invariant checks
        return True, ["Proof: TokenBalanceHistory updated before call"], []
+
 
    verify_art = pipeline.execute_verify(build_art, verify_adapter)
    ```
@@ -59,6 +61,7 @@ Expertise in structuring and governing end-to-end agentic software delivery syst
            "anomalies": [],
            "synthesized_learnings": ["Sync-before-transfer pattern holds under load"],
        }
+
 
    observe_art = pipeline.execute_observe(verify_art, observe_runtime)
    sleep_exp = pipeline.export_sleep_experience(observe_art)

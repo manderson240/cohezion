@@ -15,11 +15,13 @@ import time
 from cohezion.reliability.oom_guard import OOMGuard
 from cohezion.reliability.system_wide_fleet_lock import SystemWideFleetLock
 
+
 def run(cmd):
     try:
         return subprocess.run(cmd, shell=True, capture_output=True, text=True).stdout.strip()
     except Exception as e:
         return f"Error: {e}"
+
 
 def main():
     print("=" * 90)
@@ -34,13 +36,17 @@ def main():
 
     # 2. UMA Memory Headroom & OOM Floor
     mem = OOMGuard.get_memory_state()
-    print(f"2. Unified Memory (UMA): {mem.available_gb:.2f} GiB Available / {mem.dynamic_floor_gb:.2f} GiB Dynamic Floor (Safe={mem.is_safe})")
+    print(
+        f"2. Unified Memory (UMA): {mem.available_gb:.2f} GiB Available / {mem.dynamic_floor_gb:.2f} GiB Dynamic Floor (Safe={mem.is_safe})"
+    )
 
     # 3. NPU XDNA2 Driver & FLM Kernel Acceleration
     npu_nodes = run("ls -la /dev/accel* /dev/kfd 2>/dev/null || true")
     has_kfd = "/dev/kfd" in npu_nodes
     has_accel = "/dev/accel" in npu_nodes
-    print(f"3. XDNA2 NPU / ROCm    : Driver Nodes Present (ROCm /dev/kfd={has_kfd}, NPU /dev/accel={has_accel})")
+    print(
+        f"3. XDNA2 NPU / ROCm    : Driver Nodes Present (ROCm /dev/kfd={has_kfd}, NPU /dev/accel={has_accel})"
+    )
 
     # 4. iGPU Compute & Lemonade Port 13305
     lemonade_status = run("/usr/bin/lemonade status | grep 'Server is running' || true")
@@ -49,11 +55,16 @@ def main():
     # 5. Active Optimization Layers
     print("\n--- Active Hardware Optimization Layers ---")
     print("  ✓ Unified 128GB LPDDR5X-7500 Bus: Zero-copy weight sharing across CPU, iGPU, and NPU.")
-    print("  ✓ SystemWideFleetLock Mutex     : Prevents concurrent iGPU aperture races and kernel faults.")
+    print(
+        "  ✓ SystemWideFleetLock Mutex     : Prevents concurrent iGPU aperture races and kernel faults."
+    )
     print("  ✓ Dynamic OOM Floor Guard       : Continuously enforces >26.3 GiB safety buffer.")
     print("  ✓ XDNA2 FLM Backend             : Offloads streaming tokens to dedicated 50 TOPS NPU.")
-    print("  ✓ AMD Official Skills Catalog   : Localized Whisper-Large-v3, Kokoro-v1, and SD-Turbo via Lemonade.")
+    print(
+        "  ✓ AMD Official Skills Catalog   : Localized Whisper-Large-v3, Kokoro-v1, and SD-Turbo via Lemonade."
+    )
     print("=" * 90)
+
 
 if __name__ == "__main__":
     main()

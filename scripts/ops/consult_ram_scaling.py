@@ -19,8 +19,13 @@ Explain in 100 words:
 try:
     resp = httpx.post(
         "http://localhost:11434/api/generate",
-        json={"model": "gpt-oss:120b-cloud", "prompt": prompt, "stream": False, "options": {"temperature": 0.1, "num_predict": 300}},
-        timeout=40.0
+        json={
+            "model": "gpt-oss:120b-cloud",
+            "prompt": prompt,
+            "stream": False,
+            "options": {"temperature": 0.1, "num_predict": 300},
+        },
+        timeout=40.0,
     )
     print("=" * 80)
     print("🧠 CLOUD ARCHITECT ANALYSIS: MEMORY ALLOCATION & KV-CACHE SCALING")

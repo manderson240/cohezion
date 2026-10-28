@@ -31,7 +31,7 @@ FIGURES = [
             "Award-winning scientific illustration, FLUME AI RESEARCH header in crisp white modern typography, "
             "central glowing 3D spherical Poincare wireframe with intertwining electric cyan and gold geodesic ribbon curves, "
             "isometric translucent glass cubes, mathematical formulas, dark navy blue technical blueprint grid background, sharp focus, 8k render."
-        )
+        ),
     },
     {
         "id": "fig2_sheaf_cohomology",
@@ -41,7 +41,7 @@ FIGURES = [
             "Scientific diagram of Sheaf Cohomology on 2D grids. Abstract overlapping local spatial patches U_i and U_j "
             "gluing seamlessly into a global section, mathematical restriction maps rho, coboundary operator delta^0, "
             "glowing green consensus nodes, zero boundary obstruction H^1=0, high-contrast dark mode scientific diagram, 8k render."
-        )
+        ),
     },
     {
         "id": "fig3_poincare_geodesic",
@@ -51,7 +51,7 @@ FIGURES = [
             "Hyperbolic geometry visualization, cross-section of a 3D Poincare disk with negative curvature kappa=-1.0, "
             "radiant golden continuous geodesic flow trajectories curving towards the boundary, Christoffel symbol vector field, "
             "glowing nodes in cyan and amber, deep black space background, crisp physics laboratory visualization, 8k render."
-        )
+        ),
     },
     {
         "id": "fig4_autoharness_ast",
@@ -61,9 +61,10 @@ FIGURES = [
             "Abstract Computer Science diagram, Abstract Syntax Tree (AST) formal bytecode verifier. "
             "Glowing green checkmarks verifying ARC grid transformation invariants, color conservation, geometric symmetries, "
             "deterministic binary verification pipeline, zero hallucination zero latency proof gate, dark technical aesthetic, 8k render."
-        )
-    }
+        ),
+    },
 ]
+
 
 async def generate_local_figure(fig_info: dict) -> float:
     payload = {
@@ -71,7 +72,7 @@ async def generate_local_figure(fig_info: dict) -> float:
         "prompt": fig_info["prompt"],
         "n": 1,
         "size": "512x512",
-        "response_format": "b64_json"
+        "response_format": "b64_json",
     }
     t0 = time.perf_counter()
     async with httpx.AsyncClient(timeout=90.0) as client:
@@ -89,6 +90,7 @@ async def generate_local_figure(fig_info: dict) -> float:
             print(f"• Gen error on {fig_info['id']}: {e}")
     return -1.0
 
+
 async def run_story_suite_generation():
     print("\n" + "=" * 115)
     print("🎨 GENERATING LOCAL PUBLICATION STORY SUITE (4 FIGURES FOR FLUME PAPER)")
@@ -98,13 +100,16 @@ async def run_story_suite_generation():
         print(f"\n▶ [{idx}/4] Generating `{fig['title']}`...")
         dt = await generate_local_figure(fig)
         if dt > 0:
-            print(f"   ✓ Generated `{fig['file'].name}` ({fig['file'].stat().st_size} bytes in {dt}s)")
+            print(
+                f"   ✓ Generated `{fig['file'].name}` ({fig['file'].stat().st_size} bytes in {dt}s)"
+            )
         else:
             print(f"   ❌ Failed to generate {fig['id']}")
 
     print("\n" + "=" * 115)
     print(f"🏆 PUBLICATION STORY SUITE COMPLETE! All 4 figures saved in `{OUTPUT_DIR}`")
     print("=" * 115 + "\n")
+
 
 if __name__ == "__main__":
     asyncio.run(run_story_suite_generation())

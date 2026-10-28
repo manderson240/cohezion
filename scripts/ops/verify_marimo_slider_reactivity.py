@@ -28,7 +28,10 @@ async def test_slider_reactivity() -> None:
         page = await browser.new_page(viewport={"width": 1400, "height": 900})
 
         print("\n1. Navigating to http://localhost:8082/cohezion_master_dashboard_wasm.html...")
-        await page.goto("http://localhost:8082/cohezion_master_dashboard_wasm.html", wait_until="domcontentloaded")
+        await page.goto(
+            "http://localhost:8082/cohezion_master_dashboard_wasm.html",
+            wait_until="domcontentloaded",
+        )
 
         # Wait for Pyodide and WebGL initialization
         print("  • Waiting 8s for Pyodide WASM & WebGL mount...")
@@ -81,7 +84,11 @@ async def test_slider_reactivity() -> None:
         # Check telemetry text update
         body_text = await page.inner_text("body")
         print("\n5. Validating Live Reactive Telemetry Content:")
-        lines = [line.strip() for line in body_text.splitlines() if "Bennett Pinch" in line or "Stability" in line or "Poincaré" in line]
+        lines = [
+            line.strip()
+            for line in body_text.splitlines()
+            if "Bennett Pinch" in line or "Stability" in line or "Poincaré" in line
+        ]
         for line in lines:
             print(f"  • {line}")
 

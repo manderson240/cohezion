@@ -25,16 +25,13 @@ B. How cleanly does this setup align with the official AMD skills repository gui
 C. Are there any immediate model drop-in replacements that provide strictly superior throughput or accuracy on AMD Strix Halo today?
 """
 
+
 def query_model(model_name: str):
-    payload = {
-        "model": model_name,
-        "prompt": prompt,
-        "stream": False
-    }
+    payload = {"model": model_name, "prompt": prompt, "stream": False}
     req = urllib.request.Request(
         "http://localhost:11434/api/generate",
         headers={"Content-Type": "application/json"},
-        data=json.dumps(payload).encode("utf-8")
+        data=json.dumps(payload).encode("utf-8"),
     )
     print(f"Querying {model_name} on port 11434...")
     t0 = time.perf_counter()
@@ -49,13 +46,20 @@ def query_model(model_name: str):
         print(f"✗ Error querying {model_name}: {e}")
         return f"Error: {e}"
 
+
 res_glm = query_model("glm-5.2:cloud")
 
-with open("/home/mike-anderson/dev/cohezion/docs/research/amd_skills_model_roster_audit_20260821.md", "w", encoding="utf-8") as f:
+with open(
+    "/home/mike-anderson/dev/cohezion/docs/research/amd_skills_model_roster_audit_20260821.md",
+    "w",
+    encoding="utf-8",
+) as f:
     f.write("# AMD Skills & 2026-08-21 Local Model Roster Audit\n\n")
     f.write("**Audit Date**: 2026-08-21\n")
     f.write("**Target System**: AMD Ryzen AI MAX+ 395 w/ Radeon 8060S (128GB Unified Memory)\n")
-    f.write("**Official Repository**: `https://github.com/amd/skills` (`src/cohezion/skills/amd/skills-repo/`)\n\n---\n\n")
+    f.write(
+        "**Official Repository**: `https://github.com/amd/skills` (`src/cohezion/skills/amd/skills-repo/`)\n\n---\n\n"
+    )
     f.write(res_glm)
 
 print("✓ Saved audit report to docs/research/amd_skills_model_roster_audit_20260821.md")

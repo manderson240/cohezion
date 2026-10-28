@@ -105,10 +105,13 @@ impact = """1. State Counter Pollution: Any user can inflate the participant cou
 2. Stranded Protocol Funds: Because allocate() rounds down refunds in favor of the protocol, the participant headroom subtracted from soft_cap_usdc is never claimable by users and remains stranded in refund_vault until ClaimClosed.
 3. Accounting Inconsistency: Unit mismatch between an integer count of accounts and atomic micro-USDC balances."""
 
+
 async def populate():
     res = urllib.request.urlopen("http://localhost:9222/json").read()
     tabs = json.loads(res.decode())
-    target_tab = next(t for t in tabs if "1win" in t.get("title", "") or "Report" in t.get("title", ""))
+    target_tab = next(
+        t for t in tabs if "1win" in t.get("title", "") or "Report" in t.get("title", "")
+    )
     ws_url = target_tab["webSocketDebuggerUrl"]
     async with websockets.connect(ws_url) as ws:
         expr = f"""
@@ -138,10 +141,15 @@ async def populate():
             return 'populated successfully';
         }})()
         """
-        msg = {"id": 1, "method": "Runtime.evaluate", "params": {"expression": expr, "returnByValue": True}}
+        msg = {
+            "id": 1,
+            "method": "Runtime.evaluate",
+            "params": {"expression": expr, "returnByValue": True},
+        }
         await ws.send(json.dumps(msg))
         resp = await ws.recv()
         print("Result:", json.loads(resp).get("result", {}).get("result", {}).get("value"))
+
 
 if __name__ == "__main__":
     asyncio.run(populate())

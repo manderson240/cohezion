@@ -61,7 +61,9 @@ RESEARCH_TOPICS = [
 ]
 
 
-async def query_cloud_researcher(client: httpx.AsyncClient, topic: dict[str, str]) -> dict[str, Any]:
+async def query_cloud_researcher(
+    client: httpx.AsyncClient, topic: dict[str, str]
+) -> dict[str, Any]:
     t0 = time.perf_counter()
     logger.info("🚀 [Frontier Research] Querying %s via %s...", topic["id"], topic["model"])
 
@@ -79,7 +81,12 @@ async def query_cloud_researcher(client: httpx.AsyncClient, topic: dict[str, str
         if res.status_code == 200:
             data = res.json()
             response_text = data.get("response", "")
-            logger.info("  ✓ [%s] Received %d words from %s", topic["id"], len(response_text.split()), topic["model"])
+            logger.info(
+                "  ✓ [%s] Received %d words from %s",
+                topic["id"],
+                len(response_text.split()),
+                topic["model"],
+            )
     except Exception as e:
         logger.warning("Cloud error on %s: %s", topic["id"], e)
 
@@ -106,7 +113,9 @@ async def main_async() -> None:
         tasks = [query_cloud_researcher(client, topic) for topic in RESEARCH_TOPICS]
         results = await asyncio.gather(*tasks, return_exceptions=False)
 
-    out_file = Path("/home/mike-anderson/dev/cohezion/docs/research/terminal_mermaid_graphics_bleeding_edge_report.md")
+    out_file = Path(
+        "/home/mike-anderson/dev/cohezion/docs/research/terminal_mermaid_graphics_bleeding_edge_report.md"
+    )
     out_file.parent.mkdir(parents=True, exist_ok=True)
 
     md = [

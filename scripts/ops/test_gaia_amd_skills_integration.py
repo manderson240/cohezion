@@ -19,17 +19,19 @@ AMD_SKILLS_PATH = Path("src/cohezion/skills/amd/skills-repo/skills")
 GAIA_BIN = Path("/home/mike-anderson/.local/bin/gaia")
 LEMONADE_BIN = Path("/usr/bin/lemonade")
 
+
 def check_gaia():
     print("▶ 1. Checking GAIA SDK CLI Status...")
     res = subprocess.run([str(GAIA_BIN), "--version"], capture_output=True, text=True)
     print(f"  • GAIA Version: {res.stdout.strip() or res.stderr.strip()}")
+
 
 def check_amd_skills():
     print("\n▶ 2. Auditing AMD Official Skills Catalog...")
     if not AMD_SKILLS_PATH.exists():
         print(f"  ❌ Path not found: {AMD_SKILLS_PATH}")
         return
-    
+
     skills = [p.name for p in AMD_SKILLS_PATH.iterdir() if p.is_dir()]
     print(f"  • Discovered {len(skills)} AMD Official Hardware Skills:")
     for s in sorted(skills):
@@ -37,12 +39,14 @@ def check_amd_skills():
         has_skill_md = "✓ SKILL.md present" if skill_file.exists() else "⚠️ No SKILL.md"
         print(f"    - {s:<32} [{has_skill_md}]")
 
+
 def check_lemonade():
     print("\n▶ 3. Checking Lemonade Server CLI Status...")
     res = subprocess.run([str(LEMONADE_BIN), "status"], capture_output=True, text=True)
     status_lines = res.stdout.strip().split("\n")[:8]
     for l in status_lines:
         print(f"  {l}")
+
 
 def main():
     print("=" * 80)
@@ -57,6 +61,7 @@ def main():
     print("\n" + "=" * 80)
     print("✓ ALL HARDWARE & AGENTIC APIS CONSOLIDATED & OPERATIONAL")
     print("=" * 80)
+
 
 if __name__ == "__main__":
     main()

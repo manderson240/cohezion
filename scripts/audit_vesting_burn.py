@@ -2,7 +2,9 @@
 import urllib.request, json
 from pathlib import Path
 
-base_dir = Path("/home/mike-anderson/.gemini/antigravity-cli/brain/9d0f94a0-a1ab-464c-92ab-9bab8612583a/scratch/1win-token-solana-programs")
+base_dir = Path(
+    "/home/mike-anderson/.gemini/antigravity-cli/brain/9d0f94a0-a1ab-464c-92ab-9bab8612583a/scratch/1win-token-solana-programs"
+)
 vesting_claim = (base_dir / "programs/vesting/src/instructions/claim.rs").read_text()
 vesting_close = (base_dir / "programs/vesting/src/instructions/close.rs").read_text()
 vesting_create = (base_dir / "programs/vesting/src/instructions/create.rs").read_text()
@@ -38,7 +40,11 @@ Report any confirmed, high-signal security vulnerabilities.
 """
 
 data = {"model": "deepseek-v4.1-flash:cloud", "prompt": prompt, "stream": True}
-req = urllib.request.Request("http://localhost:11434/api/generate", data=json.dumps(data).encode(), headers={"Content-Type": "application/json"})
+req = urllib.request.Request(
+    "http://localhost:11434/api/generate",
+    data=json.dumps(data).encode(),
+    headers={"Content-Type": "application/json"},
+)
 
 with urllib.request.urlopen(req, timeout=120) as r:
     for line in r:

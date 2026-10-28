@@ -75,9 +75,19 @@ async def query_ollama_model(client: httpx.AsyncClient, model_name: str) -> dict
         if resp.status_code == 200:
             text = resp.json().get("response", "")
             return {"model": model_name, "status": "success", "latency": latency, "review": text}
-        return {"model": model_name, "status": f"http_{resp.status_code}", "latency": latency, "review": resp.text}
+        return {
+            "model": model_name,
+            "status": f"http_{resp.status_code}",
+            "latency": latency,
+            "review": resp.text,
+        }
     except Exception as e:
-        return {"model": model_name, "status": f"error: {e}", "latency": time.perf_counter() - start_t, "review": ""}
+        return {
+            "model": model_name,
+            "status": f"error: {e}",
+            "latency": time.perf_counter() - start_t,
+            "review": "",
+        }
 
 
 async def query_lemonade_local(client: httpx.AsyncClient, model_name: str) -> dict[str, Any]:
@@ -96,15 +106,32 @@ async def query_lemonade_local(client: httpx.AsyncClient, model_name: str) -> di
         latency = time.perf_counter() - start_t
         if resp.status_code == 200:
             text = resp.json()["choices"][0]["message"]["content"]
-            return {"model": f"local:{model_name}", "status": "success", "latency": latency, "review": text}
-        return {"model": f"local:{model_name}", "status": f"http_{resp.status_code}", "latency": latency, "review": resp.text}
+            return {
+                "model": f"local:{model_name}",
+                "status": "success",
+                "latency": latency,
+                "review": text,
+            }
+        return {
+            "model": f"local:{model_name}",
+            "status": f"http_{resp.status_code}",
+            "latency": latency,
+            "review": resp.text,
+        }
     except Exception as e:
-        return {"model": f"local:{model_name}", "status": f"error: {e}", "latency": time.perf_counter() - start_t, "review": ""}
+        return {
+            "model": f"local:{model_name}",
+            "status": f"error: {e}",
+            "latency": time.perf_counter() - start_t,
+            "review": "",
+        }
 
 
 async def run_grand_review() -> None:
     print("=" * 100)
-    print("    ⚔️ GRAND MULTIPERSPECTIVE ADVERSARIAL REVIEW (HEADLESS CLAUDE FABLE + LOCAL + OLLAMA CLOUD)")
+    print(
+        "    ⚔️ GRAND MULTIPERSPECTIVE ADVERSARIAL REVIEW (HEADLESS CLAUDE FABLE + LOCAL + OLLAMA CLOUD)"
+    )
     print("=" * 100)
 
     reviews: list[dict[str, Any]] = []
@@ -121,13 +148,19 @@ async def run_grand_review() -> None:
         all_results = await asyncio.gather(local_task, *cloud_tasks, return_exceptions=False)
         reviews.extend(all_results)
 
-    report_path = Path("/home/mike-anderson/dev/cohezion/docs/research/grand_shoulders_matsumoto_adversarial_review.md")
+    report_path = Path(
+        "/home/mike-anderson/dev/cohezion/docs/research/grand_shoulders_matsumoto_adversarial_review.md"
+    )
 
     print("\n3. Compiling Comprehensive Multiperspective Adversarial Report...")
     with open(report_path, "w", encoding="utf-8") as f:
-        f.write("# ⚔️ Grand Multiperspective Adversarial Review: Ken Shoulders & Matsumoto World Model\n\n")
+        f.write(
+            "# ⚔️ Grand Multiperspective Adversarial Review: Ken Shoulders & Matsumoto World Model\n\n"
+        )
         f.write(f"**Date**: {time.strftime('%Y-%m-%d %H:%M:%S')}\n")
-        f.write("**Hardware Platform**: AMD Strix Halo (128GB Unified Memory, XDNA2 NPU, Radeon 8060S iGPU)\n")
+        f.write(
+            "**Hardware Platform**: AMD Strix Halo (128GB Unified Memory, XDNA2 NPU, Radeon 8060S iGPU)\n"
+        )
         f.write(f"**Total Reviewers**: {len(reviews)} Frontier Models\n\n")
         f.write("---\n\n")
 
@@ -136,10 +169,16 @@ async def run_grand_review() -> None:
             f.write(f"- **Status**: `{rev['status']}`\n")
             f.write(f"- **Response Latency**: `{rev['latency']:.2f}s`\n\n")
             f.write("### Evaluation Trajectory\n\n")
-            f.write(rev['review'] if rev['review'] else "*No response received or endpoint timed out.*\n")
+            f.write(
+                rev["review"]
+                if rev["review"]
+                else "*No response received or endpoint timed out.*\n"
+            )
             f.write("\n\n---\n\n")
 
-    print(f"  ✓ Comprehensive report preserved at: {report_path} ({report_path.stat().st_size} bytes)")
+    print(
+        f"  ✓ Comprehensive report preserved at: {report_path} ({report_path.stat().st_size} bytes)"
+    )
     print("=" * 100)
     print("🎉 GRAND MULTIPERSPECTIVE REVIEW COMPLETE!")
     print("=" * 100)

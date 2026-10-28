@@ -78,10 +78,16 @@ class MasterDailyResearcher:
     async def run_track_a_mechanistic_interpretability(self) -> dict:
         logger.info("🔬 [TRACK A] Probing J-Space Global Workspace & 3-Layer Regimes...")
         t0 = time.perf_counter()
-        state = await self.j_engine.execute_j_space_reasoning_pass("research_probe: sovereign alignment trajectory")
+        state = await self.j_engine.execute_j_space_reasoning_pass(
+            "research_probe: sovereign alignment trajectory"
+        )
         dt = (time.perf_counter() - t0) * 1000.0
-        logger.info("  ✓ Track A Completed in %.2f ms | Workspace Variance: %.1f%% | AST Policy: %s",
-                    dt, state.workspace_capacity_pct, state.ast_verified)
+        logger.info(
+            "  ✓ Track A Completed in %.2f ms | Workspace Variance: %.1f%% | AST Policy: %s",
+            dt,
+            state.workspace_capacity_pct,
+            state.ast_verified,
+        )
         return {
             "track": "Track A: Mechanistic Interpretability",
             "duration_ms": round(dt, 2),
@@ -103,15 +109,23 @@ class MasterDailyResearcher:
         if "```python" in clean_code:
             clean_code = clean_code.split("```python")[-1].split("```")[0].strip()
         elif "```" in clean_code:
-            clean_code = clean_code.split("```")[1].strip() if len(clean_code.split("```")) > 1 else clean_code.strip()
+            clean_code = (
+                clean_code.split("```")[1].strip()
+                if len(clean_code.split("```")) > 1
+                else clean_code.strip()
+            )
 
         # AST Gate
         v_res = self.verifier.verify_code(clean_code)
         # Sandbox Gate
         ns_res = self.sandbox.execute_python_code(clean_code)
         dt = (time.perf_counter() - t0) * 1000.0
-        logger.info("  ✓ Track B Completed in %.2f ms | AST Valid: %s | Sandbox Exec: %s",
-                    dt, v_res.get("verified", False), ns_res.success)
+        logger.info(
+            "  ✓ Track B Completed in %.2f ms | AST Valid: %s | Sandbox Exec: %s",
+            dt,
+            v_res.get("verified", False),
+            ns_res.success,
+        )
         return {
             "track": "Track B: Deceptive Alignment & AST Gates",
             "duration_ms": round(dt, 2),
@@ -123,13 +137,13 @@ class MasterDailyResearcher:
         logger.info("📐 [TRACK C] Calibrating 2048D Poincaré Manifold Hyperbolic State...")
         t0 = time.perf_counter()
         dummy_vec = [0.1 * (i % 10) for i in range(12)]
-        norm = sum(x**2 for x in dummy_vec)**0.5
+        norm = sum(x**2 for x in dummy_vec) ** 0.5
         scaled_vec = [x / (norm + 1e-5) * 0.85 for x in dummy_vec]
-        
+
         self.vector_store.insert(
             vectors=[scaled_vec],
             payloads=[{"source": "daily_research_calibration", "timestamp": time.time()}],
-            ids=[f"calib_{int(time.time())}"]
+            ids=[f"calib_{int(time.time())}"],
         )
         dt = (time.perf_counter() - t0) * 1000.0
         logger.info("  ✓ Track C Completed in %.2f ms | Vector Indexed into SurrealDB HNSW", dt)
@@ -180,7 +194,9 @@ class MasterDailyResearcher:
 
         # 1. Preflight
         mem = OOMGuard.get_memory_state(largest_model_gb=16.0)
-        logger.info("Hardware Preflight: %.1f GiB Available UMA (Floor: 20.0 GiB)", mem.available_gb)
+        logger.info(
+            "Hardware Preflight: %.1f GiB Available UMA (Floor: 20.0 GiB)", mem.available_gb
+        )
         if mem.available_gb < 20.0:
             logger.warning("⚠️ Memory headroom low. Yielding.")
             return

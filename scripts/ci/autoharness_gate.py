@@ -106,7 +106,9 @@ def self_test() -> int:
             print("SELF-TEST FAILED: red unit mismatch fixture (CWE-682) was not flagged!")
             return 1
 
-    print("SELF-TEST OK: AutoHarness gate flags eval and CWE-682 mismatches (red) and passes valid code (green).")
+    print(
+        "SELF-TEST OK: AutoHarness gate flags eval and CWE-682 mismatches (red) and passes valid code (green)."
+    )
     return 0
 
 

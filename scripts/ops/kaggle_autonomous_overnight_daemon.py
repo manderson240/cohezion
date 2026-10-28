@@ -22,15 +22,23 @@ from cohezion.competitions.arc.dsl_synthesizer import ARCDSLSynthesizer
 from cohezion.competitions.pokemon_tcg.tcg_simulator import PokemonTCGSimulator, BattleState
 from cohezion.core.event_bus import Event, EventType, EventBus
 
-logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] [OVERNIGHT_DAEMON] %(message)s")
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s [%(levelname)s] [OVERNIGHT_DAEMON] %(message)s"
+)
 logger = logging.getLogger("overnight_daemon")
 
+
 def get_free_ram_gb() -> float:
-    return psutil.virtual_memory().available / (1024 ** 3)
+    return psutil.virtual_memory().available / (1024**3)
+
 
 async def run_overnight_iteration(cycle: int, event_bus: EventBus):
-    logger.info("========== Starting Autonomous Optimization Cycle %d (Free RAM: %.2f GiB) ==========", cycle, get_free_ram_gb())
-    
+    logger.info(
+        "========== Starting Autonomous Optimization Cycle %d (Free RAM: %.2f GiB) ==========",
+        cycle,
+        get_free_ram_gb(),
+    )
+
     # 1. Pokemon TCG Strategy Rollout Optimization
     sim = PokemonTCGSimulator("data/kaggle/pokemon_tcg/EN_Card_Data.csv")
     initial_st = BattleState(player_active_hp=120, opponent_active_hp=120)
@@ -41,29 +49,32 @@ async def run_overnight_iteration(cycle: int, event_bus: EventBus):
     synth = ARCDSLSynthesizer()
     sample_task = {
         "train": [{"input": [[1, 2], [3, 4]], "output": [[3, 1], [4, 2]]}],
-        "test": [{"input": [[9, 8], [7, 6]]}]
+        "test": [{"input": [[9, 8], [7, 6]]}],
     }
     t0 = time.perf_counter()
     pred = synth.synthesize(sample_task)
     dt_ms = (time.perf_counter() - t0) * 1000.0
-    logger.info("✓ Cycle %d: ARC DSL Synthesis verified in %.3f ms (Result: %s)", cycle, dt_ms, pred)
+    logger.info(
+        "✓ Cycle %d: ARC DSL Synthesis verified in %.3f ms (Result: %s)", cycle, dt_ms, pred
+    )
 
     # 3. Publish Event
     evt = Event.agent_complete(
         agent_name="KaggleAutonomousOvernightDaemon",
         result={"cycle": cycle, "tcg_action": best_action, "arc_latency_ms": dt_ms},
-        duration_ms=dt_ms
+        duration_ms=dt_ms,
     )
     await event_bus.publish(evt)
     logger.info("✓ Cycle %d: Optimization telemetry published to EventBus", cycle)
+
 
 async def main():
     print("\n" + "=" * 105)
     print("🌙 COHEZION AUTONOMOUS OVERNIGHT KAGGLE OPTIMIZATION DAEMON ACTIVE")
     print("=" * 105)
-    
+
     event_bus = EventBus()
-    
+
     # Execute 3 demo validation cycles
     for cycle in range(1, 4):
         await run_overnight_iteration(cycle, event_bus)
@@ -72,6 +83,7 @@ async def main():
     print("\n" + "=" * 105)
     print("🎉 OVERNIGHT DAEMON HARNESS VERIFIED AND OPERATIONAL!")
     print("=" * 105 + "\n")
+
 
 if __name__ == "__main__":
     asyncio.run(main())

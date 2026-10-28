@@ -196,6 +196,7 @@ chat_fn = _GaiaLLMClientShim(client, model, max_tokens=N, temperature=T).prompt
 
 # RIGHT
 from cohezion.inference.gaia_adapter import build_gaia_llm_tier
+
 chat_fn = build_gaia_llm_tier(model, max_tokens=N).agent.prompt
 ```
 

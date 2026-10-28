@@ -14,20 +14,22 @@ payload = {
     "model": "user.cohezion-hermes-router",
     "messages": [
         {"role": "system", "content": "You are a concise assistant."},
-        {"role": "user", "content": "Explain what you are doing in 2 short bullet points."}
+        {"role": "user", "content": "Explain what you are doing in 2 short bullet points."},
     ],
     "max_tokens": 80,
-    "stream": True
+    "stream": True,
 }
 
-req = urllib.request.Request(url_chat, headers={"Content-Type": "application/json"}, data=json.dumps(payload).encode())
+req = urllib.request.Request(
+    url_chat, headers={"Content-Type": "application/json"}, data=json.dumps(payload).encode()
+)
 t0 = time.perf_counter()
 first_token_t = None
 token_count = 0
 
 with urllib.request.urlopen(req, timeout=30) as resp:
     for line in resp:
-        line = line.decode('utf-8').strip()
+        line = line.decode("utf-8").strip()
         if line.startswith("data: "):
             if line == "data: [DONE]":
                 break

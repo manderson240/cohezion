@@ -4,11 +4,13 @@
 import subprocess
 import time
 
+
 def run(cmd):
     try:
         return subprocess.run(cmd, shell=True, capture_output=True, text=True).stdout.strip()
     except Exception as e:
         return f"Error: {e}"
+
 
 def main():
     print("=" * 80)
@@ -39,14 +41,19 @@ def main():
             print(f"\n3. ZFS ARC (Adaptive Replacement Cache):")
             print(f"   • Current ARC Size: {size_mb:.2f} MB")
             print(f"   • Max ARC Target  : {c_max_mb:.2f} MB")
-            print(f"   • ARC Hit Ratio   : {stats.get('hits', 'N/A')} hits / {stats.get('misses', 'N/A')} misses")
+            print(
+                f"   • ARC Hit Ratio   : {stats.get('hits', 'N/A')} hits / {stats.get('misses', 'N/A')} misses"
+            )
     except FileNotFoundError:
-        print("\n3. ZFS ARC (/proc/spl/kstat/zfs/arcstats): ZFS module not active in kernel or NVMe root ext4/btrfs/xfs.")
+        print(
+            "\n3. ZFS ARC (/proc/spl/kstat/zfs/arcstats): ZFS module not active in kernel or NVMe root ext4/btrfs/xfs."
+        )
 
     # 4. Storage layout
     df_out = run("df -h / /home /home/mike-anderson/dev/cohezion")
     print(f"\n4. Filesystem Storage Allocation:\n{df_out}")
     print("=" * 80)
+
 
 if __name__ == "__main__":
     main()

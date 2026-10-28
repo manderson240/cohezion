@@ -1,16 +1,21 @@
 """Stress controller: exercises land-buy, ongoing crops, extra cows, goose, care,
 fertilize, weeds — the dynamics paths the planner will explore. Used only to widen
 fidelity-validation coverage beyond the LIVESTOCK carrot+cow subset."""
+
 import random
 
 _SHED = (4, 4)
 
 
 def _step_toward(px, py, tx, ty):
-    if px < tx: return "EAST"
-    if px > tx: return "WEST"
-    if py < ty: return "SOUTH"
-    if py > ty: return "NORTH"
+    if px < tx:
+        return "EAST"
+    if px > tx:
+        return "WEST"
+    if py < ty:
+        return "SOUTH"
+    if py > ty:
+        return "NORTH"
     return None
 
 
@@ -24,7 +29,8 @@ def agent(obs):
 def _decide(obs):
     player = obs["player"]
     me = obs["farms"][player]
-    day = obs["day"]; hour = obs["hour"]
+    day = obs["day"]
+    hour = obs["hour"]
     money = me["money"]
     tiles = me["tiles"]
     priv = obs["private"]
@@ -107,7 +113,7 @@ def _decide(obs):
 
     hands = me.get("hands", [])
     hand_ops = []
-    for (hx, hy) in hands:
+    for hx, hy in hands:
         ht = tiles[hy][hx]
         if isinstance(ht, dict) and ht.get("kind") == "PLANT" and not ht.get("watered_today"):
             hand_ops.append(["WATER"])

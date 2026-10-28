@@ -13,6 +13,7 @@ AI-native formal ontology engineering, zero-trust semantic change planning, mach
 1. **Plan Before Mutating**: Always run semantic planning prior to adding or retracting triples to calculate blast radius and conservativity:
    ```python
    from cohezion.knowledge_graph.open_ontologies_bridge import SemanticPlanner, SemanticTriple
+
    planner = SemanticPlanner()
    plan = planner.plan(base_graph, proposed_triples)
    if plan.risk_score == "high":
@@ -30,6 +31,7 @@ AI-native formal ontology engineering, zero-trust semantic change planning, mach
    Map knowledge entities into 4D spacetime extents aligned with Poincaré coordinates and 8D brane harmonics:
    ```python
    from cohezion.knowledge_graph.open_ontologies_bridge import BORO4DSpacetimeExtent
+
    extent = BORO4DSpacetimeExtent(
        entity_id="contract_1win_sale",
        spatial_bounds=(0.1, 0.2, 0.3),

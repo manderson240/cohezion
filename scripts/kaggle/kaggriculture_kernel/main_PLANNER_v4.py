@@ -19,30 +19,158 @@ import random
 
 # ---------------------------------------------------------------- constants (verbatim)
 CROPS = {
-    "WHEAT":      {"seed": 10, "first_yield_day": 2, "max_yield_day": 4, "interval": 0, "max_yield": 6, "ongoing": False},
-    "CARROT":     {"seed": 20, "first_yield_day": 2, "max_yield_day": 3, "interval": 0, "max_yield": 4, "ongoing": False},
-    "TOMATO":     {"seed": 50, "first_yield_day": 8, "max_yield_day": 8, "interval": 1, "max_yield": 4, "ongoing": True},
-    "STRAWBERRY": {"seed": 100, "first_yield_day": 10, "max_yield_day": 10, "interval": 2, "max_yield": 4, "ongoing": True},
-    "MELON":      {"seed": 80, "first_yield_day": 10, "max_yield_day": 12, "interval": 0, "max_yield": 6, "ongoing": False},
+    "WHEAT": {
+        "seed": 10,
+        "first_yield_day": 2,
+        "max_yield_day": 4,
+        "interval": 0,
+        "max_yield": 6,
+        "ongoing": False,
+    },
+    "CARROT": {
+        "seed": 20,
+        "first_yield_day": 2,
+        "max_yield_day": 3,
+        "interval": 0,
+        "max_yield": 4,
+        "ongoing": False,
+    },
+    "TOMATO": {
+        "seed": 50,
+        "first_yield_day": 8,
+        "max_yield_day": 8,
+        "interval": 1,
+        "max_yield": 4,
+        "ongoing": True,
+    },
+    "STRAWBERRY": {
+        "seed": 100,
+        "first_yield_day": 10,
+        "max_yield_day": 10,
+        "interval": 2,
+        "max_yield": 4,
+        "ongoing": True,
+    },
+    "MELON": {
+        "seed": 80,
+        "first_yield_day": 10,
+        "max_yield_day": 12,
+        "interval": 0,
+        "max_yield": 6,
+        "ongoing": False,
+    },
 }
 ANIMALS = {
-    "GOOSE": {"cost": 300, "structure": "COOP",    "first_yield_day": 4, "interval": 1, "max_held": 4, "product": "EGG"},
-    "COW":   {"cost": 400, "structure": "PASTURE", "first_yield_day": 8, "interval": 2, "max_held": 6, "product": "MILK"},
-    "SHEEP": {"cost": 500, "structure": "PASTURE", "first_yield_day": 6, "interval": 3, "max_held": 6, "product": "WOOL"},
+    "GOOSE": {
+        "cost": 300,
+        "structure": "COOP",
+        "first_yield_day": 4,
+        "interval": 1,
+        "max_held": 4,
+        "product": "EGG",
+    },
+    "COW": {
+        "cost": 400,
+        "structure": "PASTURE",
+        "first_yield_day": 8,
+        "interval": 2,
+        "max_held": 6,
+        "product": "MILK",
+    },
+    "SHEEP": {
+        "cost": 500,
+        "structure": "PASTURE",
+        "first_yield_day": 6,
+        "interval": 3,
+        "max_held": 6,
+        "product": "WOOL",
+    },
 }
 PRODUCTS = ["WHEAT", "CARROT", "TOMATO", "STRAWBERRY", "MELON", "EGG", "MILK", "WOOL", "FERTILIZER"]
 MARKET_I0 = 10000
 PRICE_FLOOR = 1
 MARKET_PARAMS = {
-    "WHEAT":      {"base":  25, "I0": MARKET_I0, "T": 400, "below_func": "sqrt",   "below_target": 0.80, "above_func": "log",    "above_target": 0.20},
-    "CARROT":     {"base":  35, "I0": MARKET_I0, "T": 450, "below_func": "hinge",  "below_target": 1.00, "above_func": "sqrt",   "above_target": 0.70},
-    "TOMATO":     {"base":  60, "I0": MARKET_I0, "T": 200, "below_func": "hinge",  "below_target": 0.40, "above_func": "sqrt",   "above_target": 0.60},
-    "STRAWBERRY": {"base": 120, "I0": MARKET_I0, "T": 100, "below_func": "sqrt",   "below_target": 0.70, "above_func": "linear", "above_target": 1.60},
-    "MELON":      {"base": 250, "I0": MARKET_I0, "T": 300, "below_func": "log",    "below_target": 0.20, "above_func": "sq",     "above_target": 3.60},
-    "EGG":        {"base":  50, "I0": MARKET_I0, "T": 332, "below_func": "hinge",  "below_target": 0.40, "above_func": "log",    "above_target": 0.20},
-    "MILK":       {"base": 160, "I0": MARKET_I0, "T": 122, "below_func": "sqrt",   "below_target": 0.60, "above_func": "linear", "above_target": 1.60},
-    "WOOL":       {"base": 200, "I0": MARKET_I0, "T": 105, "below_func": "log",    "below_target": 0.20, "above_func": "sq",     "above_target": 3.20},
-    "FERTILIZER": {"base": 100, "I0": MARKET_I0, "T": 200, "below_func": "linear", "below_target": 0.40, "above_func": "linear", "above_target": 0.40},
+    "WHEAT": {
+        "base": 25,
+        "I0": MARKET_I0,
+        "T": 400,
+        "below_func": "sqrt",
+        "below_target": 0.80,
+        "above_func": "log",
+        "above_target": 0.20,
+    },
+    "CARROT": {
+        "base": 35,
+        "I0": MARKET_I0,
+        "T": 450,
+        "below_func": "hinge",
+        "below_target": 1.00,
+        "above_func": "sqrt",
+        "above_target": 0.70,
+    },
+    "TOMATO": {
+        "base": 60,
+        "I0": MARKET_I0,
+        "T": 200,
+        "below_func": "hinge",
+        "below_target": 0.40,
+        "above_func": "sqrt",
+        "above_target": 0.60,
+    },
+    "STRAWBERRY": {
+        "base": 120,
+        "I0": MARKET_I0,
+        "T": 100,
+        "below_func": "sqrt",
+        "below_target": 0.70,
+        "above_func": "linear",
+        "above_target": 1.60,
+    },
+    "MELON": {
+        "base": 250,
+        "I0": MARKET_I0,
+        "T": 300,
+        "below_func": "log",
+        "below_target": 0.20,
+        "above_func": "sq",
+        "above_target": 3.60,
+    },
+    "EGG": {
+        "base": 50,
+        "I0": MARKET_I0,
+        "T": 332,
+        "below_func": "hinge",
+        "below_target": 0.40,
+        "above_func": "log",
+        "above_target": 0.20,
+    },
+    "MILK": {
+        "base": 160,
+        "I0": MARKET_I0,
+        "T": 122,
+        "below_func": "sqrt",
+        "below_target": 0.60,
+        "above_func": "linear",
+        "above_target": 1.60,
+    },
+    "WOOL": {
+        "base": 200,
+        "I0": MARKET_I0,
+        "T": 105,
+        "below_func": "log",
+        "below_target": 0.20,
+        "above_func": "sq",
+        "above_target": 3.20,
+    },
+    "FERTILIZER": {
+        "base": 100,
+        "I0": MARKET_I0,
+        "T": 200,
+        "below_func": "linear",
+        "below_target": 0.40,
+        "above_func": "linear",
+        "above_target": 0.40,
+    },
 }
 HINGE_GAIN = 8.0
 FARMER_MOVES = {"NORTH": (0, -1), "SOUTH": (0, 1), "EAST": (1, 0), "WEST": (-1, 0)}
@@ -50,9 +178,12 @@ LAND_ORDER = ["NE", "SW", "SE"]
 LAND_PRICES = [1000, 2000, 4000]
 FARM_HAND_COST_MULT = 1
 SHOPS = {
-    "BAKERY": ["EGG", "WHEAT"], "PIZZA_SHOP": ["MILK", "TOMATO", "WHEAT"],
-    "BRUNCH_SPOT": ["EGG", "WHEAT", "STRAWBERRY"], "YARN_STORE": ["WOOL"],
-    "ICE_CREAM_SHOP": ["STRAWBERRY", "MILK", "WHEAT"], "PET_CAFE": ["CARROT"],
+    "BAKERY": ["EGG", "WHEAT"],
+    "PIZZA_SHOP": ["MILK", "TOMATO", "WHEAT"],
+    "BRUNCH_SPOT": ["EGG", "WHEAT", "STRAWBERRY"],
+    "YARN_STORE": ["WOOL"],
+    "ICE_CREAM_SHOP": ["STRAWBERRY", "MILK", "WHEAT"],
+    "PET_CAFE": ["CARROT"],
     "SMOOTHIE_SHOP": ["STRAWBERRY", "MILK"],
     "FARMERS_MARKET": ["WHEAT", "CARROT", "TOMATO", "STRAWBERRY"],
 }
@@ -62,11 +193,16 @@ MAX_SHOP_INSTANCES = 8
 
 def _shape(func, x, T=None):
     x = max(0.0, x)
-    if func == "linear": return x
-    if func == "sq":     return x * x
-    if func == "sqrt":   return math.sqrt(x)
-    if func == "log":    return math.log(1.0 + x)
-    if func == "log10":  return math.log10(1.0 + x)
+    if func == "linear":
+        return x
+    if func == "sq":
+        return x * x
+    if func == "sqrt":
+        return math.sqrt(x)
+    if func == "log":
+        return math.log(1.0 + x)
+    if func == "log10":
+        return math.log10(1.0 + x)
     if func == "hinge":
         if not T or T <= 0:
             return x
@@ -77,7 +213,9 @@ def _shape(func, x, T=None):
 
 def market_price(item, inventory, params=None):
     p = (params or MARKET_PARAMS)[item]
-    base = p["base"]; I0 = p["I0"]; T = p["T"]
+    base = p["base"]
+    I0 = p["I0"]
+    T = p["T"]
     if inventory < I0:
         f = p["below_func"]
         amp = p["below_target"] * base / _shape(f, T, T)
@@ -113,9 +251,15 @@ def _default_spawn(board_size):
 def _new_plant(crop, day, turns_per_day):
     cd = CROPS[crop]
     return {
-        "kind": "PLANT", "crop": crop, "planted_day": day, "watered_today": False,
-        "consecutive_unwatered": 1, "yield_units": 0 if cd["ongoing"] else 1,
-        "max_lifespan_step": (-1 if cd["ongoing"] else (day + cd["max_yield_day"] + 1) * turns_per_day),
+        "kind": "PLANT",
+        "crop": crop,
+        "planted_day": day,
+        "watered_today": False,
+        "consecutive_unwatered": 1,
+        "yield_units": 0 if cd["ongoing"] else 1,
+        "max_lifespan_step": (
+            -1 if cd["ongoing"] else (day + cd["max_yield_day"] + 1) * turns_per_day
+        ),
         "fertilized_until_day": -1,
     }
 
@@ -123,9 +267,15 @@ def _new_plant(crop, day, turns_per_day):
 def _new_animal(animal, day):
     a = ANIMALS[animal]
     return {
-        "kind": a["structure"], "animal": animal, "placed_day": day, "yield_units": 0,
-        "consecutive_unfed": 0, "fed_today": False, "cared_today": False,
-        "fertilizer_available": False, "pending_care_bonus": 0,
+        "kind": a["structure"],
+        "animal": animal,
+        "placed_day": day,
+        "yield_units": 0,
+        "consecutive_unfed": 0,
+        "fed_today": False,
+        "cared_today": False,
+        "fertilizer_available": False,
+        "pending_care_bonus": 0,
     }
 
 
@@ -152,10 +302,24 @@ def _fib(n):
 class FarmSim:
     """Single-farm turn-exact simulator. Opponent = PASS (no market orders)."""
 
-    def __init__(self, farm, private, market, town, step, seed,
-                 board_size=10, turns_per_day=24, shed_capacity=100,
-                 weed_chance=0.005, shop_unlock_interval=3, shop_sell_interval=4,
-                 center_interval=24, hire_mult=1, max_orders=10):
+    def __init__(
+        self,
+        farm,
+        private,
+        market,
+        town,
+        step,
+        seed,
+        board_size=10,
+        turns_per_day=24,
+        shed_capacity=100,
+        weed_chance=0.005,
+        shop_unlock_interval=3,
+        shop_sell_interval=4,
+        center_interval=24,
+        hire_mult=1,
+        max_orders=10,
+    ):
         self.farm = farm
         self.private = private
         self.market = market
@@ -220,7 +384,8 @@ class FarmSim:
             shed = self.private["shed"]
             for item, n in list(inv.items()):
                 if n <= 0:
-                    del inv[item]; continue
+                    del inv[item]
+                    continue
                 room = max(0, self.shed_cap - sum(shed.values()))
                 take = min(n, room)
                 if take > 0:
@@ -249,8 +414,12 @@ class FarmSim:
             if len(action) < 2:
                 return
             item = action[1]
-            if (item in ANIMALS and isinstance(tile, dict)
-                    and tile.get("kind") == ANIMALS[item]["structure"] and "animal" not in tile):
+            if (
+                item in ANIMALS
+                and isinstance(tile, dict)
+                and tile.get("kind") == ANIMALS[item]["structure"]
+                and "animal" not in tile
+            ):
                 if _inv_take(inv, item, 1):
                     self.farm["tiles"][fy][fx] = _new_animal(item, day)
                 return
@@ -311,12 +480,14 @@ class FarmSim:
                 cd = CROPS[tile["crop"]]
                 if day - tile["planted_day"] < cd["first_yield_day"]:
                     return
-                units = tile["yield_units"]; tile["yield_units"] = 0
+                units = tile["yield_units"]
+                tile["yield_units"] = 0
                 _inv_add(inv, tile["crop"], units)
                 if not cd["ongoing"]:
                     self.farm["tiles"][fy][fx] = None
             elif "animal" in tile:
-                units = tile["yield_units"]; tile["yield_units"] = 0
+                units = tile["yield_units"]
+                tile["yield_units"] = 0
                 _inv_add(inv, ANIMALS[tile["animal"]]["product"], units)
             return
 
@@ -383,8 +554,9 @@ class FarmSim:
         for pos in all_pos:
             if pos in occupants:
                 occupants[pos] += 1
-        best = sorted(occupants.items(),
-                      key=lambda kv: (kv[1], _shed_access_tiles(bs).index(kv[0])))
+        best = sorted(
+            occupants.items(), key=lambda kv: (kv[1], _shed_access_tiles(bs).index(kv[0]))
+        )
         return list(best[0][0])
 
     def _do_hire(self):
@@ -408,7 +580,10 @@ class FarmSim:
         self.farm["unlocked_quadrants"].append(quad)
         for y in range(self.board_size):
             for x in range(self.board_size):
-                if _quadrant_of(x, y, self.board_size) == quad and self.farm["tiles"][y][x] == "LOCKED":
+                if (
+                    _quadrant_of(x, y, self.board_size) == quad
+                    and self.farm["tiles"][y][x] == "LOCKED"
+                ):
                     self.farm["tiles"][y][x] = None
 
     def _parse_order(self, order):
@@ -432,7 +607,9 @@ class FarmSim:
         return None
 
     def _commit_unit(self, op, item, price):
-        farm = self.farm; private = self.private; market = self.market
+        farm = self.farm
+        private = self.private
+        market = self.market
         if op == "SELL":
             if private["shed"].get(item, 0) <= 0:
                 return False
@@ -472,7 +649,7 @@ class FarmSim:
             self.market["prices"][item] = market_price(item, self.market["inventory"][item], params)
 
     def _process_market(self, market_orders):
-        q = [o for o in (market_orders or [])][:self.max_orders]
+        q = [o for o in (market_orders or [])][: self.max_orders]
         market = self.market
         for i in range(len(q)):
             ostate = self._parse_order(q[i])
@@ -480,12 +657,15 @@ class FarmSim:
                 continue
             op = ostate["type"]
             if op == "HIRE":
-                self._do_hire(); continue
+                self._do_hire()
+                continue
             if op == "BUY_LAND":
-                self._do_buy_land(); continue
+                self._do_buy_land()
+                continue
             # per-unit lockstep, single player
             while ostate["remaining"] > 0:
-                op = ostate["type"]; item = ostate["item"]
+                op = ostate["type"]
+                item = ostate["item"]
                 if op == "SELL" and item in PRODUCTS:
                     price = market_price(item, market["inventory"][item], market.get("params"))
                 elif op == "BUY_PRODUCT" and item in ("WHEAT", "FERTILIZER"):
@@ -504,7 +684,9 @@ class FarmSim:
             self._refresh_prices()
 
     def _town_consume(self):
-        market = self.market; town = self.town; step = self.step
+        market = self.market
+        town = self.town
+        step = self.step
         if step % self.shop_sell_interval == 0:
             for shop_name in town.get("unlocked_shops", []):
                 products = SHOPS[shop_name]
@@ -517,7 +699,8 @@ class FarmSim:
         self._refresh_prices()
 
     def _decay_plants(self):
-        step = self.step; tiles = self.farm["tiles"]
+        step = self.step
+        tiles = self.farm["tiles"]
         for y in range(self.board_size):
             for x in range(self.board_size):
                 tile = tiles[y][x]
@@ -533,7 +716,8 @@ class FarmSim:
                     tiles[y][x] = {"kind": "WEED"}
 
     def _daily_refresh_plants(self, current_day):
-        tiles = self.farm["tiles"]; next_day = current_day + 1
+        tiles = self.farm["tiles"]
+        next_day = current_day + 1
         for y in range(self.board_size):
             for x in range(self.board_size):
                 tile = tiles[y][x]
@@ -546,7 +730,8 @@ class FarmSim:
                     tile["consecutive_unwatered"] += 1
                 tile["watered_today"] = False
                 if tile["consecutive_unwatered"] >= 2:
-                    tiles[y][x] = {"kind": "WEED"}; continue
+                    tiles[y][x] = {"kind": "WEED"}
+                    continue
                 cd = CROPS[tile["crop"]]
                 if not cd["ongoing"]:
                     continue
@@ -560,12 +745,15 @@ class FarmSim:
                 if production_count > cd["max_yield"]:
                     continue
                 fertilized = was_watered and tile.get("fertilized_until_day", -1) >= current_day
-                tile["yield_units"] = min(cd["max_yield"], tile["yield_units"] + (2 if fertilized else 1))
+                tile["yield_units"] = min(
+                    cd["max_yield"], tile["yield_units"] + (2 if fertilized else 1)
+                )
                 if production_count == cd["max_yield"]:
                     tile["max_lifespan_step"] = (next_day + 1) * self.tpd
 
     def _daily_refresh_animals(self, day):
-        tiles = self.farm["tiles"]; next_day = day + 1
+        tiles = self.farm["tiles"]
+        next_day = day + 1
         for y in range(self.board_size):
             for x in range(self.board_size):
                 tile = tiles[y][x]
@@ -576,7 +764,8 @@ class FarmSim:
                 else:
                     tile["consecutive_unfed"] += 1
                 if tile["consecutive_unfed"] >= 2:
-                    tiles[y][x] = {"kind": ANIMALS[tile["animal"]]["structure"]}; continue
+                    tiles[y][x] = {"kind": ANIMALS[tile["animal"]]["structure"]}
+                    continue
                 a = ANIMALS[tile["animal"]]
                 days_since_first = next_day - tile["placed_day"] - a["first_yield_day"]
                 if days_since_first >= 0 and days_since_first % a["interval"] == 0:
@@ -602,7 +791,8 @@ class FarmSim:
         for inv in self.private["inventories"]:
             for item, n in list(inv.items()):
                 if n <= 0:
-                    del inv[item]; continue
+                    del inv[item]
+                    continue
                 current = sum(v for k, v in shed.items())
                 room = max(0, self.shed_cap - current)
                 take = min(n, room)
@@ -675,8 +865,20 @@ class FarmSim:
 
 # Ordered near-shed NW pasture tiles by farmer-walk distance from (4,4).
 # The farmer respawns at (4,4); tiles closest to it are cheapest to service.
-NW_PASTURES = [(3, 4), (4, 3), (3, 3), (2, 4), (4, 2), (2, 3), (3, 2), (2, 2),
-               (1, 4), (4, 1), (1, 3), (3, 1)]
+NW_PASTURES = [
+    (3, 4),
+    (4, 3),
+    (3, 3),
+    (2, 4),
+    (4, 2),
+    (2, 3),
+    (3, 2),
+    (2, 2),
+    (1, 4),
+    (4, 1),
+    (1, 3),
+    (3, 1),
+]
 
 DEFAULT_P = {
     "num_cows": 4,
@@ -686,17 +888,21 @@ DEFAULT_P = {
     "cash_floor": 150,
     "cow_cost": 400,
     "wheat_buffer_mult": 2,
-    "hire_tiers": [(800, 6), (350, 4), (150, 2)],   # (money_gt, target_hands) - expanded in v3
+    "hire_tiers": [(800, 6), (350, 4), (150, 2)],  # (money_gt, target_hands) - expanded in v3
     "max_hands_seed": 8,
 }
 SHED = (4, 4)
 
 
 def _step_toward(px, py, tx, ty):
-    if px < tx: return "EAST"
-    if px > tx: return "WEST"
-    if py < ty: return "SOUTH"
-    if py > ty: return "NORTH"
+    if px < tx:
+        return "EAST"
+    if px > tx:
+        return "WEST"
+    if py < ty:
+        return "SOUTH"
+    if py > ty:
+        return "NORTH"
     return None
 
 
@@ -715,7 +921,8 @@ def _carrot_homes(board, reserved):
 
 
 def _carrot_op(tiles, pos, home, day, seed_budget):
-    px, py = pos; hx, hy = home
+    px, py = pos
+    hx, hy = home
     if (px, py) != (hx, hy):
         mv = _step_toward(px, py, hx, hy)
         return ([mv] if mv else ["PASS"], seed_budget)
@@ -747,16 +954,26 @@ def _rancher_op(me, tiles, inv, shed, active, care=False):
         return tiles[t[1]][t[0]]
 
     to_build = [t for t in active if tile_at(t) is None]
-    to_clear = [t for t in active if isinstance(tile_at(t), dict) and tile_at(t).get("kind") == "WEED"]
-    empty_pastures = [t for t in active if isinstance(tile_at(t), dict)
-                      and tile_at(t).get("kind") == "PASTURE" and "animal" not in tile_at(t)]
+    to_clear = [
+        t for t in active if isinstance(tile_at(t), dict) and tile_at(t).get("kind") == "WEED"
+    ]
+    empty_pastures = [
+        t
+        for t in active
+        if isinstance(tile_at(t), dict)
+        and tile_at(t).get("kind") == "PASTURE"
+        and "animal" not in tile_at(t)
+    ]
     animals = [t for t in active if isinstance(tile_at(t), dict) and "animal" in tile_at(t)]
     to_harvest = [t for t in animals if tile_at(t).get("yield_units", 0) > 0]
     to_feed = [t for t in animals if not tile_at(t).get("fed_today", False)]
     # CARE (only after fed): accumulates a milk bonus consumed on production days,
     # ~tripling milk yield. Free labour for the 4-cow ranch (spare farmer turns).
-    to_care = [t for t in animals
-               if care and tile_at(t).get("fed_today", False) and not tile_at(t).get("cared_today", False)]
+    to_care = [
+        t
+        for t in animals
+        if care and tile_at(t).get("fed_today", False) and not tile_at(t).get("cared_today", False)
+    ]
 
     cur = (fx, fy)
     ct = tile_at(cur) if cur in active else None
@@ -821,7 +1038,8 @@ def controller(obs, P):
     private = obs["private"]
     tiles = me["tiles"]
     money = me["money"]
-    day = obs["day"]; hour = obs["hour"]
+    day = obs["day"]
+    hour = obs["hour"]
     board = len(tiles)
     seeds = private.get("seeds", {})
     shed = dict(private.get("shed", {}))
@@ -835,11 +1053,15 @@ def controller(obs, P):
     cash_floor = P["cash_floor"]
     cow_cost = P["cow_cost"]
 
-    livestock_orders = []; sell_orders = []; hire_orders = []; seed_orders = []
+    livestock_orders = []
+    sell_orders = []
+    hire_orders = []
+    seed_orders = []
 
     if ranch_on:
-        cows_owned = sum(1 for (x, y) in active
-                         if isinstance(tiles[y][x], dict) and "animal" in tiles[y][x])
+        cows_owned = sum(
+            1 for (x, y) in active if isinstance(tiles[y][x], dict) and "animal" in tiles[y][x]
+        )
         cows_pending = shed.get("COW", 0) + farmer_inv.get("COW", 0)
         want_cows = len(active) - cows_owned - cows_pending
         if want_cows > 0 and day == 0:
@@ -868,7 +1090,8 @@ def controller(obs, P):
         target = 0
         for money_gt, t in P["hire_tiers"]:
             if money > money_gt:
-                target = t; break
+                target = t
+                break
         already = me.get("hires_today", 0)
         for _ in range(max(0, target - already)):
             hire_orders.append(["HIRE"])
@@ -878,7 +1101,11 @@ def controller(obs, P):
     want_seed = max(0, min(n_carrot_workers, P["max_hands_seed"]) - have_seed)
     buy_n = 0
     cs = P["carrot_seed_cost"]
-    while buy_n < want_seed and (money - cs * (buy_n + 1)) >= cash_floor and buy_n < P["max_hands_seed"]:
+    while (
+        buy_n < want_seed
+        and (money - cs * (buy_n + 1)) >= cash_floor
+        and buy_n < P["max_hands_seed"]
+    ):
         buy_n += 1
     if buy_n > 0:
         seed_orders.append(["BUY_SEED", "CARROT", buy_n])
@@ -904,12 +1131,37 @@ def controller(obs, P):
 
 # ============================ PLANNER (hardened v4) ============================
 _CAND = [
-    {"care": True,  "num_cows": 5, "hire_tiers": [(1000, 8), (600, 6), (300, 4), (100, 2)], "max_hands_seed": 10}, # v4 hyper-scale
-    {"care": True,  "num_cows": 4, "hire_tiers": [(800, 6), (350, 4), (150, 2)], "max_hands_seed": 8},             # v3 scale-6hands
-    {"care": True,  "num_cows": 5, "hire_tiers": [(800, 6), (350, 4), (150, 2)], "max_hands_seed": 8},             # v4 5-cows
-    {"care": True,  "num_cows": 4, "hire_tiers": [(600, 5), (250, 3), (100, 1)], "cash_floor": 100},              # v3 early-hire
-    {"care": True,  "num_cows": 4, "hire_tiers": [(800, 5), (350, 3), (150, 1)], "max_hands_seed": 6},             # v2 baseline
-    {"care": False, "num_cows": 4},                                                                                  # == LIVESTOCK (safe incumbent)
+    {
+        "care": True,
+        "num_cows": 5,
+        "hire_tiers": [(1000, 8), (600, 6), (300, 4), (100, 2)],
+        "max_hands_seed": 10,
+    },  # v4 hyper-scale
+    {
+        "care": True,
+        "num_cows": 4,
+        "hire_tiers": [(800, 6), (350, 4), (150, 2)],
+        "max_hands_seed": 8,
+    },  # v3 scale-6hands
+    {
+        "care": True,
+        "num_cows": 5,
+        "hire_tiers": [(800, 6), (350, 4), (150, 2)],
+        "max_hands_seed": 8,
+    },  # v4 5-cows
+    {
+        "care": True,
+        "num_cows": 4,
+        "hire_tiers": [(600, 5), (250, 3), (100, 1)],
+        "cash_floor": 100,
+    },  # v3 early-hire
+    {
+        "care": True,
+        "num_cows": 4,
+        "hire_tiers": [(800, 5), (350, 3), (150, 1)],
+        "max_hands_seed": 6,
+    },  # v2 baseline
+    {"care": False, "num_cows": 4},  # == LIVESTOCK (safe incumbent)
 ]
 
 
@@ -920,13 +1172,18 @@ def _p_of(d):
     return P
 
 
-_DEFAULT_P = _p_of({"care": True, "num_cows": 4, "hire_tiers": [(800, 6), (350, 4), (150, 2)], "max_hands_seed": 8})
-_FALLBACK_P = _p_of({"care": False, "num_cows": 4})   # == proven LIVESTOCK behaviour (ultra-conservative)
+_DEFAULT_P = _p_of(
+    {"care": True, "num_cows": 4, "hire_tiers": [(800, 6), (350, 4), (150, 2)], "max_hands_seed": 8}
+)
+_FALLBACK_P = _p_of(
+    {"care": False, "num_cows": 4}
+)  # == proven LIVESTOCK behaviour (ultra-conservative)
 _STATE = {"P": _DEFAULT_P, "planned_for": None}
 
 
 def _build_sim(obs):
     import copy as _copy
+
     player = obs.get("player", 0)
     farms = obs.get("farms") or [{}]
     step = obs.get("step")
@@ -937,10 +1194,18 @@ def _build_sim(obs):
         private=_copy.deepcopy(obs.get("private", {"shed": {}, "seeds": {}, "inventories": [{}]})),
         market=_copy.deepcopy(obs.get("market", {"inventory": {}, "prices": {}})),
         town=_copy.deepcopy(obs.get("town", {"unlocked_shops": []})),
-        step=step, seed=0,
-        board_size=10, turns_per_day=24, shed_capacity=100, weed_chance=0.005,
-        shop_unlock_interval=3, shop_sell_interval=4, center_interval=24,
-        hire_mult=1, max_orders=10)
+        step=step,
+        seed=0,
+        board_size=10,
+        turns_per_day=24,
+        shed_capacity=100,
+        weed_chance=0.005,
+        shop_unlock_interval=3,
+        shop_sell_interval=4,
+        center_interval=24,
+        hire_mult=1,
+        max_orders=10,
+    )
 
 
 def _rollout(obs, P, total_steps=720):
@@ -975,11 +1240,11 @@ def agent(obs):
         if step is None:
             step = obs.get("day", 0) * 24 + obs.get("hour", 0)
         pf = _STATE["planned_for"]
-        if pf is None or step < pf or step == 0:   # plan once per episode (and on reset)
+        if pf is None or step < pf or step == 0:  # plan once per episode (and on reset)
             try:
                 _STATE["P"] = _plan(obs)
             except Exception:
-                _STATE["P"] = _DEFAULT_P            # keep the validated strategy
+                _STATE["P"] = _DEFAULT_P  # keep the validated strategy
             _STATE["planned_for"] = step
         return controller(obs, _STATE["P"])
     except Exception:

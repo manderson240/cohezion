@@ -68,7 +68,9 @@ def self_test() -> int:
         print("SELF-TEST FAILED: red forged certificate was erroneously accepted!")
         return 1
 
-    print("SELF-TEST OK: semantic guard rejects forged premise steps (red) and verifies sound derivations (green).")
+    print(
+        "SELF-TEST OK: semantic guard rejects forged premise steps (red) and verifies sound derivations (green)."
+    )
     return 0
 
 

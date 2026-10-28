@@ -12,14 +12,16 @@ payload = {
     "model": "user.cohezion-router",
     "messages": [
         {"role": "system", "content": "You are Hermes Desktop Assistant on AMD Strix Halo."},
-        {"role": "user", "content": "Tell me a 1-sentence fact about physics."}
+        {"role": "user", "content": "Tell me a 1-sentence fact about physics."},
     ],
     "max_tokens": 30,
-    "stream": True
+    "stream": True,
 }
 
 print(f"Connecting to {url}...")
-req = urllib.request.Request(url, headers={"Content-Type": "application/json"}, data=json.dumps(payload).encode())
+req = urllib.request.Request(
+    url, headers={"Content-Type": "application/json"}, data=json.dumps(payload).encode()
+)
 t0 = time.perf_counter()
 first_token = None
 tokens = 0
@@ -27,7 +29,7 @@ tokens = 0
 try:
     with urllib.request.urlopen(req, timeout=15) as resp:
         for line in resp:
-            l = line.decode('utf-8').strip()
+            l = line.decode("utf-8").strip()
             if l.startswith("data: ") and l != "data: [DONE]":
                 d = json.loads(l[6:])
                 delta = d["choices"][0]["delta"]

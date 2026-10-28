@@ -11,6 +11,7 @@ prompt = """We updated the report with all of your recommended points:
 
 Does this fully address all triage requirements?"""
 
+
 async def run():
     targets = json.loads(urllib.request.urlopen("http://127.0.0.1:9222/json").read().decode())
     h1_tab = next((t for t in targets if "report_assistant/408860" in t.get("url", "")), None)
@@ -18,8 +19,17 @@ async def run():
         return
     ws_url = h1_tab["webSocketDebuggerUrl"]
     async with websockets.connect(ws_url) as ws:
+
         async def eval_js(expr):
-            await ws.send(json.dumps({"id": 1, "method": "Runtime.evaluate", "params": {"expression": expr, "returnByValue": True}}))
+            await ws.send(
+                json.dumps(
+                    {
+                        "id": 1,
+                        "method": "Runtime.evaluate",
+                        "params": {"expression": expr, "returnByValue": True},
+                    }
+                )
+            )
             res = json.loads(await ws.recv())
             return res.get("result", {}).get("result", {}).get("value")
 
@@ -50,6 +60,7 @@ async def run():
         aside_text = await eval_js("document.querySelector('aside')?.innerText || ''")
         print("\n=== HAI FINAL VERDICT ===\n")
         print(aside_text[-1200:])
+
 
 if __name__ == "__main__":
     asyncio.run(run())

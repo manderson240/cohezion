@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import urllib.request, json
 
-prompt = '''You are the Lead Triager on HackerOne for 1win Token Solana Programs.
+prompt = """You are the Lead Triager on HackerOne for 1win Token Solana Programs.
 Critically evaluate this submitted vulnerability report to determine its validity, realistic exploitability, and exact CVSS/severity classification:
 
 REPORT SUMMARY:
@@ -22,15 +22,19 @@ CRITICAL TRIAGE QUESTIONS:
 3. Is there ANY other place where participants is used?
 4. What is the correct HackerOne severity rating under CVSS 3.1: Critical, High, Medium, or Low?
 5. How would the 1win team remediate this, and what is the exact payout recommendation?
-'''
+"""
 
-data = {'model': 'deepseek-v4.1-flash:cloud', 'prompt': prompt, 'stream': True}
-req = urllib.request.Request('http://localhost:11434/api/generate', data=json.dumps(data).encode(), headers={'Content-Type': 'application/json'})
+data = {"model": "deepseek-v4.1-flash:cloud", "prompt": prompt, "stream": True}
+req = urllib.request.Request(
+    "http://localhost:11434/api/generate",
+    data=json.dumps(data).encode(),
+    headers={"Content-Type": "application/json"},
+)
 
 with urllib.request.urlopen(req, timeout=120) as r:
     for line in r:
         if line:
             chunk = json.loads(line.decode())
-            if chunk.get('response'):
-                print(chunk['response'], end='', flush=True)
+            if chunk.get("response"):
+                print(chunk["response"], end="", flush=True)
 print()

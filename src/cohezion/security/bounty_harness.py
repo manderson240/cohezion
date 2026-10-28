@@ -333,7 +333,9 @@ class BugBountyHarness:
                 )
         return findings
 
-    def audit_solidity_source(self, code_or_path: str, contract_name: str = "") -> BountyAuditReport:
+    def audit_solidity_source(
+        self, code_or_path: str, contract_name: str = ""
+    ) -> BountyAuditReport:
         """Audit Solidity contract source code or file path for formal invariant flaws."""
         t0 = time.perf_counter()
         violations: list[InvariantViolation] = []
@@ -351,7 +353,13 @@ class BugBountyHarness:
         lines = code_str.splitlines()
 
         # 1. Check: State Desynchronization on withdrawal/cancellation paths
-        tracking_vars = ["tokenBalanceHistory", "totalDeposits", "trackedBalance", "totalShares", "lockedBalance"]
+        tracking_vars = [
+            "tokenBalanceHistory",
+            "totalDeposits",
+            "trackedBalance",
+            "totalShares",
+            "lockedBalance",
+        ]
         active_tracking = [v for v in tracking_vars if v in code_str]
 
         current_fn = None
@@ -392,9 +400,15 @@ class BugBountyHarness:
                 sends_token = False
                 updates_tracking = False
             elif current_fn:
-                is_exit_fn = any(k in current_fn.lower() for k in ("cancel", "withdraw", "refund", "redeem", "emergency"))
+                is_exit_fn = any(
+                    k in current_fn.lower()
+                    for k in ("cancel", "withdraw", "refund", "redeem", "emergency")
+                )
                 if is_exit_fn:
-                    if any(t in line_str for t in ("_sendToken", "safeTransfer", "transfer(", "call{value:")):
+                    if any(
+                        t in line_str
+                        for t in ("_sendToken", "safeTransfer", "transfer(", "call{value:")
+                    ):
                         sends_token = True
                     if any(v in line_str and "=" in line_str for v in active_tracking):
                         updates_tracking = True
@@ -432,7 +446,10 @@ class BugBountyHarness:
                 if ";" in sig_text and "{" not in sig_text:
                     # Interface declaration
                     continue
-                if not any(m in sig_text for m in ("initializer", "onlyOwner", "reinitializer", "onlyInitializing")):
+                if not any(
+                    m in sig_text
+                    for m in ("initializer", "onlyOwner", "reinitializer", "onlyInitializing")
+                ):
                     violations.append(
                         InvariantViolation(
                             category=InvariantCategory.UNPROTECTED_INITIALIZER,
@@ -447,6 +464,7 @@ class BugBountyHarness:
 
         # 3. Check: Capacity Check Operator Inversion / Underflow DoS
         import re
+
         capacity_or_pattern = re.compile(
             r"if\s*\((?:.+?\.)?(?:maxCapacity|capacity|limit)\s*!=\s*0\s*\|\|\s*(?:.+?)<\s*(?:.+?\.)?(?:maxCapacity|capacity|limit)\)"
         )
@@ -510,7 +528,10 @@ class BugBountyHarness:
         for i, line in enumerate(lines, 1):
             if epoch_minus_one_pattern.search(line):
                 next_window = " ".join(lines[i : min(i + 10, len(lines))])
-                if any(k in next_window for k in ("totalUtilization", "systemUtilization", "totalEmissions")):
+                if any(
+                    k in next_window
+                    for k in ("totalUtilization", "systemUtilization", "totalEmissions")
+                ):
                     violations.append(
                         InvariantViolation(
                             category=InvariantCategory.STATE_DESYNCHRONIZATION,

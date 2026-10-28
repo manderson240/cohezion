@@ -15,25 +15,57 @@ from scipy.ndimage import label, binary_fill_holes
 CHALLENGES_PATH = "data/arc_prize/arc-agi_training_challenges.json"
 SOLUTIONS_PATH = "data/arc_prize/arc-agi_training_solutions.json"
 
+
 # Atomic Transforms
-def op_bbox(g): return get_bounding_box(g)
-def op_grav(g): return apply_gravity(g)
-def op_sym_h(g): return symmetry_complete(g, "horizontal")
-def op_sym_v(g): return symmetry_complete(g, "vertical")
-def op_holes(g): return fill_enclosed_holes(g)
-def op_rot90(g): return np.rot90(g, 1)
-def op_rot180(g): return np.rot90(g, 2)
-def op_rot270(g): return np.rot90(g, 3)
-def op_fliph(g): return np.fliplr(g)
-def op_flipv(g): return np.flipud(g)
+def op_bbox(g):
+    return get_bounding_box(g)
+
+
+def op_grav(g):
+    return apply_gravity(g)
+
+
+def op_sym_h(g):
+    return symmetry_complete(g, "horizontal")
+
+
+def op_sym_v(g):
+    return symmetry_complete(g, "vertical")
+
+
+def op_holes(g):
+    return fill_enclosed_holes(g)
+
+
+def op_rot90(g):
+    return np.rot90(g, 1)
+
+
+def op_rot180(g):
+    return np.rot90(g, 2)
+
+
+def op_rot270(g):
+    return np.rot90(g, 3)
+
+
+def op_fliph(g):
+    return np.fliplr(g)
+
+
+def op_flipv(g):
+    return np.flipud(g)
+
 
 def get_bounding_box(grid: np.ndarray, bg_val: int = 0) -> np.ndarray:
-    mask = (grid != bg_val)
-    if not np.any(mask): return grid
+    mask = grid != bg_val
+    if not np.any(mask):
+        return grid
     rows, cols = np.any(mask, axis=1), np.any(mask, axis=0)
     rmin, rmax = np.where(rows)[0][[0, -1]]
     cmin, cmax = np.where(cols)[0][[0, -1]]
-    return grid[rmin:rmax+1, cmin:cmax+1]
+    return grid[rmin : rmax + 1, cmin : cmax + 1]
+
 
 def apply_gravity(grid: np.ndarray, bg_val: int = 0) -> np.ndarray:
     res = grid.copy()
@@ -43,6 +75,7 @@ def apply_gravity(grid: np.ndarray, bg_val: int = 0) -> np.ndarray:
         res[:, col] = [bg_val] * num_zeros + col_vals
     return res
 
+
 def symmetry_complete(grid: np.ndarray, axis: str = "horizontal") -> np.ndarray:
     res = grid.copy()
     if axis == "horizontal":
@@ -50,26 +83,33 @@ def symmetry_complete(grid: np.ndarray, axis: str = "horizontal") -> np.ndarray:
         for r in range(half):
             target_r = res.shape[0] - 1 - r
             for c in range(res.shape[1]):
-                if res[target_r, c] == 0 and res[r, c] != 0: res[target_r, c] = res[r, c]
-                elif res[r, c] == 0 and res[target_r, c] != 0: res[r, c] = res[target_r, c]
+                if res[target_r, c] == 0 and res[r, c] != 0:
+                    res[target_r, c] = res[r, c]
+                elif res[r, c] == 0 and res[target_r, c] != 0:
+                    res[r, c] = res[target_r, c]
     elif axis == "vertical":
         half = res.shape[1] // 2
         for c in range(half):
             target_c = res.shape[1] - 1 - c
             for r in range(res.shape[0]):
-                if res[r, target_c] == 0 and res[r, c] != 0: res[r, target_c] = res[r, c]
-                elif res[r, c] == 0 and res[r, target_c] != 0: res[r, c] = res[r, target_c]
+                if res[r, target_c] == 0 and res[r, c] != 0:
+                    res[r, target_c] = res[r, c]
+                elif res[r, c] == 0 and res[r, target_c] != 0:
+                    res[r, c] = res[r, target_c]
     return res
+
 
 def fill_enclosed_holes(grid: np.ndarray, bg_val: int = 0) -> np.ndarray:
     res = grid.copy()
     for color in np.unique(grid):
-        if color == bg_val: continue
-        mask = (grid == color)
+        if color == bg_val:
+            continue
+        mask = grid == color
         filled = binary_fill_holes(mask)
         holes = filled & (~mask)
         res[holes] = color
     return res
+
 
 UNARY_OPS = [
     ("bbox", op_bbox),
@@ -81,8 +121,9 @@ UNARY_OPS = [
     ("rot180", op_rot180),
     ("rot270", op_rot270),
     ("fliph", op_fliph),
-    ("flipv", op_flipv)
+    ("flipv", op_flipv),
 ]
+
 
 def search_compositional_program(train_pairs, max_depth=2):
     """Exhaustive fast combinatorial search up to depth 2-3."""
@@ -107,13 +148,16 @@ def search_compositional_program(train_pairs, max_depth=2):
 
     return None
 
+
 def benchmark_compositional_mcts():
     print("\n" + "=" * 115)
     print("🌲 RUNNING COMPOSITIONAL SEARCH (DEPTH 2) ON 1,000 REAL ARC TASKS")
     print("=" * 115)
 
-    with open(CHALLENGES_PATH) as f: challenges = json.load(f)
-    with open(SOLUTIONS_PATH) as f: solutions = json.load(f)
+    with open(CHALLENGES_PATH) as f:
+        challenges = json.load(f)
+    with open(SOLUTIONS_PATH) as f:
+        solutions = json.load(f)
 
     solved = 0
     total = len(challenges)
@@ -133,8 +177,9 @@ def benchmark_compositional_mcts():
     print(f"📊 Depth-2 Compositional Benchmark Results:")
     print(f"  • Total Tasks: {total}")
     print(f"  • Exact Match Solutions: {solved}/{total} ({acc:.2f}%)")
-    print(f"  • Total Execution Latency: {dt}s ({round(dt/total*1000, 2)} ms/task)")
+    print(f"  • Total Execution Latency: {dt}s ({round(dt / total * 1000, 2)} ms/task)")
     print("=" * 115 + "\n")
+
 
 if __name__ == "__main__":
     benchmark_compositional_mcts()

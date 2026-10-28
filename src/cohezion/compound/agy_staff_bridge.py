@@ -24,6 +24,7 @@ from typing import Any, Dict, Optional, Tuple
 
 class JobExitCode(IntEnum):
     """Deterministic exit codes matching agy-staff design."""
+
     DONE = 0
     INVALID_COMMAND = 1
     RUNNING_TIMEOUT = 2
@@ -34,6 +35,7 @@ class JobExitCode(IntEnum):
 
 class StaffPersona(str, Enum):
     """Supported agy-staff worker personas."""
+
     ASK = "ask"
     STAFFER = "staffer"
     RESEARCHER = "researcher"
@@ -45,6 +47,7 @@ class StaffPersona(str, Enum):
 @dataclass
 class JobRecord:
     """Persistent job execution metadata."""
+
     job_id: str
     persona: str
     brief: str
@@ -114,7 +117,10 @@ class AgyStaffBridge:
             cmd = ["echo", f"[AGY-WORKER:{persona_str}] Completed task: {brief}"]
 
         # Launch detached process with its own process group
-        with open(stdout_file, "w", encoding="utf-8") as out, open(stderr_file, "w", encoding="utf-8") as err:
+        with (
+            open(stdout_file, "w", encoding="utf-8") as out,
+            open(stderr_file, "w", encoding="utf-8") as err,
+        ):
             proc = subprocess.Popen(
                 cmd,
                 cwd=effective_workdir,
@@ -147,7 +153,10 @@ class AgyStaffBridge:
         if not record:
             return JobExitCode.INVALID_COMMAND, f"Error: Job ID '{job_id}' not found."
 
-        if record.status in ("done", "error", "canceled", "attention") and record.exit_code is not None:
+        if (
+            record.status in ("done", "error", "canceled", "attention")
+            and record.exit_code is not None
+        ):
             return JobExitCode(record.exit_code), self._read_stdout(record)
 
         if not record.pid:
@@ -165,7 +174,10 @@ class AgyStaffBridge:
             time.sleep(0.1)
 
         # Timeout reached: worker is still running
-        return JobExitCode.RUNNING_TIMEOUT, f"Wait expired for job '{job_id}'. Worker is still running."
+        return (
+            JobExitCode.RUNNING_TIMEOUT,
+            f"Wait expired for job '{job_id}'. Worker is still running.",
+        )
 
     def observe(self, job_id: str) -> Dict[str, Any]:
         """Observe bounded progress snapshot of active worker without resetting budget."""
@@ -175,7 +187,7 @@ class AgyStaffBridge:
 
         is_running = False
         if record.pid:
-            is_running = (self._check_process(record.pid) is None)
+            is_running = self._check_process(record.pid) is None
 
         stdout_tail = ""
         if os.path.exists(record.stdout_file):

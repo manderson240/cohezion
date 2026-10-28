@@ -41,27 +41,31 @@ CANONICAL_PATTERNS = [
     ("full_canvas", np.ones((4, 4))),
 ]
 
-def encode_pattern_to_quantum_circuit(pattern: np.ndarray, num_qubits: int = 4) -> qiskit.QuantumCircuit:
+
+def encode_pattern_to_quantum_circuit(
+    pattern: np.ndarray, num_qubits: int = 4
+) -> qiskit.QuantumCircuit:
     """Maps a 2D pattern into a Parameterized Quantum State |psi(x)>."""
     qc = qiskit.QuantumCircuit(num_qubits, num_qubits)
     flat = pattern.flatten()
-    
+
     # 1. Hadamard Superposition
     qc.h(range(num_qubits))
-    
+
     # 2. Angle Encoding of Spatial Densities
     for i in range(num_qubits):
-        chunk = flat[i*4:(i+1)*4]
+        chunk = flat[i * 4 : (i + 1) * 4]
         theta = float(np.sum(chunk)) * (np.pi / 4.0)
         qc.ry(theta, i)
-        
+
     # 3. Entanglement Ring
     for i in range(num_qubits - 1):
         qc.cx(i, i + 1)
     qc.cx(num_qubits - 1, 0)
-    
+
     qc.measure(range(num_qubits), range(num_qubits))
     return qc
+
 
 def main():
     print("=" * 90)
@@ -86,14 +90,14 @@ def main():
         else:
             # Local fallback simulation
             counts = {"0000": 500, "1111": 500}
-            
+
         # Convert measurement counts to probability vector over 2^4 = 16 basis states
         prob_vec = np.zeros(16, dtype=float)
         total_shots = sum(counts.values())
         for bitstring, count in counts.items():
             prob_vec[int(bitstring, 2)] = count / total_shots
         state_distributions.append(prob_vec)
-        print(f"  ✓ [{idx+1:02d}/{N}] Pattern `{name:<20}` -> Simulated on BlueQubit")
+        print(f"  ✓ [{idx + 1:02d}/{N}] Pattern `{name:<20}` -> Simulated on BlueQubit")
 
     # Compute Quantum Bhattacharyya / Classical-Fidelity Kernel Matrix: K_ij = sum(sqrt(p_i * p_j))
     print("\n▶ Computing Quantum State Fidelity Kernel Matrix K_ij...")
@@ -106,14 +110,16 @@ def main():
     kernel_path = OUT_DIR / "quantum_arc_geometric_kernel.npy"
     meta_path = OUT_DIR / "canonical_patterns.json"
     np.save(kernel_path, kernel_matrix)
-    
+
     import json
+
     with open(meta_path, "w") as f:
         json.dump([name for name, _ in CANONICAL_PATTERNS], f, indent=2)
 
     print(f"\n✓ Saved Frozen Quantum Kernel ({kernel_matrix.shape}) to: {kernel_path}")
     print(f"✓ Saved Pattern Metadata to: {meta_path}")
     print("=" * 90)
+
 
 if __name__ == "__main__":
     main()

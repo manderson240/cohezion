@@ -49,8 +49,12 @@ Regularized Recursive Self-Improvement of Agent Harnesses (RRSI) based on Google
    ```python
    from cohezion.agi.rrsi_engine import EvaluationOutcome
 
-   base_eval = EvaluationOutcome(empirical_score=0.72, total_tokens_consumed=1200, execution_time_ms=8.5)
-   cand_eval = EvaluationOutcome(empirical_score=0.78, total_tokens_consumed=1220, execution_time_ms=8.7)
+   base_eval = EvaluationOutcome(
+       empirical_score=0.72, total_tokens_consumed=1200, execution_time_ms=8.5
+   )
+   cand_eval = EvaluationOutcome(
+       empirical_score=0.78, total_tokens_consumed=1220, execution_time_ms=8.7
+   )
 
    accepted, status = engine.evaluate_and_step(candidate, base_eval, cand_eval)
    ```

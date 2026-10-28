@@ -14,6 +14,7 @@ import time
 import httpx
 import signal
 
+
 def main():
     print("=" * 80)
     print("⚡ LIVE PROOF: FASTFLOWLM v1.0.3 EXECUTION ON AMD XDNA2 NPU")
@@ -38,7 +39,7 @@ def main():
         stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT,
         text=True,
-        preexec_fn=os.setsid
+        preexec_fn=os.setsid,
     )
 
     server_ready = False
@@ -71,9 +72,9 @@ def main():
                 "model": "llama3.2:1b",
                 "messages": [{"role": "user", "content": prompt_text}],
                 "max_tokens": 40,
-                "temperature": 0.2
+                "temperature": 0.2,
             },
-            timeout=15.0
+            timeout=15.0,
         )
         t1 = time.perf_counter()
         dur_ms = (t1 - t0) * 1000.0
@@ -83,7 +84,7 @@ def main():
             choice = data.get("choices", [{}])[0]
             content = choice.get("message", {}).get("content", "").strip()
             print(f"\n5. 🟢 LIVE NPU HARDWARE GENERATION PROOF:")
-            print(f"   • Response Content : \"{content}\"")
+            print(f'   • Response Content : "{content}"')
             print(f"   • Total Latency    : {dur_ms:.2f} ms")
             print(f"   • Hardware Engine  : AMD XDNA2 NPU (/dev/accel/accel0, 8 columns)")
             print(f"   • Status           : 100% PROVEN & OPERATIONAL")
@@ -99,6 +100,7 @@ def main():
         print("   ✓ Server shutdown complete.")
 
     print("=" * 80)
+
 
 if __name__ == "__main__":
     main()

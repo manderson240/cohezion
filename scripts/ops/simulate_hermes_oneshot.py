@@ -6,9 +6,12 @@ hermes_bin = "/home/mike-anderson/.hermes/hermes-agent/venv/bin/hermes"
 
 cmd = [
     hermes_bin,
-    "-z", "Write a python function to compute factorial.",
-    "-m", "user.cohezion-router",
-    "--provider", "lemonade-local"
+    "-z",
+    "Write a python function to compute factorial.",
+    "-m",
+    "user.cohezion-router",
+    "--provider",
+    "lemonade-local",
 ]
 
 t0 = time.perf_counter()

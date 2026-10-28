@@ -43,6 +43,7 @@ Autonomous capability-driven recursive self-improvement (RSI) for multimodal and
    def make_solana_sandbox():
        return {"validator_slots": 100, "accounts": {"vault": 1_000_000}}
 
+
    sim_env = trinity.create_sim_world("root/arithmetic_invariance", make_solana_sandbox)
    ```
 

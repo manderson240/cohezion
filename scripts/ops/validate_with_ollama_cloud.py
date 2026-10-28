@@ -23,30 +23,34 @@ In 3 concise sections:
 
 CLOUD_MODELS = [
     ("deepseek-v4-flash:cloud", "Tier-2 Fast Frontier Reasoning Model"),
-    ("gpt-oss:120b-cloud", "Tier-2 Frontier 120B Systems Verifier")
+    ("gpt-oss:120b-cloud", "Tier-2 Frontier 120B Systems Verifier"),
 ]
+
 
 async def query_cloud_stream(model_id: str, desc: str):
     print(f"\n▶ Querying Cloud Model: `{model_id}` ({desc})...")
     payload = {
         "model": model_id,
         "messages": [
-            {"role": "system", "content": "You are a Principal Systems and Formal Verification Engineer."},
-            {"role": "user", "content": AUDIT_PROMPT}
+            {
+                "role": "system",
+                "content": "You are a Principal Systems and Formal Verification Engineer.",
+            },
+            {"role": "user", "content": AUDIT_PROMPT},
         ],
         "stream": True,
-        "options": {"temperature": 0.2}
+        "options": {"temperature": 0.2},
     }
-    
+
     t0 = time.perf_counter()
     full_text = []
-    
+
     async with httpx.AsyncClient(timeout=120.0) as client:
         async with client.stream("POST", OLLAMA_URL, json=payload) as response:
             if response.status_code != 200:
                 print(f"  ✗ Cloud API error: HTTP {response.status_code}")
                 return None, 0.0
-            
+
             async for line in response.aiter_lines():
                 if line:
                     data = json.loads(line)
@@ -54,15 +58,16 @@ async def query_cloud_stream(model_id: str, desc: str):
                     token = msg.get("content", "")
                     if token:
                         full_text.append(token)
-                        
+
     dt = round(time.perf_counter() - t0, 2)
     joined_text = "".join(full_text).strip()
     if "</think>" in joined_text:
         joined_text = joined_text.split("</think>")[-1].strip()
-    
+
     print(f"  ✓ {model_id} Completed in {dt}s ({len(joined_text)} chars):\n")
     print(joined_text[:450] + "...\n")
     return joined_text, dt
+
 
 async def main():
     print("\n" + "=" * 115)
@@ -80,7 +85,9 @@ async def main():
     with open(report_path, "w", encoding="utf-8") as f:
         f.write("# ☁️ Ollama Cloud Independent Verification & Validation (V&V) Report\n\n")
         f.write(f"**Date**: {time.strftime('%Y-%m-%d %H:%M:%S UTC', time.gmtime())}  \n")
-        f.write("**Evaluated System**: Cohezion Sovereign Strix Halo Stack (AMD XDNA2 + RDNA 3.5 + Zen 9 + SurrealDB)  \n\n")
+        f.write(
+            "**Evaluated System**: Cohezion Sovereign Strix Halo Stack (AMD XDNA2 + RDNA 3.5 + Zen 9 + SurrealDB)  \n\n"
+        )
         f.write("---\n\n")
         for model_id, text, dt in reports:
             f.write(f"## ✦ Independent Audit: `{model_id}` (Response Time: {dt}s)\n\n")
@@ -89,6 +96,7 @@ async def main():
     print("=" * 115)
     print(f"📄 V&V Report Persisted to: {report_path}")
     print("=" * 115 + "\n")
+
 
 if __name__ == "__main__":
     asyncio.run(main())

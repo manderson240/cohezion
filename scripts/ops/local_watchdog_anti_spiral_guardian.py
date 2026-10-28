@@ -20,8 +20,11 @@ import time
 from dataclasses import dataclass
 import httpx
 
-logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] [ANTI_SPIRAL] %(message)s")
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s [%(levelname)s] [ANTI_SPIRAL] %(message)s"
+)
 logger = logging.getLogger("anti_spiral")
+
 
 def calculate_shannon_entropy(text: str) -> float:
     """Calculates empirical Shannon entropy in bits per character."""
@@ -31,18 +34,20 @@ def calculate_shannon_entropy(text: str) -> float:
     total = len(text)
     return -sum((c / total) * math.log2(c / total) for c in counts.values())
 
+
 def detect_ngram_repetition_spiral(text: str, n: int = 4, max_repeats: int = 4) -> bool:
     """Detects repetitive n-gram loops indicative of generation spirals."""
     words = text.split()
     if len(words) < n * max_repeats:
         return False
-    
-    ngrams = [tuple(words[i:i+n]) for i in range(len(words) - n + 1)]
+
+    ngrams = [tuple(words[i : i + n]) for i in range(len(words) - n + 1)]
     for i in range(len(ngrams) - max_repeats + 1):
         target = ngrams[i]
         if all(ngrams[i + k] == target for k in range(max_repeats)):
             return True
     return False
+
 
 @dataclass
 class StreamHealthAudit:
@@ -50,6 +55,7 @@ class StreamHealthAudit:
     shannon_entropy: float
     is_spiraling: bool
     verdict: str
+
 
 def audit_generation_trajectory(text: str) -> StreamHealthAudit:
     if len(text.strip()) < 20:
@@ -66,8 +72,9 @@ def audit_generation_trajectory(text: str) -> StreamHealthAudit:
         text_sample=text[-120:],
         shannon_entropy=round(entropy, 3),
         is_spiraling=is_spiraling,
-        verdict=verdict
+        verdict=verdict,
     )
+
 
 async def run_live_watchdog_audit():
     print("\n" + "=" * 105)
@@ -91,6 +98,7 @@ async def run_live_watchdog_audit():
     print("\n" + "=" * 105)
     print("🎉 GUARDIAN ACTIVE: Real-time entropy & n-gram spiral interception verified!")
     print("=" * 105 + "\n")
+
 
 if __name__ == "__main__":
     asyncio.run(run_live_watchdog_audit())

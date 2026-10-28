@@ -85,7 +85,10 @@ def call_local_npu(prompt: str) -> str:
     payload = {
         "model": LOCAL_MODEL,
         "messages": [
-            {"role": "system", "content": "You are the Cohezion Autonomous Overnight Worker. Respond concisely in one sentence."},
+            {
+                "role": "system",
+                "content": "You are the Cohezion Autonomous Overnight Worker. Respond concisely in one sentence.",
+            },
             {"role": "user", "content": prompt},
         ],
         "temperature": 0.2,
@@ -173,7 +176,9 @@ async def run_orchestration_cycle(
             logger.warning("Negentropy tripwire triggered! Executing rollback...")
             controller.execute_rollback()
         elif decision.action == "QUOTA_HALT":
-            logger.error("Daily API quota limit reached ($%.2f). Pausing cloud calls.", DAILY_QUOTA_LIMIT_USD)
+            logger.error(
+                "Daily API quota limit reached ($%.2f). Pausing cloud calls.", DAILY_QUOTA_LIMIT_USD
+            )
     else:
         controller.record_step(
             action_desc=step_action,
@@ -303,11 +308,19 @@ async def main():
     signal.signal(signal.SIGTERM, _sig_handler)
 
     parser = argparse.ArgumentParser(description="Autonomous Transcendent Overnight Orchestrator")
-    parser.add_argument("--interval", type=int, default=60, help="Interval between cycles in seconds (default 60s)")
-    parser.add_argument("--max-cycles", type=int, default=0, help="Max cycles to run (0 = infinite all-night)")
+    parser.add_argument(
+        "--interval", type=int, default=60, help="Interval between cycles in seconds (default 60s)"
+    )
+    parser.add_argument(
+        "--max-cycles", type=int, default=0, help="Max cycles to run (0 = infinite all-night)"
+    )
     args = parser.parse_args()
 
-    logger.info("Initializing Transcendent Overnight Orchestrator (Interval: %ds, Max Cycles: %d)...", args.interval, args.max_cycles)
+    logger.info(
+        "Initializing Transcendent Overnight Orchestrator (Interval: %ds, Max Cycles: %d)...",
+        args.interval,
+        args.max_cycles,
+    )
 
     controller = METRNegentropyController()
     fabric = AutopoieticMemoryFabric()
@@ -318,7 +331,9 @@ async def main():
     cycle = 1
     while not _STOP_REQUESTED:
         try:
-            await run_orchestration_cycle(cycle, controller, fabric, orch_service, bridge, storage_mgr)
+            await run_orchestration_cycle(
+                cycle, controller, fabric, orch_service, bridge, storage_mgr
+            )
         except Exception as e:
             logger.exception("Unexpected error in overnight cycle #%d: %s", cycle, e)
 

@@ -27,6 +27,7 @@ logger = logging.getLogger("research_daemon")
 
 LEMONADE_URL = "http://localhost:13305/v1/chat/completions"
 
+
 async def run_recursive_research_loop():
     logger.info("=" * 80)
     logger.info("🌌 STARTING RECURSIVE FRONTIER RESEARCH & GOAL SYNTHESIS DAEMON")
@@ -37,11 +38,13 @@ async def run_recursive_research_loop():
     sandbox = LinuxNamespaceSandbox(timeout_sec=10.0)
 
     # 1. Announce startup
-    await bus.publish(Event(
-        type=EventType.AGENT_START,
-        source="recursive_research_daemon",
-        payload={"status": "active", "timestamp": time.time()}
-    ))
+    await bus.publish(
+        Event(
+            type=EventType.AGENT_START,
+            source="recursive_research_daemon",
+            payload={"status": "active", "timestamp": time.time()},
+        )
+    )
 
     cycle = 0
     while True:
@@ -59,15 +62,22 @@ Output ONLY valid Python code enclosed in ```python ... ``` with a self-containe
         payload = {
             "model": "gpt-oss-20b-mxfp4-GGUF",
             "messages": [
-                {"role": "system", "content": "You are a world-class AI Systems Theorist. Respond ONLY with pure Python code."},
-                {"role": "user", "content": prompt}
+                {
+                    "role": "system",
+                    "content": "You are a world-class AI Systems Theorist. Respond ONLY with pure Python code.",
+                },
+                {"role": "user", "content": prompt},
             ],
             "temperature": 0.2,
-            "max_tokens": 1200
+            "max_tokens": 1200,
         }
 
         try:
-            req = urllib.request.Request(LEMONADE_URL, data=json.dumps(payload).encode("utf-8"), headers={"Content-Type": "application/json"})
+            req = urllib.request.Request(
+                LEMONADE_URL,
+                data=json.dumps(payload).encode("utf-8"),
+                headers={"Content-Type": "application/json"},
+            )
             with urllib.request.urlopen(req, timeout=60) as resp:
                 data = json.loads(resp.read().decode("utf-8"))
                 choice = data["choices"][0]["message"]
@@ -87,11 +97,17 @@ Output ONLY valid Python code enclosed in ```python ... ``` with a self-containe
                 sb_res = sandbox.execute_python_code(code)
                 if sb_res.success:
                     logger.info("  • Sandbox Ground Truth Execution: 🟢 PASSED")
-                    await bus.publish(Event(
-                        type=EventType.AGENT_COMPLETE,
-                        source="recursive_research_daemon",
-                        payload={"cycle": cycle, "status": "verified_success", "duration_ms": sb_res.duration_ms}
-                    ))
+                    await bus.publish(
+                        Event(
+                            type=EventType.AGENT_COMPLETE,
+                            source="recursive_research_daemon",
+                            payload={
+                                "cycle": cycle,
+                                "status": "verified_success",
+                                "duration_ms": sb_res.duration_ms,
+                            },
+                        )
+                    )
                 else:
                     logger.warning("  • Sandbox execution failed: %s", sb_res.stderr)
             else:
@@ -102,6 +118,7 @@ Output ONLY valid Python code enclosed in ```python ... ``` with a self-containe
 
         # Rest between research discovery pulses
         await asyncio.sleep(45.0)
+
 
 if __name__ == "__main__":
     asyncio.run(run_recursive_research_loop())

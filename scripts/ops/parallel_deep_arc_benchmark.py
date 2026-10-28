@@ -9,8 +9,11 @@ import time
 from concurrent.futures import ProcessPoolExecutor
 from cohezion.competitions.arc.deep_compositional_solver import DeepCompositionalSynthesizer
 
-logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] [ARC_PARALLEL] %(message)s")
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s [%(levelname)s] [ARC_PARALLEL] %(message)s"
+)
 logger = logging.getLogger("arc_parallel")
+
 
 def solve_chunk(tasks_chunk: list[tuple[str, dict, list]]) -> tuple[int, int, list[str]]:
     solver = DeepCompositionalSynthesizer()
@@ -25,6 +28,7 @@ def solve_chunk(tasks_chunk: list[tuple[str, dict, list]]) -> tuple[int, int, li
         except Exception:
             pass
     return solved, len(tasks_chunk), solved_ids
+
 
 async def main():
     print("\n" + "=" * 105)
@@ -44,7 +48,9 @@ async def main():
     chunk_size = (len(all_tasks) + num_workers - 1) // num_workers
     chunks = [all_tasks[i : i + chunk_size] for i in range(0, len(all_tasks), chunk_size)]
 
-    logger.info("Spawning %d parallel workers across %d total tasks...", len(chunks), len(all_tasks))
+    logger.info(
+        "Spawning %d parallel workers across %d total tasks...", len(chunks), len(all_tasks)
+    )
     t0 = time.perf_counter()
 
     loop = asyncio.get_running_loop()
@@ -66,6 +72,7 @@ async def main():
     print(f"• Execution Time             : {dt:.2f} seconds ({total_tested / dt:.1f} tasks/sec)")
     print(f"• Solved Task IDs ({len(all_solved_ids)}): {all_solved_ids[:25]}")
     print("=" * 105 + "\n")
+
 
 if __name__ == "__main__":
     asyncio.run(main())

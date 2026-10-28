@@ -7,6 +7,7 @@ import multiprocessing as mp
 import pandas as pd
 import numpy as np
 
+
 def load_hardened_card_data():
     csv_paths = glob.glob("/kaggle/input/**/EN*Card*Data*.csv", recursive=True)
     if not csv_paths:
@@ -29,7 +30,13 @@ def load_hardened_card_data():
                 dmg_raw = row.get("Damage", "0").strip()
                 damage = 20
                 if dmg_raw:
-                    clean_dmg = dmg_raw.replace("×", "").replace("x", "").replace("+", "").replace("-", "").strip()
+                    clean_dmg = (
+                        dmg_raw.replace("×", "")
+                        .replace("x", "")
+                        .replace("+", "")
+                        .replace("-", "")
+                        .strip()
+                    )
                     if clean_dmg.isdigit():
                         damage = int(clean_dmg)
 
@@ -39,9 +46,10 @@ def load_hardened_card_data():
                     "move_name": move_name,
                     "cost": total_cost,
                     "damage": damage,
-                    "type": row.get("Type", "{C}")
+                    "type": row.get("Type", "{C}"),
                 }
     return cards
+
 
 def run_cfr_worker_batch(args):
     turn_id, num_rollouts, seed = args
@@ -53,7 +61,9 @@ def run_cfr_worker_batch(args):
     for _ in range(num_rollouts):
         regrets = {a: max(0.0, regret_sum[a]) for a in actions}
         sum_pos = sum(regrets.values())
-        strat = {a: (regrets[a] / sum_pos) if sum_pos > 0 else (1.0 / len(actions)) for a in actions}
+        strat = {
+            a: (regrets[a] / sum_pos) if sum_pos > 0 else (1.0 / len(actions)) for a in actions
+        }
 
         r = random.random()
         cum = 0.0
@@ -67,7 +77,7 @@ def run_cfr_worker_batch(args):
         # Compute counterfactual payoffs across card interactions
         opp_hp = max(0, 140 - (turn_id * 3))
         energy = (turn_id % 4) + 1
-        
+
         payoff = 0.0
         if chosen == "attack" and opp_hp <= 50 and energy >= 2:
             payoff = 3.5
@@ -92,38 +102,40 @@ def run_cfr_worker_batch(args):
             else:
                 a_payoff = 0.4
 
-            regret_sum[a] += (a_payoff - payoff)
+            regret_sum[a] += a_payoff - payoff
             strategy_sum[a] += strat[a]
 
     return turn_id, max(actions, key=lambda a: strategy_sum.get(a, 0.0))
+
 
 def main():
     print("=== Cohezion Pokemon TCG Multi-Core Parallelized CFR Engine (v6) ===")
     cards = load_hardened_card_data()
     print(f"Loaded {len(cards)} tournament cards. Saturating 4 vCPUs for CFR Nash convergence...")
-    
+
     num_turns = 100
     rollouts_per_worker = 10000
-    
+
     tasks = [(t, rollouts_per_worker, t * 42 + 7) for t in range(1, num_turns + 1)]
-    
+
     num_cpus = os.cpu_count() or 4
     with mp.Pool(processes=num_cpus) as pool:
         results = pool.map(run_cfr_worker_batch, tasks)
 
     results.sort(key=lambda x: x[0])
-    
+
     submission_rows = []
     for turn_id, chosen_action in results:
-        submission_rows.append({
-            "turn_id": turn_id,
-            "predicted_action": chosen_action,
-            "confidence": 0.99
-        })
+        submission_rows.append(
+            {"turn_id": turn_id, "predicted_action": chosen_action, "confidence": 0.99}
+        )
 
     df = pd.DataFrame(submission_rows)
     df.to_csv("submission.csv", index=False)
-    print(f"✓ Parallel CFR complete: Generated submission.csv ({len(df)} rows across {num_cpus} vCPUs).")
+    print(
+        f"✓ Parallel CFR complete: Generated submission.csv ({len(df)} rows across {num_cpus} vCPUs)."
+    )
+
 
 if __name__ == "__main__":
     main()

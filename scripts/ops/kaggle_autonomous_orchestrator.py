@@ -52,21 +52,23 @@ def check_kernel_status() -> str:
 def main() -> None:
     logger.info(f"Starting Kaggle Autonomous Orchestrator for {KERNEL_REF}...")
     bus = EventBus()
-    
-    persist_item({
-        "id": "kaggle-orchestrator-arc2-v2",
-        "title": "Kaggle Autonomous Orchestrator: ARC-AGI-2 Quantile Diversified Run",
-        "status": "in_progress",
-        "priority": "critical",
-        "source": "kaggle_orchestrator",
-        "category": "kaggle_competition",
-        "description": f"Monitoring GPU execution of {KERNEL_REF} with score_kgmon_top_quantile (q=0.425).",
-    })
+
+    persist_item(
+        {
+            "id": "kaggle-orchestrator-arc2-v2",
+            "title": "Kaggle Autonomous Orchestrator: ARC-AGI-2 Quantile Diversified Run",
+            "status": "in_progress",
+            "priority": "critical",
+            "source": "kaggle_orchestrator",
+            "category": "kaggle_competition",
+            "description": f"Monitoring GPU execution of {KERNEL_REF} with score_kgmon_top_quantile (q=0.425).",
+        }
+    )
 
     while True:
         status = check_kernel_status()
         logger.info(f"Kernel {KERNEL_REF} status: {status}")
-        
+
         if status == "COMPLETE":
             logger.info("Kernel finished execution! Pulling output artifacts...")
             out_dir = "/tmp/kaggle_kernel_v2_output"
@@ -78,20 +80,22 @@ def main() -> None:
             sub_file = os.path.join(out_dir, "submission.json")
             if os.path.exists(sub_file):
                 logger.info(f"Found submission artifact at {sub_file}!")
-                persist_item({
-                    "id": "kaggle-orchestrator-arc2-v2",
-                    "title": "ARC-AGI-2 Quantile Run COMPLETE",
-                    "status": "done",
-                    "priority": "normal",
-                    "source": "kaggle_orchestrator",
-                    "category": "kaggle_competition",
-                    "description": "Kernel complete. submission.json downloaded and ready for leaderboard scoring.",
-                })
+                persist_item(
+                    {
+                        "id": "kaggle-orchestrator-arc2-v2",
+                        "title": "ARC-AGI-2 Quantile Run COMPLETE",
+                        "status": "done",
+                        "priority": "normal",
+                        "source": "kaggle_orchestrator",
+                        "category": "kaggle_competition",
+                        "description": "Kernel complete. submission.json downloaded and ready for leaderboard scoring.",
+                    }
+                )
             break
         elif status == "ERROR":
             logger.error("Kernel execution encountered an error.")
             break
-            
+
         time.sleep(POLL_INTERVAL_SECONDS)
 
 

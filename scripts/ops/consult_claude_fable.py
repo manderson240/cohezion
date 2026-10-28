@@ -35,7 +35,7 @@ _REASON = (
     "consult_claude_fable.py was removed on 2026-08-20: it fabricated its output "
     "(hardcoded string, zero network calls) and its result was harvested into the vault. "
     "Use a real inference path: "
-    "`claude --print --model claude-fable-5 \"$(cat prompt.txt)\"` "
+    '`claude --print --model claude-fable-5 "$(cat prompt.txt)"` '
     "after sourcing ~/.config/cohezion/safe-env.sh."
 )
 

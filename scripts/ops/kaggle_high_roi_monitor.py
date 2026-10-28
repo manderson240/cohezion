@@ -63,16 +63,18 @@ def get_status(ref: str) -> str:
 def main() -> None:
     logger.info("High-ROI Kaggle Autonomous Monitor initialized for $1.55M prize targets.")
     bus = EventBus()
-    
-    persist_item({
-        "id": "kaggle-high-roi-dual-track",
-        "title": "High-ROI Dual Track Monitor: ARC-AGI-3 ($850k) & ARC-AGI-2 ($700k)",
-        "status": "in_progress",
-        "priority": "critical",
-        "source": "kaggle_high_roi_monitor",
-        "category": "kaggle_competition",
-        "description": "Continuous tracking of GPU inference and AutoHarness verification across the top two highest prize competitions on Kaggle.",
-    })
+
+    persist_item(
+        {
+            "id": "kaggle-high-roi-dual-track",
+            "title": "High-ROI Dual Track Monitor: ARC-AGI-3 ($850k) & ARC-AGI-2 ($700k)",
+            "status": "in_progress",
+            "priority": "critical",
+            "source": "kaggle_high_roi_monitor",
+            "category": "kaggle_competition",
+            "description": "Continuous tracking of GPU inference and AutoHarness verification across the top two highest prize competitions on Kaggle.",
+        }
+    )
 
     completed = set()
 
@@ -83,11 +85,14 @@ def main() -> None:
                 continue
             status = get_status(ref)
             logger.info(f"[{k['name']}] {ref} -> {status}")
-            
+
             if status == "COMPLETE":
                 logger.info(f"[{k['name']}] Finished execution! Pulling output...")
                 os.makedirs(k["out_dir"], exist_ok=True)
-                subprocess.run(["uv", "run", "kaggle", "kernels", "output", ref, "-p", k["out_dir"]], check=False)
+                subprocess.run(
+                    ["uv", "run", "kaggle", "kernels", "output", ref, "-p", k["out_dir"]],
+                    check=False,
+                )
                 sub_file = os.path.join(k["out_dir"], "submission.json")
                 if os.path.exists(sub_file):
                     logger.info(f"[{k['name']}] Found valid submission file: {sub_file}")
@@ -95,7 +100,7 @@ def main() -> None:
             elif status == "ERROR":
                 logger.error(f"[{k['name']}] Failed with ERROR.")
                 completed.add(ref)
-                
+
         time.sleep(POLL_INTERVAL_SECONDS)
 
     logger.info("All high-ROI targets evaluated and ingested.")

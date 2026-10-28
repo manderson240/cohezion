@@ -246,7 +246,9 @@ class KnowledgeSeeder:
             # Distillation gradient: d/d(theta) 0.5 * (theta - target)^2 = (theta - target)
             grad_distill = self.theta[d] - target_vector[d]
             # EWC gradient: lambda * F * (theta - theta_prior)
-            grad_ewc = self.ewc_lambda * self.fisher_diagonal[d] * (self.theta[d] - self.theta_prior[d])
+            grad_ewc = (
+                self.ewc_lambda * self.fisher_diagonal[d] * (self.theta[d] - self.theta_prior[d])
+            )
             grad_total = grad_distill + grad_ewc
 
             # Update theta
@@ -255,7 +257,12 @@ class KnowledgeSeeder:
             # Track metrics
             kl_div = 0.5 * (grad_distill**2)
             kl_divs.append(kl_div)
-            ewc_pen = 0.5 * self.ewc_lambda * self.fisher_diagonal[d] * ((self.theta[d] - self.theta_prior[d]) ** 2)
+            ewc_pen = (
+                0.5
+                * self.ewc_lambda
+                * self.fisher_diagonal[d]
+                * ((self.theta[d] - self.theta_prior[d]) ** 2)
+            )
             ewc_penalties.append(ewc_pen)
 
             # Update empirical Fisher: F_d += (grad_distill)^2
@@ -337,10 +344,7 @@ class DreamCurriculumGenerator:
             # 1. Synthesize counterfactual perturbation: dream_state = base + delta_k
             # High-frequency exploration of boundary regions
             phase = (i + 1) * math.pi / num_dreams
-            perturbed = [
-                vec[d] + 0.15 * math.sin(phase * (d + 1))
-                for d in range(self.dimension)
-            ]
+            perturbed = [vec[d] + 0.15 * math.sin(phase * (d + 1)) for d in range(self.dimension)]
 
             # 2. Invariant verification (AutoHarness bounded proof analogue)
             # Invariant: Poincaré/Euclidean norm must remain strictly bounded (< 1.0 or stable)
@@ -414,7 +418,7 @@ class SleepFramework:
             f"{session_id}:{task_description}:{time.time_ns()}".encode()
         ).hexdigest()[:16]
 
-        state_tuple = tuple(float(x) for x in state_vector[:self.dimension])
+        state_tuple = tuple(float(x) for x in state_vector[: self.dimension])
         # Pad if shorter than dimension
         if len(state_tuple) < self.dimension:
             state_tuple = state_tuple + (0.0,) * (self.dimension - len(state_tuple))
@@ -477,7 +481,9 @@ class SleepFramework:
         self.buffer.clear()
 
         # Overall retention score balances consolidation retention and dream verification
-        overall_retention = 0.6 * consolidation_rep.knowledge_retention_score + 0.4 * dream_rep.verification_rate
+        overall_retention = (
+            0.6 * consolidation_rep.knowledge_retention_score + 0.4 * dream_rep.verification_rate
+        )
         dt_ms = (time.perf_counter() - t0) * 1000.0
 
         summary = SleepCycleSummary(

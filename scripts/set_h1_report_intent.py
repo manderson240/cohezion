@@ -97,6 +97,7 @@ impact_text = """## Summary & Economic Calibration:
 - **Severity Rating:** Responsibly classified as **Low / Defense-in-depth** (CWE-682) rather than Critical. This prevents false-positive escalation, demonstrates technical rigor, and complies strictly with HackerOne triage standards.
 """
 
+
 async def run():
     targets = json.loads(urllib.request.urlopen("http://127.0.0.1:9222/json").read().decode())
     h1_tab = next((t for t in targets if "report_assistant/408860" in t.get("url", "")), None)
@@ -105,8 +106,17 @@ async def run():
         return
     ws_url = h1_tab["webSocketDebuggerUrl"]
     async with websockets.connect(ws_url) as ws:
+
         async def eval_js(expr):
-            await ws.send(json.dumps({"id": 1, "method": "Runtime.evaluate", "params": {"expression": expr, "returnByValue": True}}))
+            await ws.send(
+                json.dumps(
+                    {
+                        "id": 1,
+                        "method": "Runtime.evaluate",
+                        "params": {"expression": expr, "returnByValue": True},
+                    }
+                )
+            )
             res = json.loads(await ws.recv())
             return res.get("result", {}).get("result", {}).get("value")
 
@@ -141,6 +151,7 @@ async def run():
             return 'No Run checks button';
         })()""")
         print("Save trigger:", save_res)
+
 
 if __name__ == "__main__":
     asyncio.run(run())

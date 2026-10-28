@@ -28,6 +28,7 @@ importable; the agent mix-in requires the ``gaia`` package and is gated
 behind ``GAIA_AVAILABLE`` so CI environments without GAIA still run the
 parser test suite.
 """
+
 from __future__ import annotations
 
 import json
@@ -113,9 +114,7 @@ def extract_tool_call(response: str) -> Optional[Dict[str, Any]]:
         pass
 
     # 2. Balanced candidates (unfenced), scan from the last backwards
-    candidates = [
-        s for s in _top_level_json_objects(response) if _TOOL_KEY_RE.search(s)
-    ]
+    candidates = [s for s in _top_level_json_objects(response) if _TOOL_KEY_RE.search(s)]
     for s in reversed(candidates):
         try:
             obj = json.loads(s)
@@ -210,9 +209,7 @@ if GAIA_AVAILABLE:
                 "tool": normalized,
                 "available_gb": getattr(self, "_harness_available_gb", None) or 64.0,
             }
-            result = self.autoharness.evaluate_policy(
-                action_type="memory_safe", state=state
-            )
+            result = self.autoharness.evaluate_policy(action_type="memory_safe", state=state)
             if not result.allowed:
                 self.harness_stats["policy_blocks"] += 1
                 return {

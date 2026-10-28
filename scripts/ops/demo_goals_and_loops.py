@@ -7,8 +7,11 @@ import time
 
 from cohezion.compound.goals_and_loops_orchestrator import GoalsAndLoopsOrchestrator, GoalStatus
 
-logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] [DEMO_GOALS] %(message)s")
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s [%(levelname)s] [DEMO_GOALS] %(message)s"
+)
 logger = logging.getLogger("demo_goals")
+
 
 async def demo_goals_and_loops():
     orchestrator = GoalsAndLoopsOrchestrator()
@@ -19,10 +22,13 @@ async def demo_goals_and_loops():
         title="First-Principles Kernel Craftsmanship",
         objective="Eliminate framework bloat with pure NumPy dynamical engines and AutoHarness verification.",
         criteria=[
-            ("AC1", "NanoPoincare hyperbolic Riemannian distance and Fréchet centroid convergence."),
+            (
+                "AC1",
+                "NanoPoincare hyperbolic Riemannian distance and Fréchet centroid convergence.",
+            ),
             ("AC2", "Anti-Goodhart AST verification with mutation testing."),
             ("AC3", "Bubblewrap sandbox execution without exceptions."),
-        ]
+        ],
     )
 
     # 2. Register Goal 2: Multi-Silicon Hybrid Inference
@@ -34,7 +40,7 @@ async def demo_goals_and_loops():
             ("AC1", "NPU embedding acceleration on :13305."),
             ("AC2", "15-Class dynamic hybrid router with EVI gating."),
             ("AC3", "Hardware concurrency lock and 20.0 GiB UMA headroom floor."),
-        ]
+        ],
     )
 
     # 3. Create Execution Loop for Goal 1
@@ -79,6 +85,7 @@ async def demo_goals_and_loops():
     print("=" * 95)
     print("🎉 GOALS & LOOPS REFACTORING DEMO COMPLETED SUCCESSFULLY!")
     print("=" * 95 + "\n")
+
 
 if __name__ == "__main__":
     asyncio.run(demo_goals_and_loops())

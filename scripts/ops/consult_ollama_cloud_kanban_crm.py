@@ -77,7 +77,9 @@ async def run_consultation() -> None:
                     response_text = data.get("response", "")
                     if response_text:
                         chosen_model = model
-                        print(f"  ✓ Received response from {model} ({len(response_text.split())} words)")
+                        print(
+                            f"  ✓ Received response from {model} ({len(response_text.split())} words)"
+                        )
                         break
             except Exception as e:
                 print(f"  ⚠️ Model {model} unavailable or timed out: {e}")
@@ -91,7 +93,10 @@ async def run_consultation() -> None:
                     json={
                         "model": "Qwen3-Coder-30B-A3B-Instruct-GGUF",
                         "messages": [
-                            {"role": "system", "content": "You are a Principal Enterprise Systems Architect."},
+                            {
+                                "role": "system",
+                                "content": "You are a Principal Enterprise Systems Architect.",
+                            },
                             {"role": "user", "content": PROMPT},
                         ],
                         "temperature": 0.2,
@@ -125,11 +130,13 @@ async def run_consultation() -> None:
     if "</think>" in response_text:
         response_text = response_text.split("</think>")[-1].strip()
 
-    out_file = Path("/home/mike-anderson/dev/cohezion/docs/research/ollama_cloud_agentic_kanban_crm_blueprint.md")
+    out_file = Path(
+        "/home/mike-anderson/dev/cohezion/docs/research/ollama_cloud_agentic_kanban_crm_blueprint.md"
+    )
     out_file.parent.mkdir(parents=True, exist_ok=True)
 
     report_md = f"""# Master Blueprint: Next-Generation Agentic Kanban & Cognitive CRM
-**Timestamp**: {time.strftime('%Y-%m-%d %H:%M:%S EDT')}
+**Timestamp**: {time.strftime("%Y-%m-%d %H:%M:%S EDT")}
 **Consultant Model**: `{chosen_model}`
 **Target**: SurrealDB v2 Graph Schema, Non-Blocking EventBus, 12D Hyperbolic CRM Vectors, Topological Quality Gates
 

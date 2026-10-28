@@ -11,8 +11,12 @@ Tests:
 import time
 import httpx
 import numpy as np
-from cohezion.physics.bioelectric_nca_morphogenesis import BioelectricNCAMorphogenesis, transform_bioelectric_morphogenetic_repair
+from cohezion.physics.bioelectric_nca_morphogenesis import (
+    BioelectricNCAMorphogenesis,
+    transform_bioelectric_morphogenetic_repair,
+)
 from cohezion.reliability.system_wide_fleet_lock import SystemWideFleetLock
+
 
 def run_local_validation():
     print("=" * 90)
@@ -26,8 +30,8 @@ def run_local_validation():
         [0, 2, 2, 2, 2, 2, 0],
         [0, 2, 0, 0, 0, 2, 0],
         [0, 2, 0, 0, 0, 2, 0],
-        [0, 2, 2, 0, 2, 2, 0], # Note: gap at bottom-center (0)
-        [0, 0, 0, 0, 0, 0, 0]
+        [0, 2, 2, 0, 2, 2, 0],  # Note: gap at bottom-center (0)
+        [0, 0, 0, 0, 0, 0, 0],
     ]
 
     print("\n--- 1. INPUT DAMAGED CELL LATTICE ---")
@@ -40,15 +44,20 @@ def run_local_validation():
     repaired_shape = engine.repair_morphology(damaged_shape)
     dt_ms = (time.perf_counter() - t0) * 1000.0
 
-    print(f"\n--- 2. BIOELECTRICALLY REPAIRED TARGET MORPHOLOGY (Execution time: {dt_ms:.3f}ms) ---")
+    print(
+        f"\n--- 2. BIOELECTRICALLY REPAIRED TARGET MORPHOLOGY (Execution time: {dt_ms:.3f}ms) ---"
+    )
     for row in repaired_shape:
         print(" ", row)
 
     # Assert repair happened
     assert repaired_shape[2][2] == 2 or repaired_shape[4][3] == 2
-    print("\n✓ Verification PASS: Damaged gap and interior voltage potential successfully precipitated structure!")
+    print(
+        "\n✓ Verification PASS: Damaged gap and interior voltage potential successfully precipitated structure!"
+    )
 
     print("=" * 90)
+
 
 if __name__ == "__main__":
     run_local_validation()

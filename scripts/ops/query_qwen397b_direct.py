@@ -18,16 +18,12 @@ Current setup:
 How can we push this system even further to get maximum throughput and intelligence? Detail 4 breakthrough optimizations for this 128GB APU architecture.
 """
 
-payload = {
-    "model": "qwen3.5:397b-cloud",
-    "prompt": prompt,
-    "stream": False
-}
+payload = {"model": "qwen3.5:397b-cloud", "prompt": prompt, "stream": False}
 
 req = urllib.request.Request(
     "http://localhost:11434/api/generate",
     headers={"Content-Type": "application/json"},
-    data=json.dumps(payload).encode("utf-8")
+    data=json.dumps(payload).encode("utf-8"),
 )
 
 print("Querying qwen3.5:397b-cloud directly on port 11434...")
@@ -38,7 +34,11 @@ try:
         data = json.loads(resp.read().decode("utf-8"))
         res = data.get("response", "")
         print(f"✓ Received response in {dt:.2f}s ({len(res)} chars):")
-        with open("/home/mike-anderson/dev/cohezion/docs/research/frontier_qwen397b_optimization_findings.md", "w", encoding="utf-8") as f:
+        with open(
+            "/home/mike-anderson/dev/cohezion/docs/research/frontier_qwen397b_optimization_findings.md",
+            "w",
+            encoding="utf-8",
+        ) as f:
             f.write("# Qwen3.5-397B Frontier Hardware Optimization Review\n\n")
             f.write(f"**Date**: {time.strftime('%Y-%m-%d %H:%M:%S')}\n")
             f.write("**Target System**: AMD Ryzen AI MAX+ 395 (Strix Halo)\n\n---\n\n")

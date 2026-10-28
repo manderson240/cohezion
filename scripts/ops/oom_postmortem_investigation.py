@@ -13,7 +13,9 @@ from cohezion.data_mesh.kanban_bridge import persist_item
 from cohezion.inference.unified_hybrid_router import UnifiedHybridRouter
 
 
-out_report = Path("/home/mike-anderson/dev/cohezion/docs/research/oom_recovery_root_cause_analysis.md")
+out_report = Path(
+    "/home/mike-anderson/dev/cohezion/docs/research/oom_recovery_root_cause_analysis.md"
+)
 out_report.parent.mkdir(parents=True, exist_ok=True)
 
 
@@ -28,14 +30,17 @@ async def main() -> None:
     # Check dmesg / oom-killer logs
     oom_logs = ""
     try:
-        res = subprocess.run(
-            ["dmesg", "-T"],
-            capture_output=True,
-            text=True,
-            timeout=5
+        res = subprocess.run(["dmesg", "-T"], capture_output=True, text=True, timeout=5)
+        lines = [
+            l
+            for l in res.stdout.split("\n")
+            if "oom" in l.lower() or "killed process" in l.lower() or "out of memory" in l.lower()
+        ]
+        oom_logs = (
+            "\n".join(lines[-25:])
+            if lines
+            else "No kernel oom messages in recent dmesg ring buffer."
         )
-        lines = [l for l in res.stdout.split("\n") if "oom" in l.lower() or "killed process" in l.lower() or "out of memory" in l.lower()]
-        oom_logs = "\n".join(lines[-25:]) if lines else "No kernel oom messages in recent dmesg ring buffer."
     except Exception as e:
         oom_logs = f"Error reading dmesg: {e}"
 
@@ -54,7 +59,11 @@ async def main() -> None:
     ps_info = ""
     try:
         res = subprocess.run(["ps", "aux"], capture_output=True, text=True)
-        py_procs = [l for l in res.stdout.split("\n") if "python" in l or "lemonade" in l or "ollama" in l or "surreal" in l]
+        py_procs = [
+            l
+            for l in res.stdout.split("\n")
+            if "python" in l or "lemonade" in l or "ollama" in l or "surreal" in l
+        ]
         ps_info = "\n".join(py_procs[:15])
     except Exception as e:
         ps_info = f"Error: {e}"
@@ -103,13 +112,16 @@ Analyze what triggered the OOM condition, why the system breached the 20 GiB saf
         "severity": "critical",
         "category": "system_reliability",
         "action_taken": "Preflight passed (76GB available), guardrails synthesized, Kanban item logged.",
-        "analysis_summary": (model_analysis[:300] + "...") if model_analysis else "DeepSeek-V4 root cause analysis logged."
+        "analysis_summary": (model_analysis[:300] + "...")
+        if model_analysis
+        else "DeepSeek-V4 root cause analysis logged.",
     }
     try:
-        await bus.publish(Event.agent_complete(
-            agent="antigravity-oom-recovery-investigator",
-            result=event_payload
-        ))
+        await bus.publish(
+            Event.agent_complete(
+                agent="antigravity-oom-recovery-investigator", result=event_payload
+            )
+        )
         print("  ✓ EventBus event published successfully.")
     except Exception as e:
         print(f"  ✗ EventBus publish notice: {e}")
@@ -117,15 +129,17 @@ Analyze what triggered the OOM condition, why the system breached the 20 GiB saf
     # 4. Persist to Kanban & Obsidian
     print("\n4. Logging Kanban Item to SurrealDB & Obsidian Vault...")
     try:
-        persist_item({
-            "id": "oom-recovery-remediation-20260821",
-            "title": "OOM Recovery: Implement Headless Browser & Mesh Memory Guardrails",
-            "status": "in_progress",
-            "priority": "critical",
-            "source": "antigravity/oom-investigation",
-            "category": "system_reliability",
-            "details": "Prevent concurrent browser leak and monolithic NumPy matrix spikes during TRELLIS/Vulkan model generation."
-        })
+        persist_item(
+            {
+                "id": "oom-recovery-remediation-20260821",
+                "title": "OOM Recovery: Implement Headless Browser & Mesh Memory Guardrails",
+                "status": "in_progress",
+                "priority": "critical",
+                "source": "antigravity/oom-investigation",
+                "category": "system_reliability",
+                "details": "Prevent concurrent browser leak and monolithic NumPy matrix spikes during TRELLIS/Vulkan model generation.",
+            }
+        )
         print("  ✓ Kanban card persisted to SurrealDB and Obsidian Vault.")
     except Exception as e:
         print(f"  ✗ Kanban bridge notice: {e}")
@@ -133,7 +147,7 @@ Analyze what triggered the OOM condition, why the system breached the 20 GiB saf
     # 5. Save Full Report
     full_report = f"""# OOM Root Cause Analysis & Fleet Recovery Report
 
-**Incident Timestamp**: {time.strftime('%Y-%m-%d %H:%M:%S')}  
+**Incident Timestamp**: {time.strftime("%Y-%m-%d %H:%M:%S")}  
 **Target Hardware**: AMD Strix Halo (128GB Unified Memory, Radeon 8060S iGPU)  
 **Investigating Agent**: Antigravity Orchestrator (Multi-Silicon Fleet)  
 

@@ -34,6 +34,7 @@ Rules:
 ```python
 """
 
+
 def extract_python_code(text: str) -> str:
     match = re.search(r"```python\n(.*?)\n```", text, re.DOTALL)
     if match:
@@ -42,6 +43,7 @@ def extract_python_code(text: str) -> str:
     if match2:
         return match2.group(0).strip()
     return text.strip()
+
 
 def safe_execute_program(code: str, grid: list[list[int]]) -> list[list[int]] | None:
     try:
@@ -57,36 +59,42 @@ def safe_execute_program(code: str, grid: list[list[int]]) -> list[list[int]] | 
         pass
     return None
 
-async def solve_arc_task_with_llm(client: httpx.AsyncClient, task_id: str, task_data: dict, sol_list: list, max_attempts: int = 3):
+
+async def solve_arc_task_with_llm(
+    client: httpx.AsyncClient, task_id: str, task_data: dict, sol_list: list, max_attempts: int = 3
+):
     train_pairs = task_data["train"]
     test_pairs = task_data["test"]
-    
+
     # Format train pairs
     train_str_parts = []
     for idx, ex in enumerate(train_pairs):
-        train_str_parts.append(f"Pair {idx+1}:\nInput: {ex['input']}\nOutput: {ex['output']}")
+        train_str_parts.append(f"Pair {idx + 1}:\nInput: {ex['input']}\nOutput: {ex['output']}")
     train_pairs_str = "\n\n".join(train_str_parts)
 
     prompt = PROMPT_TEMPLATE.format(train_pairs_str=train_pairs_str)
-    
+
     for attempt in range(max_attempts):
         payload = {
             "model": "gpt-oss-20b-mxfp4-GGUF",
             "messages": [
-                {"role": "system", "content": "You are a competitive ARC-AGI Python program synthesis solver."},
-                {"role": "user", "content": prompt}
+                {
+                    "role": "system",
+                    "content": "You are a competitive ARC-AGI Python program synthesis solver.",
+                },
+                {"role": "user", "content": prompt},
             ],
             "temperature": 0.2 + (attempt * 0.2),
-            "max_tokens": 450
+            "max_tokens": 450,
         }
-        
+
         try:
             r = await client.post(LEMONADE_URL, json=payload, timeout=45.0)
             if r.status_code != 200:
                 continue
             raw_text = r.json()["choices"][0]["message"].get("content") or ""
             code = extract_python_code(raw_text)
-            
+
             # AutoHarness Verification against all training pairs
             train_pass = True
             for ex in train_pairs:
@@ -94,17 +102,18 @@ async def solve_arc_task_with_llm(client: httpx.AsyncClient, task_id: str, task_
                 if pred_train != ex["output"]:
                     train_pass = False
                     break
-            
+
             if train_pass:
                 # Training verified! Apply to test pair
                 pred_test = safe_execute_program(code, test_pairs[0]["input"])
-                is_correct = (pred_test == sol_list[0])
+                is_correct = pred_test == sol_list[0]
                 return True, is_correct, attempt + 1, code
-                
+
         except Exception:
             continue
 
     return False, False, max_attempts, None
+
 
 async def run_funsearch_benchmark(num_tasks: int = 10):
     print("\n" + "=" * 115)
@@ -117,7 +126,9 @@ async def run_funsearch_benchmark(num_tasks: int = 10):
         solutions = json.load(f)
 
     task_ids = list(challenges.keys())[:num_tasks]
-    print(f"Evaluating {num_tasks} real ARC tasks using LLM synthesis on AMD Strix Halo (:13305)...\n")
+    print(
+        f"Evaluating {num_tasks} real ARC tasks using LLM synthesis on AMD Strix Halo (:13305)...\n"
+    )
 
     train_verified = 0
     test_solved = 0
@@ -130,7 +141,7 @@ async def run_funsearch_benchmark(num_tasks: int = 10):
                 client, tid, challenges[tid], solutions[tid]
             )
             dt = round(time.perf_counter() - t_task, 2)
-            
+
             if verified:
                 train_verified += 1
             if solved:
@@ -141,16 +152,21 @@ async def run_funsearch_benchmark(num_tasks: int = 10):
             else:
                 status = f"❌ Train verification failed ({attempts} attempts, {dt}s)"
 
-            print(f"  [{idx+1:02d}/{num_tasks:02d}] Task `{tid}`: {status}")
+            print(f"  [{idx + 1:02d}/{num_tasks:02d}] Task `{tid}`: {status}")
 
     total_time = round(time.perf_counter() - t0, 2)
     print("\n" + "=" * 115)
     print("📊 REAL FUNSEARCH ARC SYNTHESIS RESULTS:")
     print(f"  • Tasks Evaluated: {num_tasks}")
-    print(f"  • Train-Verified Programs (AutoHarness): {train_verified}/{num_tasks} ({(train_verified/num_tasks)*100:.1f}%)")
-    print(f"  • Real Test Accuracy: {test_solved}/{num_tasks} ({(test_solved/num_tasks)*100:.1f}%)")
-    print(f"  • Total Time: {total_time}s ({round(total_time/num_tasks, 2)}s/task)")
+    print(
+        f"  • Train-Verified Programs (AutoHarness): {train_verified}/{num_tasks} ({(train_verified / num_tasks) * 100:.1f}%)"
+    )
+    print(
+        f"  • Real Test Accuracy: {test_solved}/{num_tasks} ({(test_solved / num_tasks) * 100:.1f}%)"
+    )
+    print(f"  • Total Time: {total_time}s ({round(total_time / num_tasks, 2)}s/task)")
     print("=" * 115 + "\n")
+
 
 if __name__ == "__main__":
     asyncio.run(run_funsearch_benchmark(10))

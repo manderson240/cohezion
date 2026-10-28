@@ -19,10 +19,13 @@ from cohezion.integrations.gaia_local_router import GAIALocalRouter
 from cohezion.compound.goals_and_loops_orchestrator import GoalsAndLoopsOrchestrator
 from cohezion.graph.graph_engine import KnowledgeGraphMesh, EdgeType
 
-logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] [GAIA_SWARM] %(message)s")
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s [%(levelname)s] [GAIA_SWARM] %(message)s"
+)
 logger = logging.getLogger("gaia_swarm")
 
 SKILLS_DIR = Path("src/cohezion/skills")
+
 
 @dataclass
 class SkillVerificationResult:
@@ -35,7 +38,10 @@ class SkillVerificationResult:
     code_blocks_count: int
     status: str
 
-async def evaluate_skill(skill_path: Path, router: GAIALocalRouter, verifier: AutoHarnessVerifier) -> SkillVerificationResult:
+
+async def evaluate_skill(
+    skill_path: Path, router: GAIALocalRouter, verifier: AutoHarnessVerifier
+) -> SkillVerificationResult:
     with open(skill_path, "r", encoding="utf-8") as f:
         content = f.read()
 
@@ -67,6 +73,7 @@ async def evaluate_skill(skill_path: Path, router: GAIALocalRouter, verifier: Au
         status=status,
     )
 
+
 async def run_gaia_skills_swarm():
     print("\n" + "=" * 105)
     print("🤖 GAIA SDK AGENT SWARM: EXECUTING & AUDITING ALL 147 PRIME SKILLS")
@@ -90,12 +97,16 @@ async def run_gaia_skills_swarm():
     total_code_blocks = 0
 
     for r in results:
-        mesh.add_node(f"skill:{r.skill_name}", "prime_skill", {
-            "path": r.file_path,
-            "code_blocks": r.code_blocks_count,
-            "ast_verified": r.ast_verified,
-            "status": r.status,
-        })
+        mesh.add_node(
+            f"skill:{r.skill_name}",
+            "prime_skill",
+            {
+                "path": r.file_path,
+                "code_blocks": r.code_blocks_count,
+                "ast_verified": r.ast_verified,
+                "status": r.status,
+            },
+        )
         mesh.add_edge("agent:gaia_swarm", EdgeType.EXECUTES, f"skill:{r.skill_name}")
         if r.status == "🟢 VERIFIED":
             verified_count += 1
@@ -103,7 +114,9 @@ async def run_gaia_skills_swarm():
 
     print(f"\n📊 GAIA SDK SKILLS SWARM AUDIT SUMMARY ({dt_ms:.2f} ms):")
     print(f"  • Total Skills Evaluated  : {len(results)}")
-    print(f"  • Fully Verified Skills   : {verified_count} / {len(results)} ({verified_count/len(results)*100:.1f}%)")
+    print(
+        f"  • Fully Verified Skills   : {verified_count} / {len(results)} ({verified_count / len(results) * 100:.1f}%)"
+    )
     print(f"  • Total Python Blocks Run : {total_code_blocks}")
     print(f"  • Graph Mesh Edges Added  : {len(mesh.edges)}")
 
@@ -111,11 +124,14 @@ async def run_gaia_skills_swarm():
     print("📋 SAMPLE GAIA SDK SKILL AUDITS:")
     print("=" * 105)
     for r in results[:12]:
-        print(f"  • [{r.status}] {r.skill_name:<45} (Python Blocks: {r.code_blocks_count}, AST: {'PASS' if r.ast_verified else 'FAIL'})")
+        print(
+            f"  • [{r.status}] {r.skill_name:<45} (Python Blocks: {r.code_blocks_count}, AST: {'PASS' if r.ast_verified else 'FAIL'})"
+        )
 
     print("\n" + "=" * 105)
     print("🎉 GAIA SDK AGENT SWARM COMPLETED FULL SKILL AUDIT & MANIFOLD INGESTION!")
     print("=" * 105 + "\n")
+
 
 if __name__ == "__main__":
     asyncio.run(run_gaia_skills_swarm())

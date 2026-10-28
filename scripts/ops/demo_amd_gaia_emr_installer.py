@@ -18,7 +18,9 @@ from cohezion.integrations.amd_gaia_emr_installer import (
 
 async def main_async() -> None:
     print("=" * 95)
-    print("    🚀 AMD GAIA SDK EMR & CUSTOM INSTALLER PLAYBOOKS VERIFICATION (RYZEN AI / STRIX HALO)")
+    print(
+        "    🚀 AMD GAIA SDK EMR & CUSTOM INSTALLER PLAYBOOKS VERIFICATION (RYZEN AI / STRIX HALO)"
+    )
     print("=" * 95)
 
     # 1. EMR Patient Intake Playbook
@@ -29,7 +31,9 @@ async def main_async() -> None:
     print(f"  • Name: {patient.full_name} (DOB: {patient.date_of_birth})")
     print(f"  • Chief Complaint: {patient.chief_complaint}")
     print(f"  • Vitals: {patient.vitals}")
-    print(f"  • Form Verification Status: {'✅ VALIDATED' if patient.verified else '❌ UNVERIFIED'}")
+    print(
+        f"  • Form Verification Status: {'✅ VALIDATED' if patient.verified else '❌ UNVERIFIED'}"
+    )
 
     # 2. Custom Installer Playbook
     print("\n📦 [Playbook 6: Custom Installer & Agent Packager]")

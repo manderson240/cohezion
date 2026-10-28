@@ -28,7 +28,7 @@ DOWNLOADED_LOCAL_MODELS = [
     "llama3.2-3b-FLM",
     "nomic-embed-text-v2-moe-GGUF (Active in slot)",
     "qwen3-4b-FLM",
-    "qwen3vl-it-4b-FLM"
+    "qwen3vl-it-4b-FLM",
 ]
 
 prompt = f"""You are a Principal AI Hardware Systems Architect evaluating local model residency on AMD Strix Halo (128GB Unified Memory, XDNA2 NPU, Radeon 8060S iGPU).
@@ -57,8 +57,13 @@ print("▶ Querying kimi-k2.6:cloud...")
 try:
     resp1 = httpx.post(
         "http://localhost:11434/api/generate",
-        json={"model": "kimi-k2.6:cloud", "prompt": prompt, "stream": False, "options": {"temperature": 0.1, "num_predict": 350}},
-        timeout=40.0
+        json={
+            "model": "kimi-k2.6:cloud",
+            "prompt": prompt,
+            "stream": False,
+            "options": {"temperature": 0.1, "num_predict": 350},
+        },
+        timeout=40.0,
     )
     if resp1.status_code == 200:
         print("\n--- 🤖 [kimi-k2.6:cloud] Recommendation ---")
@@ -71,8 +76,13 @@ print("\n▶ Querying gpt-oss:120b-cloud...")
 try:
     resp2 = httpx.post(
         "http://localhost:11434/api/generate",
-        json={"model": "gpt-oss:120b-cloud", "prompt": prompt, "stream": False, "options": {"temperature": 0.1, "num_predict": 350}},
-        timeout=40.0
+        json={
+            "model": "gpt-oss:120b-cloud",
+            "prompt": prompt,
+            "stream": False,
+            "options": {"temperature": 0.1, "num_predict": 350},
+        },
+        timeout=40.0,
     )
     if resp2.status_code == 200:
         print("\n--- 🤖 [gpt-oss:120b-cloud] Recommendation ---")

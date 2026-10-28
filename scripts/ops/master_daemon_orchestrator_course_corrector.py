@@ -67,13 +67,17 @@ async def evaluate_and_course_correct() -> dict[str, Any]:
     }
 
     for name, data in telemetry.items():
-        print(f"  ✓ [{name}] Cycle: {data['cycle']} | Status: {data['status']} | Tier: {data['tier_used']}")
+        print(
+            f"  ✓ [{name}] Cycle: {data['cycle']} | Status: {data['status']} | Tier: {data['tier_used']}"
+        )
 
     # 2. Evaluate Drift & Compute Course-Correction Vector
     print("\n2. Computing Poincaré Geodesic Course-Correction Invariants...")
     current_coherence = telemetry["autonomous_swarm_orchestrator"]["coherence"]
     coherence_drift = current_coherence - 0.5000  # Target = 0.5000
-    print(f"  • Current HIHO Coherence: {current_coherence:.4f} (Drift Delta: {coherence_drift:+.4f})")
+    print(
+        f"  • Current HIHO Coherence: {current_coherence:.4f} (Drift Delta: {coherence_drift:+.4f})"
+    )
 
     # Compute restorative field vector
     # Restorative gradient: delta_z = -0.5 * grad(|c - 0.5|)
@@ -98,7 +102,10 @@ Task: Provide a 2-sentence formal course-correction directive to steer the swarm
                 json={
                     "model": "qwen3-4b-FLM",
                     "messages": [
-                        {"role": "system", "content": "You are the Principal Swarm Orchestrator and Course-Correction Governor."},
+                        {
+                            "role": "system",
+                            "content": "You are the Principal Swarm Orchestrator and Course-Correction Governor.",
+                        },
                         {"role": "user", "content": guidance_prompt},
                     ],
                     "temperature": 0.2,
@@ -135,22 +142,26 @@ Task: Provide a 2-sentence formal course-correction directive to steer the swarm
     print("  ✓ Directive published to SurrealDB `event_log` table with Priority 10.")
 
     # 5. Persist Milestone in Kanban
-    persist_item({
-        "id": f"daemon-orchestration-{int(time.time())}",
-        "title": "Master Daemon Health Audit & Course-Correction Synchronized",
-        "status": "done",
-        "priority": "critical",
-        "category": "daemon_orchestration",
-        "metrics": {
-            "overnight_cycle": telemetry["overnight_agi_daemon"]["cycle"],
-            "swarm_cycle": telemetry["autonomous_swarm_orchestrator"]["cycle"],
-            "coherence_drift": round(coherence_drift, 4),
-            "restorative_damping": round(restorative_damping, 4),
-        },
-    })
+    persist_item(
+        {
+            "id": f"daemon-orchestration-{int(time.time())}",
+            "title": "Master Daemon Health Audit & Course-Correction Synchronized",
+            "status": "done",
+            "priority": "critical",
+            "category": "daemon_orchestration",
+            "metrics": {
+                "overnight_cycle": telemetry["overnight_agi_daemon"]["cycle"],
+                "swarm_cycle": telemetry["autonomous_swarm_orchestrator"]["cycle"],
+                "coherence_drift": round(coherence_drift, 4),
+                "restorative_damping": round(restorative_damping, 4),
+            },
+        }
+    )
 
     # 6. Save Report
-    out_file = Path("/home/mike-anderson/dev/cohezion/docs/research/master_daemon_orchestration_report.md")
+    out_file = Path(
+        "/home/mike-anderson/dev/cohezion/docs/research/master_daemon_orchestration_report.md"
+    )
     report = [
         "# Master Daemon Orchestration & Autonomous Course-Correction Report",
         f"**Timestamp**: {time.strftime('%Y-%m-%d %H:%M:%S EDT')}",

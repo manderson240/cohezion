@@ -23,7 +23,9 @@ import numpy as np
 from cohezion.actioner.autoharness_verifier import AutoHarnessVerifier
 from cohezion.security.linux_namespace_sandbox import LinuxNamespaceSandbox
 
-logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] [LOCAL_SWARM] %(message)s")
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s [%(levelname)s] [LOCAL_SWARM] %(message)s"
+)
 logger = logging.getLogger("local_swarm")
 
 LEMONADE_URL = "http://localhost:13305/v1/chat/completions"
@@ -33,6 +35,7 @@ SYSTEM_PROMPT = """You are an elite AI Systems Programmer adhering strictly to t
 - Complete mathematical rigor, radical clarity, clean docstrings, and zero fluff.
 - Output ONLY valid, executable Python code enclosed in ```python ``` blocks.
 """
+
 
 # ==============================================================================
 # CYCLE 1: goal:karpathy-standards (NanoChaos Engine)
@@ -63,7 +66,7 @@ Include:
         "max_tokens": 1500,
         "temperature": 0.2,
     }
-    
+
     t0 = time.perf_counter()
     req = urllib.request.Request(
         LEMONADE_URL,
@@ -79,14 +82,16 @@ Include:
 
     content_str = choice.get("content", "")
     reasoning_str = choice.get("reasoning_content", "")
-    
+
     from cohezion.inference.gaia_adapter import strip_reasoning_tags
+
     clean_code = strip_reasoning_tags(content_str) if content_str else ""
     if not clean_code and "```python" in reasoning_str:
         clean_code = reasoning_str
-    
+
     # Validate syntax; if incomplete or truncated, use certified clean implementation
     import ast
+
     try:
         ast.parse(clean_code)
         if "class NanoChaos" not in clean_code or "__main__" not in clean_code:
@@ -164,21 +169,30 @@ if __name__ == "__main__":
     # Verify AST & Bubblewrap Sandbox
     verifier = AutoHarnessVerifier()
     ast_res = verifier.verify_code(clean_code)
-    logger.info("  • AutoHarness AST Verification: %s (Hollow asserts: %d)", 
-                "🟢 PASSED" if ast_res["verified"] else "❌ FAILED", ast_res["hollow_asserts"])
+    logger.info(
+        "  • AutoHarness AST Verification: %s (Hollow asserts: %d)",
+        "🟢 PASSED" if ast_res["verified"] else "❌ FAILED",
+        ast_res["hollow_asserts"],
+    )
     assert ast_res["verified"] is True, "AST verification failed"
 
     sandbox = LinuxNamespaceSandbox(timeout_sec=10.0)
     sandbox_res = sandbox.execute_python_code(clean_code)
-    logger.info("  • Bubblewrap Namespace Execution: %s", "🟢 PASSED" if sandbox_res.success else "❌ FAILED")
+    logger.info(
+        "  • Bubblewrap Namespace Execution: %s",
+        "🟢 PASSED" if sandbox_res.success else "❌ FAILED",
+    )
     assert sandbox_res.success is True, f"Sandbox failed: {sandbox_res.stderr}"
+
 
 # ==============================================================================
 # CYCLE 2: goal:sovereign-inference (Consolidation & OOM Safeguards)
 # ==============================================================================
 def execute_cycle_2_sovereign_inference():
     logger.info("\n" + "=" * 80)
-    logger.info("⚡ CYCLE 2: Executing `goal:sovereign-inference` via Local Silicon Verification...")
+    logger.info(
+        "⚡ CYCLE 2: Executing `goal:sovereign-inference` via Local Silicon Verification..."
+    )
     logger.info("=" * 80)
     from cohezion.inference.lemonade_embed_bridge import LemonadeEmbedBridge
     from cohezion.inference.load_safety import check_load_safe
@@ -194,22 +208,33 @@ def execute_cycle_2_sovereign_inference():
 
     # 2. Check 20.0 GiB OOM safety floor contract
     from cohezion.inference.load_safety import available_ram_gb
+
     curr_ram = available_ram_gb()
     is_safe, msg = check_load_safe({"size_gb": 4.0, "recipe": "flm"}, curr_ram)
-    logger.info("  • OOMGuard Safety Contract (MemAvailable: %.2f GiB): %s (%s)", curr_ram, "🟢 SAFE" if is_safe else "🔴 INTENTIONALLY BLOCKED", msg)
+    logger.info(
+        "  • OOMGuard Safety Contract (MemAvailable: %.2f GiB): %s (%s)",
+        curr_ram,
+        "🟢 SAFE" if is_safe else "🔴 INTENTIONALLY BLOCKED",
+        msg,
+    )
     # The gate is operating correctly: if free RAM < 20GB, it must block new heavy loads
     if curr_ram < 20.0:
         assert is_safe is False, "OOMGuard should refuse heavy model loads when free RAM < 20GB"
-        logger.info("  • OOMGuard Contract Enforcement: 🟢 VERIFIED (Protected box from kernel page fault)")
+        logger.info(
+            "  • OOMGuard Contract Enforcement: 🟢 VERIFIED (Protected box from kernel page fault)"
+        )
     else:
         assert is_safe is True, "OOMGuard should allow load when free RAM >= 20GB"
+
 
 # ==============================================================================
 # CYCLE 3: goal:telegram-remote-parity (Mobile Kanban & Event Stream)
 # ==============================================================================
 def execute_cycle_3_telegram_parity():
     logger.info("\n" + "=" * 80)
-    logger.info("📱 CYCLE 3: Executing `goal:telegram-remote-parity` via Dual-Store Verification...")
+    logger.info(
+        "📱 CYCLE 3: Executing `goal:telegram-remote-parity` via Dual-Store Verification..."
+    )
     logger.info("=" * 80)
     import asyncio
     from cohezion.integrations.telegram_bot import TelegramCommunicationHub
@@ -218,6 +243,7 @@ def execute_cycle_3_telegram_parity():
     logger.info("  • Testing dual-store /addtask write-through...")
     asyncio.run(hub._handle_addtask("Autonomous Swarm Local Silicon Refactoring Cycle"))
     logger.info("  • Dual-store Kanban & EventBus Bridge: 🟢 VERIFIED")
+
 
 if __name__ == "__main__":
     t_start = time.perf_counter()

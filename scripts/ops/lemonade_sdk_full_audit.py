@@ -7,10 +7,13 @@ import logging
 import time
 import httpx
 
-logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] [LEMONADE_AUDIT] %(message)s")
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s [%(levelname)s] [LEMONADE_AUDIT] %(message)s"
+)
 logger = logging.getLogger("lemonade_audit")
 
 LEMONADE_BASE = "http://localhost:13305"
+
 
 async def test_lemonade_lifecycle():
     print("\n" + "=" * 95)
@@ -22,7 +25,7 @@ async def test_lemonade_lifecycle():
         t0 = time.perf_counter()
         r_models = await client.get(f"{LEMONADE_BASE}/v1/models")
         dt_ms = (time.perf_counter() - t0) * 1000.0
-        
+
         print(f"• Endpoint: GET /v1/models ({dt_ms:.2f} ms)")
         if r_models.status_code == 200:
             models_data = r_models.json()
@@ -35,16 +38,19 @@ async def test_lemonade_lifecycle():
         payload = {
             "model": "gpt-oss-20b-mxfp4-GGUF",
             "messages": [
-                {"role": "system", "content": "You are Lemonade Local Assistant. Answer in 1 short sentence."},
-                {"role": "user", "content": "Confirm your local silicon operating status."}
+                {
+                    "role": "system",
+                    "content": "You are Lemonade Local Assistant. Answer in 1 short sentence.",
+                },
+                {"role": "user", "content": "Confirm your local silicon operating status."},
             ],
             "temperature": 0.1,
-            "max_tokens": 128
+            "max_tokens": 128,
         }
         t1 = time.perf_counter()
         r_chat = await client.post(f"{LEMONADE_BASE}/v1/chat/completions", json=payload)
         dt_chat_ms = (time.perf_counter() - t1) * 1000.0
-        
+
         print(f"\n• Endpoint: POST /v1/chat/completions ({dt_chat_ms:.2f} ms)")
         if r_chat.status_code == 200:
             chat_data = r_chat.json()
@@ -55,6 +61,7 @@ async def test_lemonade_lifecycle():
 
     print("\n" + "=" * 95)
     print("🎉 LEMONADE SDK ENGINE CONFIRMED OPERATIONAL & FULLY INTEGRATED!\n")
+
 
 if __name__ == "__main__":
     asyncio.run(test_lemonade_lifecycle())

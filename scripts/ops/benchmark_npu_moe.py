@@ -7,7 +7,7 @@ import urllib.request
 models_to_test = [
     "qwen3.6-moe-35b-a3b-FLM",
     "Qwen3.6-35B-A3B-MTP-GGUF",
-    "Qwen3-Coder-30B-A3B-Instruct-GGUF"
+    "Qwen3-Coder-30B-A3B-Instruct-GGUF",
 ]
 
 for m in models_to_test:
@@ -15,13 +15,13 @@ for m in models_to_test:
     url = "http://127.0.0.1:13305/v1/chat/completions"
     payload = {
         "model": m,
-        "messages": [
-            {"role": "user", "content": "What is the capital of France?"}
-        ],
+        "messages": [{"role": "user", "content": "What is the capital of France?"}],
         "max_tokens": 20,
-        "stream": True
+        "stream": True,
     }
-    req = urllib.request.Request(url, headers={"Content-Type": "application/json"}, data=json.dumps(payload).encode())
+    req = urllib.request.Request(
+        url, headers={"Content-Type": "application/json"}, data=json.dumps(payload).encode()
+    )
     t0 = time.perf_counter()
     first_token = None
     tokens = 0
@@ -30,7 +30,7 @@ for m in models_to_test:
     try:
         with urllib.request.urlopen(req, timeout=30) as resp:
             for line in resp:
-                l = line.decode('utf-8').strip()
+                l = line.decode("utf-8").strip()
                 if l.startswith("data: ") and l != "data: [DONE]":
                     d = json.loads(l[6:])
                     delta = d["choices"][0]["delta"]
@@ -46,7 +46,11 @@ for m in models_to_test:
                             first_token = time.perf_counter() - t0
                         text += tok
         total_time = time.perf_counter() - t0
-        tps = (tokens + reasoning_tokens) / (total_time - (first_token or 0)) if total_time > (first_token or 0) else 0
+        tps = (
+            (tokens + reasoning_tokens) / (total_time - (first_token or 0))
+            if total_time > (first_token or 0)
+            else 0
+        )
         print(f"✓ {m} Result:")
         print(f"   TTFT: {first_token:.2f}s | Speed: {tps:.1f} tok/s | Total: {total_time:.2f}s")
         print(f"   Thinking Tokens: {reasoning_tokens} | Answer Tokens: {tokens}")

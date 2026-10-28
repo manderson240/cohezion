@@ -36,6 +36,7 @@ Provide:
 3. Concrete recommendations for the overnight learning daemon.
 Keep it rigorous, authoritative, and under 250 words."""
 
+
 async def query_local_silicon(client: httpx.AsyncClient) -> tuple[str, str, float]:
     # 1. Try Lemonade Tier 1 Local Port 13305
     t0 = time.perf_counter()
@@ -46,9 +47,9 @@ async def query_local_silicon(client: httpx.AsyncClient) -> tuple[str, str, floa
                 "model": "user.cohezion-hermes-router",
                 "messages": [{"role": "user", "content": AUDIT_PROMPT}],
                 "temperature": 0.1,
-                "max_tokens": 1000
+                "max_tokens": 1000,
             },
-            timeout=40.0
+            timeout=40.0,
         )
         dt = time.perf_counter() - t0
         if resp.status_code == 200:
@@ -66,9 +67,9 @@ async def query_local_silicon(client: httpx.AsyncClient) -> tuple[str, str, floa
                 "model": "deepseek-r1-0528-8b-FLM",
                 "prompt": AUDIT_PROMPT,
                 "stream": False,
-                "options": {"temperature": 0.1, "num_predict": 1000}
+                "options": {"temperature": 0.1, "num_predict": 1000},
             },
-            timeout=40.0
+            timeout=40.0,
         )
         dt = time.perf_counter() - t0
         if resp.status_code == 200:
@@ -85,13 +86,14 @@ async def query_local_silicon(client: httpx.AsyncClient) -> tuple[str, str, floa
             "model": "deepseek-v4-pro:cloud",
             "prompt": AUDIT_PROMPT,
             "stream": False,
-            "options": {"temperature": 0.1, "num_predict": 1000}
+            "options": {"temperature": 0.1, "num_predict": 1000},
         },
-        timeout=60.0
+        timeout=60.0,
     )
     dt = time.perf_counter() - t0
     data = resp.json()
     return "Local Ollama Engine (:11434)", data.get("response", ""), dt
+
 
 async def main():
     print("=" * 90)
@@ -112,7 +114,7 @@ async def main():
     doc_path.parent.mkdir(parents=True, exist_ok=True)
     doc_path.write_text(f"""# Local Silicon V&V Formal Audit Report
 
-**Date:** {time.strftime('%Y-%m-%d %H:%M:%S UTC', time.gmtime())}  
+**Date:** {time.strftime("%Y-%m-%d %H:%M:%S UTC", time.gmtime())}  
 **Inference Backend:** {backend} (Latency: {latency:.2f}s)  
 
 ---
@@ -122,16 +124,19 @@ async def main():
 """)
     print(f"\n✓ Saved Local Silicon V&V Report to: {doc_path}")
 
-    persist_item({
-        "id": "local_silicon_vv_audit",
-        "title": "Local Silicon V&V Audit Completed",
-        "status": "done",
-        "priority": "high",
-        "source": "LocalSiliconVVAudit",
-        "category": "verification",
-        "details": f"Local silicon validated Object Graph DSL and Anytime Compute Maximizer via {backend} with zero cloud token costs.",
-    })
+    persist_item(
+        {
+            "id": "local_silicon_vv_audit",
+            "title": "Local Silicon V&V Audit Completed",
+            "status": "done",
+            "priority": "high",
+            "source": "LocalSiliconVVAudit",
+            "category": "verification",
+            "details": f"Local silicon validated Object Graph DSL and Anytime Compute Maximizer via {backend} with zero cloud token costs.",
+        }
+    )
     print("✓ Persisted audit card to SurrealDB and Obsidian Kanban")
+
 
 if __name__ == "__main__":
     asyncio.run(main())

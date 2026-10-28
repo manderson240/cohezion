@@ -18,6 +18,7 @@ PROMPT = (
     "abstract sheaf network nodes connecting grid tiles, dark mode computational physics, 560x280 aspect ratio."
 )
 
+
 async def test_local_image_gen():
     print("\n" + "=" * 110)
     print("🎨 TESTING LOCAL ON-DEVICE IMAGE GENERATION (Lemonade :13305)")
@@ -28,7 +29,7 @@ async def test_local_image_gen():
         "prompt": PROMPT,
         "n": 1,
         "size": "512x512",
-        "response_format": "b64_json"
+        "response_format": "b64_json",
     }
 
     async with httpx.AsyncClient(timeout=120.0) as client:
@@ -43,13 +44,16 @@ async def test_local_image_gen():
                 if b64_str:
                     img_bytes = base64.b64decode(b64_str)
                     OUTPUT_PATH.write_bytes(img_bytes)
-                    print(f"✓ Saved locally generated image to `{OUTPUT_PATH}` ({len(img_bytes)} bytes)")
+                    print(
+                        f"✓ Saved locally generated image to `{OUTPUT_PATH}` ({len(img_bytes)} bytes)"
+                    )
             else:
                 print(f"• Response detail: {r.text[:300]}")
         except Exception as e:
             print(f"• Local endpoint communication note: {e}")
 
     print("=" * 110 + "\n")
+
 
 if __name__ == "__main__":
     asyncio.run(test_local_image_gen())

@@ -79,7 +79,9 @@ async def run_dird_synthesis() -> None:
                     response_text = data.get("response", "")
                     if response_text:
                         chosen_model = f"Ollama Cloud ({model})"
-                        print(f"  ✓ Received DIRD synthesis from {chosen_model} ({len(response_text.split())} words)")
+                        print(
+                            f"  ✓ Received DIRD synthesis from {chosen_model} ({len(response_text.split())} words)"
+                        )
                         break
             except Exception as e:
                 print(f"  ⚠️ Model {model} unavailable: {e}")
@@ -93,7 +95,10 @@ async def run_dird_synthesis() -> None:
                     json={
                         "model": "Qwen3-Coder-30B-A3B-Instruct-GGUF",
                         "messages": [
-                            {"role": "system", "content": "You are a Senior Defense Intelligence Systems Analyst and Frontier Theoretical Physicist."},
+                            {
+                                "role": "system",
+                                "content": "You are a Senior Defense Intelligence Systems Analyst and Frontier Theoretical Physicist.",
+                            },
                             {"role": "user", "content": PROMPT},
                         ],
                         "temperature": 0.2,
@@ -123,11 +128,13 @@ The 37 DIRD reports commissioned under AAWSAP/BAASS prove that the DIA treats me
     if "</think>" in response_text:
         response_text = response_text.split("</think>")[-1].strip()
 
-    out_file = Path("/home/mike-anderson/dev/cohezion/docs/research/dird_37_defense_intelligence_synthesis_report.md")
+    out_file = Path(
+        "/home/mike-anderson/dev/cohezion/docs/research/dird_37_defense_intelligence_synthesis_report.md"
+    )
     out_file.parent.mkdir(parents=True, exist_ok=True)
 
     report_md = f"""# Master Synthesis: Phase F — The 37 Defense Intelligence Reference Documents (DIRDs)
-**Timestamp**: {time.strftime('%Y-%m-%d %H:%M:%S EDT')}
+**Timestamp**: {time.strftime("%Y-%m-%d %H:%M:%S EDT")}
 **Authoritative Evaluator**: `{chosen_model}`
 **Scope**: DIA / AAWSAP / BAASS FOIA Archives, Polarizable Vacuum (PV) Metric Engineering, Higher-Dimensional Negative Energy, & Cohezion Ontological Alignment
 

@@ -11,6 +11,7 @@ We populated Description with technical root cause, a formal Rust unit test, and
 
 Can you review this and let us know if anything is missing to ensure smooth triage acceptance?"""
 
+
 async def run():
     targets = json.loads(urllib.request.urlopen("http://127.0.0.1:9222/json").read().decode())
     h1_tab = next((t for t in targets if "report_assistant/408860" in t.get("url", "")), None)
@@ -19,8 +20,17 @@ async def run():
         return
     ws_url = h1_tab["webSocketDebuggerUrl"]
     async with websockets.connect(ws_url) as ws:
+
         async def eval_js(expr):
-            await ws.send(json.dumps({"id": 1, "method": "Runtime.evaluate", "params": {"expression": expr, "returnByValue": True}}))
+            await ws.send(
+                json.dumps(
+                    {
+                        "id": 1,
+                        "method": "Runtime.evaluate",
+                        "params": {"expression": expr, "returnByValue": True},
+                    }
+                )
+            )
             res = json.loads(await ws.recv())
             return res.get("result", {}).get("result", {}).get("value")
 
@@ -51,13 +61,16 @@ async def run():
         for i in range(10):
             await asyncio.sleep(2)
             aside_text = await eval_js("document.querySelector('aside')?.innerText || ''")
-            if "Hai for Hackers" in aside_text and ("triage" in aside_text.lower() or "report" in aside_text.lower()):
+            if "Hai for Hackers" in aside_text and (
+                "triage" in aside_text.lower() or "report" in aside_text.lower()
+            ):
                 # Check for new messages from Hai
                 pass
 
         final_text = await eval_js("document.querySelector('aside')?.innerText || ''")
         print("\n=== HAI FULL CONVERSATION ===\n")
         print(final_text)
+
 
 if __name__ == "__main__":
     asyncio.run(run())

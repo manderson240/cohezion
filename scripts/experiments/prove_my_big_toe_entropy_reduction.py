@@ -90,15 +90,13 @@ def main() -> int:
 
     # Pre-state: Disordered prior state (turbulent coherences and scattered embeddings)
     pre_points = [
-        fabric._embed_node_to_poincare(r["mark_id"] + "_noise", r.get("title", ""))
-        for r in records
+        fabric._embed_node_to_poincare(r["mark_id"] + "_noise", r.get("title", "")) for r in records
     ]
     pre_coherences = [0.15 + (i * 0.07) % 0.80 for i, _ in enumerate(records)]
 
     # Post-state: Reconciled autopoietic state (homeostatic closure and 0.50 HIHO equilibrium)
     post_points = [
-        fabric._embed_node_to_poincare(r["mark_id"], r.get("title", ""))
-        for r in records
+        fabric._embed_node_to_poincare(r["mark_id"], r.get("title", "")) for r in records
     ]
     post_coherences = [r.get("hiho_coherence", 0.50) for r in records]
 
@@ -155,9 +153,9 @@ governed by this invariant.
 
 | Component | $S_{{\\text{{pre}}}}$ (Disordered) | $S_{{\\text{{post}}}}$ (Harmonized) | $\\Delta S$ |
 | :--- | :--- | :--- | :--- |
-| **Shannon Boltzmann Entropy** | `{transition_res.s_pre.shannon_entropy:.4f}` | `{transition_res.s_post.shannon_entropy:.4f}` | `{transition_res.metadata['shannon_delta']:.4f}` |
-| **HIHO Dispersion Entropy** | `{transition_res.s_pre.hiho_dispersion_entropy:.4f}` | `{transition_res.s_post.hiho_dispersion_entropy:.4f}` | `{transition_res.metadata['hiho_delta']:.4f}` |
-| **Topological Manifold Entropy** | `{transition_res.s_pre.topological_entropy:.4f}` | `{transition_res.s_post.topological_entropy:.4f}` | `{transition_res.metadata['topological_delta']:.4f}` |
+| **Shannon Boltzmann Entropy** | `{transition_res.s_pre.shannon_entropy:.4f}` | `{transition_res.s_post.shannon_entropy:.4f}` | `{transition_res.metadata["shannon_delta"]:.4f}` |
+| **HIHO Dispersion Entropy** | `{transition_res.s_pre.hiho_dispersion_entropy:.4f}` | `{transition_res.s_post.hiho_dispersion_entropy:.4f}` | `{transition_res.metadata["hiho_delta"]:.4f}` |
+| **Topological Manifold Entropy** | `{transition_res.s_pre.topological_entropy:.4f}` | `{transition_res.s_post.topological_entropy:.4f}` | `{transition_res.metadata["topological_delta"]:.4f}` |
 | **Total System Entropy** | **`{transition_res.s_pre.total_system_entropy:.4f}`** | **`{transition_res.s_post.total_system_entropy:.4f}`** | **`{transition_res.delta_entropy:.4f}`** |
 
 ---
@@ -193,10 +191,18 @@ governed by this invariant.
     )
 
     precip_res = bridge.persist(mark)
-    logger.info("Witness mark precipitated: Vault=%s, SurrealDB=%s", precip_res["vault_path"], precip_res["surreal_synced"])
+    logger.info(
+        "Witness mark precipitated: Vault=%s, SurrealDB=%s",
+        precip_res["vault_path"],
+        precip_res["surreal_synced"],
+    )
 
     dt_total = time.perf_counter() - t_start
-    logger.info("=== My Big TOE Proof Completed in %.2f s with Delta S = %.4f ===", dt_total, transition_res.delta_entropy)
+    logger.info(
+        "=== My Big TOE Proof Completed in %.2f s with Delta S = %.4f ===",
+        dt_total,
+        transition_res.delta_entropy,
+    )
     return 0
 
 

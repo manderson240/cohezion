@@ -22,16 +22,12 @@ Evaluate and recommend the bleeding-edge open-weights model upgrades across each
 4. Lemonade Router Policy: Recommended updated routing matrix.
 """
 
-payload = {
-    "model": "glm-5.2:cloud",
-    "prompt": prompt,
-    "stream": False
-}
+payload = {"model": "glm-5.2:cloud", "prompt": prompt, "stream": False}
 
 req = urllib.request.Request(
     "http://localhost:11434/api/generate",
     headers={"Content-Type": "application/json"},
-    data=json.dumps(payload).encode("utf-8")
+    data=json.dumps(payload).encode("utf-8"),
 )
 
 print("Querying GLM-5.2 cloud model directly on port 11434...")
@@ -42,10 +38,16 @@ try:
         data = json.loads(resp.read().decode("utf-8"))
         res_text = data.get("response", "")
         print(f"✓ Received response in {dt:.2f}s ({len(res_text)} chars):")
-        with open("/home/mike-anderson/dev/cohezion/docs/research/bleeding_edge_model_roster_research_2026.md", "w", encoding="utf-8") as f:
+        with open(
+            "/home/mike-anderson/dev/cohezion/docs/research/bleeding_edge_model_roster_research_2026.md",
+            "w",
+            encoding="utf-8",
+        ) as f:
             f.write("# Bleeding-Edge Hardware-Aligned Model Roster (AMD Strix Halo)\n\n")
             f.write(f"**Research Date**: {time.strftime('%Y-%m-%d %H:%M:%S')}\n")
-            f.write("**Target Processor**: AMD Ryzen AI MAX+ 395 w/ Radeon 8060S (128GB Unified Memory)\n\n---\n\n")
+            f.write(
+                "**Target Processor**: AMD Ryzen AI MAX+ 395 w/ Radeon 8060S (128GB Unified Memory)\n\n---\n\n"
+            )
             f.write(res_text)
         print("✓ Report saved to docs/research/bleeding_edge_model_roster_research_2026.md")
 except Exception as e:

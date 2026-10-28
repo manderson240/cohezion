@@ -16,6 +16,7 @@ from pathlib import Path
 
 OLLAMA_URL = "http://localhost:11434/api/generate"
 
+
 def query_agent(model: str, role: str, prompt: str, timeout: int = 180) -> str:
     print(f"\n[>>>] Invoking Stateless Cloud Agent: {role} ({model})...")
     payload = {
@@ -26,12 +27,12 @@ def query_agent(model: str, role: str, prompt: str, timeout: int = 180) -> str:
             "temperature": 0.1,
             "top_p": 0.9,
             "num_predict": 4096,
-        }
+        },
     }
     req = urllib.request.Request(
         OLLAMA_URL,
         data=json.dumps(payload).encode("utf-8"),
-        headers={"Content-Type": "application/json"}
+        headers={"Content-Type": "application/json"},
     )
     t0 = time.time()
     try:
@@ -45,20 +46,28 @@ def query_agent(model: str, role: str, prompt: str, timeout: int = 180) -> str:
         print(f"[!] Error querying {model}: {e}", file=sys.stderr)
         return f"ERROR: {e}"
 
+
 def read_file_safe(path: Path) -> str:
     if path.exists():
         return path.read_text(encoding="utf-8")
     return ""
 
+
 def main():
-    base_dir = Path("/home/mike-anderson/.gemini/antigravity-cli/brain/9d0f94a0-a1ab-464c-92ab-9bab8612583a/scratch/1win-token-solana-programs")
-    sale_activate_claim = read_file_safe(base_dir / "programs/sale/src/instructions/activate_claim.rs")
+    base_dir = Path(
+        "/home/mike-anderson/.gemini/antigravity-cli/brain/9d0f94a0-a1ab-464c-92ab-9bab8612583a/scratch/1win-token-solana-programs"
+    )
+    sale_activate_claim = read_file_safe(
+        base_dir / "programs/sale/src/instructions/activate_claim.rs"
+    )
     sale_purchase = read_file_safe(base_dir / "programs/sale/src/instructions/purchase.rs")
     sale_claim = read_file_safe(base_dir / "programs/sale/src/instructions/claim.rs")
     sale_refund = read_file_safe(base_dir / "programs/sale/src/instructions/refund.rs")
     sale_math = read_file_safe(base_dir / "programs/sale/src/math.rs")
     vesting_claim = read_file_safe(base_dir / "programs/vesting/src/instructions/claim.rs")
-    vesting_withdrawal = read_file_safe(base_dir / "programs/vesting/src/instructions/withdrawal.rs")
+    vesting_withdrawal = read_file_safe(
+        base_dir / "programs/vesting/src/instructions/withdrawal.rs"
+    )
     burn_burn = read_file_safe(base_dir / "programs/burn/src/instructions/burn.rs")
 
     # Step 1: Agent 1 (deepseek-v4-pro:cloud) - Economic & Invariant Analysis
@@ -89,7 +98,9 @@ Code context:
 Provide a precise, rigorous vulnerability analysis with Severity, Impact, Root Cause, and Attack Scenario.
 """
 
-    report_agent1 = query_agent("deepseek-v4-pro:cloud", "Invariants & Economic Threat Modeler", prompt_agent1)
+    report_agent1 = query_agent(
+        "deepseek-v4-pro:cloud", "Invariants & Economic Threat Modeler", prompt_agent1
+    )
 
     # Step 2: Agent 2 (kimi-k2.7-code:cloud) - Solana Anchor Implementation & Vulnerability Specialist
     prompt_agent2 = f"""You are the Solana Anchor Security & Exploit Specialist Agent.
@@ -125,7 +136,9 @@ Code context:
 Deliver high-impact findings with exact line references, exploit mechanics, and severity ranking.
 """
 
-    report_agent2 = query_agent("kimi-k2.7-code:cloud", "Solana Anchor Exploit Specialist", prompt_agent2)
+    report_agent2 = query_agent(
+        "kimi-k2.7-code:cloud", "Solana Anchor Exploit Specialist", prompt_agent2
+    )
 
     # Step 3: Agent 3 (glm-5.3:cloud) - System Architect & PoC Validator
     prompt_agent3 = f"""You are the System Architect & PoC Synthesis Agent.
@@ -145,7 +158,9 @@ Synthesize these findings into:
 
     report_agent3 = query_agent("glm-5.3:cloud", "System Architect & PoC Validator", prompt_agent3)
 
-    output_path = Path("/home/mike-anderson/.gemini/antigravity-cli/brain/9d0f94a0-a1ab-464c-92ab-9bab8612583a/stateless_ollama_cloud_audit_report.md")
+    output_path = Path(
+        "/home/mike-anderson/.gemini/antigravity-cli/brain/9d0f94a0-a1ab-464c-92ab-9bab8612583a/stateless_ollama_cloud_audit_report.md"
+    )
     full_report = f"""# Stateless Ollama Cloud Multi-Agent Audit: 1win Solana Smart Contracts
 
 ## Agent Swarm Roster
@@ -170,6 +185,7 @@ Synthesize these findings into:
 """
     output_path.write_text(full_report, encoding="utf-8")
     print(f"\n[+] Full multi-agent audit saved to: {output_path}")
+
 
 if __name__ == "__main__":
     main()

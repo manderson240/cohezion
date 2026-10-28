@@ -27,13 +27,17 @@ Evaluate:
 Provide a concise, high-impact recommendation under 250 words."""
 
 try:
-    resp = httpx.post("http://127.0.0.1:11434/api/generate", json={
-        "model": "deepseek-v4-flash:cloud",
-        "prompt": prompt,
-        "stream": False,
-        "options": {"temperature": 0.2, "num_predict": 600}
-    }, timeout=45.0)
-    
+    resp = httpx.post(
+        "http://127.0.0.1:11434/api/generate",
+        json={
+            "model": "deepseek-v4-flash:cloud",
+            "prompt": prompt,
+            "stream": False,
+            "options": {"temperature": 0.2, "num_predict": 600},
+        },
+        timeout=45.0,
+    )
+
     if resp.status_code == 200:
         data = resp.json()
         print("💡 MODEL CONSULTATION (EMBEDDED MULTI-AGENT SWARMS ON KAGGLE):")
