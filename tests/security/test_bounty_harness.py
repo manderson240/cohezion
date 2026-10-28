@@ -147,3 +147,44 @@ contract DlnExternalCallAdapter {
     ]
     assert len(desync_findings) == 1
     assert "unaccounted_token_withdrawal_desynchronization" in desync_findings[0].rule_name
+
+
+def test_detects_capacity_check_operator_inversion(harness: BugBountyHarness) -> None:
+    """Ensure operator inversion in capacity checks triggers High severity."""
+    solidity_code = """
+contract StPlumeMinter {
+    function getNextValidator(uint depositAmount) public returns (uint256, uint256) {
+        if (info.maxCapacity != 0 || totalStaked < info.maxCapacity) {
+            return (validatorId, info.maxCapacity - totalStaked);
+        }
+    }
+}
+"""
+    report = harness.audit_solidity_source(solidity_code, contract_name="StPlumeMinter")
+    assert not report.is_clean
+    assert report.max_severity == InvariantSeverity.HIGH
+    findings = [
+        v for v in report.violations if v.rule_name == "capacity_check_operator_inversion_underflow"
+    ]
+    assert len(findings) == 1
+    assert "Logical OR ('||') used instead of logical AND ('&&')" in findings[0].description
+
+
+def test_detects_raw_cross_asset_unit_subtraction(harness: BugBountyHarness) -> None:
+    """Ensure raw subtraction between collateral and borrow units triggers High severity."""
+    solidity_code = """
+contract MysticLeverageBundler {
+    function calculate() public {
+        uint leverage = (totalCollateralsPerUser[pairKey][msg.sender]) * SLIPPAGE_SCALE / (totalCollateralsPerUser[pairKey][msg.sender] - totalBorrowsPerUser[pairKey][msg.sender]);
+    }
+}
+"""
+    report = harness.audit_solidity_source(solidity_code, contract_name="MysticLeverageBundler")
+    assert not report.is_clean
+    assert report.max_severity == InvariantSeverity.HIGH
+    findings = [
+        v for v in report.violations if v.rule_name == "raw_cross_asset_unit_subtraction"
+    ]
+    assert len(findings) == 1
+    assert "Direct subtraction between raw collateral and borrow units" in findings[0].description
+

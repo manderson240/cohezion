@@ -422,21 +422,86 @@ class BugBountyHarness:
         # 2. Check: Unprotected Initializer
         for i, line in enumerate(lines, 1):
             if "function initialize(" in line:
-                if not any(m in line for m in ("initializer", "onlyOwner", "reinitializer")):
-                    # Check next 2 lines for modifier
-                    next_lines = " ".join(lines[i:min(i+3, len(lines))])
-                    if not any(m in next_lines for m in ("initializer", "onlyOwner", "reinitializer")):
-                        violations.append(
-                            InvariantViolation(
-                                category=InvariantCategory.UNPROTECTED_INITIALIZER,
-                                severity=InvariantSeverity.CRITICAL,
-                                rule_name="unprotected_initialize_function",
-                                line_number=i,
-                                description="Function 'initialize' lacks initializer modifier or access control guard.",
-                                formal_proof_trace="Any unprivileged caller can invoke initialize() to hijack contract ownership.",
-                                remediation_recommendation="Add 'initializer' or 'onlyOwner' modifier to initialize().",
-                            )
+                # Find the signature header up to the opening brace '{' or interface semicolon ';'
+                sig_window = []
+                for lookahead in range(i - 1, min(i + 20, len(lines))):
+                    sig_window.append(lines[lookahead])
+                    if "{" in lines[lookahead] or ";" in lines[lookahead]:
+                        break
+                sig_text = " ".join(sig_window)
+                if ";" in sig_text and "{" not in sig_text:
+                    # Interface declaration
+                    continue
+                if not any(m in sig_text for m in ("initializer", "onlyOwner", "reinitializer", "onlyInitializing")):
+                    violations.append(
+                        InvariantViolation(
+                            category=InvariantCategory.UNPROTECTED_INITIALIZER,
+                            severity=InvariantSeverity.CRITICAL,
+                            rule_name="unprotected_initialize_function",
+                            line_number=i,
+                            description="Function 'initialize' lacks initializer modifier or access control guard.",
+                            formal_proof_trace="Any unprivileged caller can invoke initialize() to hijack contract ownership.",
+                            remediation_recommendation="Add 'initializer' or 'onlyOwner' modifier to initialize().",
                         )
+                    )
+
+        # 3. Check: Capacity Check Operator Inversion / Underflow DoS
+        import re
+        capacity_or_pattern = re.compile(
+            r"if\s*\((?:.+?\.)?(?:maxCapacity|capacity|limit)\s*!=\s*0\s*\|\|\s*(?:.+?)<\s*(?:.+?\.)?(?:maxCapacity|capacity|limit)\)"
+        )
+        for i, line in enumerate(lines, 1):
+            if capacity_or_pattern.search(line):
+                violations.append(
+                    InvariantViolation(
+                        category=InvariantCategory.ARITHMETIC_PRECISION,
+                        severity=InvariantSeverity.HIGH,
+                        rule_name="capacity_check_operator_inversion_underflow",
+                        line_number=i,
+                        description=(
+                            "Logical OR ('||') used instead of logical AND ('&&') in capacity check, "
+                            "permitting saturated or over-allocated execution to proceed to subtraction underflow."
+                        ),
+                        formal_proof_trace=(
+                            "Condition 'maxCapacity != 0 || total < maxCapacity' evaluates to true for ANY non-zero maxCapacity,\n"
+                            "bypassing the 'total < maxCapacity' guard. When total >= maxCapacity, subsequent\n"
+                            "'maxCapacity - total' triggers an arithmetic underflow Panic(0x11) in Solidity 0.8+,\n"
+                            "or returns 0 capacity causing unbounded execution / permanent Denial of Service."
+                        ),
+                        remediation_recommendation=(
+                            "Change logical OR ('||') to logical AND ('&&'): "
+                            "'if (info.maxCapacity != 0 && totalStaked < info.maxCapacity)'."
+                        ),
+                    )
+                )
+
+        # 4. Check: Raw Cross-Asset Unit Subtraction
+        cross_asset_subtraction_pattern = re.compile(
+            r"\((?:totalCollaterals[^\-]*?-\s*totalBorrows[^\)]*?)\)"
+        )
+        for i, line in enumerate(lines, 1):
+            if cross_asset_subtraction_pattern.search(line):
+                violations.append(
+                    InvariantViolation(
+                        category=InvariantCategory.ARITHMETIC_PRECISION,
+                        severity=InvariantSeverity.HIGH,
+                        rule_name="raw_cross_asset_unit_subtraction",
+                        line_number=i,
+                        description=(
+                            "Direct subtraction between raw collateral and borrow units without "
+                            "decimal normalization or oracle price conversion."
+                        ),
+                        formal_proof_trace=(
+                            "Collateral and borrow tokens may have differing decimals (e.g. WBTC 8 vs USDC 6/DAI 18)\n"
+                            "and exchange rates. Subtracting raw uint256 units directly causes arithmetic underflow Panic(0x11)\n"
+                            "whenever borrow raw units exceed collateral raw units despite adequate economic margin."
+                        ),
+                        remediation_recommendation=(
+                            "Convert borrow amount to collateral asset decimals using price oracle quotes "
+                            "before calculating leverage or net equity."
+                        ),
+                    )
+                )
 
         dt_ms = (time.perf_counter() - t0) * 1000.0
         return BountyAuditReport(
