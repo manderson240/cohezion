@@ -18,6 +18,8 @@
       "Bash(lemonade*)",
       "Bash(entire*)",
       "Bash(curl -s http://localhost:*)",
+      "Bash(rocm*)",
+      "Bash(amd-smi*)",
       "Task(bouncer:*)",
       "mcp__plugin_playwright_playwright__*",
       "mcp__claude_ai_Context7__*"
@@ -26,6 +28,6 @@
   "env": {
     "PYTHONPATH": "src",
     "COHEZION_SESSION_ID": "",
-    "ANTHROPIC_INTEL_LOCAL_LLM": "http://localhost:13307"
+    "ANTHROPIC_INTEL_LOCAL_LLM": "http://localhost:13305"
   }
 }

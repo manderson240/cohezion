@@ -27,9 +27,13 @@ Cohezion is an agentic AI framework with universe simulation, compound sessions,
 - Reset singletons in tests: `cohezion.api._vae_trainer = None`
 - All I/O must be async with timeouts
 - Use Pydantic validation at API boundaries
+- **Explicit Failure > Implicit Approximation**: Never leave insecure dynamic fallbacks (e.g., `eval()`) behind safe AST parsers; fail loudly with `UnsupportedNodeError` rather than leaking vulnerabilities.
+- **Default-Deny Execution**: Prohibit unshielded `exec(code, {})` (the CPython empty-dict builtins trap); all dynamic execution must pass `safe_exec_globals()` or compile to deterministic AST bytecode.
+- **No Passthrough Shims**: Prohibit zero-value forwarding functions (`def foo(): return _foo()`); use direct `__all__` re-exports or clean automated codemods.
+- **Agents are Flows, Not Objects**: Never author deep class hierarchies with 15-parameter constructor signatures; compose agents as pure functional pipelines using Python 3.13 Protocols and frozen `@dataclass(slots=True)`.
 
 ## Core AGI Mandates (2026-08-03)
-1. **AutoHarness (arXiv:2603.03329v1)**: Mandate `AutoHarness` deterministic code-as-action verifiers and bytecode compilers to bypass LLM calls at inference time with 0 ms latency (`src/cohezion/agi/autoharness_policy.py`).
+1. **AutoHarness (arXiv:2603.03329v1)**: Mandate `AutoHarness` deterministic code-as-action verifiers and bytecode compilers to bypass LLM calls at inference time with 0 ms latency (`src/cohezion/agi/autoharness_policy.py`). Enforced in CI via `scripts/ci/autoharness_gate.py`.
 2. **AutoContext**: Maintain continuous 2048D Poincaré state tracking and dynamic conformal factor resolution for context injection (`src/cohezion/physics/poincare_manifold.py`).
 3. **Bleeding Edge Research**: Implement continuous topological auto-calibration (CTAC), zero-knowledge formal verification (ZKFV), and continuous geodesic flow Neural ODEs (`src/cohezion/physics/ctac_engine.py`, `src/cohezion/agi/zkfv_compiler.py`).
 4. **Recursive Learning**: Every agent swarm cycle extracts retrospectives into SurrealDB (`learning` table) and Obsidian Vault (`01-Learnings/`) to continuously refine system code and policies ("Cohezion improving Cohezion") (`src/cohezion/agi/recursive_learning.py`).
@@ -37,6 +41,9 @@ Cohezion is an agentic AI framework with universe simulation, compound sessions,
 6. **Proactive Hybrid Delegation**: Proactively offload routine research, code generation, and background diagnostics to Tier 1 local silicon (`deepseek-r1-0528-8b-FLM`, `qwen3.6-moe-35b-a3b-FLM`, `Qwen3-Coder-30B`) and Tier 2 Ollama Cloud models (`deepseek-v4-pro:cloud`, `glm-5.2:cloud`, `qwen3.5:397b-cloud`) via `UnifiedHybridRouter` and subagents (`invoke_subagent`). Maintain Expected Value of Intervention threshold ($\text{EVI} > 0.75$) to trigger autonomous background self-healing (`src/cohezion/inference/unified_hybrid_router.py`, `src/cohezion/proactive/`).
 7. **Local Model Next-Step Consultation Mandate**: Whenever wondering what next step to take, encountering branching choices, or navigating ambiguous execution paths, Antigravity MUST proactively consult a local silicon model (Tier 1 Lemonade port `13305` or Ollama port `11434`, e.g., `deepseek-r1-0528-8b-FLM`, `Qwen3-Coder-30B`) to reason through candidate directions, evaluate trade-offs, and recommend the optimal high-leverage action before proceeding.
 8. **Kaggle Active Competition Reporting Filter**: Never report on expired or closed competitions. Strictly filter all leaderboard audits, submission tracking, and status reports to currently ACTIVE, unexpired competitions (e.g. ARC Prize 2026 tracks, Pokémon TCG AI Challenge).
+9. **The Trinity RSI Engine (arXiv:2610.36077)**: Mandate capability-driven decomposition via canonical prefix `CapabilityTree` (`src/cohezion/agi/trinity_engine.py`), `create_sim_world` Real2Sim2Real micro-environments, and Selective Inheritance ($P \oplus L$) with monotonic empirical gating ($\text{Score} \ge \text{Score}_{\text{prev}}$).
+10. **Open Ontologies Semantic Planning & Blast Radius**: Mandate pre-commit blast radius analysis (`src/cohezion/knowledge_graph/open_ontologies_bridge.py`) and linear-time zero-trust `DerivationCertificate` verification for all core infrastructure mutations, gating CI landings via `scripts/ci/semantic_guard.py`.
+11. **Elegant Simplicity & Anti-Bloat Laws (Learning 433)**: Strictly adhere to Gall's Law and YAGNI. Every new abstraction must earn its keep. Continuously run `src/cohezion/compound/simplicity_audit.py` to prevent cyclomatic complexity inflation (keep CC $\le 20$, depth $\le 6$). Replace polling loops with reactive `asyncio.Event`/`asyncio.Queue` push notifications.
 
 ## Autoresearch Mode
 When in autoresearch mode:

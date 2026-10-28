@@ -49,6 +49,7 @@ class AutoHarnessPolicy:
         self.register_rule("type_annotations_present", self._check_type_annotations)
         self.register_rule("no_bare_except", self._check_no_bare_except)
         self.register_rule("multimodal_payload_schema", self._check_multimodal_payload_schema)
+        self.register_rule("unit_consistency_cwe682", self._check_unit_consistency)
 
     def register_rule(self, name: str, verifier_fn: Callable[[ast.AST], list[str]]) -> None:
         """Register a custom deterministic verifier rule."""
@@ -123,6 +124,51 @@ class AutoHarnessPolicy:
         return violations
 
     @staticmethod
+    def _check_unit_consistency(tree: ast.AST) -> list[str]:
+        """Verify dimensional/unit consistency in arithmetic operations (preventing CWE-682).
+
+        Detects direct subtraction/addition between unit-incompatible identifiers
+        such as dimensionless counts ('participants', 'count', 'users') and monetary/token
+        accumulators ('soft_cap', 'amount', 'balance', 'proceeds', 'pool').
+        """
+        violations = []
+        count_keywords = {
+            "participant",
+            "participants",
+            "user_count",
+            "account_count",
+            "item_count",
+        }
+        currency_keywords = {
+            "soft_cap",
+            "hard_cap",
+            "proceeds",
+            "pool",
+            "vault",
+            "deposit_usdc",
+            "usdc",
+        }
+
+        for node in ast.walk(tree):
+            if isinstance(node, ast.BinOp) and isinstance(node.op, (ast.Sub, ast.Add)):
+                left_id = getattr(node.left, "id", "") if isinstance(node.left, ast.Name) else ""
+                right_id = getattr(node.right, "id", "") if isinstance(node.right, ast.Name) else ""
+                left_lower = left_id.lower()
+                right_lower = right_id.lower()
+
+                if (
+                    any(c in left_lower for c in count_keywords)
+                    and any(m in right_lower for m in currency_keywords)
+                ) or (
+                    any(m in left_lower for m in currency_keywords)
+                    and any(c in right_lower for c in count_keywords)
+                ):
+                    violations.append(
+                        f"Unit consistency violation (CWE-682): arithmetic between count '{left_id}' and currency '{right_id}' at line {node.lineno}"
+                    )
+        return violations
+
+    @staticmethod
     def _check_multimodal_payload_schema(tree: ast.AST) -> list[str]:
         """Verify TRELLIS 3D and ACE-Step payload schema AST calls."""
         violations = []
@@ -175,6 +221,7 @@ class AutoHarnessPolicy:
 
         # 4. Credential safety policy: ensures shell actions do not access forbidden secret files
         from cohezion.security.secret_scrubber import verify_command_safety
+
         self._policy_registry["credential_safe"] = lambda state: (
             verify_command_safety(state.get("command", "")).allowed
         )

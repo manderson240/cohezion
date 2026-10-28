@@ -156,9 +156,11 @@ class ToolRegistry:
         sys.stdout, sys.stderr = stdout, stderr
 
         try:
-            # Create isolated namespace
-            namespace = {}
-            exec(code, namespace)
+            # H5 hardening: use safe_exec_globals to restrict builtins
+            from cohezion.compound.safe_exec import safe_exec_globals
+
+            namespace = safe_exec_globals()
+            exec(compile(code, "<agent_eval>", "exec"), namespace)
 
             result = {
                 "stdout": stdout.getvalue()[:10000],

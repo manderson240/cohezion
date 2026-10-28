@@ -39,6 +39,30 @@ Cohezion engineering standards before they cause issues.
 - **Remediation:** Use specific exception types with circuit breakers
 - **Files Affected:** 104
 
+### Insecure Dynamic Fallbacks (Phantom Eval)
+- **Severity:** critical
+- **Category:** security-and-invariance
+- **Detection:** `eval(compile(...))` or `eval()` left behind a safe parser
+- **Remediation:** Explicit failure > implicit approximation. Fail loudly with `UnsupportedNodeError`; never leave insecure dynamic fallbacks behind safe AST parsers.
+
+### Compatibility Passthrough Shims
+- **Severity:** medium
+- **Category:** code-bloat
+- **Detection:** Function body only forwards arguments (`def foo(*a, **k): return _foo(*a, **k)`)
+- **Remediation:** Shims are debt, not courtesy. Use direct `__all__` re-exports or clean automated codemods.
+
+### CPython Empty-Namespace Exec Builtins Trap
+- **Severity:** critical
+- **Category:** sandbox-escape
+- **Detection:** `namespace = {}; exec(code, namespace)`
+- **Remediation:** Default-deny execution. CPython auto-injects builtins (`open`, `os`, `sys`) into empty dicts. Strictly pass `safe_exec_globals()` or compile to deterministic AST bytecode. Enforced by `scripts/ci/autoharness_gate.py`.
+
+### Agent Inheritance Hierarchy Bloat
+- **Severity:** high
+- **Category:** architectural-complexity
+- **Detection:** Class hierarchies with >10 `__init__` parameters implementing duplicate `execute_task` loops
+- **Remediation:** Agents are flows, not objects. Compose pure functional pipelines using Python 3.13 Protocols and frozen `@dataclass(slots=True)`.
+
 
 ## INSTRUCTION
 

@@ -36,7 +36,10 @@ soft_recovery() {
   fi
 
   log "post-recovery check"
-  if command -v rocm-smi >/dev/null 2>&1; then
+  if command -v amd-smi >/dev/null 2>&1 || [[ -x "/opt/rocm-7.2.1/bin/amd-smi" ]]; then
+    AMD_SMI_BIN=$(command -v amd-smi 2>/dev/null || echo "/opt/rocm-7.2.1/bin/amd-smi")
+    "${AMD_SMI_BIN}" 2>/dev/null | head -10 || true
+  elif command -v rocm-smi >/dev/null 2>&1; then
     rocm-smi --showuse 2>/dev/null | head -5 || true
   fi
   free -h

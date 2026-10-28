@@ -99,6 +99,15 @@ class HardwareTelemetry:
 
     def _detect_tools(self):
         """Detect available monitoring tools."""
+        self.amd_smi_path = (
+            "/opt/rocm-7.2.1/bin/amd-smi"
+            if Path("/opt/rocm-7.2.1/bin/amd-smi").exists()
+            else ("/opt/rocm/bin/amd-smi" if Path("/opt/rocm/bin/amd-smi").exists() else None)
+        )
+        self.has_amd_smi = self._check_command("amd-smi") or (self.amd_smi_path is not None)
+        if not self.amd_smi_path and self._check_command("amd-smi"):
+            self.amd_smi_path = "amd-smi"
+
         self.has_rocm_smi = self._check_command("rocm-smi")
         self.has_amdgpu_pro = self._check_command("amdgpu-pro-px")
         self.has_flm = self._check_tool("/usr/bin/flm")
@@ -130,7 +139,7 @@ class HardwareTelemetry:
         # Collect based on backend
         if self.backend == ComputeBackend.VULKAN_GPU:
             self._collect_vulkan_gpu(snapshot)
-        elif self.backend == ComputeBackend.ROCM_GPU and self.has_rocm_smi:
+        elif self.backend == ComputeBackend.ROCM_GPU and (self.has_amd_smi or self.has_rocm_smi):
             self._collect_rocm_gpu(snapshot)
         elif self.backend == ComputeBackend.XDNA2_NPU and self.has_flm:
             self._collect_xdna2_npu(snapshot)
@@ -201,7 +210,39 @@ class HardwareTelemetry:
         return 0.0  # Unknown
 
     def _collect_rocm_gpu(self, snapshot: HardwareSnapshot):
-        """Collect ROCm GPU metrics (if available)."""
+        """Collect ROCm GPU metrics via amd-smi (ROCm 7.x) or legacy rocm-smi."""
+        if self.has_amd_smi and self.amd_smi_path:
+            try:
+                result = subprocess.run(
+                    [self.amd_smi_path, "metric", "--json"],
+                    capture_output=True,
+                    text=True,
+                    timeout=5,
+                )
+                if result.returncode == 0:
+                    data = json.loads(result.stdout)
+                    gpu_list = data.get("gpu_data", [])
+                    if gpu_list:
+                        gpu = gpu_list[0]
+                        temp_edge = gpu.get("temperature", {}).get("edge", {})
+                        if isinstance(temp_edge, dict) and "value" in temp_edge:
+                            snapshot.temperature_c = float(temp_edge["value"])
+
+                        mem = gpu.get("mem_usage", {})
+                        gtt = mem.get("total_gtt", {})
+                        used_gtt = mem.get("used_gtt", {})
+                        if isinstance(gtt, dict) and "value" in gtt:
+                            snapshot.memory_total_mb = int(gtt["value"])
+                        if isinstance(used_gtt, dict) and "value" in used_gtt:
+                            snapshot.memory_used_mb = int(used_gtt["value"])
+
+                        usage = gpu.get("usage")
+                        if usage and usage != "N/A":
+                            snapshot.utilization_pct = float(str(usage).strip("%"))
+                        return
+            except Exception:
+                pass
+
         if not self.has_rocm_smi:
             return
 
