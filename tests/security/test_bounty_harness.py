@@ -188,3 +188,28 @@ contract MysticLeverageBundler {
     assert len(findings) == 1
     assert "Direct subtraction between raw collateral and borrow units" in findings[0].description
 
+
+def test_detects_skipped_epoch_rollover_state_loss(harness: BugBountyHarness) -> None:
+    """Ensure hardcoded previous epoch rollover without last active epoch check triggers High severity."""
+    solidity_code = """
+contract MultiVault {
+    function _rollover(address user) internal {
+        uint256 currentEpochLocal = _currentEpoch();
+        uint256 previousEpoch = currentEpochLocal - 1;
+        int256 previousEpochUtilization = totalUtilization[previousEpoch];
+        if (previousEpochUtilization != 0 && totalUtilization[currentEpochLocal] == 0) {
+            totalUtilization[currentEpochLocal] = previousEpochUtilization;
+        }
+    }
+}
+"""
+    report = harness.audit_solidity_source(solidity_code, contract_name="MultiVault")
+    assert not report.is_clean
+    assert report.max_severity == InvariantSeverity.HIGH
+    findings = [
+        v for v in report.violations if v.rule_name == "skipped_epoch_rollover_state_loss"
+    ]
+    assert len(findings) == 1
+    assert "System rollover hardcodes 'epoch - 1' lookup" in findings[0].description
+
+

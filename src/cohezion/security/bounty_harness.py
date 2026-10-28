@@ -503,6 +503,37 @@ class BugBountyHarness:
                     )
                 )
 
+        # 5. Check: Skipped Epoch Rollover State Loss
+        epoch_minus_one_pattern = re.compile(
+            r"(?:previousEpoch|lastEpoch)\s*=\s*(?:currentEpoch[A-Za-z0-9_]*|\bepoch\b)\s*-\s*1\s*;"
+        )
+        for i, line in enumerate(lines, 1):
+            if epoch_minus_one_pattern.search(line):
+                next_window = " ".join(lines[i : min(i + 10, len(lines))])
+                if any(k in next_window for k in ("totalUtilization", "systemUtilization", "totalEmissions")):
+                    violations.append(
+                        InvariantViolation(
+                            category=InvariantCategory.STATE_DESYNCHRONIZATION,
+                            severity=InvariantSeverity.HIGH,
+                            rule_name="skipped_epoch_rollover_state_loss",
+                            line_number=i,
+                            description=(
+                                "System rollover hardcodes 'epoch - 1' lookup without tracking the last active epoch, "
+                                "causing cumulative system state to be lost when an epoch is skipped."
+                            ),
+                            formal_proof_trace=(
+                                "System state lookup reads totalUtilization[currentEpoch - 1].\n"
+                                "If no transactions occurred in epoch - 1, the mapping returns 0.\n"
+                                "The rollover condition fails, resetting total utilization to 0 and driving\n"
+                                "subsequent redemptions into negative utilization and distorting emissions."
+                            ),
+                            remediation_recommendation=(
+                                "Track 'lastSystemActiveEpoch' in storage and roll over from "
+                                "totalUtilization[lastSystemActiveEpoch] rather than currentEpoch - 1."
+                            ),
+                        )
+                    )
+
         dt_ms = (time.perf_counter() - t0) * 1000.0
         return BountyAuditReport(
             target_name=target,
