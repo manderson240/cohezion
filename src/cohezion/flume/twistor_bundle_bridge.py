@@ -78,7 +78,7 @@ class TwistorBundleBridge:
 
     def poincare_to_4d_spacetime(self, point: PoincarePoint) -> tuple[float, float, float, float]:
         """Conformal reduction of 2048D Poincaré vector to 4D spacetime (t, x, y, z).
-        
+
         Maps:
         - t: Hyperbolic radius (norm) representing temporal depth/entropy.
         - x, y, z: Spatial projection from the primary quadrupole components.
@@ -87,8 +87,8 @@ class TwistorBundleBridge:
         # Quadruple chunk sums
         chunk_size = SOUL_DIM // 4
         c_x = sum(point.coords[0:chunk_size]) / math.sqrt(chunk_size)
-        c_y = sum(point.coords[chunk_size:chunk_size*2]) / math.sqrt(chunk_size)
-        c_z = sum(point.coords[chunk_size*2:chunk_size*3]) / math.sqrt(chunk_size)
+        c_y = sum(point.coords[chunk_size : chunk_size * 2]) / math.sqrt(chunk_size)
+        c_z = sum(point.coords[chunk_size * 2 : chunk_size * 3]) / math.sqrt(chunk_size)
 
         # Normalize spatial components to match lightcone: t^2 = x^2 + y^2 + z^2
         spatial_norm = math.sqrt(c_x**2 + c_y**2 + c_z**2) or 1.0
@@ -128,9 +128,7 @@ class TwistorBundleBridge:
 
         return state
 
-    def batch_dissolve_and_precipitate(
-        self, modules: list[tuple[str, str]]
-    ) -> dict[str, Any]:
+    def batch_dissolve_and_precipitate(self, modules: list[tuple[str, str]]) -> dict[str, Any]:
         """Dissolve a collection of modules, verify twistor invariants, and persist MOC note."""
         t0 = time.perf_counter()
         dissolved_states: list[ModuleDissolutionState] = []

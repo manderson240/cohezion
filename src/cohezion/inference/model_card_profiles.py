@@ -6,7 +6,7 @@ Enforces Card-Aligned Recipes:
 """
 
 from dataclasses import dataclass
-from typing import Any
+
 
 @dataclass(frozen=True)
 class ModelProfile:
@@ -20,6 +20,7 @@ class ModelProfile:
     thinking_model: bool
     purpose: str
 
+
 MODEL_CARD_REGISTRY: dict[str, ModelProfile] = {
     # --- Local NPU Models (Strix Halo XDNA2) ---
     "deepseek-r1-0528-8b-FLM": ModelProfile(
@@ -31,7 +32,7 @@ MODEL_CARD_REGISTRY: dict[str, ModelProfile] = {
         temperature=0.6,
         top_p=0.95,
         thinking_model=True,
-        purpose="Deep mathematical reasoning, logic puzzle solving, Sheaf cohomology"
+        purpose="Deep mathematical reasoning, logic puzzle solving, Sheaf cohomology",
     ),
     "qwen3.6-moe-35b-a3b-FLM": ModelProfile(
         model_id="qwen3.6-moe-35b-a3b-FLM",
@@ -42,7 +43,7 @@ MODEL_CARD_REGISTRY: dict[str, ModelProfile] = {
         temperature=0.2,
         top_p=0.9,
         thinking_model=False,
-        purpose="Fast tokenized macro planning, literature extraction"
+        purpose="Fast tokenized macro planning, literature extraction",
     ),
     "qwen3-4b-FLM": ModelProfile(
         model_id="qwen3-4b-FLM",
@@ -53,9 +54,8 @@ MODEL_CARD_REGISTRY: dict[str, ModelProfile] = {
         temperature=0.1,
         top_p=0.9,
         thinking_model=False,
-        purpose="Small tool calling, format validation"
+        purpose="Small tool calling, format validation",
     ),
-
     # --- Local iGPU Models (Radeon 8060S / Vulkan) ---
     "Qwen3-Coder-30B": ModelProfile(
         model_id="Qwen3-Coder-30B",
@@ -66,7 +66,7 @@ MODEL_CARD_REGISTRY: dict[str, ModelProfile] = {
         temperature=0.1,  # Low temp for deterministic coding
         top_p=0.9,
         thinking_model=False,
-        purpose="Python AST code generation, multi-file refactoring"
+        purpose="Python AST code generation, multi-file refactoring",
     ),
     "gpt-oss-20b": ModelProfile(
         model_id="gpt-oss-20b",
@@ -77,9 +77,8 @@ MODEL_CARD_REGISTRY: dict[str, ModelProfile] = {
         temperature=0.2,
         top_p=0.9,
         thinking_model=True,
-        purpose="Adversarial red-team review, edge case identification"
+        purpose="Adversarial red-team review, edge case identification",
     ),
-
     # --- Frontier Ollama Cloud Models ---
     "deepseek-v4-pro:cloud": ModelProfile(
         model_id="deepseek-v4-pro:cloud",
@@ -90,7 +89,7 @@ MODEL_CARD_REGISTRY: dict[str, ModelProfile] = {
         temperature=0.6,
         top_p=0.95,
         thinking_model=True,
-        purpose="Frontier mathematical proofs, non-equilibrium thermodynamic systems"
+        purpose="Frontier mathematical proofs, non-equilibrium thermodynamic systems",
     ),
     "qwen3.5:397b-cloud": ModelProfile(
         model_id="qwen3.5:397b-cloud",
@@ -101,7 +100,7 @@ MODEL_CARD_REGISTRY: dict[str, ModelProfile] = {
         temperature=0.2,
         top_p=0.9,
         thinking_model=True,
-        purpose="Frontier competitive ML architecture, high-dimensional Hungarian solvers"
+        purpose="Frontier competitive ML architecture, high-dimensional Hungarian solvers",
     ),
     "glm-5.2:cloud": ModelProfile(
         model_id="glm-5.2:cloud",
@@ -112,9 +111,10 @@ MODEL_CARD_REGISTRY: dict[str, ModelProfile] = {
         temperature=0.3,
         top_p=0.9,
         thinking_model=True,
-        purpose="Medical imaging (3D DICOM) and physical field simulation"
-    )
+        purpose="Medical imaging (3D DICOM) and physical field simulation",
+    ),
 }
+
 
 def get_aligned_profile(model_id: str) -> ModelProfile:
     """Returns the card-aligned profile or a safe calibrated fallback."""
@@ -130,5 +130,5 @@ def get_aligned_profile(model_id: str) -> ModelProfile:
         temperature=0.2,
         top_p=0.9,
         thinking_model=False,
-        purpose="Standard inference"
+        purpose="Standard inference",
     )

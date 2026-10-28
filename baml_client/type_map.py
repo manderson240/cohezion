@@ -16,8 +16,17 @@ from . import stream_types
 
 type_map = {
 
+    "types.CodeHarness": types.CodeHarness,
+    "stream_types.CodeHarness": stream_types.CodeHarness,
+
     "types.NextStep": types.NextStep,
     "stream_types.NextStep": stream_types.NextStep,
+
+    "types.SubmissionStrategy": types.SubmissionStrategy,
+    "stream_types.SubmissionStrategy": stream_types.SubmissionStrategy,
+
+    "types.TaskInvariants": types.TaskInvariants,
+    "stream_types.TaskInvariants": stream_types.TaskInvariants,
 
 
 }

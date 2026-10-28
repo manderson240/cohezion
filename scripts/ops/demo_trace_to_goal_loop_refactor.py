@@ -9,7 +9,7 @@ import numpy as np
 from cohezion.flume.loop_goal_refactor_engine import (
     GoalSpecification,
     AutonomousGoalExecutor,
-    TraceToLoopTransformer
+    TraceToLoopTransformer,
 )
 
 SURREAL_URL = "http://localhost:8001/sql"
@@ -17,8 +17,9 @@ SURREAL_HEADERS = {
     "surreal-ns": "cohezion",
     "surreal-db": "main",
     "Authorization": "Basic cm9vdDpyb290",
-    "Content-Type": "text/plain"
+    "Content-Type": "text/plain",
 }
+
 
 async def run_refactor_demo():
     print("\n" + "=" * 115)
@@ -31,7 +32,7 @@ async def run_refactor_demo():
         {"step": 1, "agent": "scout", "finding": "Poincaré manifold curvature drift observed"},
         {"step": 2, "agent": "evaluator", "metric": 0.22},
         {"step": 3, "agent": "calibrator", "metric": 0.38},
-        {"step": 4, "agent": "verifier", "metric": 0.50}
+        {"step": 4, "agent": "verifier", "metric": 0.50},
     ]
     for ev in raw_trace:
         print(f"  • Trace Event: {ev}")
@@ -39,18 +40,19 @@ async def run_refactor_demo():
     # 2. Refactor Trace -> Goal Specification
     print("\n▶ [2] Transforming Linear Trace into Formal Goal Specification:")
     goal = TraceToLoopTransformer.synthesize_goal_from_trace(
-        raw_trace,
-        goal_title="Attain and Lock HIHO 0.50 Coherence Attractor"
+        raw_trace, goal_title="Attain and Lock HIHO 0.50 Coherence Attractor"
     )
     print(f"  ✓ Goal Created: `{goal.title}` (ID: {goal.goal_id})")
-    print(f"  ✓ Target Metric: {goal.target_metric} >= {goal.target_threshold} | Max Iterations: {goal.max_iterations}")
+    print(
+        f"  ✓ Target Metric: {goal.target_metric} >= {goal.target_threshold} | Max Iterations: {goal.max_iterations}"
+    )
 
     # 3. Execute Autonomous Closed-Loop State Machine
     print("\n▶ [3] Executing Autonomous Goal Loop State Machine:")
-    
+
     # State is current coherence
     initial_coherence = 0.15
-    
+
     def step_fn(iteration: int, state: float) -> tuple[float, float, str]:
         # Negative feedback allostatic step towards 0.50
         error = 0.50 - state
@@ -67,9 +69,22 @@ async def run_refactor_demo():
 
     for step in result.history:
         status_mark = "🎯 GOAL REACHED" if step.is_goal_met else "🔄 Iterating"
-        print(f"  Iteration #{step.iteration}: Coherence = {step.metric_value:.4f} | {step.action_taken:<45} | {status_mark}")
+        print(
+            f"  Iteration #{step.iteration}: Coherence = {step.metric_value:.4f} "
+            f"(Progress: {step.progress * 100:.1f}%) | {step.action_taken:<45} | {status_mark}"
+        )
 
-    print(f"\n  ✓ Loop Converged: {result.converged} in {result.iterations_run} iterations ({result.total_time_ms} ms)")
+    print(
+        f"\n  ✓ Loop Converged: {result.converged} in {result.iterations_run} iterations ({result.total_time_ms} ms)"
+    )
+    if result.memory_as_plans:
+        print(
+            f"  ✓ MaP-WAM Memory-as-Plans Segments Committed: {len(result.memory_as_plans.segments)}"
+        )
+        for s in result.memory_as_plans.segments:
+            print(
+                f"    • Segment {s.segment_id}: plan='{s.subgoal_plan}' | proof={s.verification_proof}"
+            )
 
     # 4. Durable SurrealDB Goal & Loop Trace Persistence
     print("\n▶ [4] Persisting Goal & Execution Loop to SurrealDB...")
@@ -92,6 +107,7 @@ async def run_refactor_demo():
 
     print("\n" + "=" * 115)
     print("🎉 TRACE REFACTORING INTO GOALS & LOOPS COMPLETE AND VERIFIED!\n")
+
 
 if __name__ == "__main__":
     asyncio.run(run_refactor_demo())

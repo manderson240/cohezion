@@ -20,6 +20,7 @@ REJECT/STANDARD/refuted results never reach this stage.
 from __future__ import annotations
 
 import json
+import logging
 import urllib.request
 from collections.abc import Callable
 from dataclasses import dataclass
@@ -42,9 +43,15 @@ def _http_surreal(sql: str) -> bool:
             headers={**_BUS_HEADERS, "Authorization": "Basic cm9vdDpyb290"},
             method="POST",
         )
-        urllib.request.urlopen(req, timeout=6).read()  # noqa: S310 — controlled localhost URL
+        from cohezion.storage.surreal_http import checked_statements
+
+        with urllib.request.urlopen(req, timeout=6) as resp:  # noqa: S310 — controlled localhost URL
+            checked_statements(json.loads(resp.read()), status_code=resp.status)
         return True
-    except Exception:
+    except Exception as exc:
+        logging.getLogger(__name__).warning(
+            "anomaly_quarantine SurrealDB write failed: %s", str(exc)[:200]
+        )
         return False
 
 

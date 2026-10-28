@@ -21,17 +21,22 @@ from cohezion.inference.smart_oom_governor import SmartOOMGovernor, CrossSession
 
 logger = logging.getLogger("autoharness_middleware")
 
+
 def standard_harness_lifecycle(harness_name: str, require_fleetlock: bool = False):
     """Decorator applying standardized pre/post hooks, formal gates, and DataMesh sync."""
+
     def decorator(func: Callable):
         if inspect.iscoroutinefunction(func):
+
             @functools.wraps(func)
             async def async_wrapper(*args, **kwargs):
                 t0 = time.perf_counter()
                 avail_gib, swap_gib, is_safe = SmartOOMGovernor.get_memory_state()
                 if not is_safe:
-                    logger.warning(f"[{harness_name}] Memory low ({avail_gib} GiB). Applying backpressure.")
-                
+                    logger.warning(
+                        f"[{harness_name}] Memory low ({avail_gib} GiB). Applying backpressure."
+                    )
+
                 if require_fleetlock:
                     with CrossSessionFleetLock(timeout_sec=30.0):
                         result = await func(*args, **kwargs)
@@ -49,23 +54,27 @@ def standard_harness_lifecycle(harness_name: str, require_fleetlock: bool = Fals
                             "harness": harness_name,
                             "duration_ms": dt_ms,
                             "memory_headroom_gib": avail_gib,
-                            "status": "VERIFIED"
-                        }
+                            "status": "VERIFIED",
+                        },
                     )
                     await event_bus.publish(ev)
                 except Exception as e:
                     logger.debug(f"EventBus notice: {e}")
 
                 return result
+
             return async_wrapper
         else:
+
             @functools.wraps(func)
             def sync_wrapper(*args, **kwargs):
                 t0 = time.perf_counter()
                 avail_gib, swap_gib, is_safe = SmartOOMGovernor.get_memory_state()
                 if not is_safe:
-                    logger.warning(f"[{harness_name}] Memory low ({avail_gib} GiB). Applying backpressure.")
-                
+                    logger.warning(
+                        f"[{harness_name}] Memory low ({avail_gib} GiB). Applying backpressure."
+                    )
+
                 if require_fleetlock:
                     with CrossSessionFleetLock(timeout_sec=30.0):
                         result = func(*args, **kwargs)
@@ -75,7 +84,11 @@ def standard_harness_lifecycle(harness_name: str, require_fleetlock: bool = Fals
                 dt_ms = round((time.perf_counter() - t0) * 1000, 2)
                 try:
                     # Synchronous event publish helper
-                    event_bus = asyncio.run(get_event_bus()) if not asyncio.get_event_loop().is_running() else None
+                    event_bus = (
+                        asyncio.run(get_event_bus())
+                        if not asyncio.get_event_loop().is_running()
+                        else None
+                    )
                     if event_bus:
                         ev = Event(
                             type=EventType.CUSTOM,
@@ -85,14 +98,15 @@ def standard_harness_lifecycle(harness_name: str, require_fleetlock: bool = Fals
                                 "harness": harness_name,
                                 "duration_ms": dt_ms,
                                 "memory_headroom_gib": avail_gib,
-                                "status": "VERIFIED"
-                            }
+                                "status": "VERIFIED",
+                            },
                         )
                         event_bus.publish_sync(ev)
                 except Exception:
                     pass
 
                 return result
+
             return sync_wrapper
 
     return decorator

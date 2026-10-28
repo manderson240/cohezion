@@ -1,6 +1,7 @@
 """Unit tests for UnifiedHybridRouter."""
 
 import tempfile
+import warnings
 from pathlib import Path
 
 # reconcile 2026-08-26: imports needed by branch-preserved code
@@ -53,7 +54,7 @@ def test_route_tier2_escalation_when_evi_gt_075() -> None:
         )
 
         assert res.selected_tier == 2
-        assert res.model_name == "qwen3.5:397b-cloud"
+        assert res.model_name == "kimi-k2.7-code:cloud"
         assert res.escalated is True
         assert res.evi_score > 0.75
 
@@ -108,3 +109,71 @@ def test_unified_hybrid_router_force_cloud():
         assert isinstance(res, HybridRouteResponse)
         assert res.tier_used == "Tier 2 (Ollama Cloud)"
         assert res.content == "Ollama Cloud response text"
+
+
+# Ollama Cloud retirements, 2026-09-25. The bare "deepseek-v4-flash:cloud" alias shares
+# 0731's digest (verified via /api/show), so it retires too.
+_RETIRED_CLOUD_MODELS = {
+    "deepseek-v4-flash:0731-cloud",
+    "deepseek-v4-flash:cloud",
+    "qwen3.5:397b-cloud",
+    "qwen3.5:cloud",  # same parameter_size + modified_at as the 397b build
+    "kimi-k2.5:cloud",  # retired 2026-07-31 (/api/show says so); was still in a chain
+}
+
+# Deliberate historical records: kept (marked retired), never dispatched to.
+_RETIRED_RECORD_FILES = {
+    "src/cohezion/inference/registry.py",
+    "src/cohezion/inference/model_card_profiles.py",
+}
+
+
+def _docstring_ids(tree: object) -> set[int]:
+    import ast
+
+    ids: set[int] = set()
+    for node in ast.walk(tree):  # type: ignore[arg-type]
+        body = getattr(node, "body", None)
+        if isinstance(body, list) and body and isinstance(body[0], ast.Expr):
+            if isinstance(body[0].value, ast.Constant):
+                ids.add(id(body[0].value))
+    return ids
+
+
+def test_no_source_literal_names_a_retired_cloud_model() -> None:
+    """Any code string (not docstring/comment) equal to a retired id would 404 after retirement."""
+    import ast
+
+    repo = Path(__file__).resolve().parents[2]
+    hits = []
+    for path in sorted((repo / "src").rglob("*.py")):
+        rel = path.relative_to(repo).as_posix()
+        if rel in _RETIRED_RECORD_FILES:
+            continue
+        with warnings.catch_warnings():  # other files' bad escapes are not this test's concern
+            warnings.simplefilter("ignore", SyntaxWarning)
+            tree = ast.parse(path.read_text(encoding="utf-8"))
+        docs = _docstring_ids(tree)
+        for node in ast.walk(tree):
+            if (
+                isinstance(node, ast.Constant)
+                and node.value in _RETIRED_CLOUD_MODELS
+                and id(node) not in docs
+            ):
+                hits.append(f"{rel}:{node.lineno} {node.value}")
+    assert not hits, "retired cloud model ids still in code:\n" + "\n".join(hits)
+
+
+def test_no_route_table_pins_a_retired_cloud_model() -> None:
+    """Every module-level routing dict must resolve to a model that still exists."""
+    import cohezion.inference.unified_hybrid_router as uhr
+
+    pinned = {
+        f"{name}[{key}]": value
+        for name, table in vars(uhr).items()
+        if isinstance(table, dict)
+        for key, value in table.items()
+        if isinstance(value, str)
+    }
+    stale = {where: model for where, model in pinned.items() if model in _RETIRED_CLOUD_MODELS}
+    assert not stale, f"route tables still pin retired models: {stale}"

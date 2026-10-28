@@ -14,6 +14,8 @@ from dataclasses import dataclass
 
 import httpx
 
+from cohezion.storage.surreal_http import SurrealQLError, checked_statements
+
 
 logger = logging.getLogger("port_registry")
 
@@ -117,24 +119,36 @@ class SurrealPortRegistry:
                         port: {rec.port},
                         service_name: "{rec.service_name}",
                         protocol: "{rec.protocol}",
-                        pid: {rec.pid or 'NONE'},
+                        pid: {rec.pid or "NONE"},
                         status: "{rec.status}",
                         description: "{rec.description}",
+                        assigned_at: {rec.assigned_at},
                         updated_at: time::now()
                     }};
                     """
                     resp = client.post(
                         f"{self.db_url}/sql",
                         headers={
-                            "NS": "cohezion",
-                            "DB": "swarm",
+                            # SurrealDB 2.x ignores the legacy NS/DB names (every statement
+                            # then ERRs "Specify a namespace" behind an HTTP 200) -- the exact
+                            # 2026-09-19 vault-MCP defect. Fixed 2026-09-20.
+                            "surreal-ns": "cohezion",
+                            "surreal-db": "swarm",
                             "Accept": "application/json",
                             "Authorization": "Basic cm9vdDpyb290",
                         },
                         content=sql,
                     )
                     if resp.status_code == 200:
-                        count += 1
+                        try:
+                            checked_statements(
+                                resp.json(), status_code=resp.status_code, text=resp.text
+                            )
+                            count += 1
+                        except SurrealQLError as e:
+                            logger.warning(
+                                "SurrealDB port sync ERR for one record: %s", str(e)[:200]
+                            )
         except Exception as e:
             logger.warning("SurrealDB port sync warning: %s", e)
         return count

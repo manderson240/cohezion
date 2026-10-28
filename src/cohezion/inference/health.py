@@ -6,10 +6,10 @@ back-to-back calls don't hammer the endpoints.
 
 Returns structured status for each silicon lane:
 
-- NPU (:13306, FLM backend)
-- iGPU ROCWMMA (:13307)
-- iGPU Unified (:13308)
-- CPU AVX-VNNI (:13309)
+- NPU (:13305, OmniRouter / FLM backend)
+- iGPU ROCWMMA (:13305, OmniRouter / llamacpp Vulkan)
+- iGPU Unified (:13305, OmniRouter / MoE)
+- CPU AVX-VNNI (:13305, OmniRouter / Zen5 CPU)
 - Ollama (:11434)
 - Anthropic API (https://api.anthropic.com)
 - Omnibus gateway dashboard snapshot

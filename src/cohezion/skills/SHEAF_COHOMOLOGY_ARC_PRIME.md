@@ -15,6 +15,7 @@ Sheaf Theory, Čech Cohomology Obstruction Analysis, and Local-to-Global Grid Gl
 1. **Check Sheaf Gluing**:
    ```python
    from cohezion.competitions.arc.sheaf_cohomology_solver import check_sheaf_gluing_consistency
+
    valid = check_sheaf_gluing_consistency(local_patches)
    ```
 

@@ -676,6 +676,17 @@ class TestRealPhiScore:
         assert len(tracker._recent_points) == tracker.TRAJECTORY_WINDOW
 
 
+class _InlineThread:
+    """Runs the target synchronously: _persist_to_surreal fires a daemon thread, and a test
+    that asserts on what the thread captured must not race it (the old fixtures passed by luck)."""
+
+    def __init__(self, target=None, daemon=None, **_):
+        self._target = target
+
+    def start(self):
+        self._target()
+
+
 class TestSurrealInjectionSanitization:
     """Review LOW #1: operation_type must be injection-safe (json.dumps) like the sibling task field."""
 
@@ -703,7 +714,10 @@ class TestSurrealInjectionSanitization:
             captured["data"] = req.data.decode()
             raise RuntimeError("stop after capture")
 
-        with patch.object(urllib.request, "urlopen", side_effect=fake_urlopen):
+        with (
+            patch.object(urllib.request, "urlopen", side_effect=fake_urlopen),
+            patch("threading.Thread", _InlineThread),
+        ):
             tracker._persist_to_surreal(point)
 
         query = captured["data"]
@@ -737,7 +751,10 @@ class TestSurrealInjectionSanitization:
             captured["data"] = req.data.decode()
             raise RuntimeError("stop after capture")
 
-        with patch.object(urllib.request, "urlopen", side_effect=fake_urlopen):
+        with (
+            patch.object(urllib.request, "urlopen", side_effect=fake_urlopen),
+            patch("threading.Thread", _InlineThread),
+        ):
             tracker._persist_to_surreal(point)
 
         query = captured["data"]
@@ -746,3 +763,134 @@ class TestSurrealInjectionSanitization:
         assert "\\\\" in query, "backslash in operation_type must be escaped"
         # `task` must still appear as its own SET assignment, not absorbed into operation_type.
         assert "task = " in query
+
+
+class TestPersistWritesAction:
+    """JI1 CONSUMPTION invariant. The in-memory TrajectoryPoint carried `action` since 2026-06-27;
+    the SurrealQL CREATE never included it. Measured 2026-09-19 through the reader's path:
+    21,635 journey_transition rows, action NULL on every one. A routing history without actions
+    cannot be replayed. This test reads the statement the tracker actually sends."""
+
+    def _capture(self, point):
+        import urllib.request
+        from unittest.mock import patch
+
+        captured = {}
+
+        def fake_urlopen(req, timeout=None):
+            captured["data"] = req.data.decode()
+            raise RuntimeError("stop after capture")
+
+        with (
+            patch.object(urllib.request, "urlopen", side_effect=fake_urlopen),
+            patch("threading.Thread", _InlineThread),
+        ):
+            JourneyTracker(seed=42)._persist_to_surreal(point)
+        return captured["data"]
+
+    def test_action_is_written_to_the_row(self):
+        import json
+
+        point = TrajectoryPoint(
+            dimensions=np.array([0.5] * 12),
+            timestamp=1.0,
+            coherence=0.8,
+            efficiency=0.7,
+            operation_type="generate",
+            task_description="t",
+            action="evidence:npu",
+        )
+        assert f"action = {json.dumps('evidence:npu')}" in self._capture(point)
+
+    def test_action_is_injection_safe(self):
+        import json
+
+        payload = "npu'; DROP TABLE journey_transition; --"
+        point = TrajectoryPoint(
+            dimensions=np.array([0.5] * 12),
+            timestamp=1.0,
+            coherence=0.8,
+            efficiency=0.7,
+            operation_type="generate",
+            task_description="t",
+            action=payload,
+        )
+        assert f"action = {json.dumps(payload)}" in self._capture(point)
+
+
+class TestDeclaredFieldsArePersisted:
+    """Every field TrajectoryPoint declares reaches the CREATE (2026-09-20).
+
+    Measured that day: 22,398 rows carried only dimensions/coherence/efficiency/
+    operation_type/task(/action); timestamp, source, transformation and metadata were
+    declared and dropped. A neutralised writer (any field removed from the statement)
+    turns the matching assertion red."""
+
+    def _capture(self, point: TrajectoryPoint) -> str:
+        import urllib.request
+        from unittest.mock import patch
+
+        captured: dict[str, str] = {}
+
+        def fake_urlopen(req, timeout=None):
+            captured["data"] = req.data.decode()
+            raise RuntimeError("stop after capture")
+
+        with (
+            patch.object(urllib.request, "urlopen", side_effect=fake_urlopen),
+            patch("threading.Thread", _InlineThread),
+        ):
+            JourneyTracker(seed=42)._persist_to_surreal(point)
+        return captured["data"]
+
+    def _point(self, **kw) -> TrajectoryPoint:
+        base = {
+            "dimensions": np.array([0.5] * 12),
+            "timestamp": 1726790400.25,
+            "coherence": 0.8,
+            "efficiency": 0.7,
+            "operation_type": "generate",
+            "task_description": "t",
+        }
+        base.update(kw)
+        return TrajectoryPoint(**base)
+
+    def test_every_declared_field_has_a_column(self):
+        import dataclasses
+
+        sql = self._capture(
+            self._point(
+                action="evidence:npu",
+                source="executor",
+                transformation="flume-encode",
+                metadata={"k": 1, "workspace_atoms": [[1, 0.5]]},
+            )
+        )
+        declared = {f.name for f in dataclasses.fields(TrajectoryPoint)}
+        # task_description is persisted under the column `task`; everything else by name.
+        columns = {"task" if n == "task_description" else n for n in declared}
+        missing = [c for c in sorted(columns) if f"{c} = " not in sql]
+        assert missing == [], f"declared but not written: {missing}\n{sql}"
+
+    def test_timestamp_is_the_points_clock_not_the_dbs(self):
+        sql = self._capture(self._point(timestamp=1726790400.25))
+        assert "timestamp = 1726790400.25" in sql
+        assert "created = time::now()" in sql  # both: point clock AND insert clock
+
+    def test_provenance_strings_are_json_literals(self):
+        import json
+
+        sql = self._capture(self._point(source="a'b", transformation='x"y'))
+        assert f"source = {json.dumps(chr(97) + chr(39) + 'b')}" in sql
+        assert f"transformation = {json.dumps('x' + chr(34) + 'y')}" in sql
+
+    def test_metadata_drops_unserialisable_values_and_the_atoms_duplicate(self):
+        sql = self._capture(
+            self._point(metadata={"ok": 2, "bad": object(), "workspace_atoms": [[0, 1.0]]})
+        )
+        assert 'metadata = {"ok": 2}' in sql
+        assert "workspace_atoms = [[0, 1.0]]" in sql  # W6 column preserved
+
+    def test_defaults_write_empty_not_null(self):
+        sql = self._capture(self._point())
+        assert 'source = ""' in sql and 'transformation = ""' in sql and "metadata = {}" in sql

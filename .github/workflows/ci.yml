@@ -136,6 +136,53 @@ jobs:
           uv run python scripts/ci/phantom_attr_scan.py --self-test
           uv run python scripts/ci/phantom_attr_scan.py
 
+      # Lineage scan (fourth sibling): can each REFLEX module (ResourceGuard, sandbox, hotswap)
+      # load in a fresh interpreter within 1 s / 60 MB with no deliberative (LLM-stack) module
+      # resident? Measured 2026-09-19: via the package, the memory-pressure guard imported torch
+      # + the orchestrator (10.3 s, 496 MB); by file path 88 ms / 17 MB. A reflex that needs the
+      # LLM layer to load cannot fire when that layer is dead. --self-test FIRST (plants a leak).
+      - name: Lineage scan (gating)
+        run: |
+          uv run python scripts/ci/lineage_scan.py --self-test
+          uv run python scripts/ci/lineage_scan.py
+
+      # False-contract scan: does the producer do what its NAME promises? AST-based, registry-
+      # scoped. Two live findings on main when re-gated 2026-09-19 (fixes had stalled unlanded).
+      - name: False-contract scan (gating)
+        run: |
+          uv run python scripts/ci/false_contract_scan.py --self-test
+          uv run python scripts/ci/false_contract_scan.py
+
+      # SurrealDB HTTP ratchet: every raw /sql writer must read the per-statement verdict
+      # (HTTP 200 can carry status:"ERR"). Baseline-pinned; a new unchecked writer is red.
+      - name: SurrealDB HTTP ratchet (gating)
+        run: |
+          uv run python scripts/ci/surreal_http_scan.py --self-test
+          uv run python scripts/ci/surreal_http_scan.py
+
+      # Declared-field scan: a dataclass persisted by a CREATE/INSERT/UPSERT literal must
+      # write every field it declares (TrajectoryPoint.action: 21,635 NULL rows). Ratchet.
+      - name: Declared-field ratchet (gating)
+        run: |
+          uv run python scripts/ci/declared_field_scan.py --self-test
+          uv run python scripts/ci/declared_field_scan.py
+
+      # Mutation ratchet: survivors / untargeted mutants in the scoped modules may only
+      # shrink vs scripts/ci/mutation_baseline.txt. Was never wired; baseline re-recorded
+      # 2026-09-20 with the regression it found named in the file.
+      - name: Mutation ratchet (gating)
+        run: |
+          uv run python scripts/ci/mutation_ratchet.py --self-test
+          uv run python scripts/ci/mutation_ratchet.py
+
+      # Security finding H5: exec/eval of generated code with a globals dict lacking
+      # "__builtins__" gets the FULL builtins (import/open/eval). 13 unrestricted sites had
+      # re-accumulated in src/ by 2026-09-13. Exceptions need "# unrestricted-exec-ok: <reason>".
+      - name: Unrestricted exec/eval scan (gating)
+        run: |
+          uv run python scripts/ci/unrestricted_exec_scan.py --self-test
+          uv run python scripts/ci/unrestricted_exec_scan.py
+
       # Coding-standard guard (AGENTS.md "Card-Aligned Recipes"): no direct
       # port hits to local inference backends — everything routes through
       # UnifiedHybridRouter. Verified exit 0 locally 2026-09-08.

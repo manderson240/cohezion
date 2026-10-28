@@ -16,6 +16,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
+
 # Hypothesis CI profile (loaded via HYPOTHESIS_PROFILE=ci in CI workflows):
 # derandomize=True makes CI failures reproducible; deadline=None avoids flaky
 # timing on shared runners; max_examples=200 balances bug-finding vs CI time.
@@ -201,6 +202,23 @@ def event_loop_fixture():
     else:
         # Already have a running loop (pytest-asyncio)
         yield
+
+
+@pytest.fixture(autouse=True)
+def _cosmic_fire_stays_in_the_lab(monkeypatch):
+    """Executor Step 7.5a (fbcf8c340) ignites the Cosmic Fire on the first in-band quality_score
+    and persists a cosmic_fire_events row + Telegram notify. Measured 2026-09-20: 90 rows in the
+    LIVE table within hours, all from pytest/mutmut runs (coherence exactly 0.7/0.8, the fixture
+    values). Tests must never write production rows or page the operator; tests that assert on
+    persistence inject their own persist_fn (see tests/compound/test_cosmic_fire_wiring.py)."""
+    try:
+        from cohezion.compound import cosmic_fire_protocol as cfp
+    except ImportError:
+        yield
+        return
+    monkeypatch.setattr(cfp, "persist_event", lambda event, **kw: None)
+    monkeypatch.setattr(cfp.CosmicFireProtocol, "_send_telegram", lambda self, event: None)
+    yield
 
 
 @pytest.fixture(autouse=True)

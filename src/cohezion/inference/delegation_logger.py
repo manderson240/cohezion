@@ -123,9 +123,12 @@ class DelegationLogger:
                 method="POST",
             )
             try:
-                urllib.request.urlopen(req, timeout=2)
+                from cohezion.storage.surreal_http import checked_statements
+
+                with urllib.request.urlopen(req, timeout=2) as resp:
+                    checked_statements(json.loads(resp.read()), status_code=resp.status)
             except Exception as exc:
-                logger.debug("SurrealDB delegation_log push offline: %s", exc)
+                logger.warning("SurrealDB delegation_log push failed: %s", str(exc)[:200])
 
             # 2. EventBus Event publishing — through the shared auto-starting
             #    singleton, scheduled back onto the CALLER's running loop with

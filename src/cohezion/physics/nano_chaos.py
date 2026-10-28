@@ -3,6 +3,7 @@
 from __future__ import annotations
 import numpy as np
 
+
 class NanoChaos:
     """Nonlinear dynamics, information geometry, and Lyapunov stability engine."""
 
@@ -15,6 +16,7 @@ class NanoChaos:
         dt: float = 0.01,
     ) -> np.ndarray:
         """Runge-Kutta 4th-order step for Lorenz-63 dynamical system."""
+
         def f(s: np.ndarray) -> np.ndarray:
             x, y, z = s[0], s[1], s[2]
             return np.array([sigma * (y - x), x * (rho - z) - y, x * y - beta * z], dtype=float)
@@ -66,13 +68,15 @@ class NanoChaos:
         return float(-np.sum(pos_probs * np.log2(pos_probs)))
 
     @staticmethod
-    def fisher_information_metric(probs: np.ndarray, d_theta: np.ndarray, eps: float = 1e-12) -> float:
+    def fisher_information_metric(
+        probs: np.ndarray, d_theta: np.ndarray, eps: float = 1e-12
+    ) -> float:
         """Compute Fisher Information Metric for continuous probability distributions."""
         probs = np.asarray(probs, dtype=float)
         d_theta = np.asarray(d_theta, dtype=float)
         if probs.shape != d_theta.shape:
             raise ValueError("probs and d_theta must have the same shape.")
-        return float(np.sum((d_theta ** 2) / (probs + eps)))
+        return float(np.sum((d_theta**2) / (probs + eps)))
 
 
 if __name__ == "__main__":

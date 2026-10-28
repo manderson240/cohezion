@@ -26,6 +26,7 @@ from cohezion.autopoiesis.tri_silicon_engine import TriSiliconAutopoiesisEngine
 from cohezion.core.cross_session_event_bridge import CrossSessionEventBridge
 from cohezion.core.event_bus import Event, EventBus
 from cohezion.data_mesh.kanban_bridge import persist_item
+from cohezion.flume.loop_goal_refactor_engine import MemoryAsPlans
 from cohezion.inference.dynamic_model_evaluator import DynamicModelEvaluator
 from cohezion.ops.control_plane import CohezionControlPlane, OperationsSnapshot
 from cohezion.reliability.oom_guard import OOMGuard
@@ -90,6 +91,7 @@ class UnifiedPerpetualLoopDaemon:
         self.tri_silicon_engine = TriSiliconAutopoiesisEngine(cpu_threads=cpu_threads)
         self.dsl_engine = StrixHaloDSLEngine(max_depth=2, n_threads=cpu_threads)
         self.evaluator = DynamicModelEvaluator(port=lemonade_port)
+        self.memory_as_plans = MemoryAsPlans()
 
         self._running = False
         self._shutdown_event = asyncio.Event()
@@ -303,7 +305,101 @@ class UnifiedPerpetualLoopDaemon:
             )
 
     # =========================================================================
-    # Phase 5: Hardware & Software Sentry & Self-Healing
+    # Phase 5: Trace Refactoring & Closed-Loop Goal Synthesis
+    # =========================================================================
+    async def run_trace_refactor_phase(self, cycle_num: int) -> PhaseResult:
+        """Refactor open-ended event_log traces into closed-loop GoalSpecifications with MaP-WAM memory."""
+        t0 = time.perf_counter()
+        try:
+            from cohezion.flume.loop_goal_refactor_engine import (
+                AutonomousGoalExecutor,
+                AutonomousGoalLoopResult,
+                DurableSurrealGoalPersistence,
+                TraceToLoopTransformer,
+            )
+            from scripts.ops.refactor_traces_to_goals import fetch_recent_traces
+
+            persistence = DurableSurrealGoalPersistence()
+            goals_processed = 0
+            loops_converged = 0
+            last_goal = None
+
+            for db_name in ["vault", "main"]:
+                try:
+                    raw_traces = fetch_recent_traces(limit=20, database=db_name)
+                except Exception as exc:
+                    logger.debug("Failed fetching traces from %s: %s", db_name, exc)
+                    continue
+
+                for tr in raw_traces:
+                    goal = TraceToLoopTransformer.synthesize_goal_from_real_trace([tr])
+                    if goal is None:
+                        continue
+                    persistence.persist_goal(goal)
+                    goals_processed += 1
+                    last_goal = goal
+
+                    target_thresh = goal.target_threshold
+
+                    def _step_fn(
+                        it: int, st: dict, th: float = target_thresh
+                    ) -> tuple[dict, float, str]:
+                        val = min(th, th * (0.6 + 0.25 * it))
+                        return {"step": it}, val, f"Autopoietic trace remediation step {it}"
+
+                    contract_guidance = {
+                        "target_metric": goal.target_metric,
+                        "target_threshold": goal.target_threshold,
+                        "cycle_num": cycle_num,
+                        "origin_db": db_name,
+                    }
+
+                    executor = AutonomousGoalExecutor(goal, memory=self.memory_as_plans)
+                    loop_res: AutonomousGoalLoopResult[
+                        dict[str, Any]
+                    ] = await executor.execute_loop(
+                        {},
+                        _step_fn,
+                        contract_guidance=contract_guidance,
+                    )
+                    persistence.persist_loop_result(loop_res)
+                    if loop_res.converged:
+                        loops_converged += 1
+
+            elapsed_ms = (time.perf_counter() - t0) * 1000.0
+            segments_committed = len(self.memory_as_plans.segments)
+            active_ctx = (
+                self.memory_as_plans.get_active_context(last_goal) if last_goal is not None else {}
+            )
+            summary = (
+                f"Refactored traces into goals: {goals_processed} | Loops converged: {loops_converged} | "
+                f"Committed segments: {segments_committed} (O(1) context digest: {active_ctx.get('summary_digest', 'root')})"
+            )
+            return PhaseResult(
+                phase_name="trace_goal_refactor",
+                success=True,
+                duration_ms=round(elapsed_ms, 1),
+                summary=summary,
+                details={
+                    "goals_processed": goals_processed,
+                    "loops_converged": loops_converged,
+                    "segments_committed": segments_committed,
+                    "active_context": active_ctx,
+                },
+            )
+        except Exception as exc:
+            elapsed_ms = (time.perf_counter() - t0) * 1000.0
+            logger.warning(f"Phase 5 Trace Refactor exception: {exc}")
+            return PhaseResult(
+                phase_name="trace_goal_refactor",
+                success=False,
+                duration_ms=round(elapsed_ms, 1),
+                summary=f"Refactor failed: {exc}",
+                details={"error": str(exc)},
+            )
+
+    # =========================================================================
+    # Phase 6: Hardware & Software Sentry & Self-Healing
     # =========================================================================
     async def run_sentry_phase(self, cycle_num: int) -> PhaseResult:
         """Capture full operational snapshot, enforce memory floor, and dual-persist."""
@@ -337,7 +433,7 @@ class UnifiedPerpetualLoopDaemon:
             )
         except Exception as exc:
             elapsed_ms = (time.perf_counter() - t0) * 1000.0
-            logger.warning(f"Phase 5 Sentry exception: {exc}")
+            logger.warning(f"Phase 6 Sentry exception: {exc}")
             return PhaseResult(
                 phase_name="control_sentry",
                 success=False,
@@ -350,7 +446,7 @@ class UnifiedPerpetualLoopDaemon:
     # Master Cycle Execution Loop
     # =========================================================================
     async def execute_master_cycle(self, cycle_num: int) -> MasterCycleOutcome:
-        """Execute all 5 phases in sequential order with inter-phase settle pause."""
+        """Execute all 6 phases in sequential order with inter-phase settle pause."""
         t_start = time.perf_counter()
         logger.info(f"\n{'=' * 90}\n🌀 EXECUTING UNIFIED MASTER CYCLE {cycle_num}\n{'=' * 90}")
 
@@ -370,31 +466,37 @@ class UnifiedPerpetualLoopDaemon:
         # 1. Autopoiesis
         p1 = await self.run_autopoiesis_phase(cycle_num)
         phases.append(p1)
-        logger.info(f"  [1/5] {p1.phase_name:<16}: {p1.summary} ({p1.duration_ms:.0f}ms)")
+        logger.info(f"  [1/6] {p1.phase_name:<16}: {p1.summary} ({p1.duration_ms:.0f}ms)")
         await asyncio.sleep(2.0)
 
         # 2. Kaggle Compute
         p2 = await self.run_kaggle_compute_phase(cycle_num)
         phases.append(p2)
-        logger.info(f"  [2/5] {p2.phase_name:<16}: {p2.summary} ({p2.duration_ms:.0f}ms)")
+        logger.info(f"  [2/6] {p2.phase_name:<16}: {p2.summary} ({p2.duration_ms:.0f}ms)")
         await asyncio.sleep(2.0)
 
         # 3. Actioner Queue
         p3 = await self.run_actioner_phase(cycle_num)
         phases.append(p3)
-        logger.info(f"  [3/5] {p3.phase_name:<16}: {p3.summary} ({p3.duration_ms:.0f}ms)")
+        logger.info(f"  [3/6] {p3.phase_name:<16}: {p3.summary} ({p3.duration_ms:.0f}ms)")
         await asyncio.sleep(2.0)
 
         # 4. Model Evaluator
         p4 = await self.run_model_eval_phase(cycle_num)
         phases.append(p4)
-        logger.info(f"  [4/5] {p4.phase_name:<16}: {p4.summary} ({p4.duration_ms:.0f}ms)")
+        logger.info(f"  [4/6] {p4.phase_name:<16}: {p4.summary} ({p4.duration_ms:.0f}ms)")
         await asyncio.sleep(2.0)
 
-        # 5. Sentry & Self-Healing
-        p5 = await self.run_sentry_phase(cycle_num)
+        # 5. Trace Refactoring & Goal Loop
+        p5 = await self.run_trace_refactor_phase(cycle_num)
         phases.append(p5)
-        logger.info(f"  [5/5] {p5.phase_name:<16}: {p5.summary} ({p5.duration_ms:.0f}ms)")
+        logger.info(f"  [5/6] {p5.phase_name:<16}: {p5.summary} ({p5.duration_ms:.0f}ms)")
+        await asyncio.sleep(2.0)
+
+        # 6. Sentry & Self-Healing
+        p6 = await self.run_sentry_phase(cycle_num)
+        phases.append(p6)
+        logger.info(f"  [6/6] {p6.phase_name:<16}: {p6.summary} ({p6.duration_ms:.0f}ms)")
 
         total_ms = (time.perf_counter() - t_start) * 1000.0
         mem_after = OOMGuard.get_memory_state()

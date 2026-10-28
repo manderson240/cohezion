@@ -23,12 +23,14 @@ Expertise in orchestrating large-scale quantum circuit simulation (up to 34+ qub
 1. Initialize the quantum execution context using environment variables:
    ```python
    import os
+
    # Zero-leakage credential initialization
    api_token = os.environ.get("BLUEQUBIT_API_KEY", "")
    ```
 2. Build quantum circuits with Qiskit / Cirq and dispatch to MPS or statevector backends:
    ```python
    from bluequbit import init
+
    bq_client = init(token=api_token) if api_token else None
    ```
 3. Extract expectation values $\langle \psi | \hat{O} | \psi \rangle$ and map into 2048D Poincaré manifold trajectories.

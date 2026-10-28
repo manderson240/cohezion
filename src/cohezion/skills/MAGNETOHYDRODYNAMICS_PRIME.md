@@ -25,6 +25,7 @@ Expertise in continuous Magnetohydrodynamics (MHD), coupling fluid Navier-Stokes
    ```python
    import math
 
+
    def compute_mhd_parameters(B_tesla, density_kg_m3, length_m, resistivity_ohm_m):
        mu_0 = 4.0 * math.pi * 1e-7
        v_alfven = B_tesla / math.sqrt(mu_0 * density_kg_m3)

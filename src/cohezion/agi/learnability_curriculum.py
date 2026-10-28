@@ -25,16 +25,16 @@ import time
 import urllib.request
 from dataclasses import dataclass, field
 from enum import StrEnum
-from typing import Any
+from typing import Any, cast
 
 
 logger = logging.getLogger(__name__)
 
 
 class FrontierStatus(StrEnum):
-    TOO_HARD = "too_hard"                    # solve_rate < 0.10
-    LEARNABILITY_FRONTIER = "frontier"       # 0.10 <= solve_rate <= 0.50
-    TOO_EASY = "too_easy"                    # solve_rate > 0.50
+    TOO_HARD = "too_hard"  # solve_rate < 0.10
+    LEARNABILITY_FRONTIER = "frontier"  # 0.10 <= solve_rate <= 0.50
+    TOO_EASY = "too_easy"  # solve_rate > 0.50
 
 
 @dataclass(frozen=True, slots=True)
@@ -89,8 +89,11 @@ class LearnabilityCurriculumEngine:
         try:
             with urllib.request.urlopen(req, timeout=3.0) as resp:  # noqa: S310
                 if resp.status == 200:
-                    data = json.loads(resp.read().decode("utf-8"))
-                    return data
+                    from cohezion.storage.surreal_http import checked_statements
+
+                    return checked_statements(
+                        json.loads(resp.read().decode("utf-8")), status_code=resp.status
+                    )
         except Exception as e:
             logger.warning("SurrealDB query failed: %s", e)
         return []
@@ -200,5 +203,5 @@ class LearnabilityCurriculumEngine:
         )
         res = self._execute_surql(surql)
         if res and res[0].get("result"):
-            return res[0]["result"]
+            return cast("list[dict[str, Any]]", res[0]["result"])
         return []

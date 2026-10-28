@@ -21,7 +21,6 @@ from cohezion.security.secret_scrubber import scrub_text, contains_unredacted_cr
 
 @pytest.mark.property
 class TestPropertyBasedInvariants:
-
     @settings(max_examples=100, deadline=None)
     @given(
         st.lists(
@@ -78,12 +77,14 @@ class TestPropertyBasedInvariants:
     @given(
         st.text(min_size=0, max_size=50),
         st.text(min_size=0, max_size=50),
-        st.sampled_from([
-            "ya29.a0AdMD6EiDsMkIvfgU2-jHgeWVbOcampReyiru0WhOsgEcjSTbziGIRk",
-            "1//01lG-M5vge4DRCgYIARAAGAESNwF-L9IrzVcEUOoL9GZZUu2Qox1Y8RmS",
-            "sk-1234567890abcdef1234567890abcdef",
-            "AKIAIOSFODNN7EXAMPLE",
-        ]),
+        st.sampled_from(
+            [
+                "ya29.a0AdMD6EiDsMkIvfgU2-jHgeWVbOcampReyiru0WhOsgEcjSTbziGIRk",
+                "1//01lG-M5vge4DRCgYIARAAGAESNwF-L9IrzVcEUOoL9GZZUu2Qox1Y8RmS",
+                "sk-1234567890abcdef1234567890abcdef",
+                "AKIAIOSFODNN7EXAMPLE",
+            ]
+        ),
     )
     def test_secret_scrubber_invariance(self, prefix, suffix, secret_token):
         """Property: scrub_text must eliminate credential signatures regardless of arbitrary framing text."""

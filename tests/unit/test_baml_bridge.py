@@ -51,3 +51,34 @@ def test_baml_resilient_parser_healing_unclosed_braces():
     assert spec.target_metric == "snr"
     assert spec.target_threshold == 20.0
     assert spec.max_iterations == 10
+
+
+def test_baml_resilient_parser_parse_to_dict_plain_text():
+    raw_npu_response = """
+    Node: GPU
+    Confidence: 0.85
+    """
+    schema = {
+        "properties": {
+            "node": {"type": "string"},
+            "confidence": {"type": "number"},
+        },
+        "required": ["node", "confidence"],
+    }
+    result = BAMLResilientParser.parse_to_dict(raw_npu_response, schema)
+    assert result["node"] == "GPU"
+    assert result["confidence"] == 0.85
+
+
+def test_baml_resilient_parser_parse_to_model_key_value_plain():
+    raw_response = """
+    goal_id: goal_kv_001
+    target_metric: latency
+    target_threshold: 12.5
+    max_iterations: 5
+    """
+    spec = BAMLResilientParser.parse_to_model(raw_response, SampleGoalSpec)
+    assert spec.goal_id == "goal_kv_001"
+    assert spec.target_metric == "latency"
+    assert spec.target_threshold == 12.5
+    assert spec.max_iterations == 5

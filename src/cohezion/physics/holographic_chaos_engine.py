@@ -25,11 +25,11 @@ from typing import Sequence
 
 @dataclass(frozen=True, slots=True)
 class HolographicState:
-    lyapunov_exponent: float      # Chaos: >0 = chaotic, <0 = stable, ~0 = edge of chaos
+    lyapunov_exponent: float  # Chaos: >0 = chaotic, <0 = stable, ~0 = edge of chaos
     correlation_dimension: float  # Fractal attractor dimension
-    shannon_entropy_bits: float   # Information entropy
-    fisher_curvature: float       # Fisher information metric density
-    bekenstein_bound_ratio: float # S / S_max (<= 1.0 holographic limit)
+    shannon_entropy_bits: float  # Information entropy
+    fisher_curvature: float  # Fisher information metric density
+    bekenstein_bound_ratio: float  # S / S_max (<= 1.0 holographic limit)
     holographic_boundary_2d: tuple[float, float]
     edge_of_chaos_stable: bool
 

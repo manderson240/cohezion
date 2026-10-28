@@ -104,9 +104,18 @@ def test_project_orchestrator_telemetry(tmp_path: Path):
     with (
         patch("cohezion.ops.control_plane.WORK_QUEUE_PATH", work_queue_file),
         patch("cohezion.ops.control_plane.AUTOPOIESIS_LOG_PATH", autopoiesis_log),
-        patch.object(ProjectOrchestrator, "get_kaggle_tracks", return_value=[
-            {"competition": "rsna-knee", "latest_ref": "56100850", "status": "PENDING", "public_score": "N/A"}
-        ]),
+        patch.object(
+            ProjectOrchestrator,
+            "get_kaggle_tracks",
+            return_value=[
+                {
+                    "competition": "rsna-knee",
+                    "latest_ref": "56100850",
+                    "status": "PENDING",
+                    "public_score": "N/A",
+                }
+            ],
+        ),
     ):
         proj = ProjectOrchestrator.get_telemetry()
         assert proj.status == "HEALTHY"
@@ -183,21 +192,41 @@ def test_control_plane_persistence_fail_open(tmp_path: Path):
         timestamp="2026-09-08T12:00:00Z",
         overall_status="HEALTHY",
         hardware=HardwareTelemetry(
-            available_ram_gb=40.0, total_ram_gb=128.0, dynamic_floor_gb=20.0,
-            gtt_used_gb=20.0, gtt_total_gb=96.0, swap_used_gb=0.0,
-            psi_memory_avg10=0.0, is_memory_safe=True, cpu_cores_logical=32,
-            cpu_cores_physical=16, load_avg_1m=0.5, load_avg_5m=0.5, status="HEALTHY"
+            available_ram_gb=40.0,
+            total_ram_gb=128.0,
+            dynamic_floor_gb=20.0,
+            gtt_used_gb=20.0,
+            gtt_total_gb=96.0,
+            swap_used_gb=0.0,
+            psi_memory_avg10=0.0,
+            is_memory_safe=True,
+            cpu_cores_logical=32,
+            cpu_cores_physical=16,
+            load_avg_1m=0.5,
+            load_avg_5m=0.5,
+            status="HEALTHY",
         ),
         software=SoftwareTelemetry(
-            lemonade_online=True, lemonade_models_loaded=["llama3.2-1b-FLM"],
-            ollama_online=True, ollama_models_loaded=[], surrealdb_online=True,
-            systemd_services={}, git_index_file_count=500, git_index_healthy=True,
-            obsidian_vault_accessible=True, status="HEALTHY"
+            lemonade_online=True,
+            lemonade_models_loaded=["llama3.2-1b-FLM"],
+            ollama_online=True,
+            ollama_models_loaded=[],
+            surrealdb_online=True,
+            systemd_services={},
+            git_index_file_count=500,
+            git_index_healthy=True,
+            obsidian_vault_accessible=True,
+            status="HEALTHY",
         ),
         projects=ProjectTelemetry(
-            active_kaggle_tracks=[], kanban_summary={}, autopoiesis_cycle=1,
-            autopoiesis_target_cycles=240, autopoiesis_last_reward=1.0,
-            autopoiesis_last_delta_s=-0.5, autopoiesis_converged=True, status="HEALTHY"
+            active_kaggle_tracks=[],
+            kanban_summary={},
+            autopoiesis_cycle=1,
+            autopoiesis_target_cycles=240,
+            autopoiesis_last_reward=1.0,
+            autopoiesis_last_delta_s=-0.5,
+            autopoiesis_converged=True,
+            status="HEALTHY",
         ),
         diagnostics=[],
     )

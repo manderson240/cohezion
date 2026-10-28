@@ -24,6 +24,7 @@ Expertise in self-similar Fractal Toroidal Vortex fields, helical plasma filamen
    ```python
    import numpy as np
 
+
    def toroidal_vortex_field(R, r, theta, phi, octaves=3):
        # Nested poloidal and toroidal velocity components
        v_phi = sum(np.sin((k + 1) * theta) / (2**k) for k in range(octaves))

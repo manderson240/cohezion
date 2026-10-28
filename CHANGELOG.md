@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Added — The Trinity RSI, RRSI Regularization, and ROCm 7.2 Integration (1.23.0)
+### Added — The Trinity RSI, RRSI Regularization, and ROCm 7.2 Integration (1.28.0)
 - `src/cohezion/agi/trinity_engine.py`: Implemented The Trinity RSI engine (arXiv:2610.36077)
   featuring capability-driven decomposition via canonical prefix `CapabilityTree`, Real2Sim2Real
   micro-environments (`create_sim_world`), and Selective Inheritance ($P \oplus L$) with monotonic
@@ -31,12 +31,76 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `tests/unit/test_rsi_health_evaluator.py`, `tests/unit/test_open_ontologies_bridge.py`,
   `tests/unit/test_strix_halo_rocm.py`: 22 unit tests validating all new engines.
 
-### Changed — ROCm 7.2.1 and Strix Halo Telemetry (1.23.0)
+### Changed — ROCm 7.2.1 and Strix Halo Telemetry (1.28.0)
 - `src/cohezion/inference/hardware_telemetry.py`: Upgraded from legacy `rocm-smi` to native
   ROCm 7.x `amd-smi metric --json`, extracting real-time GPU core temperature and live GTT
   pool memory (98,304 MB aperture).
 - `scripts/preflight_fleet.sh` and `scripts/recover_fleet.sh`: Modernized preflight and recovery
   checks to detect and report `amd-smi` state.
+
+## [1.27.1] - 2026-09-27
+
+### Performance — Lazy package facades (dynamic modularity audit R1/R2)
+- Added the dynamic modularity audit (`docs/audits/DYNAMIC_MODULARITY_AUDIT_2026-09-24.md`) and its report-only instrument (`scripts/ci/modularity_audit.py`): 79% of leaf modules imported 400+ cohezion modules because of 686 suppressed re-export blocks in package `__init__` files.
+- `src/cohezion/core/__init__.py`, `src/cohezion/compound/__init__.py` and `src/cohezion/reliability/__init__.py` now resolve their public names lazily (PEP 562). Fresh-interpreter import of `cohezion.core.event_bus`: 498 modules / 5.2 s / 593 MB to 4 modules / 68 ms / 10 MB; `cohezion.compound.executor`: 536 modules to 66; `cohezion.reliability.oom_guard`: 337 to 5. None of them load torch any more.
+- `cohezion.reliability.SemanticCache` resolves again: the eager facade hit an import cycle that the suppress block silently swallowed.
+- Import budgets guard against regression: `tests/unit/test_facade_import_cost.py`.
+
+### Fixed — Log secret redaction is process-wide and order-independent
+- Redaction previously reached the root handler only as an import-order accident. `import cohezion` now installs a LogRecord factory (`src/cohezion/_redaction.py`) that redacts the formatted message of every record, including secrets passed as format args, which the old filter leaked. Tests: `tests/security/test_record_redaction.py`.
+- The DBA admin module no longer configures the root logger (with a file handler) at import; its handlers are scoped to the CohezionDBA logger and attached when a DBAdmin is created (`src/cohezion/core/persistence/admin.py`).
+- Implicit INFO-level root logging, an import side effect of a test tool, is intentionally not restored: entrypoints that want INFO output configure logging themselves.
+
+### Added
+- Seven official SurrealDB agent skills under `.claude/skills/`, tracked in `skills-lock.json`.
+
+## [1.27.0] - 2026-09-12
+
+### Added — Ventral Hippocampus Computations, Affective Manifold & Circuit Routing (1.27.0)
+- Operationalized empirical discoveries from Biane, Wagner-Carena & Kheirbek (*Nature Reviews Neuroscience*, Sept 2026, doi:10.1038/s41583-026-01078-6): "The ventral hippocampus: computations, circuits and functions".
+- Implemented `VentralHippocampusCircuit` in `src/cohezion/neuro/ventral_hippocampus.py` contrasting dorsal metric maps ($\mathbf{v}_{dHPC} = W_{grid} \mathbf{s}_{spatial}$) with ventral affective-motivational manifold representations ($\mathbf{v}_{vHPC} = \tanh(W_{aff} [\mathbf{s}_{spatial}; \mathbf{h}_{intero}])$).
+- Designed deterministic 4-channel projection gating across BLA (valence/threat error), mPFC (cognitive control/conflict arbitration), NAc (reward/incentive vigor), and Hypothalamus (autonomic/stress throttling).
+- Modeled approach-avoidance conflict arbitration and hierarchical Bayesian latent state inference, dynamically routing across 4 agentic modes (`MOTIVATED_EXPLORATION`, `DEFENSIVE_CONSOLIDATION`, `MPFC_ARBITRATION`, `SAFE_AVOIDANCE`).
+- Created and registered `VENTRAL_HIPPOCAMPUS_CIRCUITS_PRIME.md` in `src/cohezion/skills/` and synchronized `skill_registry.json` (306 entries).
+- Documented Learning 431 with 12D state vector in `src/cohezion/knowledge_graph/KEY_LEARNINGS.md`.
+- Added unit test suite in `tests/unit/test_ventral_hippocampus.py` (7/7 passing).
+
+### Enhanced — Holistic Producer-Consumer Audit & AMD Hardware Skills Mapping
+- Upgraded `scripts/ci/producer_consumer_audit.py` to comprehensively audit 10 architectural and hardware subsystems, eliminating hollow seams and ghost abstractions across the fleet.
+- Mapped AMD skills (`FASTFLOWLM_PRIME`, `AMD_GEMM_MXFP4_PRIME`, `AMD_MLA_DECODE_PRIME`, `AMD_MOE_MXFP4_PRIME`, `KERNEL_OPTIMIZATION_PRIME`, `LEMONADE_OMNIROUTER_PRIME`) to active execution pathways on AMD XDNA2 NPU (`/dev/accel/accel0`), MI355X GPU kernels, and Lemonade OmniRouter (`:13305`).
+- Equipped `producer_consumer_audit.py` with falsifiable `--self-test`, markdown report export, and wired it directly into `scripts/ci/automerge_guard.sh`.
+- Added unit test suite in `tests/scripts/test_producer_consumer_audit.py` (5/5 passing in <8s).
+- Documented Learning 432 in `src/cohezion/knowledge_graph/KEY_LEARNINGS.md`.
+
+## [1.26.0] - 2026-09-12
+
+### Added — FastFlowLM NPU Integration, BAML Structured Extraction & AutoHarness Verification (1.26.0)
+- Investigated official AMD ROCm FastFlowLM (`https://github.com/ROCm/FastFlowLM`, `FLM v1.0.4`) and validated XDNA2 NPU hardware stack (`/dev/accel/accel0`, 8 columns, FW 1.1.2.65, `amdxdna` 0.7, <2W power, 0 UMA contention).
+- Enhanced `BAMLResilientParser` in `src/cohezion/baml/baml_bridge.py` with `parse_to_dict`, case-insensitive key matching, type coercion, and resilient extraction from plain-text and YAML key-value responses.
+- Hardened `src/cohezion/inference/structured_npu.py` by resolving historical GBNF dormancy, replacing ignored sampler grammars with BAML schema healing, AutoHarness deterministic verification (<1 ms latency), and automatic fallback cascading to resident `llamacpp` models (`Bonsai-8B-gguf`, `Qwen3-Coder-30B-A3B-Instruct-GGUF`).
+- Created and registered `FASTFLOWLM_PRIME.md` skill in `src/cohezion/skills/` and comprehensive hardware documentation in `docs/hardware/AMD_ROCM_FASTFLOWLM_XDNA2_NPU.md`.
+- Documented Learning 430 in `src/cohezion/knowledge_graph/KEY_LEARNINGS.md`.
+
+## [1.25.0] - 2026-09-12
+
+### Added — Perpetual Loop Orchestrator MaP-WAM Memory Integration (1.25.0)
+- Wired `MemoryAsPlans` episodic memory directly into `UnifiedPerpetualLoopDaemon`, preventing context bloat across 24/7 perpetual execution cycles.
+- Integrated sub-goal contract guidance and monotonic progress tracking into `run_trace_refactor_phase`.
+- Added bounded $O(1)$ context digest reporting in `PhaseResult` and unit tests in `test_unified_perpetual_orchestrator.py`.
+
+## [1.24.0] - 2026-09-12
+
+### Added — MaP-WAM Memory-as-Plans & Progress-Gated Loop Refactoring (1.24.0)
+- Implemented `PlanSegment` and `MemoryAsPlans` episodic storage per arXiv:2609.11561 (MaP-WAM), eliminating quadratic token bloat and guaranteeing $O(1)$ context length.
+- Integrated scalar progress modeling $p_t \in [0.0, 1.0]$ and deterministic plan-observation alignment verification into `AutonomousGoalExecutor`.
+- Enhanced `DurableSurrealGoalPersistence` to record rich `memory_as_plans` segment telemetry to SurrealDB.
+- Added 4 unit tests in `tests/unit/test_trace_goal_pipeline.py` (24/24 passing) and updated live demo script `scripts/ops/demo_trace_to_goal_loop_refactor.py`.
+
+### Added — BAML Hybrid Fallback, 12D Quadrature HIHO Reranker & Autopoiesis (1.23.0)
+- Expanded BAML schema (`baml_src/cohezion.baml`) with typed schemas for `NextStep` (Mandate #7), `TaskInvariants` (AutoHarness ARC/AIMO), `CodeHarness` (zero-cost bytecode verifiers), and `SubmissionStrategy` (Kaggle active leaderboard audits).
+- Deployed native BAML fallback cascade: Lemonade Local primary (port 13305) -> Ollama Cloud fallback (port 11434) with async client routing in `src/cohezion/baml/client_router.py`.
+- Deployed 12-parameter Quadrature HIHO 0.50 order parameter reranker across 4 fabrics (Space, Field, Control, Precipitation) for ARC-AGI-2 candidate evaluation.
+- Added Phase 5 (`run_trace_refactor_phase`) to `UnifiedPerpetualLoopDaemon` in `src/cohezion/ops/unified_perpetual_orchestrator.py` and CLI `cohezion ops refactor-traces`.
 
 ### Fixed — security wave 2 (1.22.3)
 - Closed remaining live-code CodeQL criticals and highs: SSRF host allowlist

@@ -127,7 +127,9 @@ class ExecutionLoop:
     ) -> LoopCycleResult:
         """Run a single atomic [team-exec -> team-verify -> team-fix] cycle."""
         t0 = time.perf_counter()
-        logger.info("Starting Loop Cycle %d/%d for Goal '%s'", cycle_idx, self.max_cycles, self.goal.id)
+        logger.info(
+            "Starting Loop Cycle %d/%d for Goal '%s'", cycle_idx, self.max_cycles, self.goal.id
+        )
 
         # 1. Team-Exec
         try:
@@ -159,7 +161,11 @@ class ExecutionLoop:
 
         # 3. Team-Fix (if verify failed)
         if not passed and fix_fn is not None:
-            logger.warning("Verification failed in cycle %d: %s. Invoking team-fix...", cycle_idx, verify_evidence)
+            logger.warning(
+                "Verification failed in cycle %d: %s. Invoking team-fix...",
+                cycle_idx,
+                verify_evidence,
+            )
             try:
                 await fix_fn(verify_evidence)
                 # Re-verify after fix
@@ -190,12 +196,18 @@ class ExecutionLoop:
         for cycle_idx in range(1, self.max_cycles + 1):
             cycle_res = await self.execute_cycle(cycle_idx, exec_fn, verify_fn, fix_fn)
             if cycle_res.success:
-                logger.info("Goal '%s' converged successfully in cycle %d!", self.goal.id, cycle_idx)
+                logger.info(
+                    "Goal '%s' converged successfully in cycle %d!", self.goal.id, cycle_idx
+                )
                 self.goal.status = GoalStatus.SATISFIED
                 self.goal.completed_at = time.time()
                 return True
 
-        logger.warning("Goal '%s' exhausted max cycles (%d) without full convergence.", self.goal.id, self.max_cycles)
+        logger.warning(
+            "Goal '%s' exhausted max cycles (%d) without full convergence.",
+            self.goal.id,
+            self.max_cycles,
+        )
         self.goal.status = GoalStatus.BLOCKED
         return False
 
@@ -241,7 +253,11 @@ class GoalsAndLoopsOrchestrator:
             met = sum(1 for ac in g.acceptance_criteria if ac.verified)
             total = max(len(g.acceptance_criteria), 1)
             pct = (met / total) * 100.0
-            status_badge = "🟢 SATISFIED" if g.status == GoalStatus.SATISFIED else f"🟡 {g.status.value.upper()}"
+            status_badge = (
+                "🟢 SATISFIED"
+                if g.status == GoalStatus.SATISFIED
+                else f"🟡 {g.status.value.upper()}"
+            )
             lines.append(f"| `{g.id}` | {g.title} | {status_badge} | {met}/{total} | {pct:.1f}% |")
 
         lines.append("")

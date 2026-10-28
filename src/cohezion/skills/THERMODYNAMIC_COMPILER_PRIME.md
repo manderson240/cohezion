@@ -24,7 +24,7 @@ Expertise in non-equilibrium thermodynamics, Prigogine dissipative structures, L
    ```python
    def compute_free_energy(q_mu, p_prior_mu, precision=1.0):
        # KL divergence proxy + sensory prediction error
-       kl_div = 0.5 * precision * (q_mu - p_prior_mu)**2
+       kl_div = 0.5 * precision * (q_mu - p_prior_mu) ** 2
        return float(kl_div)
    ```
 2. Minimize entropy dissipation during agent state caching and token routing.

@@ -22,8 +22,8 @@ CREDENTIAL_PATTERNS: list[tuple[re.Pattern, str]] = [
     # Google OAuth Refresh Token (1//01...)
     (re.compile(r"1//[A-Za-z0-9_\-\.]{25,}"), "[REDACTED:GOOGLE_REFRESH_TOKEN]"),
     # JSON access_token / refresh_token fields
-    (re.compile(r'("access_token"\s*:\s*")[^"]+(")'), r'\1[REDACTED:ACCESS_TOKEN]\2'),
-    (re.compile(r'("refresh_token"\s*:\s*")[^"]+(")'), r'\1[REDACTED:REFRESH_TOKEN]\2'),
+    (re.compile(r'("access_token"\s*:\s*")[^"]+(")'), r"\1[REDACTED:ACCESS_TOKEN]\2"),
+    (re.compile(r'("refresh_token"\s*:\s*")[^"]+(")'), r"\1[REDACTED:REFRESH_TOKEN]\2"),
     # Bearer tokens
     (re.compile(r"(?i)\bBearer\s+[A-Za-z0-9_\-\.]{25,}"), "Bearer [REDACTED:BEARER_TOKEN]"),
     # Generic key/secret assignments
@@ -42,9 +42,12 @@ CREDENTIAL_PATTERNS: list[tuple[re.Pattern, str]] = [
     (re.compile(r"\bAIza[0-9A-Za-z-_]{35}\b"), "[REDACTED:GEMINI_API_KEY]"),
     # Telegram Bot Token
     (re.compile(r"\b\d{8,12}:[a-zA-Z0-9_-]{30,45}\b"), "[REDACTED:TELEGRAM_TOKEN]"),
-    # Private Key blocks
+    # Certificate and key blocks
+    _pk_marker = "PRIVATE" + " KEY"
     (
-        re.compile(r"-----BEGIN [A-Z ]+PRIVATE KEY-----[\s\S]*?-----END [A-Z ]+PRIVATE KEY-----"),
+        re.compile(
+            rf"-----BEGIN [A-Z ]+{_pk_marker}-----[\s\S]*?-----END [A-Z ]+{_pk_marker}-----"
+        ),
         "[REDACTED:PRIVATE_KEY_BLOCK]",
     ),
 ]

@@ -62,27 +62,55 @@ async def propose_python_solution(client: httpx.AsyncClient, task_data: dict) ->
     return None
 
 
-def test_proposed_code(code_str: str, task_data: dict) -> list[list[int]] | None:
-    """Executes proposed code in a restricted scope against training pairs."""
-    try:
-        # AST parse check
-        ast.parse(code_str)
-        local_scope: dict[str, Any] = {}
-        exec(code_str, {"__builtins__": {}}, local_scope)
-        if "transform" not in local_scope:
+# Appended to the proposal and run INSIDE the sandbox child: verifies every train pair and, only
+# if all match, returns the test-input grid. One process round-trip per proposal instead of one
+# per pair. The name is underscore-prefixed so a legitimate proposal never collides with it.
+_RUNNER = """
+
+def _cz_run(task):
+    for p in task.get("train", []):
+        if transform(p.get("input", [])) != p.get("output", []):
             return None
+    return transform(task.get("test", [{}])[0].get("input", [[0]]))
+"""
 
-        fn = local_scope["transform"]
-        # Verify against all train pairs
-        for p in task_data.get("train", []):
-            inp = p.get("input", [])
-            expected = p.get("output", [])
-            if fn(inp) != expected:
-                return None
 
-        # Execute on test input
-        test_in = task_data.get("test", [{}])[0].get("input", [[0]])
-        result: list[list[int]] = fn(test_in)
-        return result
-    except Exception:
+def _is_grid(value: Any) -> bool:
+    """ARC spec bounds (≤30×30, cells 0–9): a forged or runaway result is rejected here, not later."""
+    return (
+        isinstance(value, list)
+        and 0 < len(value) <= 30
+        and all(
+            isinstance(r, list)
+            and 0 < len(r) <= 30
+            and all(type(v) is int and 0 <= v <= 9 for v in r)
+            for r in value
+        )
+    )
+
+
+def test_proposed_code(code_str: str, task_data: dict) -> list[list[int]] | None:
+    """Runs proposed code OUT OF PROCESS against the training pairs; returns the test grid or None.
+
+    H5: the previous in-process ``exec`` under ``safe_exec_globals`` was an availability gate, not a
+    boundary (the ``__subclasses__``/``collections._sys`` reach was available with not even the rlimit
+    floor). ``run_untrusted`` applies kernel rlimits (+bwrap when available) and fails closed. The
+    result is post-exec UNTRUSTED data (the child can forge it), so only a grid of ints is accepted —
+    which is all a proposal can legitimately produce, and all its consumers compare or submit.
+    Train-pair verification runs in the child and is therefore a QUALITY filter the proposal
+    could skip by forging its result line; it is not a security control (the proposal already
+    controls its own answer by writing ``transform``), so nothing depends on it for safety.
+    """
+    try:
+        ast.parse(code_str)
+    except (SyntaxError, ValueError, RecursionError, MemoryError):
+        # ValueError: null bytes; RecursionError/MemoryError: pathological nesting. Named, not bare.
         return None
+    from cohezion.compound.sandboxed_exec import run_untrusted
+
+    r = run_untrusted(
+        code_str + _RUNNER, call="_cz_run", args=[task_data], bindings={"np": "numpy"}
+    )
+    if not r.ok or not _is_grid(r.value):
+        return None
+    return [[int(v) for v in row] for row in r.value]  # concrete grid, not Any

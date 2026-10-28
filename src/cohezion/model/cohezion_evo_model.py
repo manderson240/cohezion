@@ -22,7 +22,7 @@ from __future__ import annotations
 
 import hashlib
 import time
-from collections.abc import Callable
+from collections.abc import Callable, Sequence
 from dataclasses import dataclass, field
 from typing import Any
 
@@ -144,7 +144,9 @@ class GeodesicFlowNeuralODE(nn.Module):
 
         z_pred = z + dt * v_n
         centroid_pred = torch.mean(z_pred, dim=-1, keepdim=True)
-        v_pred = self.velocity_field(z_pred) * 0.1 - self.dissipative_gamma * (z_pred - centroid_pred)
+        v_pred = self.velocity_field(z_pred) * 0.1 - self.dissipative_gamma * (
+            z_pred - centroid_pred
+        )
 
         # HIHO 0.50 quadrature rule
         z_next = z + dt * (0.5 * v_n + 0.5 * v_pred)
@@ -305,7 +307,7 @@ class EVOAutoHarnessVerifier:
 
     @staticmethod
     def generate_proof(
-        weights: list[torch.Tensor],
+        weights: Sequence[torch.Tensor],
         state_trajectory: np.ndarray,
         delta_s: float,
     ) -> EVOVerificationProof:

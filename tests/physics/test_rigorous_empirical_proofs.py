@@ -32,7 +32,9 @@ def test_proof1_poincare_2048d_geodesic_boundary_containment() -> None:
 
 def test_proof2_matsumoto_screening_and_coulomb_collapse() -> None:
     matsumoto = MatsumotoENCEngine()
-    c_state = matsumoto.evaluate_itonic_cluster(num_protons=4, num_electrons=8, current_density_a_m2=1e13)
+    c_state = matsumoto.evaluate_itonic_cluster(
+        num_protons=4, num_electrons=8, current_density_a_m2=1e13
+    )
     trans = matsumoto.simulate_enc_transmutation(c_state)
 
     assert c_state.is_enc_triggered is True
@@ -64,7 +66,9 @@ def test_proof4_palimpsa_bayesian_continual_retention() -> None:
         meta_engine.step(k_other, v_other, d_t=0.5)
 
     v_retrieved, _ = meta_engine.step(k_first, np.zeros(12), d_t=0.0)
-    cos_sim = float(np.dot(v_retrieved, v_first) / (np.linalg.norm(v_retrieved) * np.linalg.norm(v_first)))
+    cos_sim = float(
+        np.dot(v_retrieved, v_first) / (np.linalg.norm(v_retrieved) * np.linalg.norm(v_first))
+    )
 
     assert cos_sim > 0.85
 

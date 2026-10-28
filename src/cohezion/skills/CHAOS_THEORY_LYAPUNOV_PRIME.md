@@ -26,6 +26,7 @@ Expertise in Chaos Theory, non-linear dynamical systems, strange attractors, and
    ```python
    import numpy as np
 
+
    def compute_lyapunov_exponent(trajectory_points, dt=0.01):
        # Log divergence rate of nearest neighbors
        diffs = np.linalg.norm(trajectory_points[1:] - trajectory_points[:-1], axis=-1)

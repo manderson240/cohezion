@@ -27,13 +27,25 @@ def _validate_table_name(table_name: str) -> str:
     return table_name
 
 
-# Setup specialized DBA logging
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s - [DBA] - %(levelname)s - %(message)s",
-    handlers=[logging.FileHandler("dba_operations.log"), logging.StreamHandler()],
-)
 logger = logging.getLogger("CohezionDBA")
+
+
+def _ensure_dba_logging() -> None:
+    """Attach the DBA console + ``dba_operations.log`` handlers to the CohezionDBA logger, once.
+
+    This used to be a module-scope ``logging.basicConfig`` on the ROOT logger, so merely importing
+    ``cohezion.core.persistence`` (40 cross-package sites) created ``dba_operations.log`` in the
+    current directory and -- whenever it happened to run first -- routed the whole process's INFO
+    logs into it. Scoped to this logger and deferred to DBAdmin construction instead.
+    """
+    if logger.handlers:
+        return
+    fmt = logging.Formatter("%(asctime)s - [DBA] - %(levelname)s - %(message)s")
+    for handler in (logging.FileHandler("dba_operations.log"), logging.StreamHandler()):
+        handler.setFormatter(fmt)
+        logger.addHandler(handler)
+    logger.setLevel(logging.INFO)
+    logger.propagate = False
 
 
 class DBAdmin:
@@ -43,6 +55,7 @@ class DBAdmin:
     """
 
     def __init__(self, backup_dir: str = ".backups/surreal"):
+        _ensure_dba_logging()
         self.client = SurrealClient()
         self.backup_dir = Path(backup_dir)
         self.backup_dir.mkdir(parents=True, exist_ok=True)

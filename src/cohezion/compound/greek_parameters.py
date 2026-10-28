@@ -55,8 +55,14 @@ class GreekParameters:
         self.beta = max(0.0, min(0.015, float(self.beta)))  # A3 collapse guard
 
     def gamma(self, x: float) -> float:
-        """HIHO coherence kernel γ(x) = 4x(1-x). Universal attractor formula."""
-        return 4.0 * x * (1.0 - x)
+        """HIHO coherence kernel γ(x) = 4x(1-x) = 4/I(x), the inverse Bernoulli Fisher information.
+
+        Consumes the shared definition in ``cohezion.physics.hiho_kernel`` (2026-09-20) instead
+        of restating the literal; the docstring there carries the geometric reading.
+        """
+        from cohezion.physics.hiho_kernel import hiho_kernel
+
+        return hiho_kernel(x)
 
     def update(self, x: float, r0_score: float = 0.5) -> float:
         """One timestep of the URE equation of motion.

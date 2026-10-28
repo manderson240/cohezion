@@ -264,18 +264,104 @@ class BAMLResilientParser:
             return cls._heuristic_field_recovery(cleaned, model_cls)
 
     @classmethod
+    def parse_to_dict(cls, raw_output: str, schema: dict[str, Any] | None = None) -> dict[str, Any]:
+        """Parses model output into a plain dictionary with structural healing.
+
+        Extracts JSON blocks, handles unclosed braces, strips thinking tokens,
+        and falls back to heuristic key-value extraction against schema properties.
+        """
+        cleaned = cls.strip_thinking_tokens(raw_output)
+
+        match = cls.JSON_BLOCK_REGEX.search(cleaned)
+        candidate = match.group(1) if match else cleaned
+
+        first_brace = candidate.find("{")
+        last_brace = candidate.rfind("}")
+        if first_brace != -1 and last_brace != -1 and last_brace > first_brace:
+            candidate = candidate[first_brace : last_brace + 1]
+
+        candidate = cls.heal_json_string(candidate)
+
+        try:
+            parsed = json.loads(candidate)
+            if isinstance(parsed, dict):
+                return parsed
+        except Exception as exc:
+            logger.warning(
+                "Standard JSON parse to dict failed, attempting heuristic recovery: %s",
+                exc,
+            )
+
+        return cls._heuristic_dict_recovery(cleaned, schema)
+
+    @classmethod
+    def _coerce_value(cls, val_raw: str, expected_type: str | Any) -> Any:
+        """Coerces raw string token into expected primitive type."""
+        try:
+            return json.loads(val_raw)
+        except Exception:
+            pass
+
+        type_str = (
+            expected_type.lower() if isinstance(expected_type, str) else str(expected_type).lower()
+        )
+        if "bool" in type_str:
+            return val_raw.lower() in ("true", "1", "yes")
+        if "int" in type_str:
+            try:
+                return int(float(val_raw))
+            except ValueError:
+                return val_raw
+        if "number" in type_str or "float" in type_str:
+            try:
+                return float(val_raw)
+            except ValueError:
+                return val_raw
+        return val_raw
+
+    @classmethod
+    def _heuristic_dict_recovery(cls, text: str, schema: dict[str, Any] | None) -> dict[str, Any]:
+        """Recovers key-value pairs from text (YAML, Markdown, plain text)."""
+        fields_data: dict[str, Any] = {}
+        properties = (schema or {}).get("properties", {})
+
+        if properties:
+            for field_name, prop_info in properties.items():
+                pattern = re.compile(
+                    rf'(?:^|\n|\s)(?:[-*]\s*)?(?:\*\*)?["\']?({re.escape(field_name)})["\']?(?:\*\*)?\s*[:=]\s*([^\n,}}]+)',
+                    re.IGNORECASE,
+                )
+                m = pattern.search(text)
+                if m:
+                    val_raw = m.group(2).strip().strip('"').strip("'")
+                    expected_type = (
+                        prop_info.get("type", "string") if isinstance(prop_info, dict) else "string"
+                    )
+                    fields_data[field_name] = cls._coerce_value(val_raw, expected_type)
+        else:
+            line_pattern = re.compile(
+                r"(?:^|\n)\s*(?:[-*]\s*)?(?:\*\*)?([a-zA-Z_][a-zA-Z0-9_]*)(?:\*\*)?\s*[:=]\s*([^\n]+)"
+            )
+            for m in line_pattern.finditer(text):
+                k = m.group(1).strip()
+                v = m.group(2).strip().strip('"').strip("'")
+                fields_data[k] = cls._coerce_value(v, "string")
+
+        return fields_data
+
+    @classmethod
     def _heuristic_field_recovery(cls, text: str, model_cls: type[T]) -> T:
         """Best-effort regex extraction for known fields in target schema."""
         fields_data: dict[str, Any] = {}
-        for field_name, _field_info in model_cls.model_fields.items():
-            pattern = re.compile(rf'"{field_name}"\s*:\s*([^,\n}}]+)')
+        for field_name, field_info in model_cls.model_fields.items():
+            pattern = re.compile(
+                rf'(?:^|\n|\s)(?:[-*]\s*)?(?:\*\*)?["\']?({re.escape(field_name)})["\']?(?:\*\*)?\s*[:=]\s*([^\n,}}]+)',
+                re.IGNORECASE,
+            )
             m = pattern.search(text)
             if m:
-                val_raw = m.group(1).strip().strip('"').strip("'")
-                try:
-                    fields_data[field_name] = json.loads(val_raw)
-                except Exception:
-                    fields_data[field_name] = val_raw
+                val_raw = m.group(2).strip().strip('"').strip("'")
+                fields_data[field_name] = cls._coerce_value(val_raw, str(field_info.annotation))
         return model_cls.model_validate(fields_data)
 
 

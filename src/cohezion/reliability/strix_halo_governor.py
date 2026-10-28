@@ -33,9 +33,9 @@ class StrixHaloGovernor:
     def check_memory_headroom(self) -> dict[str, Any]:
         """Verify UMA memory pool and enforce 20.0 GiB floor."""
         vm = psutil.virtual_memory()
-        avail_gib = vm.available / (1024 ** 3)
-        used_gib = vm.used / (1024 ** 3)
-        total_gib = vm.total / (1024 ** 3)
+        avail_gib = vm.available / (1024**3)
+        used_gib = vm.used / (1024**3)
+        total_gib = vm.total / (1024**3)
 
         is_safe = avail_gib >= UMA_MEMORY_FLOOR_GIB
 
@@ -44,7 +44,7 @@ class StrixHaloGovernor:
             "used_gib": round(used_gib, 1),
             "available_gib": round(avail_gib, 1),
             "floor_gib": UMA_MEMORY_FLOOR_GIB,
-            "is_safe": is_safe
+            "is_safe": is_safe,
         }
 
         if not is_safe:
@@ -56,9 +56,9 @@ class StrixHaloGovernor:
     def _reclaim_orphans(self) -> int:
         """Kill orphaned headless browser or leaked python worker processes."""
         killed = 0
-        for proc in psutil.process_iter(['pid', 'name', 'cmdline']):
+        for proc in psutil.process_iter(["pid", "name", "cmdline"]):
             try:
-                cmdline = " ".join(proc.info.get('cmdline') or [])
+                cmdline = " ".join(proc.info.get("cmdline") or [])
                 if "chromium" in cmdline and "--headless" in cmdline:
                     proc.kill()
                     killed += 1
@@ -69,8 +69,7 @@ class StrixHaloGovernor:
     def verify_silicon_responsiveness(self, timeout_s: float = 10.0) -> bool:
         """Verify Lemonade router responsiveness on port 13305."""
         req = urllib.request.Request(
-            f"{self.base_url}/v1/models",
-            headers={"Content-Type": "application/json"}
+            f"{self.base_url}/v1/models", headers={"Content-Type": "application/json"}
         )
         t0 = time.perf_counter()
         try:
@@ -88,11 +87,17 @@ async def run_governor_cycle() -> None:
     print("=" * 80)
 
     mem_status = gov.check_memory_headroom()
-    print(f"1. Memory Pool Status: {mem_status['available_gib']} GiB Available / {mem_status['total_gib']} GiB Total")
-    print(f"   Headroom Safety: {'✓ HEALTHY (>20.0 GiB)' if mem_status['is_safe'] else '⚠️ LOW HEADROOM - RECLAIMING'}")
+    print(
+        f"1. Memory Pool Status: {mem_status['available_gib']} GiB Available / {mem_status['total_gib']} GiB Total"
+    )
+    print(
+        f"   Headroom Safety: {'✓ HEALTHY (>20.0 GiB)' if mem_status['is_safe'] else '⚠️ LOW HEADROOM - RECLAIMING'}"
+    )
 
     is_responsive = gov.verify_silicon_responsiveness()
-    print(f"2. Lemonade Hardware Gateway (:13305): {'✓ RESPONSIVE' if is_responsive else '✗ UNRESPONSIVE'}")
+    print(
+        f"2. Lemonade Hardware Gateway (:13305): {'✓ RESPONSIVE' if is_responsive else '✗ UNRESPONSIVE'}"
+    )
 
     print("=" * 80)
     print("🎉 GOVERNOR CYCLE COMPLETE — HARDWARE IS STABLE & PROTECTED")

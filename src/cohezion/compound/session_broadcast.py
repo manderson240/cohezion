@@ -21,13 +21,12 @@ from dataclasses import dataclass
 
 
 # task_classifier node ("npu"/"gpu") → broadcast delegation tier + lemonade port.
-# "gpu" maps to iGPU (13307); short categorical/answer stays on NPU (13306).
 _TIER_BY_NODE: dict[str, tuple[str, int]] = {
-    "npu": ("npu", 13306),  # allow-direct-port: lane-map identifier, not dispatch
-    "gpu": ("igpu", 13307),  # allow-direct-port: lane-map identifier, not dispatch
+    "npu": ("npu", 13305),
+    "gpu": ("igpu", 13305),
 }
-# Reasoning/long work escalates to the CPU tier (Gemma-4-31B on 13309).
-_CPU_TIER = ("cpu", 13309)  # allow-direct-port: lane-map identifier, not dispatch
+# Reasoning/long work escalates to the CPU tier via OmniRouter on 13305.
+_CPU_TIER = ("cpu", 13305)
 _CPU_OUTPUT_TYPES = frozenset({"math_reasoning", "long_generation"})
 
 

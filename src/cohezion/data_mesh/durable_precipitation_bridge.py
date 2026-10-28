@@ -88,9 +88,7 @@ class DurablePrecipitationBridge:
             "metadata": mark.metadata,
         }
 
-        surql_statements = [
-            f"UPSERT moc_node:{safe_id} CONTENT {json.dumps(record_payload)};"
-        ]
+        surql_statements = [f"UPSERT moc_node:{safe_id} CONTENT {json.dumps(record_payload)};"]
 
         # Extract wikilinks and construct relates_to graph edges
         wikilinks = self._extract_wikilinks(mark.content)
@@ -120,6 +118,9 @@ class DurablePrecipitationBridge:
             )
             with urllib.request.urlopen(req, timeout=3.0) as resp:
                 if resp.status in (200, 201):
+                    from cohezion.storage.surreal_http import checked_statements
+
+                    checked_statements(json.loads(resp.read()), status_code=resp.status)
                     logger.info("SurrealDB moc_node and edges synced for: %s", mark.mark_id)
                     return True
                 logger.warning("SurrealDB HTTP %d syncing %s", resp.status, mark.mark_id)
@@ -141,7 +142,9 @@ class DurablePrecipitationBridge:
                 state_list = []
 
         # Update or append record
-        existing_idx = next((i for i, r in enumerate(state_list) if r.get("mark_id") == mark.mark_id), None)
+        existing_idx = next(
+            (i for i, r in enumerate(state_list) if r.get("mark_id") == mark.mark_id), None
+        )
         entry = {
             "mark_id": mark.mark_id,
             "title": mark.title,

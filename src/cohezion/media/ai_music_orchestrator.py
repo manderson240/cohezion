@@ -25,7 +25,7 @@ class AIMusicOrchestrator:
         bpm: int = 72,
     ) -> np.ndarray:
         """Synthesize a complete 4-layer ambient orchestral arrangement at 432 Hz.
-        
+
         Layers:
         1. Sub-Bass Drone: 54 Hz (C1) & 81 Hz (G1) in Pythagorean 3:2 fifths.
         2. Harmonic Chord Pad: 432 Hz (A4), 540 Hz (C#5), 648 Hz (E5) with slow LFO phase modulation.
@@ -62,7 +62,9 @@ class AIMusicOrchestrator:
             ratio = scale_ratios[step_idx % len(scale_ratios)]
             note_freq = 432.0 * ratio
 
-            note_t = np.linspace(0, (end_s - start_s) / self.sample_rate, end_s - start_s, endpoint=False)
+            note_t = np.linspace(
+                0, (end_s - start_s) / self.sample_rate, end_s - start_s, endpoint=False
+            )
             # Per-note ADSR decay
             note_env = np.exp(-4.0 * note_t)
             arp[start_s:end_s] += 0.20 * np.sin(2 * np.pi * note_freq * note_t) * note_env
@@ -95,7 +97,9 @@ class AIMusicOrchestrator:
 
 def generate_soundtrack() -> Path:
     orch = AIMusicOrchestrator(sample_rate=44100)
-    out_file = Path("/home/mike-anderson/dev/cohezion/docs/assets/audio/cohezion_symphony_432hz.wav")
+    out_file = Path(
+        "/home/mike-anderson/dev/cohezion/docs/assets/audio/cohezion_symphony_432hz.wav"
+    )
     score = orch.generate_polyphonic_score(duration_s=14.0, base_tuning_hz=432.0, bpm=72)
     orch.export_wav(score, out_file)
     return out_file

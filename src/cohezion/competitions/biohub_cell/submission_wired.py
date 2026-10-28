@@ -34,13 +34,22 @@ import pandas as pd
 # Configuration
 # ----------------------------------------------------------------------------------------
 SLUG = "biohub-cell-tracking-during-development"
-SEARCH_RADIUS_UM = 30.0          # max frame-to-frame cell displacement for a valid link
-SMOOTH_SIGMA = (1.0, 2.0, 2.0)   # Gaussian sigma (Z, Y, X) — anisotropic (Z coarser)
-THRESH_PCTL = 99.0               # per-volume intensity percentile floor for the mask
-MIN_VOXELS = 20                  # discard sub-nuclear noise specks
-MAX_VOXELS = 20000               # discard merged/background blobs
+SEARCH_RADIUS_UM = 30.0  # max frame-to-frame cell displacement for a valid link
+SMOOTH_SIGMA = (1.0, 2.0, 2.0)  # Gaussian sigma (Z, Y, X) — anisotropic (Z coarser)
+THRESH_PCTL = 99.0  # per-volume intensity percentile floor for the mask
+MIN_VOXELS = 20  # discard sub-nuclear noise specks
+MAX_VOXELS = 20000  # discard merged/background blobs
 SUBMISSION_COLUMNS = [
-    "id", "dataset", "row_type", "node_id", "t", "z", "y", "x", "source_id", "target_id",
+    "id",
+    "dataset",
+    "row_type",
+    "node_id",
+    "t",
+    "z",
+    "y",
+    "x",
+    "source_id",
+    "target_id",
 ]
 
 
@@ -205,9 +214,7 @@ class _ManualZarrReader:
         self.shape = tuple(int(s) for s in meta["shape"])
         self.chunk = tuple(int(s) for s in meta["chunk_grid"]["configuration"]["chunk_shape"])
         self.dtype = np.dtype(meta["data_type"])
-        self.sep = (
-            meta.get("chunk_key_encoding", {}).get("configuration", {}).get("separator", "/")
-        )
+        self.sep = meta.get("chunk_key_encoding", {}).get("configuration", {}).get("separator", "/")
         self._chunk_nbytes = int(np.prod(self.chunk)) * self.dtype.itemsize
         has_blosc = any(c.get("name") == "blosc" for c in meta.get("codecs", []))
         self._decoders = _build_blosc_decoders() if has_blosc else [("raw", bytes)]
@@ -244,7 +251,7 @@ class _ManualZarrReader:
                     block = self._decode_chunk(path.read_bytes())[0]  # drop T axis
                     z0, y0, x0 = kz * cz, ky * cy, kx * cx
                     zs, ys, xs = min(cz, z - z0), min(cy, y - y0), min(cx, x - x0)
-                    vol[z0:z0 + zs, y0:y0 + ys, x0:x0 + xs] = block[:zs, :ys, :xs]
+                    vol[z0 : z0 + zs, y0 : y0 + ys, x0 : x0 + xs] = block[:zs, :ys, :xs]
         return vol
 
 
@@ -273,8 +280,8 @@ def detect_cells(vol: np.ndarray, scale_zyx: np.ndarray) -> list[dict[str, Any]]
         zyx = np.asarray(com, dtype=np.float64)
         cells.append(
             {
-                "zyx": zyx,                       # voxel coords (for the CSV)
-                "centroid": zyx * scale_zyx,      # micrometer coords (for the matcher)
+                "zyx": zyx,  # voxel coords (for the CSV)
+                "centroid": zyx * scale_zyx,  # micrometer coords (for the matcher)
                 "volume": float(sz),
                 "mean_intensity": float(mi),
             }
@@ -330,8 +337,15 @@ def build_dataset_graph(dataset: str, root: Path) -> list[dict[str, Any]]:
             z, y, x = (int(np.rint(v)) for v in c["zyx"])
             node_rows.append(
                 {
-                    "dataset": dataset, "row_type": "node", "node_id": next_node_id,
-                    "t": t, "z": z, "y": y, "x": x, "source_id": -1, "target_id": -1,
+                    "dataset": dataset,
+                    "row_type": "node",
+                    "node_id": next_node_id,
+                    "t": t,
+                    "z": z,
+                    "y": y,
+                    "x": x,
+                    "source_id": -1,
+                    "target_id": -1,
                 }
             )
             next_node_id += 1
@@ -339,9 +353,15 @@ def build_dataset_graph(dataset: str, root: Path) -> list[dict[str, Any]]:
             for e in tracker.resolve_lineage_matching(prev_cells, cells):
                 edge_rows.append(
                     {
-                        "dataset": dataset, "row_type": "edge", "node_id": -1,
-                        "t": -1, "z": -1, "y": -1, "x": -1,
-                        "source_id": e["parent"], "target_id": e["child"],
+                        "dataset": dataset,
+                        "row_type": "edge",
+                        "node_id": -1,
+                        "t": -1,
+                        "z": -1,
+                        "y": -1,
+                        "x": -1,
+                        "source_id": e["parent"],
+                        "target_id": e["child"],
                     }
                 )
         prev_cells = cells
@@ -356,15 +376,42 @@ def build_dataset_graph(dataset: str, root: Path) -> list[dict[str, Any]]:
 def _stub_rows(dataset: str) -> list[dict[str, Any]]:
     """Minimal valid 3-node / 2-edge lineage so the dataset is never absent/empty."""
     nodes = [
-        {"dataset": dataset, "row_type": "node", "node_id": k, "t": k - 1,
-         "z": 32, "y": 128, "x": 128, "source_id": -1, "target_id": -1}
+        {
+            "dataset": dataset,
+            "row_type": "node",
+            "node_id": k,
+            "t": k - 1,
+            "z": 32,
+            "y": 128,
+            "x": 128,
+            "source_id": -1,
+            "target_id": -1,
+        }
         for k in (1, 2, 3)
     ]
     edges = [
-        {"dataset": dataset, "row_type": "edge", "node_id": -1, "t": -1, "z": -1,
-         "y": -1, "x": -1, "source_id": 1, "target_id": 2},
-        {"dataset": dataset, "row_type": "edge", "node_id": -1, "t": -1, "z": -1,
-         "y": -1, "x": -1, "source_id": 2, "target_id": 3},
+        {
+            "dataset": dataset,
+            "row_type": "edge",
+            "node_id": -1,
+            "t": -1,
+            "z": -1,
+            "y": -1,
+            "x": -1,
+            "source_id": 1,
+            "target_id": 2,
+        },
+        {
+            "dataset": dataset,
+            "row_type": "edge",
+            "node_id": -1,
+            "t": -1,
+            "z": -1,
+            "y": -1,
+            "x": -1,
+            "source_id": 2,
+            "target_id": 3,
+        },
     ]
     return nodes + edges
 
@@ -401,8 +448,10 @@ def main() -> None:
     df.to_csv(out, index=False)
     n_nodes = int((df["row_type"] == "node").sum())
     n_edges = int((df["row_type"] == "edge").sum())
-    print(f"Wrote {out}: {len(df)} rows ({n_nodes} nodes, {n_edges} edges) "
-          f"across {df['dataset'].nunique()} datasets.")
+    print(
+        f"Wrote {out}: {len(df)} rows ({n_nodes} nodes, {n_edges} edges) "
+        f"across {df['dataset'].nunique()} datasets."
+    )
 
 
 if __name__ == "__main__":

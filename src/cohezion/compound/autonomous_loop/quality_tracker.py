@@ -64,8 +64,10 @@ def _surreal_query(sql: str, timeout: float = 3.0) -> list[dict[str, Any]]:
             method="POST",
         )
         with urllib.request.urlopen(req, timeout=timeout) as resp:  # noqa: S310
-            data = json.loads(resp.read())
-        return data[0].get("result", []) if isinstance(data, list) else []
+            from cohezion.storage.surreal_http import checked_statements
+
+            data = checked_statements(json.loads(resp.read()), status_code=resp.status)
+        return data[0].get("result", []) if data else []
     except Exception as exc:
         logger.debug("SurrealDB quality query failed: %s", exc)
         return []

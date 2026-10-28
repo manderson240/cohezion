@@ -43,18 +43,18 @@ def greet(name):
 async def test_generate_unified_response_mocked():
     mesh = UnifiedNeuralMesh()
     with (
-        patch.object(mesh, 'fetch_associative_neurons', return_value=['Neuron: Port 8001 DB']),
+        patch.object(mesh, "fetch_associative_neurons", return_value=["Neuron: Port 8001 DB"]),
         patch.object(
             mesh,
-            '_query_endpoint',
+            "_query_endpoint",
             return_value="""```python
 def test_fn():
     return 'mesh'
 ```""",
         ),
     ):
-        res = await mesh.generate_unified_response('Write a test function')
+        res = await mesh.generate_unified_response("Write a test function")
         assert isinstance(res, NeuralMeshResponse)
         assert res.ast_verified is True
-        assert res.retrieved_neurons == ['Neuron: Port 8001 DB']
-        assert 'test_fn' in res.unified_output
+        assert res.retrieved_neurons == ["Neuron: Port 8001 DB"]
+        assert "test_fn" in res.unified_output

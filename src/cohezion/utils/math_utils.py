@@ -2,20 +2,21 @@
 Mathematical utility functions for Cohezion framework.
 """
 
+
 def factorial(n: int) -> int:
     """
     Compute the factorial of a non-negative integer.
-    
+
     Args:
         n: A non-negative integer
-        
+
     Returns:
         The factorial of n (n!)
-        
+
     Raises:
         ValueError: If n is negative
         TypeError: If n is not an integer
-        
+
     Examples:
         >>> factorial(5)
         120

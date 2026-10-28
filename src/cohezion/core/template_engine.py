@@ -7,6 +7,7 @@ then generates Python agent stubs and configuration dataclasses.
 
 from __future__ import annotations
 
+import json
 import logging
 import re
 from dataclasses import dataclass, field
@@ -103,6 +104,24 @@ def _parse_see_also(text: str) -> list[str]:
             line = re.sub(r"\.md$", "", line)
             refs.append(line.strip())
     return refs
+
+
+def _str_lit(text: str) -> str:
+    """A double-quoted Python string literal for untrusted text.
+
+    JSON string escapes are a strict subset of Python's, so the result parses back to exactly
+    ``text`` while keeping the generated source's existing double-quote style.
+    """
+    return json.dumps(str(text))
+
+
+def _doc_text(text: str) -> str:
+    """Make untrusted text safe inside a generated triple-quoted docstring.
+
+    Backslashes first, then quotes: escaping only quotes lets ``\\"`` become an escaped
+    backslash followed by a live quote that closes the string.
+    """
+    return str(text).replace("\\", "\\\\").replace('"', '\\"')
 
 
 def _skill_name_to_class(skill_name: str) -> str:
@@ -260,9 +279,9 @@ class TemplateEngine:
             if spec.domain_expertise
             else "No domain specified."
         )
-        # Escape any triple quotes in domain text
-        domain_escaped = domain_short.replace('"""', '\\"\\"\\"')
-        system_prompt = domain_escaped.replace('"', '\\"')
+        # Skill-file text is untrusted (LLM-refined) and this source is exec'd: _str_lit() for
+        # literals, _doc_text() for docstrings. Ad-hoc quote escaping missed backslashes.
+        domain_doc = _doc_text(domain_short)
 
         return f'''"""Auto-generated agent for {spec.name}."""
 
@@ -276,11 +295,11 @@ from cohezion.agents.base import BaseAgent
 class {class_name}(BaseAgent):
     """Auto-generated agent for {spec.name}.
 
-    Domain: {domain_escaped}
-    Version: {spec.version}
+    Domain: {domain_doc}
+    Version: {_doc_text(spec.version)}
     """
 
-    SYSTEM_PROMPT = "{system_prompt}"
+    SYSTEM_PROMPT = {_str_lit(domain_short)}
 
     def __init__(self, **kwargs: Any) -> None:
         super().__init__(**kwargs)
@@ -312,7 +331,6 @@ class {class_name}(BaseAgent):
             if spec.domain_expertise
             else "No domain specified."
         )
-        system_prompt = domain_short.replace('"', '\\"')
 
         # Pre-expand instructions into plan steps for the constant
         from cohezion.core.instruction_expander import InstructionExpander
@@ -323,14 +341,10 @@ class {class_name}(BaseAgent):
         # Serialize plan steps as a list of dicts
         steps_repr = "[\n"
         for step in plan.steps:
-            steps_repr += f'        PlanStep(operation="{step.operation}", '
-            params_repr = repr(step.params)
-            steps_repr += f"params={params_repr}, "
-            desc_escaped = step.description.replace('"', '\\"')
-            steps_repr += f'description="{desc_escaped}"),\n'
+            steps_repr += f"        PlanStep(operation={_str_lit(step.operation)}, "
+            steps_repr += f"params={step.params!r}, "
+            steps_repr += f"description={_str_lit(step.description)}),\n"
         steps_repr += "    ]"
-
-        domain_escaped = (plan.domain or "").replace('"', '\\"')
 
         return f'''"""Auto-generated executable agent for {spec.name}."""
 
@@ -343,20 +357,20 @@ from cohezion.core.plan_executor import ExecutionResult, PlanExecutor
 
 
 _PLAN = ExecutablePlan(
-    skill_name="{spec.name}",
+    skill_name={_str_lit(spec.name)},
     steps={steps_repr},
-    domain="{domain_escaped}",
+    domain={_str_lit(plan.domain or "")},
 )
 
 
 class {class_name}:
     """Executable agent for {spec.name}.
 
-    Domain: {system_prompt}
-    Version: {spec.version}
+    Domain: {_doc_text(domain_short)}
+    Version: {_doc_text(spec.version)}
     """
 
-    SYSTEM_PROMPT = "{system_prompt}"
+    SYSTEM_PROMPT = {_str_lit(domain_short)}
 
     def __init__(self, token_client: Any | None = None) -> None:
         self._token_client = token_client

@@ -24,10 +24,10 @@ for attempt in range(120): # poll for up to 10 minutes
         print("✓ Kernel run completed! Submitting to RSNA Knee Abnormality Detection...")
         res = api.competition_submit_code(
             file_name=SUB_FILE,
-            message="Cohezion RSNA Knee SOTA Multi-View Ensemble (CoAtNet + Raptor 4-View Rank Average)",
+            message="Cohezion RSNA Knee SOTA Multi-View Logit-Calibrated Ensemble v2 (CoAtNet + Raptor + DINOv2)",
             competition=COMP_ID,
             kernel=KERNEL_REF,
-            kernel_version=1
+            kernel_version=2
         )
         print("Submit response:", res)
         sys.exit(0)

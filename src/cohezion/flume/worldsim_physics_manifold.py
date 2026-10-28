@@ -17,9 +17,10 @@ from cohezion.actioner.autoharness_middleware import standard_harness_lifecycle
 @dataclass
 class WorldSimState:
     """State vector of physical universe simulated in Poincaré space."""
+
     step: int
     energy_density: float  # [0.0, 1.0]
-    momentum_flux: float   # [0.0, 1.0]
+    momentum_flux: float  # [0.0, 1.0]
     lyapunov_drift: float  # [0.0, 1.0]
     coherence_hiho: float  # [0.0, 1.0] (Target: 0.5)
 
@@ -39,7 +40,7 @@ class WorldSimPhysicsManifold:
         # Ensure inside Poincaré ball (||x|| < 1)
         norm_u = np.linalg.norm(u)
         norm_v = np.linalg.norm(v)
-        
+
         eps = 1e-6
         if norm_u >= 1.0:
             u = u / (norm_u + eps) * 0.999
@@ -47,15 +48,15 @@ class WorldSimPhysicsManifold:
             v = v / (norm_v + eps) * 0.999
 
         diff_sq = np.sum((u - v) ** 2)
-        denom = (1.0 - np.sum(u ** 2)) * (1.0 - np.sum(v ** 2))
+        denom = (1.0 - np.sum(u**2)) * (1.0 - np.sum(v**2))
         raw_arg = 1.0 + 2.0 * diff_sq / max(eps, denom)
-        
+
         base_poincare_dist = math.acosh(max(1.0, raw_arg))
 
         # Apply WorldSim physical force field warping
         physical_energy_factor = 1.0 + self.beta * (
-            world_state.energy_density +
-            world_state.momentum_flux +
-            abs(world_state.coherence_hiho - 0.5)
+            world_state.energy_density
+            + world_state.momentum_flux
+            + abs(world_state.coherence_hiho - 0.5)
         )
         return float(base_poincare_dist * physical_energy_factor)

@@ -41,13 +41,34 @@ def all_succeeded(checks: typing.Dict[CheckName, Check]) -> bool:
 # #########################################################################
 
 # #########################################################################
-# Generated classes (1)
+# Generated classes (4)
 # #########################################################################
+
+class CodeHarness(BaseModel):
+    harness_name: str
+    precondition_assertions: typing.List[str]
+    postcondition_assertions: typing.List[str]
+    python_verifier_code: str
+    estimated_latency_ms: float
 
 class NextStep(BaseModel):
     action: str
     rationale: str
     risk_level: typing.Union[typing_extensions.Literal['low'], typing_extensions.Literal['medium'], typing_extensions.Literal['high']]
+
+class SubmissionStrategy(BaseModel):
+    competition_id: str
+    target_metric_goal: str
+    recommended_action: typing.Union[typing_extensions.Literal['generate_ensemble'], typing_extensions.Literal['hyperparameter_tune'], typing_extensions.Literal['submit_highest_cv'], typing_extensions.Literal['hold_for_audit']]
+    confidence_score: float
+    reasoning: str
+
+class TaskInvariants(BaseModel):
+    grid_dimension_rule: typing.Union[typing_extensions.Literal['identity'], typing_extensions.Literal['constant'], typing_extensions.Literal['scaled'], typing_extensions.Literal['dynamic'], typing_extensions.Literal['crop']]
+    conserved_colors: typing.List[int]
+    forbidden_colors: typing.List[int]
+    symmetry_detected: typing.Union[typing_extensions.Literal['none'], typing_extensions.Literal['horizontal'], typing_extensions.Literal['vertical'], typing_extensions.Literal['rotational_90'], typing_extensions.Literal['rotational_180'], typing_extensions.Literal['main_diagonal'], typing_extensions.Literal['anti_diagonal']]
+    description: str
 
 # #########################################################################
 # Generated type aliases (0)
@@ -55,10 +76,13 @@ class NextStep(BaseModel):
 
 
 # #########################################################################
-# Model rebuilds (1)
+# Model rebuilds (4)
 # #########################################################################
 # Resolve string forward references now that every model above is defined so
 # class declaration order never breaks Pydantic construction (issue #793).
 # Recursive models are intentionally omitted (Pydantic resolves those lazily;
 # eagerly rebuilding them can recurse).
+CodeHarness.model_rebuild()
 NextStep.model_rebuild()
+SubmissionStrategy.model_rebuild()
+TaskInvariants.model_rebuild()

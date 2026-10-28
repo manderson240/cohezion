@@ -313,7 +313,7 @@ async def _dispatch_openai_compatible(
 async def _dispatch_ollama(model: ModelEntry, prompt: str, timeout: float) -> tuple[str, float]:
     """Ollama has a distinct /api/chat schema."""
     payload = {
-        "model": model.model_id.replace(":cloud", ""),  # Ollama normalizes cloud suffix
+        "model": model.model_id,
         "messages": [{"role": "user", "content": prompt}],
         "stream": False,
     }
@@ -324,7 +324,8 @@ async def _dispatch_ollama(model: ModelEntry, prompt: str, timeout: float) -> tu
         resp.raise_for_status()
         data = resp.json()
 
-    text = data.get("message", {}).get("content", "")
+    msg = data.get("message", {})
+    text = msg.get("content") or msg.get("thinking") or ""
     # Ollama local is free; cloud has a small cost (tracked in registry).
     in_tok = data.get("prompt_eval_count", 0)
     out_tok = data.get("eval_count", 0)
@@ -558,6 +559,7 @@ async def route(
 
     health = None
     lemonade_health: Any | None = None
+    lemonade_loaded_models: set[str] | None = None
     lemonade_health_fetched = False
 
     attempts: list[str] = []
@@ -580,20 +582,33 @@ async def route(
 
             if not lemonade_health_fetched:
                 lemonade_health = await _get_lemonade_health()
+                lemonade_loaded_models = await _get_lemonade_loaded_models()
                 lemonade_health_fetched = True
+
+            # If Lemonade is active and reported loaded models, skip unloaded candidates fail-soft
+            if (
+                lemonade_loaded_models is not None
+                and candidate.model_id not in lemonade_loaded_models
+            ):
+                attempts.append(f"{candidate.model_id}(not-loaded)")
+                continue
+
             skip_reason = _lemonade_recipe_skip_reason(candidate, lemonade_health)
             if skip_reason is not None:
                 attempts.append(f"{candidate.model_id}({skip_reason})")
                 continue
 
         attempts.append(candidate.model_id)
+        dispatch_timeout = (
+            max(timeout, 60.0) if (reasoning_mode or candidate.reasoning_mode) else timeout
+        )
         start = time.perf_counter()
         try:
             text, cost, ttft_ms, tokens_per_sec = await _dispatch_one(
                 candidate,
                 prompt,
                 coherence,
-                timeout,
+                dispatch_timeout,
                 budget_usd,
                 stream=stream,
                 max_tokens=max_tokens,
@@ -760,6 +775,34 @@ async def _get_lemonade_health() -> Any | None:
         _LEMONADE_LAST_RESULT = None
         _LEMONADE_LAST_PROBE_AT = now
         return None
+
+
+_LEMONADE_LOADED_MODELS: set[str] | None = None
+_LEMONADE_LOADED_MODELS_AT: float = 0.0
+_LEMONADE_LOADED_MODELS_TTL_S: float = 15.0
+
+
+async def _get_lemonade_loaded_models() -> set[str] | None:
+    """Fetch set of currently loaded model IDs from Lemonade on :13305 with TTL cache."""
+    global _LEMONADE_LOADED_MODELS, _LEMONADE_LOADED_MODELS_AT
+    now = time.time()
+    if (
+        _LEMONADE_LOADED_MODELS is not None
+        and (now - _LEMONADE_LOADED_MODELS_AT) < _LEMONADE_LOADED_MODELS_TTL_S
+    ):
+        return _LEMONADE_LOADED_MODELS
+    try:
+        client = _get_shared_client(timeout=3.0)
+        resp = await client.get("http://localhost:13305/v1/models")
+        if resp.status_code == 200:
+            data = resp.json()
+            models = {m.get("id", "") for m in data.get("data", []) if m.get("id")}
+            _LEMONADE_LOADED_MODELS = models
+            _LEMONADE_LOADED_MODELS_AT = now
+            return models
+    except Exception as exc:
+        logger.debug("Failed to query Lemonade loaded models: %s", exc)
+    return None
 
 
 def _recipe_for_backend(runtime_backend: str) -> str | None:

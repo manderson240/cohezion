@@ -25,24 +25,24 @@ import numpy as np
 
 
 # Physical Fundamental Constants (SI Units)
-MU_0 = 4.0 * math.pi * 1e-7       # Vacuum permeability (H/m)
-EPS_0 = 8.8541878128e-12          # Vacuum permittivity (F/m)
-C_LIGHT = 299792458.0             # Speed of light (m/s)
-E_CHARGE = 1.602176634e-19        # Elementary charge (C)
-M_ELECTRON = 9.1093837015e-31     # Electron mass (kg)
-H_BAR = 1.054571817e-34           # Reduced Planck constant (J*s)
+MU_0 = 4.0 * math.pi * 1e-7  # Vacuum permeability (H/m)
+EPS_0 = 8.8541878128e-12  # Vacuum permittivity (F/m)
+C_LIGHT = 299792458.0  # Speed of light (m/s)
+E_CHARGE = 1.602176634e-19  # Elementary charge (C)
+M_ELECTRON = 9.1093837015e-31  # Electron mass (kg)
+H_BAR = 1.054571817e-34  # Reduced Planck constant (J*s)
 
 
 @dataclass
 class EVOSolitonState:
     """Represents a coherent Exotic Vacuum Object (EVO) charge cluster soliton."""
 
-    n_electrons: float = 1e11           # Typical Shoulders cluster: ~10^11 electrons
-    radius_m: float = 1.0e-6            # 1.0 micrometer core radius
-    velocity_mps: float = 0.30 * C_LIGHT # 0.30c relativistic drift velocity
-    core_temperature_k: float = 300.0   # Room temperature coherent condensate
-    coherence: float = 0.50             # HIHO 0.50 Coherence
-    vortex_spin: float = 1.0            # Normalized angular momentum
+    n_electrons: float = 1e11  # Typical Shoulders cluster: ~10^11 electrons
+    radius_m: float = 1.0e-6  # 1.0 micrometer core radius
+    velocity_mps: float = 0.30 * C_LIGHT  # 0.30c relativistic drift velocity
+    core_temperature_k: float = 300.0  # Room temperature coherent condensate
+    coherence: float = 0.50  # HIHO 0.50 Coherence
+    vortex_spin: float = 1.0  # Normalized angular momentum
 
     def compute_relativistic_gamma(self) -> float:
         beta = self.velocity_mps / C_LIGHT
@@ -103,7 +103,7 @@ class EVOWorldModel:
         R = np.sqrt(X**2 + Y**2)
 
         # Soliton profile: Bessel-vortex modulated by HIHO 0.50 coherence
-        soliton_density = np.exp(-R**2) * np.cos(2 * np.pi * R * evo_cluster.coherence)
+        soliton_density = np.exp(-(R**2)) * np.cos(2 * np.pi * R * evo_cluster.coherence)
         self.state_field = soliton_density
 
         energy_density_j_m3 = (b_field**2) / (2.0 * MU_0)

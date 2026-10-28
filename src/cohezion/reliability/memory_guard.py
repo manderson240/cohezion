@@ -31,14 +31,14 @@ class MemoryGuard:
     def check_memory(cls, floor_gib: float | None = None) -> MemoryStatus:
         floor = floor_gib or cls.SAFETY_FLOOR_GIB
         vm = psutil.virtual_memory()
-        avail_gib = vm.available / (1024 ** 3)
-        used_gib = vm.used / (1024 ** 3)
-        total_gib = vm.total / (1024 ** 3)
+        avail_gib = vm.available / (1024**3)
+        used_gib = vm.used / (1024**3)
+        total_gib = vm.total / (1024**3)
         return MemoryStatus(
             available_gib=avail_gib,
             used_gib=used_gib,
             total_gib=total_gib,
-            is_safe=avail_gib >= floor
+            is_safe=avail_gib >= floor,
         )
 
     @classmethod

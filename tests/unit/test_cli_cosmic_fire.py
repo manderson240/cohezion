@@ -58,4 +58,3 @@ def test_cli_auto_phoenix():
     assert result.exit_code == 0
     assert "The Deletion Test Passed" in result.stdout
     assert "Phoenix Architecture Rebirth" in result.stdout
-

@@ -62,9 +62,9 @@ class DynamicModelEvaluator:
         self.endpoint = f"http://127.0.0.1:{port}/v1/chat/completions"
 
     DIRECT_PORTS: dict[str, int] = {
-        "Bonsai-8B-gguf": 8002,
+        "Bonsai-8B-gguf": 8003,
         "Qwen3.6-35B-A3B-MTP-GGUF": 8003,
-        "Qwen3.6-35B-A3B-UD-Q4_K_XL": 8003,
+        "Qwen3.6-35B-A3B-UD-Q4_K_XL": 8007,
         "llama3.2-1b-FLM": 8004,
         "deepseek-r1-0528:8b": 8004,
         "deepseek-r1-0528-8b-FLM": 8004,
@@ -80,7 +80,7 @@ class DynamicModelEvaluator:
         request, so a raw POST here would otherwise bypass the fleet's weight-fit safety
         gate entirely (the Sep-14 OOM spiral). A gate refusal is a SUCCESSFUL gate
         outcome — it means "fall back to another lane", so we skip the Lemonade lane.
-        Direct-port lanes (8002/8003/8004) host the SAME model on their own servers and
+        Direct-port lanes (8003/8004/8007) host the SAME model on their own servers and
         would auto-load the exact footprint the gate just refused, so they are skipped
         too rather than used as a blind bypass; the error-return shape (measured
         latency, zero tps) is unchanged.

@@ -25,10 +25,10 @@ import numpy as np
 
 @dataclass(frozen=True, slots=True)
 class GeodesicTrajectory:
-    positions: np.ndarray        # Shape (T, D)
-    velocities: np.ndarray       # Shape (T, D)
+    positions: np.ndarray  # Shape (T, D)
+    velocities: np.ndarray  # Shape (T, D)
     hyperbolic_norms: np.ndarray  # Shape (T,)
-    times: np.ndarray            # Shape (T,)
+    times: np.ndarray  # Shape (T,)
     strictly_contained: bool
 
 

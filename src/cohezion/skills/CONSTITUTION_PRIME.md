@@ -106,19 +106,21 @@ def verify_tri_constitution(agent_action: dict, current_state: dict) -> bool:
     # 1. Anthropic Priority 1 Check: Does action permit human oversight & corrigibility?
     if agent_action.get("blocks_human_oversight", False):
         return False
-        
+
     # 2. Anthropic Priority 2 & IBM Fairness Check: Does action violate ethical hard constraints?
     if agent_action.get("severe_harm_risk", False) or agent_action.get("privacy_violation", False):
         return False
-        
+
     # 3. IBM Observability Check: Is there a human-readable explanation and witness mark?
     if not agent_action.get("explanation") and not agent_action.get("narration"):
         return False
 
     # 4. Cohezion Invariant Check: Does action satisfy Negentropy Delta S <= 0?
-    if current_state.get("delta_entropy", 0.0) > 0.0001 and not current_state.get("dissipative_export_active", False):
+    if current_state.get("delta_entropy", 0.0) > 0.0001 and not current_state.get(
+        "dissipative_export_active", False
+    ):
         return False
-        
+
     return True
 ```
 

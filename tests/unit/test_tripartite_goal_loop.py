@@ -46,11 +46,19 @@ def test_bleeding_edge_research():
     assert research.recommended_strategy in loop.strategies
 
 
-def test_experiential_learning_with_dual_persistence(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+def test_experiential_learning_with_dual_persistence(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+):
     # Route vault writes to tmp_path for test isolation
-    monkeypatch.setattr("cohezion.recursive_trace.tripartite_goal_loop.VAULT_LEARNINGS", tmp_path / "01-Learnings")
-    monkeypatch.setattr("cohezion.recursive_trace.tripartite_goal_loop.VAULT_RETROS", tmp_path / "retros")
-    monkeypatch.setattr("cohezion.recursive_trace.tripartite_goal_loop.VAULT_KANBAN", tmp_path / "kanban")
+    monkeypatch.setattr(
+        "cohezion.recursive_trace.tripartite_goal_loop.VAULT_LEARNINGS", tmp_path / "01-Learnings"
+    )
+    monkeypatch.setattr(
+        "cohezion.recursive_trace.tripartite_goal_loop.VAULT_RETROS", tmp_path / "retros"
+    )
+    monkeypatch.setattr(
+        "cohezion.recursive_trace.tripartite_goal_loop.VAULT_KANBAN", tmp_path / "kanban"
+    )
 
     loop = TripartiteGoalLoop()
     goal = GoalSpecification(
@@ -82,9 +90,15 @@ def test_experiential_learning_with_dual_persistence(tmp_path: Path, monkeypatch
 
 
 def test_full_tripartite_goal_loop_execution(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
-    monkeypatch.setattr("cohezion.recursive_trace.tripartite_goal_loop.VAULT_LEARNINGS", tmp_path / "01-Learnings")
-    monkeypatch.setattr("cohezion.recursive_trace.tripartite_goal_loop.VAULT_RETROS", tmp_path / "retros")
-    monkeypatch.setattr("cohezion.recursive_trace.tripartite_goal_loop.VAULT_KANBAN", tmp_path / "kanban")
+    monkeypatch.setattr(
+        "cohezion.recursive_trace.tripartite_goal_loop.VAULT_LEARNINGS", tmp_path / "01-Learnings"
+    )
+    monkeypatch.setattr(
+        "cohezion.recursive_trace.tripartite_goal_loop.VAULT_RETROS", tmp_path / "retros"
+    )
+    monkeypatch.setattr(
+        "cohezion.recursive_trace.tripartite_goal_loop.VAULT_KANBAN", tmp_path / "kanban"
+    )
 
     loop = TripartiteGoalLoop(max_depth=3)
     goal = GoalSpecification(
@@ -97,6 +111,7 @@ def test_full_tripartite_goal_loop_execution(tmp_path: Path, monkeypatch: pytest
 
     # Step function that succeeds on second try
     step_calls = []
+
     def mock_step(g, strat):
         step_calls.append(strat)
         if len(step_calls) == 1:

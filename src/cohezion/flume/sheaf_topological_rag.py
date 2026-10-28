@@ -12,11 +12,13 @@ from dataclasses import dataclass, field
 from typing import Any, Callable, Dict, List
 import numpy as np
 
+
 @dataclass
 class SheafSection:
     stalk_id: str
     embedding: np.ndarray
     metadata: Dict[str, Any] = field(default_factory=dict)
+
 
 class SheafTopologicalRAG:
     """Enforces cohomological consistency across disparate knowledge stalks."""
@@ -26,13 +28,13 @@ class SheafTopologicalRAG:
         self.consistency_threshold = consistency_threshold
         self.stalks: Dict[str, SheafSection] = {}
 
-    def add_section(self, stalk_id: str, embedding: np.ndarray, metadata: Dict[str, Any] | None = None) -> None:
+    def add_section(
+        self, stalk_id: str, embedding: np.ndarray, metadata: Dict[str, Any] | None = None
+    ) -> None:
         norm = np.linalg.norm(embedding)
         normed = embedding / (norm + 1e-9)
         self.stalks[stalk_id] = SheafSection(
-            stalk_id=stalk_id,
-            embedding=normed,
-            metadata=metadata or {}
+            stalk_id=stalk_id, embedding=normed, metadata=metadata or {}
         )
 
     def compute_coboundary_residual(self, stalk_u: str, stalk_v: str) -> float:

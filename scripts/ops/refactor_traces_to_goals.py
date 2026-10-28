@@ -18,6 +18,7 @@ import base64
 import json
 import sys
 import urllib.request
+from typing import Any
 
 
 sys.path.insert(0, "src")
@@ -148,22 +149,27 @@ def main() -> int:
     if args.run_loop:
         import asyncio
 
-        from cohezion.flume.loop_goal_refactor_engine import AutonomousGoalExecutor
+        from cohezion.flume.loop_goal_refactor_engine import (
+            AutonomousGoalExecutor,
+            AutonomousGoalLoopResult,
+        )
 
         print("\nExecuting autonomous goal loops...")
         for goal in goals:
             target_thresh = goal.target_threshold
 
-            def _step_fn(
-                it: int, st: dict, th: float = target_thresh
-            ) -> tuple[dict, float, str]:
+            def _step_fn(it: int, st: dict, th: float = target_thresh) -> tuple[dict, float, str]:
                 val = min(th, th * (0.5 + 0.3 * it))
                 return {"step": it}, val, f"Executed remediation strategy {it}"
 
             executor = AutonomousGoalExecutor(goal)
-            loop_res = asyncio.run(executor.execute_loop({}, _step_fn))
+            loop_res: AutonomousGoalLoopResult[dict[str, Any]] = asyncio.run(
+                executor.execute_loop({}, _step_fn)
+            )
             rec = persistence.persist_loop_result(loop_res)
-            print(f"  • Ran loop for {goal.goal_id}: converged={loop_res.converged} in {loop_res.iterations_run} steps ({loop_res.total_time_ms:.1f}ms) -> {rec}")
+            print(
+                f"  • Ran loop for {goal.goal_id}: converged={loop_res.converged} in {loop_res.iterations_run} steps ({loop_res.total_time_ms:.1f}ms) -> {rec}"
+            )
 
     print(f"\nDone: {written}/{len(goals)} goals processed in SurrealDB.")
     return 0 if written == len(goals) else 1

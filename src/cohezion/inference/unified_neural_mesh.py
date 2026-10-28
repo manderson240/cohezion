@@ -148,7 +148,9 @@ class UnifiedNeuralMesh:
             logger.debug("SurrealDB neuron retrieval skipped: %s", exc)
         return []
 
-    def _query_endpoint(self, endpoint: str, model_id: str, prompt: str, max_tokens: int = 128) -> str:
+    def _query_endpoint(
+        self, endpoint: str, model_id: str, prompt: str, max_tokens: int = 128
+    ) -> str:
         """Query a local silicon model endpoint."""
         payload = {
             "model": model_id,
@@ -164,10 +166,11 @@ class UnifiedNeuralMesh:
         try:
             with urllib.request.urlopen(req, timeout=10.0) as resp:  # noqa: S310
                 data = json.loads(resp.read().decode())
-                content = data["choices"][0]["message"]["content"].strip()
+                raw_content = data["choices"][0]["message"]["content"]
+                content = str(raw_content).strip() if raw_content is not None else ""
                 if "</think>" in content:
                     content = content.split("</think>")[-1].strip()
-                return content
+                return str(content)
         except Exception as exc:
             logger.debug("Inference on %s failed: %s", endpoint, exc)
             return ""

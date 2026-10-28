@@ -3,6 +3,7 @@ from unittest.mock import patch, MagicMock
 from pathlib import Path
 from cohezion.core.compound_graph_engine import CompoundGraphEngine, LearningRecall
 
+
 def test_read_before_reasoning_hit():
     engine = CompoundGraphEngine(vault_path=Path("/tmp/vault"))
     mock_rows = [
@@ -18,6 +19,7 @@ def test_read_before_reasoning_hit():
         assert len(recalls) == 1
         assert recalls[0].compound_tool == "cohezion.agi.autoharness_policy"
         assert recalls[0].title == "AutoHarness AST bytecode verifier"
+
 
 def test_link_compound_loop(tmp_path):
     engine = CompoundGraphEngine(vault_path=tmp_path)

@@ -65,7 +65,9 @@ class ACEStepEngine:
         }
 
         # 2. Crystallize Knowledge & Register PRIME Skill
-        skill_file = Path("/home/mike-anderson/dev/cohezion/src/cohezion/skills/ACE_COMPOUND_EVOLUTION_PRIME.md")
+        skill_file = Path(
+            "/home/mike-anderson/dev/cohezion/src/cohezion/skills/ACE_COMPOUND_EVOLUTION_PRIME.md"
+        )
         skill_md = """# SKILL: ACE_COMPOUND_EVOLUTION_PRIME
 
 ## DOMAIN EXPERTISE
@@ -94,15 +96,17 @@ v1.0
         self.gov.safe_write_text(skill_file, skill_md)
 
         # 3. Evolve Kanban & Persistence Mesh
-        persist_item({
-            "id": f"ace-step-{int(time.time())}",
-            "title": f"ACE Step Complete: {step_name}",
-            "status": "done",
-            "priority": "high",
-            "source": "ace_step_engine",
-            "category": "compound_evolution",
-            "metrics": evidence,
-        })
+        persist_item(
+            {
+                "id": f"ace-step-{int(time.time())}",
+                "title": f"ACE Step Complete: {step_name}",
+                "status": "done",
+                "priority": "high",
+                "source": "ace_step_engine",
+                "category": "compound_evolution",
+                "metrics": evidence,
+            }
+        )
 
         # 4. Broadcast to EventBus
         evt = Event(
@@ -132,7 +136,9 @@ def main() -> None:
     engine = ACEStepEngine()
     result = engine.execute_ace_step(
         step_name="Tri-Silicon Multimodal Invariant Synthesis",
-        payload={"focus": "Local 432Hz Music, Tri-Silicon Benchmarks & 13-Model Cloud Adversarial Audit"},
+        payload={
+            "focus": "Local 432Hz Music, Tri-Silicon Benchmarks & 13-Model Cloud Adversarial Audit"
+        },
     )
     print("=" * 100)
     print(f"🎉 ACE STEP COMMITTED: {result['step_name']} (Duration: {result['duration_s']}s)")

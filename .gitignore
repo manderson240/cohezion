@@ -359,3 +359,11 @@ REPORT.html
 
 # Local secrets — never commit (untracked 2026-09-08 after credential rename exposure)
 .env
+
+# Ephemeral benchmark & guard test artifacts
+run_stats.csv
+*report.json
+*integrity.json
+scorer_pkg/
+secondary_seed_weights/
+

@@ -15,17 +15,20 @@ import dataclasses
 from typing import Any
 import numpy as np
 
+
 @dataclasses.dataclass
 class SheafAgent:
     agent_id: str
     ordinal_stamp: int
     state_vector: np.ndarray  # 12D or 2048D Poincaré embedding
 
+
 @dataclasses.dataclass
 class CocycleObstruction:
     triplet: tuple[str, str, str]
     discrepancy: float
     dimension: int
+
 
 class OrdinalSheafConsensus:
     """Manages cohomological consensus across distributed agent interaction graphs."""
@@ -34,9 +37,7 @@ class OrdinalSheafConsensus:
         self.tolerance = tolerance
 
     def compute_1_cocycle_discrepancies(
-        self,
-        agents: dict[str, SheafAgent],
-        edges: list[tuple[str, str]]
+        self, agents: dict[str, SheafAgent], edges: list[tuple[str, str]]
     ) -> list[CocycleObstruction]:
         """Detects non-trivial 1-cocycles around triangles in the communication graph."""
         adj = collections.defaultdict(set)
@@ -69,18 +70,15 @@ class OrdinalSheafConsensus:
                         # Holonomy around cycle
                         cycle_sum = float(np.linalg.norm(d_uv + d_vw + d_wu))
                         if cycle_sum > self.tolerance:
-                            obstructions.append(CocycleObstruction(
-                                triplet=(u, v, w),
-                                discrepancy=cycle_sum,
-                                dimension=1
-                            ))
+                            obstructions.append(
+                                CocycleObstruction(
+                                    triplet=(u, v, w), discrepancy=cycle_sum, dimension=1
+                                )
+                            )
         return obstructions
 
     def todorcevic_walk(
-        self,
-        graph_adj: dict[str, set[str]],
-        root_id: str,
-        target_id: str
+        self, graph_adj: dict[str, set[str]], root_id: str, target_id: str
     ) -> list[str]:
         """Computes canonical minimal-oscillation path (Todorcevic walk) from root to target."""
         if root_id == target_id:
@@ -104,7 +102,7 @@ class OrdinalSheafConsensus:
         self,
         agents: dict[str, SheafAgent],
         edges: list[tuple[str, str]],
-        root_id: str | None = None
+        root_id: str | None = None,
     ) -> dict[str, SheafAgent]:
         """Resolves 1-cocycle obstructions by re-indexing ordinal stamps and projecting to global section."""
         obstructions = self.compute_1_cocycle_discrepancies(agents, edges)
@@ -131,15 +129,13 @@ class OrdinalSheafConsensus:
             walk_path = self.todorcevic_walk(adj, root_id, agent_id)
             # Re-index ordinal stamp based on walk distance
             new_stamp = len(walk_path) - 1
-            
+
             # Project state vector toward global section
             alpha = 1.0 / (1.0 + new_stamp)
             projected_state = (1.0 - alpha) * agent.state_vector + alpha * global_centroid
 
             updated_agents[agent_id] = SheafAgent(
-                agent_id=agent_id,
-                ordinal_stamp=new_stamp,
-                state_vector=projected_state
+                agent_id=agent_id, ordinal_stamp=new_stamp, state_vector=projected_state
             )
 
         return updated_agents

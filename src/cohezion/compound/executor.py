@@ -189,6 +189,7 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
         rubric_middleware: Any | None = None,
         inference_provider: Any | None = None,
         jepa_gate: Any | None = None,
+        cosmic_fire: Any | None = None,
         dqa_gate: Any | None = None,
         quality_evaluator: Any | None = None,
         token_ledger: Any | None = None,
@@ -242,6 +243,17 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
         """
         self._inference_provider = inference_provider
         self._jepa_gate = jepa_gate
+        # Cosmic Fire (P3): ignites ONCE per process when quality_score first enters the
+        # HIHO band. Until 2026-09-20 no production path called ignite(): the only importer
+        # was a CLI demo and the promised cosmic_fire_events table did not exist.
+        if cosmic_fire is None:
+            try:
+                from cohezion.compound.cosmic_fire_protocol import CosmicFireProtocol
+
+                cosmic_fire = CosmicFireProtocol()
+            except ImportError:
+                cosmic_fire = None
+        self._cosmic_fire = cosmic_fire
         # DQ2: output-side quality gate (AutoDQA or any duck-typed .evaluate()).
         # None keeps the metrics dict byte-identical for un-wired callers (DQ6).
         self._dqa_gate = dqa_gate
@@ -330,6 +342,9 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
         try:
             from cohezion.flume.geometric_bridge import GeometricLatentBridge
 
+            # Deliberately NO weights_path: distillation_engine's "optimized" file is a
+            # simulated update (seeded projection + randn*0.01, per its own comment), not a
+            # learned one. Loading it would be noise on noise. Seeded projection only.
             self.geometric_bridge = GeometricLatentBridge()
             logger.debug("GeometricLatentBridge initialized")
         except ImportError:
@@ -762,6 +777,50 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
         if self._degradation_detector is None:
             return {"cache": None, "token_efficiency": None, "coherence": None}
         return self._degradation_detector.get_health_summary()
+
+    _registry_keys_cache: set[str] | None = None
+
+    @classmethod
+    def _is_registry_skill(cls, skill_name: str) -> bool:
+        """True iff ``skill_name`` canonicalises to a real registry skill.
+
+        Fail-OPEN if the registry cannot be read (never blind the tracker on an I/O
+        error); fail-CLOSED on a name that simply is not a skill. Cached per process.
+        """
+        if not skill_name:
+            return False
+        try:
+            from cohezion.registry.skill_discovery import canonical_skill_key
+            from cohezion.registry.skill_registry import load_registry
+
+            if cls._registry_keys_cache is None:
+                cls._registry_keys_cache = {canonical_skill_key(k) for k in load_registry()}
+            return canonical_skill_key(skill_name) in cls._registry_keys_cache
+        except Exception:  # registry unreadable: do not gate
+            return True
+
+    def _execution_latent(
+        self, metrics: dict[str, Any], task_description: str
+    ) -> tuple[Any | None, str | None]:
+        """The latent Step 7.6 decides a regime on, with its provenance -- or (None, None).
+
+        Until 2026-09-20 this step fell back to an unseeded ``torch.randn(256)`` whenever
+        the provider supplied no latent, which was always: ``metrics["latent_vector"]`` is
+        written nowhere in ``src/``. Every ``topological_regime``, every ``mereon_coords``
+        and every "Regime Transition" inflection point the vault holds from that path was a
+        random draw. Provenance is now explicit: ``"provider"`` (a VAE z-vector in metrics)
+        or ``"flume-embed"`` (the journey tracker's live 256D semantic embedding of the
+        task). No latent means no decision, never a substitute.
+        """
+        vec = metrics.get("latent_vector")
+        if vec is not None:
+            return vec, "provider"
+        tracker = self._journey_tracker
+        semantic = getattr(tracker, "semantic_latent", None)
+        if semantic is None:
+            return None, None
+        vec = semantic(task_description)
+        return (vec, "flume-embed") if vec is not None else (None, None)
 
     def execute_task(
         self,
@@ -1747,7 +1806,13 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
                 logger.debug("MGPO batch accumulation failed (non-blocking): %s", e)
 
         # Step 7.4: Record skill health metrics (non-blocking)
-        if self._skill_health_tracker:
+        # Only for REGISTRY skills. Measured 2026-09-20: the one production writer
+        # (actioner/engine.py) records under the lane label "research-actioner" (1,175
+        # invocations); it is not a skill, canonical_skill_key() cannot join it, and the
+        # capability matrix's skill axis read 0 against a 305-skill registry for 28 days
+        # while the store filled with names nothing could use. A lane name in the skill
+        # store is noise; skip it at the source rather than filter it at every reader.
+        if self._skill_health_tracker and self._is_registry_skill(skill_name):
             try:
                 tokens = 0
                 quality = 0.0
@@ -1767,6 +1832,27 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
         # Coherence within HIHO band [0.4, 0.6] -> exit degradation mode
         # Coherence outside band with CRITICAL alert -> enter degradation mode
         coherence_val = metrics.get("coherence", 0.5)
+
+        # Step 7.5a: Cosmic Fire -- first entry into the HIHO band ignites, once per process
+        # (irreversible: ignition_count never resets). Cascade action 4 (persist) runs here;
+        # actions 1-3 remain advisory names in metrics["cosmic_fire"]["cascade"].
+        if (
+            self._cosmic_fire is not None
+            and "quality_score" in metrics
+            and self._cosmic_fire.ignition_count == 0
+        ):
+            try:
+                _fire = self._cosmic_fire.ignite(metrics["quality_score"])
+                if _fire is not None:
+                    metrics["cosmic_fire"] = {
+                        "ignited": True,
+                        "coherence": _fire.coherence,
+                        "cascade": self._cosmic_fire.ignition_cascade(_fire.coherence),
+                    }
+                    self._cosmic_fire.persist(_fire)
+            except Exception as e:
+                logger.debug("Cosmic Fire ignition failed (non-blocking): %s", e)
+
         if 0.4 <= coherence_val <= 0.6 and self._degradation_mode:
             logger.info(
                 "Cohesion returned to HIHO band (%.2f), exiting degradation mode", coherence_val
@@ -1858,17 +1944,13 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
                 logger.debug("Degradation detection failed (non-blocking): %s", e)
 
         # Step 7.6: Geometric Latent Mapping (Symmetry-Driven Reasoning)
-        # Map the latent state of the execution to a topological regime
+        # Map the latent state of the execution to a topological regime. Decided ONLY on a
+        # latent with known provenance (_execution_latent); no latent => no regime, no write.
         if self.geometric_bridge:
             try:
                 import torch
 
-                # Attempt to extract latent vector from metrics or execute_fn result
-                latent_vec = metrics.get("latent_vector")
-                if latent_vec is None and token_metrics:
-                    # Fallback: simulate a latent vector from token metrics if real one isn't provided
-                    # In a real integration, the LLM provider would return the VAE z-vector
-                    latent_vec = torch.randn(256)
+                latent_vec, latent_source = self._execution_latent(metrics, task_description)
 
                 if latent_vec is not None:
                     # Ensure it's a torch tensor
@@ -1880,6 +1962,7 @@ class CompoundExecutor(CompoundContextMixin, ExecutorIntegrationMixin):
 
                     metrics["topological_regime"] = regime
                     metrics["mereon_coords"] = coords.tolist()
+                    metrics["latent_source"] = latent_source
 
                     logger.debug(f"Latent state mapped to {regime} regime at {coords}")
 

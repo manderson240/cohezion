@@ -215,7 +215,7 @@ class ConfigurationOrchestrator:
                                         "sections_archived": archive_result["sections_archived"],
                                     },
                                 )
-                                self.monitor.event_bus.publish(config_event)
+                                await self.monitor.emit_config_event(config_event)
 
                 # Wait 30 minutes for next check
                 await asyncio.sleep(1800)
@@ -337,50 +337,35 @@ class ConfigurationOrchestrator:
         filename: str,
         reason: str = "manual_trigger",
     ) -> bool:
-        """Regenerate config file and commit to git.
+        """Not implemented — raises rather than reporting success it did not achieve.
 
-        Phase 4 implementation will handle:
-        - Conflict detection and alerting
-        - Template-driven regeneration
+        The name promises regeneration *and* a git commit. Neither was ever built. The
+        body was four ``# Phase 4:`` comments, after which it logged "Successfully
+        regenerated", incremented ``total_syncs`` and returned ``True``. No caller could
+        tell that from a real sync, and ``get_metrics()["total_syncs"]`` reported config
+        syncs that never happened — a fabricated success metric, which is worse than a
+        no-op because it is indistinguishable from working.
+
+        Raising is deliberate. Returning ``False`` would be honest about the outcome but
+        still lets a caller read "never built" as "failed this run", and the early-out it
+        would flow through was itself unreachable: ``detect_conflicts()`` is a stub that
+        always returns an empty list, so ``True`` was the only possible result. Restore
+        the ``bool`` contract when the steps below actually exist.
+
+        Still to build:
+        - conflict detection and alerting (``detect_conflicts`` is itself a stub)
+        - template-driven regeneration from the vault
         - AI-generated commit messages
-        - Atomic operations with rollback
+        - atomic write + git commit with rollback
         """
-        logger.info(f"Regenerating {filename} (reason: {reason})")
-
-        if filename == "CLAUDE.md":
-            file_path = self.claude_md
-        elif filename == "GEMINI.md":
-            file_path = self.gemini_md
-        else:
+        if filename not in ("CLAUDE.md", "GEMINI.md"):
             logger.error(f"Unknown config file: {filename}")
             return False
 
-        try:
-            # Phase 2: Detect manual edits
-            _is_manual = self.detect_manual_edits(file_path)
-
-            # Phase 2: Detect conflicts
-            conflicts = await self.detect_conflicts()
-
-            if conflicts:
-                logger.warning(f"Conflicts detected in {filename}")
-                # Phase 2: Emit CONFIG_CONFLICT_DETECTED event
-                # Phase 2: Create vault/inbox alert for manual review
-                return False
-
-            # Phase 4: Generate new content from vault
-            # Phase 4: Compare vs current
-            # Phase 4: Write new content
-            # Phase 4: Create git commit
-
-            logger.info(f"Successfully regenerated {filename}")
-            self.config_state.total_syncs += 1
-            return True
-
-        except Exception as e:
-            logger.error(f"Regeneration error: {e}")
-            self.config_state.sync_failures += 1
-            return False
+        raise NotImplementedError(
+            f"regenerate_and_commit({filename!r}, reason={reason!r}) neither regenerates "
+            "nor commits. See the docstring for the four steps that were never built."
+        )
 
     def get_state(self) -> ConfigState:
         """Get current configuration state."""

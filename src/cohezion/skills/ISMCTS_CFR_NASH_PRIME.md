@@ -15,6 +15,7 @@ Imperfect-Information Game Solving, Information-Set Monte Carlo Tree Search (ISM
 1. **Initialize CFR Engine**:
    ```python
    from cohezion.competitions.pokemon_tcg.ismcts_cfr_engine import ISMCTSWithCFR
+
    engine = ISMCTSWithCFR()
    ```
 
@@ -24,7 +25,7 @@ Imperfect-Information Game Solving, Information-Set Monte Carlo Tree Search (ISM
        "player_hp": 100,
        "opponent_hp": 40,
        "energy_attached": 2,
-       "legal_actions": ["attach_energy", "attack"]
+       "legal_actions": ["attach_energy", "attack"],
    }
    best_action = engine.search_action(obs, num_rollouts=100)
    ```

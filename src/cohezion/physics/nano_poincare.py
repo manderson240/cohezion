@@ -72,7 +72,9 @@ class NanoPoincare:
         return (2.0 / lambda_x) * np.arctanh(diff_norm) * (diff / diff_norm)
 
     @staticmethod
-    def frechet_mean(points: list[np.ndarray], lr: float = 0.5, max_iter: int = 50, eps: float = 1e-5) -> np.ndarray:
+    def frechet_mean(
+        points: list[np.ndarray], lr: float = 0.5, max_iter: int = 50, eps: float = 1e-5
+    ) -> np.ndarray:
         """Karcher / Fréchet Centroid Minimizer via Riemannian Gradient Descent."""
         if not points:
             raise ValueError("points list cannot be empty")

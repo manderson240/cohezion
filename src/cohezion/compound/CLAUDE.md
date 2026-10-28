@@ -67,6 +67,19 @@ uv run pytest tests/compound/test_loopception.py -q  # LC1-LC3
 
 **OC** (Oracle Consumption) — OC1-OC5: `oracle_tier` 4th signal in `_resolve_tier()`; STUCK→floor escalation; CHAOTIC→cpu; MAX-CAPABILITY (oracle never lowers a confident prediction); backward-compatible default None
 
+**SX** (Sandboxed Exec, H5 durable half, 2026-09-13)
+- SX1 (CONSUMPTION): LLM-generated code runs via `sandboxed_exec.run_untrusted` — child process under
+  RLIMIT_NPROC=0 / NOFILE=3 / FSIZE=0 / AS / CPU, wall-clock `killpg`, allow-listed env, fails closed,
+  JSON-only results. Consumers: `competition/llm_fallback.py`, `SymbolicExecutor.execute`,
+  `agi_reasoning` + `aimo_reasoning` dummy_env probes.
+- SX2 (mutation-verified): `_apply_limits` → no-op kills 4 containment tests; the in-process
+  `safe_exec_globals` allow-list alone does not pass them (control test shows it is escapable).
+- **OPEN**: `environments/auto_generator._compile_and_test` still execs in-process — it returns a live
+  `gym.Env` class, so porting needs an out-of-process env proxy (architectural).
+- Do NOT simplify `test_socket_escape_is_blocked` to `sys.modules['_socket']` — that form failed with
+  KeyError regardless of the limits and survived the mutant.
+- **Verification**: `uv run pytest tests/compound/test_sandboxed_exec.py -q` → 20 passed
+
 ## Wiring Discipline (non-destructive)
 
 A method that ACCEPTS a value is not wired. Wiring = a production (non-test, non-def) consumer reads it and acts.

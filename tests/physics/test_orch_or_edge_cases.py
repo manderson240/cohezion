@@ -1,5 +1,4 @@
-"""Edge Case and Boundary Condition Stress Tests for Orch-OR & Durable Bridge.
-"""
+"""Edge Case and Boundary Condition Stress Tests for Orch-OR & Durable Bridge."""
 
 from __future__ import annotations
 

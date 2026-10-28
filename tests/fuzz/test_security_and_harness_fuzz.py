@@ -19,7 +19,6 @@ from cohezion.agi.autoharness_policy import AutoHarnessPolicy
 
 @pytest.mark.fuzz
 class TestGenerativeFuzzing:
-
     @settings(max_examples=200, deadline=None)
     @given(
         st.binary(min_size=0, max_size=5000),
@@ -39,15 +38,17 @@ class TestGenerativeFuzzing:
     @given(
         st.text(alphabet=string.printable, min_size=1, max_size=200),
         st.sampled_from(["cat", "head", "tail", "grep", "less", "more", "awk", "sed"]),
-        st.sampled_from([
-            "rclone.conf",
-            ".env",
-            ".env.prod",
-            "id_rsa",
-            "id_ed25519",
-            "credentials.json",
-            ".aws/credentials",
-        ]),
+        st.sampled_from(
+            [
+                "rclone.conf",
+                ".env",
+                ".env.prod",
+                "id_rsa",
+                "id_ed25519",
+                "credentials.json",
+                ".aws/credentials",
+            ]
+        ),
     )
     def test_fuzz_command_safety_adversarial_framing(self, filler, tool, secret_target):
         """Fuzz: Ensure command safety guard cannot be bypassed by path prefixes or shell chaining."""

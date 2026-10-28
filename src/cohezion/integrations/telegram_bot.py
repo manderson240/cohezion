@@ -9,6 +9,7 @@ from __future__ import annotations
 import asyncio
 import contextlib
 import html
+import json
 import logging
 import os
 import re as _re
@@ -382,6 +383,7 @@ class TelegramCommunicationHub:
                 f"CREATE telegram_telemetry SET "
                 f"backend='{telem.backend}', model='{telem.actual_model}', "
                 f"port={telem.port}, route_reason='{telem.route_reason}', "
+                f"error={json.dumps(telem.error or '')}, "  # declared, never persisted before 2026-09-20
                 f"ts=time::now();"
             )
             async with httpx.AsyncClient() as client:
@@ -659,7 +661,8 @@ class TelegramCommunicationHub:
             "Send any question directly to chat with Antigravity!\n"
             "/agy &lt;prompt&gt; - Direct query to Antigravity CLI\n"
             f"/mode [antigravity|local|auto] - Switch routing mode (current: <b>{safe_html(self.routing_mode)}</b>)\n"
-            "/local &lt;prompt&gt; - Force query to local AMD silicon (:13305 OmniRouter)\n"            "/clear - Clear conversation history\n\n"
+            "/local &lt;prompt&gt; - Force query to local AMD silicon (:13305 OmniRouter)\n"
+            "/clear - Clear conversation history\n\n"
             "🎛 <b>System &amp; Session Diagnostics</b>\n"
             "/status - CPU/RAM vitals + Lemonade :13305 fleet (AMD silicon)\n"
             "/list - List running tmux sessions\n"

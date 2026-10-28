@@ -303,10 +303,18 @@ class TestOrchestrationWithSync:
         (vault_root / "decisions").mkdir()
 
         orch = ConfigurationOrchestrator(tmp_path)
+        syncs_before = orch.get_metrics()["total_syncs"]
 
-        result = await orch.regenerate_and_commit("CLAUDE.md", "test_trigger")
+        # The method regenerates nothing and commits nothing, so it must say so rather
+        # than return a value a caller would read as success. This assertion replaces
+        # `assert result is True or result is False`, which cannot fail for any
+        # bool-returning function and was green against a body of four comments.
+        with pytest.raises(NotImplementedError, match="neither regenerates nor commits"):
+            await orch.regenerate_and_commit("CLAUDE.md", "test_trigger")
 
-        assert result is True or result is False  # Should return bool
+        # The half that actually did damage: work that never happened must not be
+        # counted as a successful sync in the metrics any dashboard reads.
+        assert orch.get_metrics()["total_syncs"] == syncs_before
 
 
 class TestCommitMessageGeneration:

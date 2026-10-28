@@ -4,6 +4,7 @@ from pathlib import Path
 from cohezion.integrations.puppetmaster_bridge import PuppetmasterBridge, PuppetmasterReceipt
 from cohezion.reliability.oom_guard import MemoryState
 
+
 def test_puppetmaster_bridge_admission_denied_oom():
     bridge = PuppetmasterBridge()
     with patch(
@@ -19,6 +20,7 @@ def test_puppetmaster_bridge_admission_denied_oom():
     ):
         admitted = bridge.acquire_hardware_admission("heavy-task")
         assert admitted is False
+
 
 def test_puppetmaster_bridge_admission_granted():
     bridge = PuppetmasterBridge()
@@ -38,13 +40,15 @@ def test_puppetmaster_bridge_admission_granted():
             admitted = bridge.acquire_hardware_admission("safe-task")
             assert admitted is True
 
+
 @pytest.mark.asyncio
 async def test_publish_job_completion():
     mock_bus = MagicMock()
     mock_bus.publish = MagicMock()
-    
+
     async def mock_pub(evt):
         return None
+
     mock_bus.publish.side_effect = mock_pub
 
     bridge = PuppetmasterBridge(event_bus=mock_bus)

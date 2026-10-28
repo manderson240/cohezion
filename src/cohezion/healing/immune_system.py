@@ -146,12 +146,15 @@ class SelfDiagnostic:
         # 6. Autonomous Credential Scrubbing & Auto-Healing
         try:
             from cohezion.security.secret_scrubber import auto_heal_scrub_file
+
             log_dir = Path(__file__).parents[3] / "data" / "overnight"
             if log_dir.exists():
                 for log_file in log_dir.glob("*.log"):
                     if auto_heal_scrub_file(log_file) > 0:
                         issues.append(f"Auto-healed exposed credentials in {log_file.name}")
-                        recommendations.append(f"Sanitized exposed credentials from {log_file.name}")
+                        recommendations.append(
+                            f"Sanitized exposed credentials from {log_file.name}"
+                        )
         except Exception as e:
             logger.warning(f"Failed to run credential auto-scrubber: {e}")
 

@@ -73,7 +73,9 @@ class ThermodynamicHIHOEngine:
         harmonics = [round(f0 * r, 2) for r in ratios]
 
         # 4. Spectral Dissonance (proportional to |c - 0.5|)
-        dissonance = abs(c - 0.5) * 2.0  # 0.0 at c=0.5 (pure harmony), 1.0 at c=0 or c=1 (max dissonance)
+        dissonance = (
+            abs(c - 0.5) * 2.0
+        )  # 0.0 at c=0.5 (pure harmony), 1.0 at c=0 or c=1 (max dissonance)
 
         is_stable = bool(phi >= 0.85)  # Coherence in [0.40, 0.60]
 

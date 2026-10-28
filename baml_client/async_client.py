@@ -82,6 +82,36 @@ class BamlAsyncClient:
     def parse_stream(self):
       return self.__llm_stream_parser
 
+    async def AuditLeaderboardNextAction(self, competition: str,leaderboard_snapshot: str,
+        baml_options: BamlCallOptions = {},
+    ) -> types.SubmissionStrategy:
+        # Check if on_tick is provided
+        if 'on_tick' in baml_options:
+            # Use streaming internally when on_tick is provided
+            __stream__ = self.stream.AuditLeaderboardNextAction(competition=competition,leaderboard_snapshot=leaderboard_snapshot,
+                baml_options=baml_options)
+            return await __stream__.get_final_response()
+        else:
+            # Original non-streaming code
+            __result__ = await self.__options.merge_options(baml_options).call_function_async(function_name="AuditLeaderboardNextAction", args={
+                "competition": competition,"leaderboard_snapshot": leaderboard_snapshot,
+            })
+            return typing.cast(types.SubmissionStrategy, __result__.cast_to(types, types, stream_types, False, __runtime__))
+    async def DeriveTaskInvariants(self, task_context: str,train_examples: str,
+        baml_options: BamlCallOptions = {},
+    ) -> types.TaskInvariants:
+        # Check if on_tick is provided
+        if 'on_tick' in baml_options:
+            # Use streaming internally when on_tick is provided
+            __stream__ = self.stream.DeriveTaskInvariants(task_context=task_context,train_examples=train_examples,
+                baml_options=baml_options)
+            return await __stream__.get_final_response()
+        else:
+            # Original non-streaming code
+            __result__ = await self.__options.merge_options(baml_options).call_function_async(function_name="DeriveTaskInvariants", args={
+                "task_context": task_context,"train_examples": train_examples,
+            })
+            return typing.cast(types.TaskInvariants, __result__.cast_to(types, types, stream_types, False, __runtime__))
     async def RecommendNextStep(self, context: str,candidates: str,
         baml_options: BamlCallOptions = {},
     ) -> types.NextStep:
@@ -97,6 +127,21 @@ class BamlAsyncClient:
                 "context": context,"candidates": candidates,
             })
             return typing.cast(types.NextStep, __result__.cast_to(types, types, stream_types, False, __runtime__))
+    async def SynthesizeCodeHarness(self, env_spec: str,failure_trace: str,
+        baml_options: BamlCallOptions = {},
+    ) -> types.CodeHarness:
+        # Check if on_tick is provided
+        if 'on_tick' in baml_options:
+            # Use streaming internally when on_tick is provided
+            __stream__ = self.stream.SynthesizeCodeHarness(env_spec=env_spec,failure_trace=failure_trace,
+                baml_options=baml_options)
+            return await __stream__.get_final_response()
+        else:
+            # Original non-streaming code
+            __result__ = await self.__options.merge_options(baml_options).call_function_async(function_name="SynthesizeCodeHarness", args={
+                "env_spec": env_spec,"failure_trace": failure_trace,
+            })
+            return typing.cast(types.CodeHarness, __result__.cast_to(types, types, stream_types, False, __runtime__))
     
 
 
@@ -106,6 +151,30 @@ class BamlStreamClient:
     def __init__(self, options: DoNotUseDirectlyCallManager):
         self.__options = options
 
+    def AuditLeaderboardNextAction(self, competition: str,leaderboard_snapshot: str,
+        baml_options: BamlCallOptions = {},
+    ) -> baml_py.BamlStream[stream_types.SubmissionStrategy, types.SubmissionStrategy]:
+        __ctx__, __result__ = self.__options.merge_options(baml_options).create_async_stream(function_name="AuditLeaderboardNextAction", args={
+            "competition": competition,"leaderboard_snapshot": leaderboard_snapshot,
+        })
+        return baml_py.BamlStream[stream_types.SubmissionStrategy, types.SubmissionStrategy](
+          __result__,
+          lambda x: typing.cast(stream_types.SubmissionStrategy, x.cast_to(types, types, stream_types, True, __runtime__)),
+          lambda x: typing.cast(types.SubmissionStrategy, x.cast_to(types, types, stream_types, False, __runtime__)),
+          __ctx__,
+        )
+    def DeriveTaskInvariants(self, task_context: str,train_examples: str,
+        baml_options: BamlCallOptions = {},
+    ) -> baml_py.BamlStream[stream_types.TaskInvariants, types.TaskInvariants]:
+        __ctx__, __result__ = self.__options.merge_options(baml_options).create_async_stream(function_name="DeriveTaskInvariants", args={
+            "task_context": task_context,"train_examples": train_examples,
+        })
+        return baml_py.BamlStream[stream_types.TaskInvariants, types.TaskInvariants](
+          __result__,
+          lambda x: typing.cast(stream_types.TaskInvariants, x.cast_to(types, types, stream_types, True, __runtime__)),
+          lambda x: typing.cast(types.TaskInvariants, x.cast_to(types, types, stream_types, False, __runtime__)),
+          __ctx__,
+        )
     def RecommendNextStep(self, context: str,candidates: str,
         baml_options: BamlCallOptions = {},
     ) -> baml_py.BamlStream[stream_types.NextStep, types.NextStep]:
@@ -118,6 +187,18 @@ class BamlStreamClient:
           lambda x: typing.cast(types.NextStep, x.cast_to(types, types, stream_types, False, __runtime__)),
           __ctx__,
         )
+    def SynthesizeCodeHarness(self, env_spec: str,failure_trace: str,
+        baml_options: BamlCallOptions = {},
+    ) -> baml_py.BamlStream[stream_types.CodeHarness, types.CodeHarness]:
+        __ctx__, __result__ = self.__options.merge_options(baml_options).create_async_stream(function_name="SynthesizeCodeHarness", args={
+            "env_spec": env_spec,"failure_trace": failure_trace,
+        })
+        return baml_py.BamlStream[stream_types.CodeHarness, types.CodeHarness](
+          __result__,
+          lambda x: typing.cast(stream_types.CodeHarness, x.cast_to(types, types, stream_types, True, __runtime__)),
+          lambda x: typing.cast(types.CodeHarness, x.cast_to(types, types, stream_types, False, __runtime__)),
+          __ctx__,
+        )
     
 
 class BamlHttpRequestClient:
@@ -126,11 +207,32 @@ class BamlHttpRequestClient:
     def __init__(self, options: DoNotUseDirectlyCallManager):
         self.__options = options
 
+    async def AuditLeaderboardNextAction(self, competition: str,leaderboard_snapshot: str,
+        baml_options: BamlCallOptions = {},
+    ) -> baml_py.baml_py.HTTPRequest:
+        __result__ = await self.__options.merge_options(baml_options).create_http_request_async(function_name="AuditLeaderboardNextAction", args={
+            "competition": competition,"leaderboard_snapshot": leaderboard_snapshot,
+        }, mode="request")
+        return __result__
+    async def DeriveTaskInvariants(self, task_context: str,train_examples: str,
+        baml_options: BamlCallOptions = {},
+    ) -> baml_py.baml_py.HTTPRequest:
+        __result__ = await self.__options.merge_options(baml_options).create_http_request_async(function_name="DeriveTaskInvariants", args={
+            "task_context": task_context,"train_examples": train_examples,
+        }, mode="request")
+        return __result__
     async def RecommendNextStep(self, context: str,candidates: str,
         baml_options: BamlCallOptions = {},
     ) -> baml_py.baml_py.HTTPRequest:
         __result__ = await self.__options.merge_options(baml_options).create_http_request_async(function_name="RecommendNextStep", args={
             "context": context,"candidates": candidates,
+        }, mode="request")
+        return __result__
+    async def SynthesizeCodeHarness(self, env_spec: str,failure_trace: str,
+        baml_options: BamlCallOptions = {},
+    ) -> baml_py.baml_py.HTTPRequest:
+        __result__ = await self.__options.merge_options(baml_options).create_http_request_async(function_name="SynthesizeCodeHarness", args={
+            "env_spec": env_spec,"failure_trace": failure_trace,
         }, mode="request")
         return __result__
     
@@ -141,11 +243,32 @@ class BamlHttpStreamRequestClient:
     def __init__(self, options: DoNotUseDirectlyCallManager):
         self.__options = options
 
+    async def AuditLeaderboardNextAction(self, competition: str,leaderboard_snapshot: str,
+        baml_options: BamlCallOptions = {},
+    ) -> baml_py.baml_py.HTTPRequest:
+        __result__ = await self.__options.merge_options(baml_options).create_http_request_async(function_name="AuditLeaderboardNextAction", args={
+            "competition": competition,"leaderboard_snapshot": leaderboard_snapshot,
+        }, mode="stream")
+        return __result__
+    async def DeriveTaskInvariants(self, task_context: str,train_examples: str,
+        baml_options: BamlCallOptions = {},
+    ) -> baml_py.baml_py.HTTPRequest:
+        __result__ = await self.__options.merge_options(baml_options).create_http_request_async(function_name="DeriveTaskInvariants", args={
+            "task_context": task_context,"train_examples": train_examples,
+        }, mode="stream")
+        return __result__
     async def RecommendNextStep(self, context: str,candidates: str,
         baml_options: BamlCallOptions = {},
     ) -> baml_py.baml_py.HTTPRequest:
         __result__ = await self.__options.merge_options(baml_options).create_http_request_async(function_name="RecommendNextStep", args={
             "context": context,"candidates": candidates,
+        }, mode="stream")
+        return __result__
+    async def SynthesizeCodeHarness(self, env_spec: str,failure_trace: str,
+        baml_options: BamlCallOptions = {},
+    ) -> baml_py.baml_py.HTTPRequest:
+        __result__ = await self.__options.merge_options(baml_options).create_http_request_async(function_name="SynthesizeCodeHarness", args={
+            "env_spec": env_spec,"failure_trace": failure_trace,
         }, mode="stream")
         return __result__
     

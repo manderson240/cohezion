@@ -788,8 +788,8 @@ class CostAwareRouter:
         "Qwen3-14B-Hybrid",  # 32K (local, quality)
         "Qwen3-Coder-Next-GGUF",  # 131K (local GPU, large)
         "Qwen3.5-122B-A10B-GGUF",  # 131K (local GPU, frontier)
-        "qwen3.5:cloud",  # 131K+ (Ollama Pro cloud)
-        "kimi-k2.5:cloud",  # Long-context specialist (cloud)
+        "glm-5.3:cloud",  # 1M (Ollama Pro cloud; qwen3.5:cloud retired 2026-09-25)
+        "kimi-k3:cloud",  # 1M long-context specialist (kimi-k2.5 retired 2026-07-31)
     ]
 
     def _check_context_window(self, model: str, estimated_tokens: int) -> str:

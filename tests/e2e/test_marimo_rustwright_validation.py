@@ -17,6 +17,7 @@ import pytest
 
 try:
     from playwright.async_api import async_playwright
+
     PLAYWRIGHT_AVAILABLE = True
 except ImportError:
     PLAYWRIGHT_AVAILABLE = False
@@ -27,9 +28,14 @@ async def test_simulated_user_marimo_multimodal_interaction() -> None:
     """Simulate a user session testing the Marimo Multimodal Manifold."""
     # 1. Export Marimo notebook to static reactive HTML to verify compilation and rendering
     export_cmd = [
-        "uv", "run", "marimo", "export", "html",
+        "uv",
+        "run",
+        "marimo",
+        "export",
+        "html",
         "notebooks/marimo/new_science_multimodal_manifold.py",
-        "-o", "/tmp/marimo_new_science_test.html"
+        "-o",
+        "/tmp/marimo_new_science_test.html",
     ]
     res = subprocess.run(export_cmd, capture_output=True, text=True, timeout=30)
     assert res.returncode == 0, f"Marimo export failed: {res.stderr}"
@@ -56,7 +62,9 @@ async def test_simulated_user_marimo_multimodal_interaction() -> None:
             assert len(title) >= 0
 
             # Capture a screenshot as artifact proof of successful rendering
-            proof_shot = Path("/home/mike-anderson/.gemini/antigravity-cli/brain/54146dc4-dff4-4b47-a2cb-abb16f9e3812/marimo_multimodal_manifold_proof.png")
+            proof_shot = Path(
+                "/home/mike-anderson/.gemini/antigravity-cli/brain/54146dc4-dff4-4b47-a2cb-abb16f9e3812/marimo_multimodal_manifold_proof.png"
+            )
             proof_shot.parent.mkdir(parents=True, exist_ok=True)
             await page.screenshot(path=str(proof_shot))
 

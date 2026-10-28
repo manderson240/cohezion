@@ -20,7 +20,7 @@ from .globals import DO_NOT_USE_DIRECTLY_UNLESS_YOU_KNOW_WHAT_YOURE_DOING_RUNTIM
 class TypeBuilder(type_builder.TypeBuilder):
     def __init__(self):
         super().__init__(classes=set(
-          ["NextStep",]
+          ["CodeHarness","NextStep","SubmissionStrategy","TaskInvariants",]
         ), enums=set(
           []
         ), runtime=DO_NOT_USE_DIRECTLY_UNLESS_YOU_KNOW_WHAT_YOURE_DOING_RUNTIME)
@@ -31,12 +31,24 @@ class TypeBuilder(type_builder.TypeBuilder):
 
 
     # #########################################################################
-    # Generated classes 1
+    # Generated classes 4
     # #########################################################################
+
+    @property
+    def CodeHarness(self) -> "CodeHarnessViewer":
+        return CodeHarnessViewer(self)
 
     @property
     def NextStep(self) -> "NextStepViewer":
         return NextStepViewer(self)
+
+    @property
+    def SubmissionStrategy(self) -> "SubmissionStrategyViewer":
+        return SubmissionStrategyViewer(self)
+
+    @property
+    def TaskInvariants(self) -> "TaskInvariantsViewer":
+        return TaskInvariantsViewer(self)
 
 
 
@@ -46,8 +58,63 @@ class TypeBuilder(type_builder.TypeBuilder):
 
 
 # #########################################################################
-# Generated classes 1
+# Generated classes 4
 # #########################################################################
+
+class CodeHarnessAst:
+    def __init__(self, tb: type_builder.TypeBuilder):
+        _tb = tb._tb # type: ignore (we know how to use this private attribute)
+        self._bldr = _tb.class_("CodeHarness")
+        self._properties: typing.Set[str] = set([  "harness_name",  "precondition_assertions",  "postcondition_assertions",  "python_verifier_code",  "estimated_latency_ms",  ])
+        self._props = CodeHarnessProperties(self._bldr, self._properties)
+
+    def type(self) -> baml_py.FieldType:
+        return self._bldr.field()
+
+    @property
+    def props(self) -> "CodeHarnessProperties":
+        return self._props
+
+
+class CodeHarnessViewer(CodeHarnessAst):
+    def __init__(self, tb: type_builder.TypeBuilder):
+        super().__init__(tb)
+
+    
+    def list_properties(self) -> typing.List[typing.Tuple[str, type_builder.ClassPropertyViewer]]:
+        return [(name, type_builder.ClassPropertyViewer(self._bldr.property(name))) for name in self._properties]
+    
+
+
+class CodeHarnessProperties:
+    def __init__(self, bldr: baml_py.ClassBuilder, properties: typing.Set[str]):
+        self.__bldr = bldr
+        self.__properties = properties # type: ignore (we know how to use this private attribute) # noqa: F821
+
+    
+    
+    @property
+    def harness_name(self) -> type_builder.ClassPropertyViewer:
+        return type_builder.ClassPropertyViewer(self.__bldr.property("harness_name"))
+    
+    @property
+    def precondition_assertions(self) -> type_builder.ClassPropertyViewer:
+        return type_builder.ClassPropertyViewer(self.__bldr.property("precondition_assertions"))
+    
+    @property
+    def postcondition_assertions(self) -> type_builder.ClassPropertyViewer:
+        return type_builder.ClassPropertyViewer(self.__bldr.property("postcondition_assertions"))
+    
+    @property
+    def python_verifier_code(self) -> type_builder.ClassPropertyViewer:
+        return type_builder.ClassPropertyViewer(self.__bldr.property("python_verifier_code"))
+    
+    @property
+    def estimated_latency_ms(self) -> type_builder.ClassPropertyViewer:
+        return type_builder.ClassPropertyViewer(self.__bldr.property("estimated_latency_ms"))
+    
+    
+
 
 class NextStepAst:
     def __init__(self, tb: type_builder.TypeBuilder):
@@ -92,6 +159,116 @@ class NextStepProperties:
     @property
     def risk_level(self) -> type_builder.ClassPropertyViewer:
         return type_builder.ClassPropertyViewer(self.__bldr.property("risk_level"))
+    
+    
+
+
+class SubmissionStrategyAst:
+    def __init__(self, tb: type_builder.TypeBuilder):
+        _tb = tb._tb # type: ignore (we know how to use this private attribute)
+        self._bldr = _tb.class_("SubmissionStrategy")
+        self._properties: typing.Set[str] = set([  "competition_id",  "target_metric_goal",  "recommended_action",  "confidence_score",  "reasoning",  ])
+        self._props = SubmissionStrategyProperties(self._bldr, self._properties)
+
+    def type(self) -> baml_py.FieldType:
+        return self._bldr.field()
+
+    @property
+    def props(self) -> "SubmissionStrategyProperties":
+        return self._props
+
+
+class SubmissionStrategyViewer(SubmissionStrategyAst):
+    def __init__(self, tb: type_builder.TypeBuilder):
+        super().__init__(tb)
+
+    
+    def list_properties(self) -> typing.List[typing.Tuple[str, type_builder.ClassPropertyViewer]]:
+        return [(name, type_builder.ClassPropertyViewer(self._bldr.property(name))) for name in self._properties]
+    
+
+
+class SubmissionStrategyProperties:
+    def __init__(self, bldr: baml_py.ClassBuilder, properties: typing.Set[str]):
+        self.__bldr = bldr
+        self.__properties = properties # type: ignore (we know how to use this private attribute) # noqa: F821
+
+    
+    
+    @property
+    def competition_id(self) -> type_builder.ClassPropertyViewer:
+        return type_builder.ClassPropertyViewer(self.__bldr.property("competition_id"))
+    
+    @property
+    def target_metric_goal(self) -> type_builder.ClassPropertyViewer:
+        return type_builder.ClassPropertyViewer(self.__bldr.property("target_metric_goal"))
+    
+    @property
+    def recommended_action(self) -> type_builder.ClassPropertyViewer:
+        return type_builder.ClassPropertyViewer(self.__bldr.property("recommended_action"))
+    
+    @property
+    def confidence_score(self) -> type_builder.ClassPropertyViewer:
+        return type_builder.ClassPropertyViewer(self.__bldr.property("confidence_score"))
+    
+    @property
+    def reasoning(self) -> type_builder.ClassPropertyViewer:
+        return type_builder.ClassPropertyViewer(self.__bldr.property("reasoning"))
+    
+    
+
+
+class TaskInvariantsAst:
+    def __init__(self, tb: type_builder.TypeBuilder):
+        _tb = tb._tb # type: ignore (we know how to use this private attribute)
+        self._bldr = _tb.class_("TaskInvariants")
+        self._properties: typing.Set[str] = set([  "grid_dimension_rule",  "conserved_colors",  "forbidden_colors",  "symmetry_detected",  "description",  ])
+        self._props = TaskInvariantsProperties(self._bldr, self._properties)
+
+    def type(self) -> baml_py.FieldType:
+        return self._bldr.field()
+
+    @property
+    def props(self) -> "TaskInvariantsProperties":
+        return self._props
+
+
+class TaskInvariantsViewer(TaskInvariantsAst):
+    def __init__(self, tb: type_builder.TypeBuilder):
+        super().__init__(tb)
+
+    
+    def list_properties(self) -> typing.List[typing.Tuple[str, type_builder.ClassPropertyViewer]]:
+        return [(name, type_builder.ClassPropertyViewer(self._bldr.property(name))) for name in self._properties]
+    
+
+
+class TaskInvariantsProperties:
+    def __init__(self, bldr: baml_py.ClassBuilder, properties: typing.Set[str]):
+        self.__bldr = bldr
+        self.__properties = properties # type: ignore (we know how to use this private attribute) # noqa: F821
+
+    
+    
+    @property
+    def grid_dimension_rule(self) -> type_builder.ClassPropertyViewer:
+        return type_builder.ClassPropertyViewer(self.__bldr.property("grid_dimension_rule"))
+    
+    @property
+    def conserved_colors(self) -> type_builder.ClassPropertyViewer:
+        return type_builder.ClassPropertyViewer(self.__bldr.property("conserved_colors"))
+    
+    @property
+    def forbidden_colors(self) -> type_builder.ClassPropertyViewer:
+        return type_builder.ClassPropertyViewer(self.__bldr.property("forbidden_colors"))
+    
+    @property
+    def symmetry_detected(self) -> type_builder.ClassPropertyViewer:
+        return type_builder.ClassPropertyViewer(self.__bldr.property("symmetry_detected"))
+    
+    @property
+    def description(self) -> type_builder.ClassPropertyViewer:
+        return type_builder.ClassPropertyViewer(self.__bldr.property("description"))
     
     
 

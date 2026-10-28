@@ -32,7 +32,6 @@ from typing import TYPE_CHECKING, Any, ClassVar
 if TYPE_CHECKING:
     from cohezion.compound.thermodynamic_metrics import ThermodynamicState
 
-import contextlib
 
 import numpy as np
 
@@ -40,6 +39,15 @@ from cohezion.compound.executor import ExecutionResult
 
 
 logger = logging.getLogger(__name__)
+
+
+def _jsonable(value: Any) -> bool:
+    """True when ``value`` survives json.dumps (metadata may carry numpy or objects)."""
+    try:
+        json.dumps(value)
+    except (TypeError, ValueError):
+        return False
+    return True
 
 
 class OperationType(Enum):
@@ -672,7 +680,28 @@ class JourneyTracker:
         # persisted so the annotation is durable/observable, not buffer-local only.
         atoms = (point.metadata or {}).get("workspace_atoms")
         atoms_field = f", workspace_atoms = {json.dumps(atoms)}" if atoms is not None else ""
-        body = f"CREATE journey_transition SET dimensions = {dims}, coherence = {point.coherence}, efficiency = {point.efficiency}, operation_type = {op_type}, task = {task}{atoms_field}, created = time::now();".encode()
+        # JI1 consumer: the in-memory point carried `action` (evidence:<tier>) since 2026-06-27, but
+        # this statement never wrote it -- measured 2026-09-19: 21,635 rows, action NULL on all.
+        # A routing history with no actions cannot be replayed (Dream-RSI gate prerequisite).
+        action = json.dumps(point.action or "")
+        # 2026-09-20: the remaining declared fields. Until now the row was a coherence/
+        # efficiency pair plus a truncated task -- `timestamp` (the point's own clock, not
+        # the DB's), `source`/`transformation` (AOEP provenance axis) and `metadata` were
+        # declared on TrajectoryPoint and dropped here, so nothing downstream could replay
+        # WHO produced a point or WHAT transformed it. `workspace_atoms` stays as its own
+        # column for the existing W6 consumer; `metadata` carries the rest (JSON-safe only).
+        meta = {
+            k: v
+            for k, v in (point.metadata or {}).items()
+            if k != "workspace_atoms" and _jsonable(v)
+        }
+        provenance = (
+            f", timestamp = {float(point.timestamp)}"
+            f", source = {json.dumps(point.source or '')}"
+            f", transformation = {json.dumps(point.transformation or '')}"
+            f", metadata = {json.dumps(meta)}"
+        )
+        body = f"CREATE journey_transition SET dimensions = {dims}, coherence = {point.coherence}, efficiency = {point.efficiency}, operation_type = {op_type}, task = {task}, action = {action}{provenance}{atoms_field}, created = time::now();".encode()
 
         def _fire() -> None:
             req = urllib.request.Request(
@@ -687,14 +716,37 @@ class JourneyTracker:
                 },
                 method="POST",
             )
-            with contextlib.suppress(Exception):
-                urllib.request.urlopen(req, timeout=2)
+            # Fire-and-forget stays (never block the compound loop) but the verdict is READ:
+            # SurrealDB answers 200 with status:"ERR" per statement, and for months this
+            # thread swallowed that. 21,635 rows landed without `action` before anyone saw one.
+            try:
+                with urllib.request.urlopen(req, timeout=2) as resp:
+                    statements = json.loads(resp.read().decode())
+                from cohezion.storage.surreal_http import checked_statements
+
+                checked_statements(statements)
+            except Exception as exc:
+                logger.warning("journey_transition persist failed: %s", str(exc)[:200])
 
         threading.Thread(target=_fire, daemon=True).start()
 
     def get_last_point(self) -> TrajectoryPoint | None:
         """Return the most recent trajectory point, or None if no points tracked."""
         return self._recent_points[-1] if self._recent_points else None
+
+    def semantic_latent(self, text: str) -> np.ndarray | None:
+        """256D semantic embedding of ``text`` from the LIVE FLUME encoder, or None.
+
+        Unlike :meth:`text_to_latent`, this never substitutes a hash: when no encoder is
+        wired or :13305 is down it returns None, so a consumer can decline to decide
+        instead of deciding on noise (executor Step 7.6 geometric regime). The width is the
+        encoder's (``LemonadeEmbedBridge`` subsamples nomic-embed 768→256), which is what
+        ``GeometricLatentBridge.map_to_regime`` expects.
+        """
+        enc = self._flume_encoder
+        if enc is None or not enc.is_available():
+            return None
+        return np.asarray(enc.encode(text), dtype=np.float64)
 
     def get_recent_point_count(self) -> int:
         """Return the number of points in the recent trajectory buffer."""

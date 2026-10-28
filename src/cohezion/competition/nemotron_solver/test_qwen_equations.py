@@ -30,7 +30,7 @@ for r in sample:
 
     try:
         response = ollama.chat(
-            model="qwen3.5:cloud",
+            model="glm-5.3:cloud",
             messages=[
                 {"role": "system", "content": system_msg},
                 {"role": "user", "content": user_msg},

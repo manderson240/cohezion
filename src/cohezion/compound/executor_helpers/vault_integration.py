@@ -93,6 +93,8 @@ def fetch_experience_guidance(
         import urllib.request
         from base64 import b64encode
 
+        from cohezion.storage.surreal_http import SurrealQLError, checked_statements
+
         req = urllib.request.Request(
             "http://localhost:8001/sql",
             data=b"SELECT skill, should_refine, compound_score, recommendation FROM retrospection ORDER BY created DESC LIMIT 3;",
@@ -105,11 +107,11 @@ def fetch_experience_guidance(
             method="POST",
         )
         resp = urllib.request.urlopen(req, timeout=2)
-        data = json.loads(resp.read())
+        data = checked_statements(json.loads(resp.read()), status_code=resp.status)
         if data and data[0].get("status") == "OK" and data[0]["result"]:
             result["recent_retrospections"] = data[0]["result"]
             logger.debug("Guidance enriched with %d recent retrospections", len(data[0]["result"]))
-    except (OSError, ValueError, KeyError) as e:
+    except (OSError, ValueError, KeyError, SurrealQLError) as e:
         logger.debug("SurrealDB retrospection query failed (non-blocking): %s", e)
 
     # Step 4: Merge learned refinements from the skill's PRIME file (closes

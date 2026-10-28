@@ -62,6 +62,10 @@ def _surreal_write(item: dict[str, Any]) -> bool:
         )
         with urllib.request.urlopen(req, timeout=3) as resp:
             ok = resp.status == 200
+            if ok:
+                from cohezion.storage.surreal_http import checked_statements
+
+                checked_statements(_json.loads(resp.read()), status_code=resp.status)
             if not ok:
                 logger.warning("kanban_bridge: SurrealDB returned %s for %s", resp.status, item_id)
             return ok

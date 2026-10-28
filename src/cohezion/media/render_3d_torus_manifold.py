@@ -70,6 +70,8 @@ def generate_3d_torus_manifold(out_html_path: Path) -> Path:
 
 
 if __name__ == "__main__":
-    out_path = Path("/home/mike-anderson/dev/cohezion/docs/assets/renderings/3d_torus_manifold.html")
+    out_path = Path(
+        "/home/mike-anderson/dev/cohezion/docs/assets/renderings/3d_torus_manifold.html"
+    )
     generate_3d_torus_manifold(out_path)
     print(f"3D Torus Manifold rendered to: {out_path} ({out_path.stat().st_size} bytes)")

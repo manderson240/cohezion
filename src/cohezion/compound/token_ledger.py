@@ -175,12 +175,15 @@ class TokenLedger:
                     "ts": row.ts,
                 }
             )
-            httpx.post(
+            from cohezion.storage.surreal_http import checked_statements
+
+            resp = httpx.post(
                 _SURREAL_URL,
                 content=query,
                 headers=_SURREAL_HEADERS,
                 auth=("root", "root"),
                 timeout=3.0,
             )
+            checked_statements(resp.json(), status_code=resp.status_code, text=resp.text)
         except Exception as exc:  # fail-open: ledger never blocks execution
-            logger.debug("token_ledger persist skipped: %s", exc)
+            logger.warning("token_ledger persist skipped: %s", str(exc)[:200])

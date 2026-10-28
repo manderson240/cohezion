@@ -15,6 +15,7 @@ Continuous Hyperbolic Manifold Exploration, Poincaré Ball Geodesics, and Non-Eu
 1. **Encode 2D Grid / State to 12D Manifold Space**:
    ```python
    from cohezion.competitions.arc.nexus_manifold_solver import QuadratureNexusEncoder
+
    encoder = QuadratureNexusEncoder()
    flume_state = encoder.encode_grid(grid)
    ```
@@ -22,6 +23,7 @@ Continuous Hyperbolic Manifold Exploration, Poincaré Ball Geodesics, and Non-Eu
 2. **Compute Geodesic Distance**:
    ```python
    from cohezion.competitions.arc.poincare_geometric_pruner import PoincareGeometricPruner
+
    pruner = PoincareGeometricPruner()
    dist = pruner.evaluate_candidate_geodesic(candidate_grid, target_manifold_state)
    ```

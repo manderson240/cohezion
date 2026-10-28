@@ -7,6 +7,7 @@ and hardware allocation policies across all running Cohezion daemons.
 from __future__ import annotations
 
 import time
+from pathlib import Path
 from typing import Any
 
 
@@ -67,8 +68,15 @@ def get_daemon_roadmap(daemon_id: str | None = None) -> dict[str, Any]:
     return MASTER_DAEMON_ROADMAP
 
 
-def sync_roadmap_to_obsidian_and_surrealdb():
-    """Generates markdown roadmap document for Obsidian and publishes to EventBus."""
+def write_roadmap_markdown() -> Path:
+    """Write the roadmap as a markdown file. That is the whole behaviour.
+
+    Renamed from ``sync_roadmap_to_obsidian_and_surrealdb``, which was a triple
+    mismatch: the name promised Obsidian *and* SurrealDB, the docstring claimed
+    Obsidian *and* an EventBus publish, and the body did a single ``write_text``
+    with no client, bus or import for either. The file is the deliverable; if a
+    SurrealDB or EventBus sink is wanted, add it and rename again to match.
+    """
     from pathlib import Path
 
     doc_path = Path("docs/research/master_daemon_strategic_roadmap.md")
@@ -94,9 +102,9 @@ def sync_roadmap_to_obsidian_and_surrealdb():
         md += "\n---\n\n"
 
     doc_path.write_text(md)
-    print(f"✓ Master Daemon Strategic Roadmap synchronized to: {doc_path}")
+    print(f"✓ Master Daemon Strategic Roadmap written to: {doc_path}")
     return doc_path
 
 
 if __name__ == "__main__":
-    sync_roadmap_to_obsidian_and_surrealdb()
+    write_roadmap_markdown()

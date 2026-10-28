@@ -32,7 +32,7 @@ class HarnessType(str, Enum):
     DEEPSEEK_COT = "deepseek"
     AUTOHARNESS = "autoharness"
     DEEPSEEK_HARNESS = "deepseek_harness"  # dsh Cordis plugin-pack composability
-    QWEN_CODE = "qwen_code"                # DeepPlanning & Aider ExecRepoBench
+    QWEN_CODE = "qwen_code"  # DeepPlanning & Aider ExecRepoBench
 
 
 @dataclass
@@ -73,7 +73,7 @@ class MultiHarnessEvaluator:
                 task_id="hermes_01_tool_call",
                 harness=HarnessType.HERMES,
                 prompt="Use tool `get_memory_vitals` with argument `format='json'` to query RAM state.",
-                expected_criteria="Valid JSON function call: {\"name\": \"get_memory_vitals\", \"arguments\": {\"format\": \"json\"}}",
+                expected_criteria='Valid JSON function call: {"name": "get_memory_vitals", "arguments": {"format": "json"}}',
                 test_validator="is_valid_json_tool_call",
             ),
             # 2. OpenCode Refactor
@@ -113,7 +113,7 @@ class MultiHarnessEvaluator:
                 task_id="dsh_01_cordis_plugin",
                 harness=HarnessType.DEEPSEEK_HARNESS,
                 prompt="Define a DeepSeek Harness plugin specification in JSON with `plugin_id='cohezion_manifold'` and hooks `['on_step', 'on_eval']`.",
-                expected_criteria="{\"plugin_id\": \"cohezion_manifold\", \"hooks\": [\"on_step\", \"on_eval\"]}",
+                expected_criteria='{"plugin_id": "cohezion_manifold", "hooks": ["on_step", "on_eval"]}',
                 test_validator="dsh_plugin_schema",
             ),
             # 7. Qwen-Code (DeepPlanning & ExecRepoBench)
@@ -131,7 +131,7 @@ class MultiHarnessEvaluator:
     ) -> HarnessEvaluationResult:
         """Executes a single benchmark task against a target model under the specified harness rules."""
         t0 = time.perf_counter()
-        
+
         system_prompts = {
             HarnessType.HERMES: "You are a Hermes-compatible tool calling engine. Output JSON tool calls accurately.",
             HarnessType.OPENCODE: "You are an OpenCode software engineer. Output minimal, idiomatic, high-performance Python code.",
@@ -143,7 +143,10 @@ class MultiHarnessEvaluator:
         }
 
         messages = [
-            {"role": "system", "content": system_prompts.get(task.harness, "You are an expert AI.")},
+            {
+                "role": "system",
+                "content": system_prompts.get(task.harness, "You are an expert AI."),
+            },
             {"role": "user", "content": task.prompt},
         ]
 
@@ -175,7 +178,7 @@ class MultiHarnessEvaluator:
             data = r.json()
             choice = data["choices"][0]["message"]
             content = choice.get("content", "") or choice.get("reasoning_content", "")
-            
+
             # Extract thinking overhead if present
             thinking_overhead = 0.0
             if "<think>" in content and "</think>" in content:
@@ -188,26 +191,45 @@ class MultiHarnessEvaluator:
             lower_content = content.lower()
 
             if task.harness == HarnessType.HERMES:
-                success = "get_memory_vitals" in content and ("{" in content or "arguments" in content)
+                success = "get_memory_vitals" in content and (
+                    "{" in content or "arguments" in content
+                )
                 score = 1.0 if success else 0.4
             elif task.harness == HarnessType.OPENCODE:
-                success = "np.linalg.norm" in content or "np.sqrt" in content or "numpy" in lower_content
+                success = (
+                    "np.linalg.norm" in content or "np.sqrt" in content or "numpy" in lower_content
+                )
                 score = 1.0 if success else 0.5
             elif task.harness == HarnessType.PI_MATH:
-                success = "arcosh" in lower_content or "acosh" in lower_content or "1 + 2" in content
+                success = (
+                    "arcosh" in lower_content or "acosh" in lower_content or "1 + 2" in content
+                )
                 score = 1.0 if success else 0.6
             elif task.harness == HarnessType.DEEPSEEK_COT:
-                success = "exp(-v" in lower_content or "boltzmann" in lower_content or "gibbs" in lower_content or "1/z" in lower_content
+                success = (
+                    "exp(-v" in lower_content
+                    or "boltzmann" in lower_content
+                    or "gibbs" in lower_content
+                    or "1/z" in lower_content
+                )
                 score = 1.0 if success else 0.5
             elif task.harness == HarnessType.AUTOHARNESS:
                 ast_valid = self.verifier.verify_code(content).get("verified", False)
                 success = "assert" in content and ("<=" in content or "<" in content)
                 score = 1.0 if (success or ast_valid) else 0.5
             elif task.harness == HarnessType.DEEPSEEK_HARNESS:
-                success = "cohezion_manifold" in content and ("on_step" in content or "on_eval" in content)
+                success = "cohezion_manifold" in content and (
+                    "on_step" in content or "on_eval" in content
+                )
                 score = 1.0 if success else 0.5
             elif task.harness == HarnessType.QWEN_CODE:
-                success = ("step 1" in lower_content or "step 2" in lower_content or "1." in lower_content) and ("rollback" in lower_content or "invariant" in lower_content or "plan" in lower_content)
+                success = (
+                    "step 1" in lower_content or "step 2" in lower_content or "1." in lower_content
+                ) and (
+                    "rollback" in lower_content
+                    or "invariant" in lower_content
+                    or "plan" in lower_content
+                )
                 score = 1.0 if success else 0.5
 
             return HarnessEvaluationResult(
@@ -239,4 +261,6 @@ class MultiHarnessEvaluator:
 if __name__ == "__main__":
     evaluator = MultiHarnessEvaluator()
     tasks = evaluator.get_standard_benchmark_suite()
-    print(f"Loaded {len(tasks)} multi-harness benchmark tasks across Hermes, OpenCode, Pi, DeepSeek, and AutoHarness.")
+    print(
+        f"Loaded {len(tasks)} multi-harness benchmark tasks across Hermes, OpenCode, Pi, DeepSeek, and AutoHarness."
+    )

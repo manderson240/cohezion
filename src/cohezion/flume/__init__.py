@@ -252,3 +252,33 @@ with contextlib.suppress(Exception):
     from cohezion.flume.sparse_analysis import (
         SparseLatentAnalysis as SparseLatentAnalysis,
     )
+
+# MaP-WAM Memory-as-Plans & Trace-to-Goal Loop Refactor Engine (arXiv:2609.11561)
+with contextlib.suppress(Exception):
+    from cohezion.flume.loop_goal_refactor_engine import (
+        AutonomousGoalExecutor as AutonomousGoalExecutor,
+    )
+    from cohezion.flume.loop_goal_refactor_engine import (
+        AutonomousGoalLoopResult as AutonomousGoalLoopResult,
+    )
+    from cohezion.flume.loop_goal_refactor_engine import (
+        DurableSurrealGoalPersistence as DurableSurrealGoalPersistence,
+    )
+    from cohezion.flume.loop_goal_refactor_engine import (
+        GoalSpecification as GoalSpecification,
+    )
+    from cohezion.flume.loop_goal_refactor_engine import (
+        LoopIterationResult as LoopIterationResult,
+    )
+    from cohezion.flume.loop_goal_refactor_engine import (
+        MemoryAsPlans as MemoryAsPlans,
+    )
+    from cohezion.flume.loop_goal_refactor_engine import (
+        PlanSegment as PlanSegment,
+    )
+    from cohezion.flume.loop_goal_refactor_engine import (
+        TraceGoalRefactorPipeline as TraceGoalRefactorPipeline,
+    )
+    from cohezion.flume.loop_goal_refactor_engine import (
+        TraceToLoopTransformer as TraceToLoopTransformer,
+    )

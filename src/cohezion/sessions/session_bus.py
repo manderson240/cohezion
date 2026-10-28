@@ -9,6 +9,7 @@ cohezion.compound.telegram_hub.broadcast_to_sessions, scripts/sessions/reply_rel
 from __future__ import annotations
 
 import json
+import logging
 import os
 import re
 import urllib.request
@@ -161,15 +162,27 @@ def _sql(query: str, timeout: float = 5.0) -> list:
         },
         method="POST",
     )
+    from cohezion.storage.surreal_http import SurrealQLError, checked_statements
+
     try:
         with urllib.request.urlopen(req, timeout=timeout) as r:
-            batches = json.loads(r.read())
+            # allow_partial: this reader already treats an ERR statement as no-rows below.
+            batches = checked_statements(
+                json.loads(r.read()), status_code=r.status, allow_partial=True
+            )
+    except SurrealQLError as exc:
+        logging.getLogger(__name__).warning("session_bus SQL failed: %s", str(exc)[:200])
+        return []
     except Exception:
         return []
     rows: list = []
-    for batch in batches if isinstance(batches, list) else []:
+    for batch in batches:
         result = batch.get("result")
         if batch.get("status") != "OK" or not isinstance(result, list):
+            if batch.get("status") == "ERR":
+                logging.getLogger(__name__).warning(
+                    "session_bus statement ERR: %s", str(result)[:200]
+                )
             continue  # ERR carries a string result — no-rows, not fixtures
         rows.extend(result)
     return rows

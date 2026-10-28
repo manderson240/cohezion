@@ -23,6 +23,10 @@ naive ``import os`` line — NOT as a sandbox. The DURABLE security boundary is 
 code OUT OF PROCESS (subprocess + ``resource`` rlimits + seccomp/``bubblewrap``/``nsjail``, or
 RestrictedPython). Do not rely on anything in this module to contain hostile code.
 
+That durable layer now EXISTS: ``cohezion.compound.sandboxed_exec.run_untrusted`` (child process
+under RLIMIT_NPROC=0 / NOFILE=3 / AS / CPU, fails closed) and it still applies these globals
+inside the child as defense in depth. New callers of LLM-generated code should use it, not this.
+
 AVAILABILITY (finding F2): a previous hardening denied ``__import__`` entirely, which broke legit
 LLM-generated ARC/AIMO solver code that does ``import numpy`` / ``import math`` / ``from itertools
 import ...`` — ``solve`` was never defined and the fallback solver silently returned None. The
@@ -96,6 +100,17 @@ _ALLOWED = (
     "StopIteration",
     "OverflowError",
     "NotImplementedError",
+    # Added 2026-09-14 (adversarial review of the H5 site consolidation). Exception CLASSES and
+    # a bool predicate only: none returns an arbitrary object, a class, or a module, so none adds
+    # reach beyond what the gate already exposes. Without ImportError the standard
+    # `try: import x / except ImportError:` fallback crashed on the handler itself.
+    # getattr/type/object/vars stay OUT -- pinned by test_object_reaching_builtins_stay_withheld.
+    "LookupError",
+    "ImportError",
+    "ModuleNotFoundError",
+    "NameError",
+    "AssertionError",
+    "hasattr",
 )
 
 # Computational modules that LLM solver code legitimately imports. The literal names os, subprocess,
@@ -130,6 +145,12 @@ _ALLOWED_MODULES = frozenset(
 )
 
 
+class SafeExecImportRefusedError(ImportError):
+    """Raised by the gate for a non-allow-listed import. Subclasses ImportError so existing
+    ``except ImportError`` callers are unaffected, while ``gate_refusal`` can tell a gate refusal
+    apart from a genuinely missing module."""
+
+
 def _safe_import(name, globals=None, locals=None, fromlist=(), level=0):
     """Restricted ``__import__`` for exec'd LLM code. Permits only top-level imports whose root is in
     the curated list (``import numpy``, ``from itertools import product``); ``numpy.linalg`` is allowed
@@ -138,7 +159,9 @@ def _safe_import(name, globals=None, locals=None, fromlist=(), level=0):
     (see module docstring), so this does not contain hostile code."""
     root = name.partition(".")[0]
     if root not in _ALLOWED_MODULES:
-        raise ImportError(f"import of {name!r} is not permitted in safe_exec")
+        raise SafeExecImportRefusedError(
+            f"import of {name!r} is not permitted in safe_exec", name=name
+        )
     return builtins.__import__(name, globals, locals, fromlist, level)
 
 
@@ -154,6 +177,42 @@ _SAFE_BUILTINS["__import__"] = _safe_import
 # (used to stamp __module__); super() is needed for the ubiquitous super().__init__() pattern.
 # Same caveat as everything here: availability gate, not a sandbox.
 _CLASS_DEF_EXTRA = ("__build_class__", "super", "staticmethod", "classmethod", "property")
+
+
+def gate_refusal(exc: BaseException) -> str | None:
+    """Return a short reason if ``exc`` was caused by this gate, else None.
+
+    Callers of exec'd LLM code typically swallow every exception, so without this a gate refusal
+    is indistinguishable from a broken synthesis. Two refusal shapes exist: a non-allow-listed
+    import (``SafeExecImportRefusedError``) and a withheld builtin, which surfaces as a plain NameError
+    for a name the real ``builtins`` module defines. A NameError for any other name is an ordinary
+    bug in the generated code and is NOT reported as a refusal.
+
+    The ``__context__``/``__cause__`` chain is followed, so a refusal the generated code caught
+    and re-raised as its own error is still attributed to the gate."""
+    seen: set[int] = set()
+    current: BaseException | None = exc
+    while current is not None and id(current) not in seen:
+        seen.add(id(current))
+        reason = _direct_refusal(current)
+        if reason:
+            return reason
+        current = current.__cause__ or current.__context__
+    return None
+
+
+def _direct_refusal(exc: BaseException) -> str | None:
+    if isinstance(exc, SafeExecImportRefusedError):
+        return f"import of {exc.name!r}"
+    if type(exc) is not NameError:
+        return None
+    name = exc.name
+    if name is None and "__build_class__" in str(exc):
+        # A `class` statement without _class_defs=True; CPython leaves .name unset here.
+        name = "__build_class__"
+    if isinstance(name, str) and hasattr(builtins, name) and name not in _SAFE_BUILTINS:
+        return f"builtin {name!r}"
+    return None
 
 
 def safe_exec_globals(**extra) -> dict:

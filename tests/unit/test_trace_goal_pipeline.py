@@ -74,7 +74,11 @@ def test_failure_trace_synthesizes_stabilize_goal() -> None:
 
 def test_high_severity_health_finding_synthesizes_resolve_goal() -> None:
     trace = [
-        {"type": "SYSTEM_HEALTH", "source": "guardian", "payload": {"finding": "kde-open SIGABRT loop", "severity": "high"}},
+        {
+            "type": "SYSTEM_HEALTH",
+            "source": "guardian",
+            "payload": {"finding": "kde-open SIGABRT loop", "severity": "high"},
+        },
     ]
     goal = TraceToLoopTransformer.synthesize_goal_from_real_trace(trace)
     assert goal is not None
@@ -83,7 +87,11 @@ def test_high_severity_health_finding_synthesizes_resolve_goal() -> None:
 
 def test_non_actionable_trace_returns_none() -> None:
     trace = [
-        {"type": "JOURNEY_STEP", "source": "git-post-commit", "payload": {"event": "commit", "ok": True}},
+        {
+            "type": "JOURNEY_STEP",
+            "source": "git-post-commit",
+            "payload": {"event": "commit", "ok": True},
+        },
         {"type": "CACHE_HIT", "source": "s", "payload": {}},
     ]
     assert TraceToLoopTransformer.synthesize_goal_from_real_trace(trace) is None
@@ -99,8 +107,18 @@ def test_goal_ids_are_content_derived_and_distinct() -> None:
     Regression for 2026-08-30: time-based ids made three distinct goals share
     one id, 2/3 persistence writes failed with 'record already exists'.
     """
-    t_a = [{"type": "SECURITY_VIOLATION", "payload": {"finding": "os.system bypass", "severity": "high"}}]
-    t_b = [{"type": "SECURITY_VIOLATION", "payload": {"finding": "kde-open SIGABRT loop", "severity": "high"}}]
+    t_a = [
+        {
+            "type": "SECURITY_VIOLATION",
+            "payload": {"finding": "os.system bypass", "severity": "high"},
+        }
+    ]
+    t_b = [
+        {
+            "type": "SECURITY_VIOLATION",
+            "payload": {"finding": "kde-open SIGABRT loop", "severity": "high"},
+        }
+    ]
     goal_a = TraceToLoopTransformer.synthesize_goal_from_real_trace(t_a)
     goal_b = TraceToLoopTransformer.synthesize_goal_from_real_trace(t_b)
     assert goal_a is not None and goal_b is not None
@@ -116,8 +134,10 @@ def test_persist_goal_is_idempotent_on_rerun(fake_surreal) -> None:
         url=fake_surreal, namespace="cohezion", database="main", auth="root:root"
     )
     goal = GoalSpecification(
-        goal_id="goal_test_pass_rate_abc123", title="Resolve: x",
-        target_metric="test_pass_rate", target_threshold=1.0,
+        goal_id="goal_test_pass_rate_abc123",
+        title="Resolve: x",
+        target_metric="test_pass_rate",
+        target_threshold=1.0,
     )
     first = persistence.persist_goal(goal)
     second = persistence.persist_goal(goal)  # re-run: must not raise
@@ -140,8 +160,11 @@ def test_legacy_synthesize_from_trace_still_works() -> None:
 
 def test_executor_converges_and_stops_early() -> None:
     goal = GoalSpecification(
-        goal_id="goal_test_conv", title="converge",
-        target_metric="test_pass_rate", target_threshold=1.0, max_iterations=10,
+        goal_id="goal_test_conv",
+        title="converge",
+        target_metric="test_pass_rate",
+        target_threshold=1.0,
+        max_iterations=10,
     )
 
     def step_fn(it: int, state: dict):
@@ -171,9 +194,7 @@ class _FakeSurrealHandler(BaseHTTPRequestHandler):
         body = self.rfile.read(length).decode()
         if "$" not in body and "FAIL" not in body:
             # Parameter-free statement — accepted
-            payload = [
-                {"result": [{"id": "goal:x", "title": "ok"}], "status": "OK", "time": "1ms"}
-            ]
+            payload = [{"result": [{"id": "goal:x", "title": "ok"}], "status": "OK", "time": "1ms"}]
         else:
             # SurrealDB's actual failure mode: HTTP 200 with status ERR inside
             payload = [
@@ -225,8 +246,10 @@ def test_persist_goal_writes_parameter_free_literals(fake_surreal) -> None:
         url=fake_surreal, namespace="cohezion", database="main", auth="root:root"
     )
     goal = GoalSpecification(
-        goal_id="goal_persist_test", title="Resolve: 'quoted' \"title\" with chars",
-        target_metric="test_pass_rate", target_threshold=1.0,
+        goal_id="goal_persist_test",
+        title="Resolve: 'quoted' \"title\" with chars",
+        target_metric="test_pass_rate",
+        target_threshold=1.0,
     )
     # The OK path: json.dumps literal — no $params. The fake server returns OK
     # only when the statement carries no unbound params (heuristic: OK_STATEMENT
@@ -246,7 +269,10 @@ def test_pipeline_refactors_security_trace_into_executed_loop(fake_surreal) -> N
     )
     pipeline = TraceGoalRefactorPipeline(persistence=persistence)
     trace = [
-        {"type": "SECURITY_VIOLATION", "payload": {"finding": "os.system verified-safe", "severity": "high"}},
+        {
+            "type": "SECURITY_VIOLATION",
+            "payload": {"finding": "os.system verified-safe", "severity": "high"},
+        },
     ]
 
     def step_fn(it: int, state: dict):
@@ -275,3 +301,133 @@ def test_pipeline_requires_step_fn_for_actionable_trace() -> None:
     trace = [{"type": "SECURITY_VIOLATION", "payload": {"finding": "x", "severity": "high"}}]
     with pytest.raises(ValueError, match="step_fn"):
         pipeline.refactor(trace)
+
+
+# ---------------------------------------------------------------------------
+# MaP-WAM Memory-as-Plans & Progress Modeling (arXiv:2609.11561)
+# ---------------------------------------------------------------------------
+
+
+def test_memory_as_plans_commit_and_bounded_context() -> None:
+    from cohezion.flume.loop_goal_refactor_engine import MemoryAsPlans, PlanSegment
+
+    memory = MemoryAsPlans()
+    assert len(memory.segments) == 0
+
+    seg1 = PlanSegment(
+        segment_id="seg_001",
+        goal_id="goal_test_1",
+        subgoal_plan="Refactor AST AST-level check",
+        contract_guidance={"invariant": "no_syntax_errors"},
+        progress=1.0,
+        verification_proof="autoharness_proof_abc123",
+        committed=True,
+    )
+    memory.commit(seg1)
+    assert len(memory.segments) == 1
+    assert memory.segments[0].segment_id == "seg_001"
+
+    goal2 = GoalSpecification(
+        goal_id="goal_test_2",
+        title="Verify invariant holds",
+        target_metric="test_pass_rate",
+        target_threshold=1.0,
+    )
+    context = memory.get_active_context(goal2)
+    assert context["current_goal_id"] == "goal_test_2"
+    assert context["completed_segments_count"] == 1
+    assert context["last_verified_segment"] == "seg_001"
+    assert "summary_digest" in context
+
+    # Test serialization
+    data = memory.to_dict()
+    assert data["segment_count"] == 1
+    assert data["segments"][0]["subgoal_plan"] == "Refactor AST AST-level check"
+
+
+def test_executor_tracks_progress_and_commits_memory_as_plans() -> None:
+    from cohezion.flume.loop_goal_refactor_engine import AutonomousGoalExecutor, MemoryAsPlans
+
+    goal = GoalSpecification(
+        goal_id="goal_progress_test",
+        title="Gradual convergence goal",
+        target_metric="coherence",
+        target_threshold=0.50,
+        max_iterations=5,
+    )
+    memory = MemoryAsPlans()
+    executor = AutonomousGoalExecutor(goal, memory=memory)
+
+    def step_fn(it: int, state: float) -> tuple[float, float, str]:
+        val = min(0.50, it * 0.25)
+        return val, val, f"Step {it}"
+
+    result = asyncio.run(executor.execute_loop(0.0, step_fn))
+    assert result.converged
+    assert result.iterations_run == 2
+    # Progress starts at 0.5 (0.25 / 0.50) then 1.0 (0.50 / 0.50)
+    assert result.history[0].progress == 0.5
+    assert result.history[1].progress == 1.0
+    assert result.history[1].alignment_verified
+
+    # Verifies MemoryAsPlans segment was committed
+    assert result.memory_as_plans is not None
+    assert len(result.memory_as_plans.segments) == 1
+    committed_seg = result.memory_as_plans.segments[0]
+    assert committed_seg.goal_id == "goal_progress_test"
+    assert committed_seg.progress == 1.0
+    assert committed_seg.verification_proof is not None
+    assert committed_seg.verification_proof.startswith("autoharness_proof_")
+
+
+def test_executor_error_rate_progress_and_custom_progress_fn() -> None:
+    from cohezion.flume.loop_goal_refactor_engine import AutonomousGoalExecutor
+
+    goal = GoalSpecification(
+        goal_id="goal_error_rate",
+        title="Stabilize service error rate",
+        target_metric="error_rate",
+        target_threshold=0.05,
+        max_iterations=4,
+    )
+    executor = AutonomousGoalExecutor(goal)
+
+    # Step function driving error down from 0.20 to 0.04
+    errors = [0.20, 0.10, 0.04]
+
+    def step_fn(it: int, state: dict) -> tuple[dict, float, str]:
+        err = errors[it - 1]
+        return state, err, f"Iter {it}"
+
+    result = asyncio.run(executor.execute_loop({}, step_fn))
+    assert result.converged
+    assert result.iterations_run == 3
+    # Final iteration reached 0.04 <= 0.05, so progress is 1.0
+    assert result.history[2].progress == 1.0
+    assert result.history[2].alignment_verified
+
+
+def test_chained_sequential_goals_accumulate_memory_as_plans() -> None:
+    from cohezion.flume.loop_goal_refactor_engine import AutonomousGoalExecutor, MemoryAsPlans
+
+    shared_memory = MemoryAsPlans()
+
+    # Goal 1: Lint fix
+    g1 = GoalSpecification(
+        goal_id="g1", title="Fix lints", target_metric="lint_clean", target_threshold=1.0
+    )
+    exec1 = AutonomousGoalExecutor(g1, memory=shared_memory)
+    r1 = asyncio.run(exec1.execute_loop(0, lambda it, s: (s + 1, 1.0, "lint fixed")))
+    assert r1.converged
+    assert len(shared_memory.segments) == 1
+
+    # Goal 2: Unit tests
+    g2 = GoalSpecification(
+        goal_id="g2", title="Unit tests green", target_metric="test_pass_rate", target_threshold=1.0
+    )
+    exec2 = AutonomousGoalExecutor(g2, memory=shared_memory)
+    r2 = asyncio.run(exec2.execute_loop(0, lambda it, s: (s + 1, 1.0, "tests passed")))
+    assert r2.converged
+    assert len(shared_memory.segments) == 2
+    assert shared_memory.segments[0].goal_id == "g1"
+    assert shared_memory.segments[1].goal_id == "g2"

@@ -57,22 +57,23 @@ import pandas as pd
 SLUG = "biohub-cell-tracking-during-development"
 
 # --- detection ---
-SMOOTH_SIGMA = (1.0, 2.0, 2.0)   # Gaussian sigma (Z, Y, X) — anisotropic (Z coarser)
-DET_THRESH_NORM = 0.50           # threshold on the quantile-normalized, smoothed image
+SMOOTH_SIGMA = (1.0, 2.0, 2.0)  # Gaussian sigma (Z, Y, X) — anisotropic (Z coarser)
+DET_THRESH_NORM = 0.50  # threshold on the quantile-normalized, smoothed image
 #   PRIMARY UNMEASURED KNOB: raise -> fewer, higher-confidence detections (lower N_pred,
 #   safer adjustment term, sparse-GT philosophy); lower -> higher recall. Sweep on Kaggle.
 #   Local single-frame counts @0.5: 138 / 123 / 34 / 258 across the 4 test volumes.
-PEAK_SEP_UM = 5.0                # min physical separation between peaks (< 7um match radius)
-FALLBACK_Q_LO_PCTL = 0.1         # per-volume quantile fallback when baked stats are absent
+PEAK_SEP_UM = 5.0  # min physical separation between peaks (< 7um match radius)
+FALLBACK_Q_LO_PCTL = 0.1  # per-volume quantile fallback when baked stats are absent
 FALLBACK_Q_HI_PCTL = 99.9
 
 # --- linking ---
-LINK_GATE_UM = 10.0              # max frame-to-frame centroid displacement for a 1-1 link
-DIVISION_RADIUS_UM = 6.0         # tight radius for a conservative 2nd-daughter (division)
+LINK_GATE_UM = 10.0  # max frame-to-frame centroid displacement for a 1-1 link
+DIVISION_RADIUS_UM = 6.0  # tight radius for a conservative 2nd-daughter (division)
 
 # Debug/validation knob only: cap frames per dataset. None == all frames (the kernel default).
 # Overridable via env for local smoke tests; NEVER set in the Kaggle kernel.
 import os as _os  # noqa: E402
+
 MAX_FRAMES: int | None = (
     int(_os.environ["COHEZION_BIOHUB_MAX_FRAMES"])
     if _os.environ.get("COHEZION_BIOHUB_MAX_FRAMES")
@@ -80,7 +81,16 @@ MAX_FRAMES: int | None = (
 )
 
 SUBMISSION_COLUMNS = [
-    "id", "dataset", "row_type", "node_id", "t", "z", "y", "x", "source_id", "target_id",
+    "id",
+    "dataset",
+    "row_type",
+    "node_id",
+    "t",
+    "z",
+    "y",
+    "x",
+    "source_id",
+    "target_id",
 ]
 DEFAULT_SCALE = np.array([1.625, 0.40625, 0.40625], dtype=np.float64)  # (Z, Y, X) micrometers
 
@@ -131,8 +141,13 @@ class SpatiotemporalCellTracker:
         parent_of_col: dict[int, int] = {}
         for r, c in zip(row_ind, col_ind):
             if cost[r, c] < big:
-                edges.append({"parent": cells_t0[r]["id"], "child": cells_t1[c]["id"],
-                              "type": "continuation"})
+                edges.append(
+                    {
+                        "parent": cells_t0[r]["id"],
+                        "child": cells_t1[c]["id"],
+                        "type": "continuation",
+                    }
+                )
                 matched_t1.add(c)
                 parent_of_col[c] = r
 
@@ -149,8 +164,9 @@ class SpatiotemporalCellTracker:
                 continue
             if r not in set(parent_of_col.values()):
                 continue  # parent must already have a (continuation) child to be a division
-            edges.append({"parent": cells_t0[r]["id"], "child": cells_t1[c]["id"],
-                          "type": "division"})
+            edges.append(
+                {"parent": cells_t0[r]["id"], "child": cells_t1[c]["id"], "type": "division"}
+            )
             matched_t1.add(c)
         return edges
 
@@ -248,9 +264,7 @@ class _ManualZarrReader:
         self.shape = tuple(int(s) for s in meta["shape"])
         self.chunk = tuple(int(s) for s in meta["chunk_grid"]["configuration"]["chunk_shape"])
         self.dtype = np.dtype(meta["data_type"])
-        self.sep = (
-            meta.get("chunk_key_encoding", {}).get("configuration", {}).get("separator", "/")
-        )
+        self.sep = meta.get("chunk_key_encoding", {}).get("configuration", {}).get("separator", "/")
         self._chunk_nbytes = int(np.prod(self.chunk)) * self.dtype.itemsize
         has_blosc = any(c.get("name") == "blosc" for c in meta.get("codecs", []))
         self._decoders = _build_blosc_decoders() if has_blosc else [("raw", bytes)]
@@ -287,7 +301,7 @@ class _ManualZarrReader:
                     block = self._decode_chunk(path.read_bytes())[0]  # drop T axis
                     z0, y0, x0 = kz * cz, ky * cy, kx * cx
                     zs, ys, xs = min(cz, z - z0), min(cy, y - y0), min(cx, x - x0)
-                    vol[z0:z0 + zs, y0:y0 + ys, x0:x0 + xs] = block[:zs, :ys, :xs]
+                    vol[z0 : z0 + zs, y0 : y0 + ys, x0 : x0 + xs] = block[:zs, :ys, :xs]
         return vol
 
 
@@ -333,8 +347,8 @@ def detect_cells(
         zyx_f = zyx.astype(np.float64)
         cells.append(
             {
-                "zyx": zyx_f,                       # voxel coords (for the CSV)
-                "centroid": zyx_f * scale_zyx,      # micrometer coords (for the matcher)
+                "zyx": zyx_f,  # voxel coords (for the CSV)
+                "centroid": zyx_f * scale_zyx,  # micrometer coords (for the matcher)
                 "intensity": float(sm[zyx[0], zyx[1], zyx[2]]),
             }
         )
@@ -398,8 +412,15 @@ def build_dataset_graph(dataset: str, root: Path) -> list[dict[str, Any]]:
             z, y, x = (int(np.rint(v)) for v in c["zyx"])
             node_rows.append(
                 {
-                    "dataset": dataset, "row_type": "node", "node_id": next_node_id,
-                    "t": t, "z": z, "y": y, "x": x, "source_id": -1, "target_id": -1,
+                    "dataset": dataset,
+                    "row_type": "node",
+                    "node_id": next_node_id,
+                    "t": t,
+                    "z": z,
+                    "y": y,
+                    "x": x,
+                    "source_id": -1,
+                    "target_id": -1,
                 }
             )
             next_node_id += 1
@@ -407,9 +428,15 @@ def build_dataset_graph(dataset: str, root: Path) -> list[dict[str, Any]]:
             for e in tracker.resolve_lineage_matching(prev_cells, cells):
                 edge_rows.append(
                     {
-                        "dataset": dataset, "row_type": "edge", "node_id": -1,
-                        "t": -1, "z": -1, "y": -1, "x": -1,
-                        "source_id": e["parent"], "target_id": e["child"],
+                        "dataset": dataset,
+                        "row_type": "edge",
+                        "node_id": -1,
+                        "t": -1,
+                        "z": -1,
+                        "y": -1,
+                        "x": -1,
+                        "source_id": e["parent"],
+                        "target_id": e["child"],
                     }
                 )
         prev_cells = cells
@@ -423,15 +450,42 @@ def build_dataset_graph(dataset: str, root: Path) -> list[dict[str, Any]]:
 
 def _stub_rows(dataset: str) -> list[dict[str, Any]]:
     nodes = [
-        {"dataset": dataset, "row_type": "node", "node_id": k, "t": k - 1,
-         "z": 32, "y": 128, "x": 128, "source_id": -1, "target_id": -1}
+        {
+            "dataset": dataset,
+            "row_type": "node",
+            "node_id": k,
+            "t": k - 1,
+            "z": 32,
+            "y": 128,
+            "x": 128,
+            "source_id": -1,
+            "target_id": -1,
+        }
         for k in (1, 2, 3)
     ]
     edges = [
-        {"dataset": dataset, "row_type": "edge", "node_id": -1, "t": -1, "z": -1,
-         "y": -1, "x": -1, "source_id": 1, "target_id": 2},
-        {"dataset": dataset, "row_type": "edge", "node_id": -1, "t": -1, "z": -1,
-         "y": -1, "x": -1, "source_id": 2, "target_id": 3},
+        {
+            "dataset": dataset,
+            "row_type": "edge",
+            "node_id": -1,
+            "t": -1,
+            "z": -1,
+            "y": -1,
+            "x": -1,
+            "source_id": 1,
+            "target_id": 2,
+        },
+        {
+            "dataset": dataset,
+            "row_type": "edge",
+            "node_id": -1,
+            "t": -1,
+            "z": -1,
+            "y": -1,
+            "x": -1,
+            "source_id": 2,
+            "target_id": 3,
+        },
     ]
     return nodes + edges
 
@@ -467,8 +521,10 @@ def main() -> None:
     df.to_csv(out, index=False)
     n_nodes = int((df["row_type"] == "node").sum())
     n_edges = int((df["row_type"] == "edge").sum())
-    print(f"Wrote {out}: {len(df)} rows ({n_nodes} nodes, {n_edges} edges) "
-          f"across {df['dataset'].nunique()} datasets.")
+    print(
+        f"Wrote {out}: {len(df)} rows ({n_nodes} nodes, {n_edges} edges) "
+        f"across {df['dataset'].nunique()} datasets."
+    )
 
 
 if __name__ == "__main__":

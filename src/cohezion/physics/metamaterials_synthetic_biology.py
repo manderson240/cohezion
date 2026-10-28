@@ -52,7 +52,9 @@ class MetamaterialTensorSolver:
             "anisotropy_ratio": round(float(np.max(eigenvals) / max(np.min(eigenvals), 1e-6)), 4),
         }
 
-    def compute_acoustic_phononic_bandgap(self, lattice_constant_m: float = 1e-3, sound_speed_mps: float = 343.0) -> dict[str, Any]:
+    def compute_acoustic_phononic_bandgap(
+        self, lattice_constant_m: float = 1e-3, sound_speed_mps: float = 343.0
+    ) -> dict[str, Any]:
         """Compute Bragg & Mie acoustic bandgap frequencies for 432 Hz Pythagorean phononic crystals."""
         # Fundamental Bragg resonance: f_bragg = v_sound / (2 * a)
         f_bragg_hz = sound_speed_mps / (2.0 * lattice_constant_m)
@@ -62,8 +64,13 @@ class MetamaterialTensorSolver:
         return {
             "lattice_constant_mm": lattice_constant_m * 1000.0,
             "bragg_resonance_hz": round(f_bragg_hz, 1),
-            "bandgap_range_hz": [round(f_bragg_hz - delta_f_hz/2, 1), round(f_bragg_hz + delta_f_hz/2, 1)],
-            "couples_432hz_pythagorean": bool(abs(f_bragg_hz - 432.0) < 50.0 or 432.0 % int(f_bragg_hz) == 0),
+            "bandgap_range_hz": [
+                round(f_bragg_hz - delta_f_hz / 2, 1),
+                round(f_bragg_hz + delta_f_hz / 2, 1),
+            ],
+            "couples_432hz_pythagorean": bool(
+                abs(f_bragg_hz - 432.0) < 50.0 or 432.0 % int(f_bragg_hz) == 0
+            ),
         }
 
 
@@ -117,19 +124,27 @@ class SyntheticBiologyBioelectricSolver:
         for _ in range(steps):
             # 2D Laplacian using periodic boundaries
             lap_A = (
-                np.roll(A, 1, axis=0) + np.roll(A, -1, axis=0) +
-                np.roll(A, 1, axis=1) + np.roll(A, -1, axis=1) - 4 * A
+                np.roll(A, 1, axis=0)
+                + np.roll(A, -1, axis=0)
+                + np.roll(A, 1, axis=1)
+                + np.roll(A, -1, axis=1)
+                - 4 * A
             )
             lap_B = (
-                np.roll(B, 1, axis=0) + np.roll(B, -1, axis=0) +
-                np.roll(B, 1, axis=1) + np.roll(B, -1, axis=1) - 4 * B
+                np.roll(B, 1, axis=0)
+                + np.roll(B, -1, axis=0)
+                + np.roll(B, 1, axis=1)
+                + np.roll(B, -1, axis=1)
+                - 4 * B
             )
 
             reaction = A * (B**2)
             A += da * lap_A - reaction + feed * (1.0 - A)
             B += db * lap_B + reaction - (kill + feed) * B
 
-        morphogen_entropy = float(-np.sum((B / (np.sum(B) + 1e-12)) * np.log2((B / (np.sum(B) + 1e-12)) + 1e-12)))
+        morphogen_entropy = float(
+            -np.sum((B / (np.sum(B) + 1e-12)) * np.log2((B / (np.sum(B) + 1e-12)) + 1e-12))
+        )
         return {
             "grid_size": f"{grid_size}x{grid_size}",
             "mean_inhibitor_b_density": round(float(np.mean(B)), 4),
@@ -143,14 +158,18 @@ def run_metamaterials_synbio_experiment() -> dict[str, Any]:
     meta = MetamaterialTensorSolver()
     g_3d = np.diag([2.5, 2.5, 0.4]).astype(np.float64)  # Anisotropic transformation optics metric
     to_res = meta.compute_transformation_optics_tensors(g_3d)
-    phononic_res = meta.compute_acoustic_phononic_bandgap(lattice_constant_m=0.397, sound_speed_mps=343.0)  # Tuned for ~432 Hz
+    phononic_res = meta.compute_acoustic_phononic_bandgap(
+        lattice_constant_m=0.397, sound_speed_mps=343.0
+    )  # Tuned for ~432 Hz
 
     # 2. Synthetic Biology Solver
     synbio = SyntheticBiologyBioelectricSolver()
     # Simulated 32x32 tissue membrane potential grid (mV)
     np.random.seed(42)
     v_grid = np.random.uniform(-55.0, -25.0, (32, 32)).astype(np.float32)
-    kappa_grid = np.random.uniform(0.6, 1.0, (32, 32)).astype(np.float32)  # High gap-junction conductance
+    kappa_grid = np.random.uniform(0.6, 1.0, (32, 32)).astype(
+        np.float32
+    )  # High gap-junction conductance
     bio_res = synbio.compute_morphogenetic_field_tensor(v_grid, kappa_grid)
     turing_res = synbio.simulate_turing_morphogen_diffusion(grid_size=32, steps=50)
 

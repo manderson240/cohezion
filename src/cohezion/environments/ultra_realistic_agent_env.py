@@ -48,7 +48,9 @@ class UltraRealisticAgentEnv(gym.Env):
         self.max_steps = max_steps
         self.use_namespaces = use_namespaces
         self.rng = np.random.default_rng(seed)
-        self.task_suite = task_suite or self.generate_procedural_task_suite(n_tasks=30, seed=seed or 42)
+        self.task_suite = task_suite or self.generate_procedural_task_suite(
+            n_tasks=30, seed=seed or 42
+        )
 
         self.interruption_engine = InterruptionEngine(
             interrupt_probability=interruption_prob,
@@ -191,41 +193,47 @@ class UltraRealisticAgentEnv(gym.Env):
                 factor = int(rng.integers(2, 10))
                 val = int(rng.integers(10, 50))
                 expected = val * factor
-                suite.append({
-                    "task_id": f"debug_python_syntax_v{i}",
-                    "description": f"Locate 'app_{i}.py', fix the SyntaxError, and verify tests pass with 'python3 test_app_{i}.py'.",
-                    "setup_files": {
-                        f"app_{i}.py": f"def {fn_name}(x):\n    return x * {factor}\n\ndef broken_fn(a, b\n    return a * b\n",
-                        f"test_app_{i}.py": f"from app_{i} import {fn_name}\nassert {fn_name}({val}) == {expected}\nprint('ALL TESTS PASSED')\n",
-                    },
-                    "verifier_command": f"python3 test_app_{i}.py",
-                    "verifier_pattern": "ALL TESTS PASSED",
-                })
+                suite.append(
+                    {
+                        "task_id": f"debug_python_syntax_v{i}",
+                        "description": f"Locate 'app_{i}.py', fix the SyntaxError, and verify tests pass with 'python3 test_app_{i}.py'.",
+                        "setup_files": {
+                            f"app_{i}.py": f"def {fn_name}(x):\n    return x * {factor}\n\ndef broken_fn(a, b\n    return a * b\n",
+                            f"test_app_{i}.py": f"from app_{i} import {fn_name}\nassert {fn_name}({val}) == {expected}\nprint('ALL TESTS PASSED')\n",
+                        },
+                        "verifier_command": f"python3 test_app_{i}.py",
+                        "verifier_pattern": "ALL TESTS PASSED",
+                    }
+                )
             elif cat_choice == 1:
                 target_ip = f"10.0.{rng.integers(1, 10)}.{rng.integers(2, 200)}"
                 count = int(rng.integers(2, 5))
                 lines = [f"{target_ip} - 401 - /admin\n" for _ in range(count)]
                 lines.append("192.168.1.1 - 200 - /login\n")
-                suite.append({
-                    "task_id": f"parse_security_logs_v{i}",
-                    "description": f"Analyze 'access_{i}.log', count status 401 for {target_ip}, write to 'report_{i}.json'.",
-                    "setup_files": {
-                        f"access_{i}.log": "".join(lines),
-                    },
-                    "verifier_command": f"python3 -c \"import json; d=json.load(open('report_{i}.json')); assert d.get('{target_ip}') == {count}; print('REPORT VERIFIED')\"",
-                    "verifier_pattern": "REPORT VERIFIED",
-                })
+                suite.append(
+                    {
+                        "task_id": f"parse_security_logs_v{i}",
+                        "description": f"Analyze 'access_{i}.log', count status 401 for {target_ip}, write to 'report_{i}.json'.",
+                        "setup_files": {
+                            f"access_{i}.log": "".join(lines),
+                        },
+                        "verifier_command": f"python3 -c \"import json; d=json.load(open('report_{i}.json')); assert d.get('{target_ip}') == {count}; print('REPORT VERIFIED')\"",
+                        "verifier_pattern": "REPORT VERIFIED",
+                    }
+                )
             else:
                 port = int(rng.integers(3000, 9000))
-                suite.append({
-                    "task_id": f"refactor_config_format_v{i}",
-                    "description": f"Convert 'config_{i}.ini' to valid JSON in 'config_{i}.json' and verify port {port}.",
-                    "setup_files": {
-                        f"config_{i}.ini": f"[server]\nport = {port}\nhost = localhost\ndebug = true\n",
-                    },
-                    "verifier_command": f"python3 -c \"import json; d=json.load(open('config_{i}.json')); assert d.get('port') in ({port}, '{port}'); print('CONFIG VERIFIED')\"",
-                    "verifier_pattern": "CONFIG VERIFIED",
-                })
+                suite.append(
+                    {
+                        "task_id": f"refactor_config_format_v{i}",
+                        "description": f"Convert 'config_{i}.ini' to valid JSON in 'config_{i}.json' and verify port {port}.",
+                        "setup_files": {
+                            f"config_{i}.ini": f"[server]\nport = {port}\nhost = localhost\ndebug = true\n",
+                        },
+                        "verifier_command": f"python3 -c \"import json; d=json.load(open('config_{i}.json')); assert d.get('port') in ({port}, '{port}'); print('CONFIG VERIFIED')\"",
+                        "verifier_pattern": "CONFIG VERIFIED",
+                    }
+                )
         return suite[:n_tasks]
 
     def _calculate_ground_truth_progress(self) -> float:
@@ -248,6 +256,7 @@ class UltraRealisticAgentEnv(gym.Env):
                     continue
                 try:
                     import ast
+
                     ast.parse(py_file.read_text(encoding="utf-8"))
                     return 0.5  # Syntax repaired, but test verification pending
                 except Exception:
@@ -432,23 +441,50 @@ class UltraRealisticAgentEnv(gym.Env):
             cmd_tokens = command.strip().split()
             first_word = cmd_tokens[0] if cmd_tokens else ""
             # Safe diagnostic & recovery commands that remain unblocked
-            safe_diagnostics = {"cat", "which", "echo", "pwd", "ls", "python", "python3", "env", "chmod", "find"}
-            if first_word not in safe_diagnostics and "fallback" not in command and "retry" not in command:
-                return ("", f"bash: {first_word}: command execution failed: tool fault active (exit 127)", 127)
+            safe_diagnostics = {
+                "cat",
+                "which",
+                "echo",
+                "pwd",
+                "ls",
+                "python",
+                "python3",
+                "env",
+                "chmod",
+                "find",
+            }
+            if (
+                first_word not in safe_diagnostics
+                and "fallback" not in command
+                and "retry" not in command
+            ):
+                return (
+                    "",
+                    f"bash: {first_word}: command execution failed: tool fault active (exit 127)",
+                    127,
+                )
 
         try:
             bwrap_bin = shutil.which("bwrap")
             if bwrap_bin:
                 exec_cmd = [
                     bwrap_bin,
-                    "--ro-bind", "/", "/",
-                    "--bind", str(self.sandbox_dir), str(self.sandbox_dir),
-                    "--dev", "/dev",
-                    "--proc", "/proc",
+                    "--ro-bind",
+                    "/",
+                    "/",
+                    "--bind",
+                    str(self.sandbox_dir),
+                    str(self.sandbox_dir),
+                    "--dev",
+                    "/dev",
+                    "--proc",
+                    "/proc",
                     "--unshare-all",
                     "--die-with-parent",
                     "--new-session",
-                    "bash", "-c", command,
+                    "bash",
+                    "-c",
+                    command,
                 ]
             else:
                 exec_cmd = ["bash", "-c", command]

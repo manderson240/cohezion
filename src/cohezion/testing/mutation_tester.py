@@ -164,16 +164,19 @@ class MutationTestingEngine:
             # Execute the mutated code in an isolated namespace
             mutant_ns: dict[str, Any] = {}
             try:
+                # unrestricted-exec-ok: mutated REPO source (trusted), which needs real imports
                 exec(compile(mutated_code, f"<mutant_{i}>", "exec"), mutant_ns)
             except Exception as compile_err:
                 # Syntax or compile error kills the mutant immediately
                 killed += 1
-                details.append({
-                    "mutant_id": mutant.mutant_id,
-                    "status": "KILLED",
-                    "reason": f"Compilation failed: {compile_err}",
-                    "description": mutant.description,
-                })
+                details.append(
+                    {
+                        "mutant_id": mutant.mutant_id,
+                        "status": "KILLED",
+                        "reason": f"Compilation failed: {compile_err}",
+                        "description": mutant.description,
+                    }
+                )
                 continue
 
             # Run test function against the mutated module namespace
@@ -181,21 +184,25 @@ class MutationTestingEngine:
                 test_fn(mutant_ns)
                 # Test passed unexpectedly -> Mutant survived!
                 survived += 1
-                details.append({
-                    "mutant_id": mutant.mutant_id,
-                    "status": "SURVIVED",
-                    "reason": "Test suite failed to detect synthetic mutation",
-                    "description": mutant.description,
-                })
+                details.append(
+                    {
+                        "mutant_id": mutant.mutant_id,
+                        "status": "SURVIVED",
+                        "reason": "Test suite failed to detect synthetic mutation",
+                        "description": mutant.description,
+                    }
+                )
             except Exception as test_err:
                 # Test detected the fault and failed -> Mutant killed!
                 killed += 1
-                details.append({
-                    "mutant_id": mutant.mutant_id,
-                    "status": "KILLED",
-                    "reason": f"Caught by assertion: {type(test_err).__name__}",
-                    "description": mutant.description,
-                })
+                details.append(
+                    {
+                        "mutant_id": mutant.mutant_id,
+                        "status": "KILLED",
+                        "reason": f"Caught by assertion: {type(test_err).__name__}",
+                        "description": mutant.description,
+                    }
+                )
 
         tested_count = killed + survived
         score = (killed / tested_count) if tested_count > 0 else 1.0

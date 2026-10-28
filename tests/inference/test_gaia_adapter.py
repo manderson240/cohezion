@@ -419,3 +419,17 @@ class TestThinkingModelReasoningFormat:
         with patch.dict(sys.modules, {"gaia.llm.lemonade_client": None}):
             tier = build_gaia_llm_tier("Bonsai-27B-gguf")
         assert tier.agent._extra_sampling.get("reasoning_format") == "none"
+
+
+def test_request_extras_reach_the_payload_and_win_over_card_defaults(monkeypatch):
+    """A per-lane request field (e.g. disabling Qwen thinking) must land in the shim's
+    extra_sampling; a builder that accepts the kwarg and drops it passes only a hasattr check."""
+    from cohezion.inference import gaia_adapter as ga
+
+    tier = ga.build_gaia_llm_tier(
+        model_id="PhAI-IDE-4B-i1-GGUF-Q6_K",
+        request_extras={"chat_template_kwargs": {"enable_thinking": False}, "top_p": 0.5},
+    )
+    extras = tier.agent._extra_sampling
+    assert extras["chat_template_kwargs"] == {"enable_thinking": False}
+    assert extras["top_p"] == 0.5

@@ -21,6 +21,35 @@ from watchdog.observers import Observer
 logger = logging.getLogger(__name__)
 
 
+class SurrealQLError(RuntimeError):
+    """A SurrealDB request that did not do what it was asked.
+
+    Two shapes, both previously invisible to callers (measured 2026-09-19:
+    `track_session` returned success for a CREATE that never landed):
+      * HTTP 4xx/5xx -- previously ``raise_for_status()`` with the body (the
+        actual SurrealQL error) discarded;
+      * HTTP 200 whose per-statement results carry ``status: "ERR"`` --
+        previously returned as a normal, non-empty list that every
+        ``len(result) > 0`` check read as success.
+    """
+
+
+def _checked_statements(response) -> list[dict[str, Any]]:
+    # `status_code` is type-guarded: tests hand this a MagicMock client, whose
+    # attributes are mocks (comparing one to an int raises TypeError).
+    code = getattr(response, "status_code", None)
+    if isinstance(code, int) and code >= 400:
+        raise SurrealQLError(f"HTTP {code}: {str(response.text)[:500]}")
+    results = response.json()
+    if isinstance(results, list):
+        failed = [
+            r for r in results if isinstance(r, dict) and r.get("status") == "ERR"
+        ]
+        if failed:
+            raise SurrealQLError("; ".join(str(r.get("result"))[:300] for r in failed))
+    return results
+
+
 class SurrealDBSync:
     """Bidirectional sync between vault files and SurrealDB."""
 
@@ -75,6 +104,11 @@ class SurrealDBSync:
         headers = {
             "Content-Type": "text/plain",
             "Accept": "application/json",
+            # SurrealDB 2.x reads `surreal-ns`/`surreal-db`; it ignores the legacy
+            # `NS`/`DB` names, so every statement answered ERR "Specify a namespace
+            # to use" inside an HTTP 200 -- read as success until 2026-09-19.
+            "surreal-ns": self.namespace,
+            "surreal-db": self.database,
             "NS": self.namespace,
             "DB": self.database,
         }
@@ -85,8 +119,7 @@ class SurrealDBSync:
             auth=self.auth,
             content=query,
         )
-        response.raise_for_status()
-        return response.json()
+        return _checked_statements(response)
 
     async def _execute_query_async(
         self, query: str, client: httpx.AsyncClient
@@ -103,6 +136,11 @@ class SurrealDBSync:
         headers = {
             "Content-Type": "text/plain",
             "Accept": "application/json",
+            # SurrealDB 2.x reads `surreal-ns`/`surreal-db`; it ignores the legacy
+            # `NS`/`DB` names, so every statement answered ERR "Specify a namespace
+            # to use" inside an HTTP 200 -- read as success until 2026-09-19.
+            "surreal-ns": self.namespace,
+            "surreal-db": self.database,
             "NS": self.namespace,
             "DB": self.database,
         }
@@ -113,8 +151,7 @@ class SurrealDBSync:
             auth=self.auth,
             content=query,
         )
-        response.raise_for_status()
-        return response.json()
+        return _checked_statements(response)
 
     def _parse_frontmatter(self, content: str) -> tuple[dict[str, Any], str]:
         """Extract YAML frontmatter and body from markdown.
@@ -693,9 +730,12 @@ class VaultFileHandler(FileSystemEventHandler):
         # papers/concepts names kept for old vault layouts.
         if "cortex" in parts or "papers" in parts:
             self.sync.sync_paper(path)
-        elif "cerebellum" in parts or "concepts" in parts:
-            self.sync.sync_concept(path)
-        elif "patterns" in parts or "decisions" in parts:
+        elif (
+            "cerebellum" in parts
+            or "concepts" in parts
+            or "patterns" in parts
+            or "decisions" in parts
+        ):
             self.sync.sync_concept(path)
 
     def on_created(self, event: FileSystemEvent) -> None:

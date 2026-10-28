@@ -8,10 +8,10 @@ and inter-session collaboration cascades.
 from __future__ import annotations
 
 import asyncio
+import hashlib
 import logging
 import os
 import time
-import uuid
 from dataclasses import dataclass, field
 from typing import Any
 
@@ -32,6 +32,10 @@ class CrossSessionEventBridge:
     session_id: str
     surreal_client: SurrealClient = field(default_factory=SurrealClient)
     _subscribed: bool = field(default=False, init=False)
+    _sync_loop: Any = field(default=None, init=False, repr=False)
+    # Strong refs to in-loop persist tasks: the loop holds only weak refs, so an
+    # un-retained task can be garbage-collected mid-flight.
+    _pending_persist: set[asyncio.Task[bool]] = field(default_factory=set, init=False, repr=False)
 
     async def initialize(self) -> None:
         """Subscribe bridge to the local EventBus and ensure DB connection."""
@@ -43,9 +47,16 @@ class CrossSessionEventBridge:
                 self.session_id,
             )
 
-    async def _on_local_event(self, event: Event) -> None:
-        """Persist local events to SurrealDB event_log for cross-session visibility."""
-        record_id = f"evt_{self.session_id}_{int(time.time() * 1000)}_{uuid.uuid4().hex[:6]}"
+    def _record_id(self, event: Event) -> str:
+        """Deterministic record id so at-least-once delivery cannot duplicate rows."""
+        digest = hashlib.sha256(
+            f"{self.session_id}|{event.type.name}|{event.source}|{event.timestamp!r}".encode()
+        ).hexdigest()[:16]
+        return f"evt_{self.session_id}_{digest}"
+
+    async def _persist(self, event: Event) -> bool:
+        """UPSERT one event into event_log. True only on a confirmed write."""
+        record_id = self._record_id(event)
         event_data = {
             "type": event.type.name,
             "source": event.source,
@@ -66,15 +77,22 @@ class CrossSessionEventBridge:
                 timeout=_EVENT_HANDLER_TIMEOUT_S,
             )
             logger.debug("Persisted cross-session event %s to event_log", record_id)
+            return True
         except TimeoutError:
             logger.error(
-                "Event persistence timed out after %.1fs — event %s/%s LOST from event_log",
+                "Event persistence timed out after %.1fs -- event %s/%s LOST from event_log",
                 _EVENT_HANDLER_TIMEOUT_S,
                 event.type.name,
                 event.source,
             )
+            return False
         except Exception as err:
             logger.warning("Failed to persist event to SurrealDB event_log: %s", err)
+            return False
+
+    async def _on_local_event(self, event: Event) -> None:
+        """Persist local events to SurrealDB event_log for cross-session visibility."""
+        await self._persist(event)
 
     async def fetch_cross_session_events(
         self, target_event_type: str | None = None, limit: int = 20
@@ -98,10 +116,60 @@ class CrossSessionEventBridge:
             return []
 
     def publish_and_persist(self, event: Event) -> bool:
-        """Synchronously dispatch event onto local bus and queue for persistence."""
+        """Dispatch onto the local bus AND persist the event.
+
+        Two contexts, two meanings of True:
+
+        * Sync context (no running loop): persistence is driven here on a
+          reusable loop; True only if the event reached ``event_log``.
+        * Inside a running loop the write cannot block, so it is scheduled.
+          True means "dispatched to a RUNNING bus; persistence scheduled" --
+          NOT persisted. A failed write is logged as a warning (by ``_persist``,
+          or by the task's done-callback if the task itself raised). False if
+          the bus is not running (mirrors ``EventBus.publish``, D7): an event
+          ``put_nowait`` into an undrained queue is the original defect.
+
+        The deterministic record id keeps a scheduled write idempotent with the
+        subscriber's.
+        """
         try:
-            self.event_bus.publish_sync(event)
-            return True
+            asyncio.get_running_loop()
+            in_loop = True
+        except RuntimeError:
+            in_loop = False
+
+        if in_loop and not self.event_bus._running:
+            logger.warning("publish_and_persist refused: event bus is not running")
+            return False
+
+        try:
+            dispatched = bool(self.event_bus.publish_sync(event))
         except Exception as err:
             logger.warning("Failed sync dispatch on cross-session bridge: %s", err)
-            return False
+            dispatched = False
+
+        if not in_loop:
+            # One reusable loop per bridge: SurrealClient caches a connection bound
+            # to the loop that created it, so asyncio.run() (a fresh loop per call)
+            # fails every call after the first with "attached to a different loop".
+            if self._sync_loop is None or self._sync_loop.is_closed():
+                self._sync_loop = asyncio.new_event_loop()
+            # bool() is a narrowing, not a silencer: _sync_loop is typed Any (it holds an
+            # AbstractEventLoop created lazily), so run_until_complete returns Any even
+            # though _persist is declared -> bool.
+            return bool(self._sync_loop.run_until_complete(self._persist(event)))
+
+        task = asyncio.ensure_future(self._persist(event))
+        self._pending_persist.add(task)
+        task.add_done_callback(self._on_persist_done)
+        return dispatched
+
+    def _on_persist_done(self, task: asyncio.Task[bool]) -> None:
+        """Retire a scheduled persist task and surface any failure it would hide."""
+        self._pending_persist.discard(task)
+        if task.cancelled():
+            logger.warning("Scheduled cross-session persist task was cancelled")
+            return
+        err = task.exception()
+        if err is not None:
+            logger.warning("Scheduled cross-session persist task failed: %s", err)

@@ -1,23 +1,28 @@
 from __future__ import annotations
 
-import httpx
 import time
-from typing import Any, Optional
+from typing import Any
+
+import httpx
+
 from cohezion.inference.transports.base import BaseInferenceTransport, TransportResponse
+
 
 class LemonadeTransport(BaseInferenceTransport):
     """Transport adapter for the Lemonade OmniRouter (:13305)."""
-    
+
     def __init__(self, port: int = 13305):
         self.port = port
         self.url = f"http://localhost:{port}/v1/chat/completions"
 
-    async def query(self, prompt: str, model_id: str, params: Optional[dict[str, Any]] = None) -> Optional[TransportResponse]:
+    async def query(
+        self, prompt: str, model_id: str, params: dict[str, Any] | None = None
+    ) -> TransportResponse | None:
         t0 = time.perf_counter()
         payload = {
             "model": model_id,
             "messages": [{"role": "user", "content": prompt}],
-            ** (params or {})
+            **(params or {}),
         }
         try:
             async with httpx.AsyncClient(timeout=45.0) as client:
@@ -28,12 +33,12 @@ class LemonadeTransport(BaseInferenceTransport):
                     raw = (msg.get("content") or msg.get("reasoning_content") or "").strip()
                     if "</think>" in raw:
                         raw = raw.split("</think>")[-1].strip()
-                    
+
                     return TransportResponse(
                         content=raw,
                         model_name=model_id,
                         latency_ms=round((time.perf_counter() - t0) * 1000, 2),
-                        verified=True
+                        verified=True,
                     )
         except Exception:
             return None

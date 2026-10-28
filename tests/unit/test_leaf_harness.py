@@ -27,14 +27,18 @@ def temp_workspace():
 
 def test_leaf_harness_read_tool(temp_workspace):
     harness = LeafHarness(workspace_dir=temp_workspace)
-    res = harness.execute_tool(LeafToolCall("read", {"path": "src/example.py", "start_line": 1, "end_line": 2}))
+    res = harness.execute_tool(
+        LeafToolCall("read", {"path": "src/example.py", "start_line": 1, "end_line": 2})
+    )
     assert res.success is True
     assert "def add(a, b):" in res.output
 
 
 def test_leaf_harness_write_tool(temp_workspace):
     harness = LeafHarness(workspace_dir=temp_workspace)
-    res = harness.execute_tool(LeafToolCall("write", {"path": "src/new_file.py", "content": "print('hello')"}))
+    res = harness.execute_tool(
+        LeafToolCall("write", {"path": "src/new_file.py", "content": "print('hello')"})
+    )
     assert res.success is True
     assert (temp_workspace / "src" / "new_file.py").read_text() == "print('hello')"
 

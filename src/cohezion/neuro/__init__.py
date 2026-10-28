@@ -10,6 +10,13 @@ from cohezion.neuro.drosophila_cns import (
     DrosophilaNeuronType,
     DrosophilaSensoryMotorCircuit,
 )
+from cohezion.neuro.ventral_hippocampus import (
+    HippocampalAxis,
+    VentralBehavioralMode,
+    VentralHippocampalState,
+    VentralHippocampusCircuit,
+    VentralProjectionTarget,
+)
 
 
 __all__ = [
@@ -17,4 +24,9 @@ __all__ = [
     "DrosophilaCircuitTier",
     "DrosophilaNeuronType",
     "DrosophilaSensoryMotorCircuit",
+    "HippocampalAxis",
+    "VentralBehavioralMode",
+    "VentralHippocampalState",
+    "VentralHippocampusCircuit",
+    "VentralProjectionTarget",
 ]

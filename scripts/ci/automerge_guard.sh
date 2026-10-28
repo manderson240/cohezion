@@ -230,6 +230,57 @@ step "doc-code consistency" uv run python scripts/ci/doc_code_consistency.py
 step "phantom-attr self-test" uv run python scripts/ci/phantom_attr_scan.py --self-test
 step "phantom-attr scan" uv run python scripts/ci/phantom_attr_scan.py
 
+# Step 6c-quater: Lineage — fourth sibling. dormancy asks "has a consumer?", doc-consistency "do the
+# docs tell the truth?", phantom-attr "does the attribute exist?"; lineage asks "can the reflex run
+# when the LLM layer is dead?" Measured 2026-09-19: the memory-pressure guard cost 500 MB to import
+# via the package (10.3 s) and 17 MB by file path (88 ms). A fresh interpreter is the instrument;
+# a static import graph read this as clean. --self-test FIRST (plants a leak, must go red).
+step "lineage self-test" uv run python scripts/ci/lineage_scan.py --self-test
+step "lineage scan" uv run python scripts/ci/lineage_scan.py
+
+# Step 6c-sexies: False contracts — "does the producer do what its NAME promises?" Found
+# 2026-09-10 (publish_and_persist persisted nothing; regenerate_and_commit reported syncs that
+# never happened) and re-found 2026-09-19 still live on main because the fix branch never
+# landed. AST-based (a grep matches the docstring that lies). --self-test first, as above.
+step "false-contract self-test" uv run python scripts/ci/false_contract_scan.py --self-test
+step "false-contract scan" uv run python scripts/ci/false_contract_scan.py
+
+# Step 6c-septies: SurrealDB HTTP ratchet — "does the writer know whether the write happened?"
+# SurrealDB answers HTTP 200 with status:"ERR" per statement; 57 raw /sql writers read the body
+# unchecked (measured 2026-09-19; three production false-successes that day were this class).
+# Ratchet against scripts/ci/surreal_http_baseline.txt: new unchecked writer = red; shrink only.
+step "surreal-http self-test" uv run python scripts/ci/surreal_http_scan.py --self-test
+step "surreal-http scan" uv run python scripts/ci/surreal_http_scan.py
+
+# Step 6c-decies (ADVISORY): local multi-lens adversarial review of the landing range --
+# three lenses on three model families via :13305 ($0). Prose is UNKNOWN, never approval;
+# each finding carries a falsifier the script runs. Advisory because the router may be
+# down or busy; the report in ~/vaults/cohezion-vault/reviews/ is what the human reads.
+step_advisory "local multi-lens adversarial review" .venv/bin/python3 scripts/ci/local_adversarial_review.py --range "$(git merge-base HEAD origin/main 2>/dev/null || echo HEAD~1)..HEAD"
+
+# Step 6c-nonies: Declared-field scan — "does the writer persist what the model DECLARES?"
+# TrajectoryPoint declared `action` for 3 months while its CREATE never wrote it (21,635 rows,
+# NULL on all); four more fields the same way. AST: dataclass fields vs the attribute refs that
+# reach a CREATE/INSERT/UPSERT literal (through locals). Oracle-validated on the pre-fix
+# revision. Ratchet vs scripts/ci/declared_field_baseline.txt: new/grown entry = red.
+step "declared-field self-test" uv run python scripts/ci/declared_field_scan.py --self-test
+step "declared-field scan" uv run python scripts/ci/declared_field_scan.py
+
+# Step 6c-octies: Mutation ratchet — "do the tests detect a broken implementation?" Existed
+# with a committed baseline and ran in NO gate; measured 2026-09-20: 4 killed / 269 survived /
+# 793 untargeted of 1066 in the two scoped modules. Wired at today's numbers (baseline notes
+# the regression); survivors and untargeted mutants may only shrink. ~2-3 min locally.
+step "mutation self-test" uv run python scripts/ci/mutation_ratchet.py --self-test
+step "mutation ratchet" uv run python scripts/ci/mutation_ratchet.py
+
+# Step 6c-ter-bis: unrestricted exec/eval (security finding H5). CPython auto-injects the FULL
+# builtins into a globals dict lacking "__builtins__", so exec(llm_code, {}) reaches
+# __import__/open/eval. safe_exec_globals() closed the 2026-06 instances, yet 2026-09-13 found 13
+# unrestricted sites in src/ (5 running LLM output) because nothing re-checked. Exceptions need
+# an inline "# unrestricted-exec-ok: <reason>" pragma. --self-test first (sibling rationale).
+step "unrestricted-exec self-test" uv run python scripts/ci/unrestricted_exec_scan.py --self-test
+step "unrestricted-exec scan" uv run python scripts/ci/unrestricted_exec_scan.py
+
 # Step 6c-quater: META-gate. The scans above ask questions about the CODE; this asks whether
 # the gates themselves can still answer. It RUNS each gate's --self-test rather than
 # checking the flag exists, because doc_code_consistency.py was found shipping a
@@ -253,6 +304,11 @@ fi
 
 if [ -f scripts/ci/graph_cardinality_audit.py ]; then
   step "graph cardinality" uv run python scripts/ci/graph_cardinality_audit.py
+fi
+
+if [ -f scripts/ci/producer_consumer_audit.py ]; then
+  step "producer-consumer self-test" uv run python scripts/ci/producer_consumer_audit.py --self-test
+  step "producer-consumer audit" uv run python scripts/ci/producer_consumer_audit.py
 fi
 
 # Step 7: Conventional commit / version governance

@@ -11,11 +11,14 @@ Implements 5 core geometric & topological primitives for 2D ARC grids (<= 30x30)
 from __future__ import annotations
 import numpy as np
 
-def primitive_gravity_drop(grid: np.ndarray, obstacle_color: int = 5, empty_color: int = 0) -> np.ndarray:
+
+def primitive_gravity_drop(
+    grid: np.ndarray, obstacle_color: int = 5, empty_color: int = 0
+) -> np.ndarray:
     """Simulates gravity falling downwards, stopped by obstacles or bottom floor."""
     h, w = grid.shape
     result = np.full((h, w), empty_color, dtype=np.int32)
-    
+
     for c in range(w):
         col = grid[:, c]
         write_idx = h - 1
@@ -32,20 +35,26 @@ def primitive_gravity_drop(grid: np.ndarray, obstacle_color: int = 5, empty_colo
                     write_idx -= 1
     return result
 
-def primitive_convex_hull_fill(grid: np.ndarray, fill_color: int = 1, bg_color: int = 0) -> np.ndarray:
+
+def primitive_convex_hull_fill(
+    grid: np.ndarray, fill_color: int = 1, bg_color: int = 0
+) -> np.ndarray:
     """Encloses non-background pixels and fills the bounding box envelope."""
     result = grid.copy()
     coords = np.argwhere(grid != bg_color)
     if len(coords) < 2:
         return result
-    
+
     r_min, c_min = coords.min(axis=0)
     r_max, c_max = coords.max(axis=0)
-    
-    result[r_min:r_max + 1, c_min:c_max + 1] = fill_color
+
+    result[r_min : r_max + 1, c_min : c_max + 1] = fill_color
     return result
 
-def primitive_remap_by_compactness(grid: np.ndarray, target_color: int = 2, bg_color: int = 0) -> np.ndarray:
+
+def primitive_remap_by_compactness(
+    grid: np.ndarray, target_color: int = 2, bg_color: int = 0
+) -> np.ndarray:
     """Remaps component color if perimeter-to-area ratio indicates high compactness."""
     h, w = grid.shape
     result = grid.copy()
@@ -76,11 +85,12 @@ def primitive_remap_by_compactness(grid: np.ndarray, target_color: int = 2, bg_c
 
                 area = len(comp)
                 if area > 0:
-                    compactness = (perimeter ** 2) / (4.0 * np.pi * area)
+                    compactness = (perimeter**2) / (4.0 * np.pi * area)
                     if compactness < 1.8:  # Highly circular/compact shape
                         for cr, cc in comp:
                             result[cr, cc] = target_color
     return result
+
 
 def primitive_antidiagonal_reflection_invert(grid: np.ndarray) -> np.ndarray:
     """Reflects across anti-diagonal and inverts non-zero palette values."""
@@ -88,6 +98,7 @@ def primitive_antidiagonal_reflection_invert(grid: np.ndarray) -> np.ndarray:
     reflected = np.transpose(grid)[::-1, ::-1]
     inverted = np.where(reflected > 0, 10 - reflected, 0)
     return inverted
+
 
 def primitive_periodic_tile_extrapolate(grid: np.ndarray, out_shape: tuple[int, int]) -> np.ndarray:
     """Detects fundamental period tile and replicates to out_shape."""

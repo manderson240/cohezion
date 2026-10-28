@@ -98,7 +98,7 @@ class CompoundGraphEngine:
 
     def read_before_reasoning(self, query_keyword: str, limit: int = 3) -> list[LearningRecall]:
         """Query SurrealDB for past learnings or tools before invoking an LLM.
-        
+
         Takes ~15ms and allows agents to bypass LLM inference entirely if a compound tool exists.
         """
         sanitized = query_keyword.replace("'", "").replace('"', "")
@@ -135,7 +135,7 @@ class CompoundGraphEngine:
         clean_strat = strategy_id.replace(":", "_").replace("-", "_")
         clean_art = artifact_path.replace(":", "_").replace("/", "_").replace(".", "_")
         clean_learn = f"learn_{clean_goal}"
-        
+
         z_vec_str = json.dumps(z_vector or [0.5] * 12)
         tool_val = f"'{compound_tool}'" if compound_tool else "NONE"
 
@@ -161,7 +161,7 @@ id: "compound_{clean_goal}"
 goal: "{goal_title}"
 strategy: "{strategy_desc}"
 artifact: "{artifact_path}"
-compound_tool: "{compound_tool or ''}"
+compound_tool: "{compound_tool or ""}"
 type: compound_learning
 tags: [compound_engineering, v_model, graph]
 ---
@@ -170,7 +170,7 @@ tags: [compound_engineering, v_model, graph]
 - **Goal**: {goal_title} (`kg_goal:{clean_goal}`)
 - **Strategy**: {strategy_desc} (`kg_strategy:{clean_strat}`)
 - **Artifact**: `{artifact_path}` (`kg_artifact:{clean_art}`)
-- **Compound Tool / Verifier**: `{compound_tool or 'None'}`
+- **Compound Tool / Verifier**: `{compound_tool or "None"}`
 - **SurrealDB Relation Path**:
   `kg_goal:{clean_goal} -> RESOLVED_BY -> kg_strategy:{clean_strat} -> PRODUCED -> kg_artifact:{clean_art} -> YIELDED -> kg_learning:{clean_learn}`
 """

@@ -15,6 +15,13 @@ try:
 except PackageNotFoundError:  # source tree with no install (e.g. bare PYTHONPATH=src)
     __version__ = "0+unknown"
 
+# Secret redaction is process-wide and order-independent: every LogRecord is redacted at
+# creation. Cheap (logging + re only). See cohezion/_redaction.py for why this is not a filter.
+from cohezion._redaction import install_record_redaction as _install_record_redaction
+
+
+_install_record_redaction()
+
 # Wiring-sweep 2026-06-22: branding.py was a genuine import-graph orphan (top-level).
 with contextlib.suppress(Exception):
     from cohezion.branding import Colors as Colors
