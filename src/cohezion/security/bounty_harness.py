@@ -11,6 +11,7 @@ from __future__ import annotations
 import ast
 import enum
 import logging
+import os
 import time
 from dataclasses import dataclass, field
 
@@ -37,6 +38,8 @@ class InvariantCategory(enum.StrEnum):
     ORACLE_MANIPULATION = "oracle_manipulation"
     UNBOUNDED_RESOURCE = "unbounded_resource"
     STATE_DESYNCHRONIZATION = "state_desynchronization"
+    ARBITRARY_EXECUTION = "arbitrary_execution"
+    UNPROTECTED_INITIALIZER = "unprotected_initializer"
 
 
 @dataclass(frozen=True, slots=True)
@@ -330,65 +333,114 @@ class BugBountyHarness:
                 )
         return findings
 
-    def audit_solidity_source(self, code_str: str, contract_name: str = "") -> BountyAuditReport:
-        """Audit Solidity contract source code for balance desynchronization and invariant flaws."""
+    def audit_solidity_source(self, code_or_path: str, contract_name: str = "") -> BountyAuditReport:
+        """Audit Solidity contract source code or file path for formal invariant flaws."""
         t0 = time.perf_counter()
         violations: list[InvariantViolation] = []
+
+        code_str = code_or_path
+        target = contract_name or self.target_name
+        if "\n" not in code_or_path and os.path.isfile(code_or_path):
+            target = target or os.path.basename(code_or_path)
+            try:
+                with open(code_or_path, "r", encoding="utf-8", errors="ignore") as f:
+                    code_str = f.read()
+            except Exception:
+                pass
+
         lines = code_str.splitlines()
 
-        # Check: Balance Desynchronization on withdrawal/cancellation paths
-        # Invariant: If a function transfers assets out (_sendToken, safeTransfer, call{value})
-        # and has balance tracking mapping (e.g. tokenBalanceHistory), the mapping must be synchronized.
-        has_balance_history = "tokenBalanceHistory" in code_str
-        in_cancel_function = False
-        cancel_line = 0
-        sends_token_in_cancel = False
-        updates_history_in_cancel = False
+        # 1. Check: State Desynchronization on withdrawal/cancellation paths
+        tracking_vars = ["tokenBalanceHistory", "totalDeposits", "trackedBalance", "totalShares", "lockedBalance"]
+        active_tracking = [v for v in tracking_vars if v in code_str]
+
+        current_fn = None
+        fn_start_line = 0
+        sends_token = False
+        updates_tracking = False
 
         for i, line in enumerate(lines, 1):
-            if "function cancelCall" in line:
-                in_cancel_function = True
-                cancel_line = i
-            elif in_cancel_function:
-                if line.strip().startswith("function ") or line.strip().startswith("/*"):
-                    in_cancel_function = False
-                else:
-                    if "_sendToken" in line or "safeTransfer" in line:
-                        sends_token_in_cancel = True
-                    if "tokenBalanceHistory" in line and "=" in line:
-                        updates_history_in_cancel = True
+            line_str = line.strip()
+            if line_str.startswith("function ") and ("(" in line_str):
+                # Process previous function if exit-type
+                if current_fn and sends_token and not updates_tracking and active_tracking:
+                    violations.append(
+                        InvariantViolation(
+                            category=InvariantCategory.STATE_DESYNCHRONIZATION,
+                            severity=InvariantSeverity.HIGH,
+                            rule_name="unaccounted_token_withdrawal_desynchronization",
+                            line_number=fn_start_line,
+                            description=(
+                                f"Function '{current_fn}' transfers tokens or native assets out of the contract "
+                                f"without updating internal tracking state {active_tracking}, causing accounting desynchronization."
+                            ),
+                            formal_proof_trace=(
+                                f"Invariant: balanceNow >= trackingState\n"
+                                f"Operation {current_fn}() transfers assets out without state synchronization.\n"
+                                f"Resulting state triggers arithmetic underflow Panic(0x11) or DoS on subsequent calls."
+                            ),
+                            remediation_recommendation=(
+                                f"Synchronize tracking state in '{current_fn}' immediately after asset transfer."
+                            ),
+                        )
+                    )
 
-        if has_balance_history and sends_token_in_cancel and not updates_history_in_cancel:
+                # Start new function parse
+                fn_name = line_str.split("function ")[1].split("(")[0].strip()
+                current_fn = fn_name
+                fn_start_line = i
+                sends_token = False
+                updates_tracking = False
+            elif current_fn:
+                is_exit_fn = any(k in current_fn.lower() for k in ("cancel", "withdraw", "refund", "redeem", "emergency"))
+                if is_exit_fn:
+                    if any(t in line_str for t in ("_sendToken", "safeTransfer", "transfer(", "call{value:")):
+                        sends_token = True
+                    if any(v in line_str and "=" in line_str for v in active_tracking):
+                        updates_tracking = True
+
+        # Process trailing function
+        if current_fn and sends_token and not updates_tracking and active_tracking:
             violations.append(
                 InvariantViolation(
                     category=InvariantCategory.STATE_DESYNCHRONIZATION,
                     severity=InvariantSeverity.HIGH,
                     rule_name="unaccounted_token_withdrawal_desynchronization",
-                    line_number=cancel_line,
+                    line_number=fn_start_line,
                     description=(
-                        "Function 'cancelCall' transfers tokens out of the contract without updating "
-                        "the internal 'tokenBalanceHistory' state mapping, causing subsequent 'receiveCall' "
-                        "operations to underflow or revert with InvalideState."
+                        f"Function '{current_fn}' transfers tokens out of the contract without updating "
+                        f"internal tracking state {active_tracking}."
                     ),
                     formal_proof_trace=(
-                        "Invariant: balanceNow >= tokenBalanceHistory[_tokenAddress]\n"
-                        "Operation cancelCall() executes _sendToken(_tokenAddress, _tokenAmount, _recipient)\n"
-                        "Post-state: balanceNow decreases by _tokenAmount while tokenBalanceHistory remains unchanged.\n"
-                        "Subsequent receiveCall(): balanceNow - tokenBalanceHistory[_tokenAddress] evaluates to "
-                        "(_transferredAmount - prior_cancel_amount) < _transferredAmount, or triggers Panic(0x11) "
-                        "due to arithmetic underflow in Solidity ^0.8.0. Permanent DoS of external call execution."
+                        f"Invariant: balanceNow >= trackingState\n"
+                        f"Operation {current_fn}() transfers assets out without state synchronization."
                     ),
-                    remediation_recommendation=(
-                        "In cancelCall, update tokenBalanceHistory after token transfer: "
-                        "tokenBalanceHistory[_tokenAddress] = _getBalance(_tokenAddress); "
-                        "Additionally, implement an administrative synchronization function."
-                    ),
+                    remediation_recommendation="Synchronize tracking state after asset transfer.",
                 )
             )
 
+        # 2. Check: Unprotected Initializer
+        for i, line in enumerate(lines, 1):
+            if "function initialize(" in line:
+                if not any(m in line for m in ("initializer", "onlyOwner", "reinitializer")):
+                    # Check next 2 lines for modifier
+                    next_lines = " ".join(lines[i:min(i+3, len(lines))])
+                    if not any(m in next_lines for m in ("initializer", "onlyOwner", "reinitializer")):
+                        violations.append(
+                            InvariantViolation(
+                                category=InvariantCategory.UNPROTECTED_INITIALIZER,
+                                severity=InvariantSeverity.CRITICAL,
+                                rule_name="unprotected_initialize_function",
+                                line_number=i,
+                                description="Function 'initialize' lacks initializer modifier or access control guard.",
+                                formal_proof_trace="Any unprivileged caller can invoke initialize() to hijack contract ownership.",
+                                remediation_recommendation="Add 'initializer' or 'onlyOwner' modifier to initialize().",
+                            )
+                        )
+
         dt_ms = (time.perf_counter() - t0) * 1000.0
         return BountyAuditReport(
-            target_name=contract_name or self.target_name,
+            target_name=target,
             analyzed_lines=len(lines),
             execution_time_ms=dt_ms,
             violations=violations,
