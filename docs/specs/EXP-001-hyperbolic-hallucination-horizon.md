@@ -28,19 +28,23 @@ Where $\mathbf{z}(t) \in \mathbb{B}^{12}$ is the projected semantic state at tok
 import math
 import numpy as np
 
+
 def compute_poincare_distance(u: np.ndarray, v: np.ndarray) -> float:
     norm_u_sq = min(float(np.sum(u**2)), 0.99)
     norm_v_sq = min(float(np.sum(v**2)), 0.99)
-    diff_sq = float(np.sum((u - v)**2))
+    diff_sq = float(np.sum((u - v) ** 2))
     num = 2.0 * diff_sq
     den = (1.0 - norm_u_sq) * (1.0 - norm_v_sq)
     return math.acosh(max(1.0, 1.0 + num / den))
 
+
 def compute_lyapunov_divergence(traj: list[np.ndarray]) -> float:
     if len(traj) < 3:
         return 0.0
-    deltas = [compute_poincare_distance(traj[i], traj[i-1]) for i in range(1, len(traj))]
-    log_growths = [math.log(max(1e-6, deltas[i] / max(1e-6, deltas[i-1]))) for i in range(1, len(deltas))]
+    deltas = [compute_poincare_distance(traj[i], traj[i - 1]) for i in range(1, len(traj))]
+    log_growths = [
+        math.log(max(1e-6, deltas[i] / max(1e-6, deltas[i - 1]))) for i in range(1, len(deltas))
+    ]
     return float(np.mean(log_growths))
 ```
 

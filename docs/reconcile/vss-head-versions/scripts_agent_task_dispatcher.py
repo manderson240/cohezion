@@ -51,10 +51,10 @@ _DISPATCH_MODEL_FAST = "DeepSeek-Qwen3-8B-GGUF"
 _DISPATCH_MODEL_HQ = "Qwen3.6-35B-A3B-GGUF-Strix-Q4_K_M"
 # N3 OOM guard: never load — ctx=0 or ctx=None on heavy models = crash risk
 _CTX0_HAZARD_MODELS = {
-    "Qwen3.6-35B-A3B-ThinkingCoder",   # known ctx=0 regression (harness N3)
-    "gpt-oss-120b-GGUF",               # ctx=None on 120B = unbounded KV
-    "gpt-oss-120b-mxfp-GGUF",         # same
-    "Qwen3.5-122B-A10B-GGUF",         # 122B — verify ctx before loading
+    "Qwen3.6-35B-A3B-ThinkingCoder",  # known ctx=0 regression (harness N3)
+    "gpt-oss-120b-GGUF",  # ctx=None on 120B = unbounded KV
+    "gpt-oss-120b-mxfp-GGUF",  # same
+    "Qwen3.5-122B-A10B-GGUF",  # 122B — verify ctx before loading
     "Cogito-v2-llama-109B-MoE-GGUF",  # 109B MoE — verify ctx before loading
 }
 
@@ -103,12 +103,16 @@ _ROUTE_TOOL = {
 
 
 def _surreal(sql: str) -> list[dict[str, Any]]:
-    r = httpx.post(_SURREAL, content=sql, headers=_SURREAL_HEADERS, auth=("root", "root"), timeout=10.0)
+    r = httpx.post(
+        _SURREAL, content=sql, headers=_SURREAL_HEADERS, auth=("root", "root"), timeout=10.0
+    )
     r.raise_for_status()
     return r.json()
 
 
-def _lemonade_chat(messages: list[dict], tools: list[dict] | None = None, model: str = _DISPATCH_MODEL) -> dict:
+def _lemonade_chat(
+    messages: list[dict], tools: list[dict] | None = None, model: str = _DISPATCH_MODEL
+) -> dict:
     payload: dict[str, Any] = {"model": model, "messages": messages}
     if tools:
         payload["tools"] = tools
@@ -120,7 +124,9 @@ def _lemonade_chat(messages: list[dict], tools: list[dict] | None = None, model:
 
 
 def _get_pending_tasks(limit: int = 10) -> list[dict]:
-    data = _surreal(f"SELECT id, task_type, payload, status, priority, capability_tags, source_id FROM agent_task WHERE status = 'pending' LIMIT {limit};")
+    data = _surreal(
+        f"SELECT id, task_type, payload, status, priority, capability_tags, source_id FROM agent_task WHERE status = 'pending' LIMIT {limit};"
+    )
     return data[0].get("result", [])
 
 
@@ -129,12 +135,18 @@ def _claim_task(task_id: str, agent_type: str) -> bool:
         f"UPDATE {task_id} SET status='in_progress', claimed_by='{agent_type}', updated_at=time::now() WHERE status='pending';"
     )
     rows = result[0].get("result", [])
-    return bool((rows and rows[0].get("status") == "in_progress") or rows[0].get("claimed_by") == agent_type if rows else False)
+    return bool(
+        (rows and rows[0].get("status") == "in_progress") or rows[0].get("claimed_by") == agent_type
+        if rows
+        else False
+    )
 
 
 def _complete_task(task_id: str, result_data: dict) -> None:
     result_json = json.dumps(result_data).replace("'", "''")
-    _surreal(f"UPDATE {task_id} SET status='completed', result={result_json}, updated_at=time::now();")
+    _surreal(
+        f"UPDATE {task_id} SET status='completed', result={result_json}, updated_at=time::now();"
+    )
 
 
 def _fail_task(task_id: str, error: str) -> None:
@@ -142,7 +154,9 @@ def _fail_task(task_id: str, error: str) -> None:
     _surreal(f"UPDATE {task_id} SET status='failed', error='{err}', updated_at=time::now();")
 
 
-def dispatch_with_local_inference(tasks: list[dict], dry_run: bool = False, model: str = _DISPATCH_MODEL) -> list[dict]:
+def dispatch_with_local_inference(
+    tasks: list[dict], dry_run: bool = False, model: str = _DISPATCH_MODEL
+) -> list[dict]:
     """Have Gemma-4-E4B route each pending task to the correct specialist."""
     if not tasks:
         logger.info("No pending tasks")
@@ -270,20 +284,35 @@ def main() -> None:
     logging.basicConfig(level=logging.INFO, format="%(levelname)s %(message)s")
     parser = argparse.ArgumentParser(description="Cohezion agent task dispatcher")
     parser.add_argument("--dry-run", action="store_true", help="Preview routing without claiming")
-    parser.add_argument("--claim-one", action="store_true", help="Claim and execute one task via Lemonade")
-    parser.add_argument("--model", default=_DISPATCH_MODEL,
-                        help=f"Lemonade model (default: {_DISPATCH_MODEL}, hq: {_DISPATCH_MODEL_HQ})")
-    parser.add_argument("--fast", action="store_true", help=f"Use fast 8B model ({_DISPATCH_MODEL_FAST}) for routing")
+    parser.add_argument(
+        "--claim-one", action="store_true", help="Claim and execute one task via Lemonade"
+    )
+    parser.add_argument(
+        "--model",
+        default=_DISPATCH_MODEL,
+        help=f"Lemonade model (default: {_DISPATCH_MODEL}, hq: {_DISPATCH_MODEL_HQ})",
+    )
+    parser.add_argument(
+        "--fast",
+        action="store_true",
+        help=f"Use fast 8B model ({_DISPATCH_MODEL_FAST}) for routing",
+    )
     parser.add_argument("--hq", action="store_true", help="Use high-quality Omni-Dense for routing")
-    parser.add_argument("--status", default="", help="Show tasks by status (pending/in_progress/completed/failed)")
+    parser.add_argument(
+        "--status", default="", help="Show tasks by status (pending/in_progress/completed/failed)"
+    )
     args = parser.parse_args()
 
     if args.status:
-        data = _surreal(f"SELECT id, status, claimed_by, task_type, payload.paper FROM agent_task WHERE status='{args.status}' LIMIT 20;")
+        data = _surreal(
+            f"SELECT id, status, claimed_by, task_type, payload.paper FROM agent_task WHERE status='{args.status}' LIMIT 20;"
+        )
         rows = data[0].get("result", [])
         print(f"{len(rows)} tasks with status={args.status}")
         for r in rows:
-            print(f"  {r['id']} claimed_by={r.get('claimed_by','—')} paper={str(r.get('payload',{}).get('paper',''))[:50]}")
+            print(
+                f"  {r['id']} claimed_by={r.get('claimed_by', '—')} paper={str(r.get('payload', {}).get('paper', ''))[:50]}"
+            )
         return
 
     if args.fast:

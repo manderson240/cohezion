@@ -24,7 +24,8 @@ The `<safe_expr>` BNF grammar fails to account for indirect inheritance chains t
 class EvilClass:
     def __init__(self):
         # Indirect subclass access through builtins
-        self.payload = __builtins__.__dict__['__import__']('os').system
+        self.payload = __builtins__.__dict__["__import__"]("os").system
+
 
 # AST compilation bypasses direct __subclasses__ but enables indirect execution
 evil_ast = ast.parse("__import__('os').system('echo bypassed')")
@@ -39,6 +40,7 @@ def memory_hungry_generator():
     while True:
         yield [0] * (10**6)  # Memory exhaustion attack
 
+
 # AST compilation accepts this as "safe" but creates unbounded bytecode
 ```
 
@@ -46,11 +48,14 @@ def memory_hungry_generator():
 ```python
 # Bypasses safe_expr by using indirect builtins access
 import sys
+
+
 class BypassNode(ast.AST):
     def __init__(self):
-        # Directly manipulate bytecode through __builtins__ 
-        self.builtin_override = getattr(sys.modules['__main__'], '__builtins__')
+        # Directly manipulate bytecode through __builtins__
+        self.builtin_override = getattr(sys.modules["__main__"], "__builtins__")
         # This bypasses the grammar's builtins restriction
+
 
 # The grammar accepts ast.Call nodes but not the semantic implications
 ```
@@ -69,14 +74,15 @@ def compile_natural_language_to_ast(natural_text):
     #    - Memory layout variations
     #    - Hash randomization
     #    - Import timing variations
-    
-    # The equation: 
-    #   f(natural_text) = AST_bytecode ≠ f'(natural_text) 
-    #   where f ≠ f' due to runtime state dependencies
-    
-    return compile(natural_text, '<string>', 'eval')  # Non-deterministic!
 
-# The formal failure: 
+    # The equation:
+    #   f(natural_text) = AST_bytecode ≠ f'(natural_text)
+    #   where f ≠ f' due to runtime state dependencies
+
+    return compile(natural_text, "<string>", "eval")  # Non-deterministic!
+
+
+# The formal failure:
 # ∀x ∈ NaturalLanguage, ∃ε > 0 such that |f(x) - f'(x)| ≥ ε
 ```
 
@@ -87,17 +93,17 @@ def compile_natural_language_to_ast(natural_text):
 class NonDeterministicCompiler:
     def __init__(self):
         self.compilation_cache = {}
-    
+
     def compile(self, text):
         # This violates the requirement for deterministic bytecode
         # because Python's compilation depends on:
         # 1. Hash seed (randomized)
         # 2. Memory addresses (non-deterministic)
         # 3. Import state (non-deterministic)
-        
+
         # The compilation function is not associative:
         # compile(text) ≠ compile(text) when state varies
-        return compile(text, '<string>', 'eval')
+        return compile(text, "<string>", "eval")
 ```
 
 **Formal Boundary Failure Equation:**

@@ -104,12 +104,14 @@ MAX_VECTOR_LEN = 4096
 MAX_CODE_LEN = 100_000
 MAX_PAYLOAD_SIZE = 1_000_000  # bytes
 
+
 def validate_vector(vec):
     if not isinstance(vec, list) or len(vec) > MAX_VECTOR_LEN:
         raise ValueError("vector too long")
     if any(not isinstance(x, (int, float)) or math.isnan(x) or math.isinf(x) for x in vec):
         raise ValueError("vector contains non-finite numbers")
     return vec
+
 
 # In call_tool:
 if name == "cohezion_poincare_project":
@@ -128,11 +130,11 @@ Wrap synchronous tool handlers in `asyncio.to_thread` and enforce an overall tim
 ```python
 import asyncio
 
+
 async def call_tool(name, arguments):
     try:
         return await asyncio.wait_for(
-            asyncio.to_thread(_sync_call_tool, name, arguments),
-            timeout=5.0
+            asyncio.to_thread(_sync_call_tool, name, arguments), timeout=5.0
         )
     except asyncio.TimeoutError:
         return [TextContent(type="text", text=json.dumps({"error": "tool timeout"}))]
@@ -148,6 +150,7 @@ Example using `subprocess.Popen` with `start_new_session=True` and `os.killpg`:
 
 ```python
 import resource, signal
+
 
 def execute_sandboxed_action(self, python_code: str) -> SandboxExecutionResult:
     t0 = time.perf_counter()
@@ -201,6 +204,7 @@ import ast
 FORBIDDEN_NODES = (ast.Call, ast.Attribute, ast.Name)
 FORBIDDEN_NAMES = {"eval", "exec", "__import__", "compile", "open", "input", "pickle"}
 
+
 def sanitize_untrusted_prompt(self, raw_input: str) -> tuple[str, bool]:
     try:
         tree = ast.parse(raw_input, mode="exec")
@@ -226,14 +230,20 @@ Modify the signing function to include a nonce, timestamp, and context (e.g., ag
 ```python
 import hmac, hashlib, time, os
 
+
 class DataProvenanceSigner:
     @staticmethod
-    def sign_sample(payload: dict, key_id: str = "v2", nonce: str = None, timestamp: float = None) -> str:
+    def sign_sample(
+        payload: dict, key_id: str = "v2", nonce: str = None, timestamp: float = None
+    ) -> str:
         if nonce is None:
             nonce = os.urandom(16).hex()
         if timestamp is None:
             timestamp = time.time()
-        message = json.dumps({"payload": payload, "nonce": nonce, "timestamp": timestamp, "key_id": key_id}, sort_keys=True)
+        message = json.dumps(
+            {"payload": payload, "nonce": nonce, "timestamp": timestamp, "key_id": key_id},
+            sort_keys=True,
+        )
         key = _get_key(key_id)  # must be secret and not exposed
         return hmac.new(key, message.encode(), hashlib.sha256).hexdigest()
 ```
@@ -334,20 +344,21 @@ from concurrent.futures import ThreadPoolExecutor
 # Initialize executor
 _executor = ThreadPoolExecutor(max_workers=4)
 
+
 @app.call_tool()
 async def call_tool(name: str, arguments: dict[str, Any]) -> list[TextContent]:
     if name == "cohezion_poincare_project":
         vec = arguments.get("vector", [])
         target_dim = int(arguments.get("target_dim", 256))
-        
+
         # OFFLOAD TO THREAD
         loop = asyncio.get_event_loop()
         p_pt, d_p = await loop.run_in_executor(
-            _executor, 
+            _executor,
             lambda: (
                 PoincareManifoldND.project(tuple(vec), target_dim=target_dim),
-                PoincareManifoldND.distance(PoincareManifoldND.origin(target_dim), p_pt)
-            )
+                PoincareManifoldND.distance(PoincareManifoldND.origin(target_dim), p_pt),
+            ),
         )
         # ... rest of logic
 ```
@@ -360,16 +371,17 @@ Either implement real isolation (gVisor, Firecracker) or admit it's a "Dry Run" 
 # REMOVE subprocess execution for untrusted code entirely unless running in a containerized environment.
 # Replace with strict AST whitelisting.
 class SafeASTVisitor(ast.NodeVisitor):
-    ALLOWED_NODES = {ast.Module, ast.Expr, ast.Constant, ast.BinOp, ast.Add, ast.Mult} # Whitelist
-    
+    ALLOWED_NODES = {ast.Module, ast.Expr, ast.Constant, ast.BinOp, ast.Add, ast.Mult}  # Whitelist
+
     def visit(self, node):
         if type(node) not in self.ALLOWED_NODES:
             raise ValueError(f"Unsafe node detected: {type(node)}")
         return super().visit(node)
 
+
 # In execute_sandboxed_action:
 tree = ast.parse(python_code)
-SafeASTVisitor().visit(tree) # Raise if unsafe
+SafeASTVisitor().visit(tree)  # Raise if unsafe
 # Do NOT execute. Return validation result only.
 ```
 
@@ -380,11 +392,12 @@ Replace raw dicts with Pydantic models to enforce vector dimensions and types be
 ```python
 from pydantic import BaseModel, Field, validator
 
+
 class PoincareInput(BaseModel):
-    vector: list[float] = Field(..., min_items=12, max_items=12) # Enforce dim
+    vector: list[float] = Field(..., min_items=12, max_items=12)  # Enforce dim
     target_dim: int = Field(default=256, ge=12)
 
-    @validator('vector')
+    @validator("vector")
     def check_norm(cls, v):
         if np.linalg.norm(v) >= 1.0:
             raise ValueError("Vector must be inside unit ball (norm < 1.0)")
@@ -423,6 +436,7 @@ class LangGraphCohezionNode:
 **Fix for `verify_gap_closure_suite.py`:**
 ```python
 import math
+
 # Instead of == 0.0
 assert math.isclose(state_out["hiho_dissonance"], 0.0, abs_tol=1e-5)
 ```
@@ -485,17 +499,21 @@ Replace `py_compile` with actual isolated execution using Python's `resource` mo
 # micro_sandbox.py
 # If actual execution is required:
 import resource
+
+
 def execute_sandboxed_action(self, python_code: str) -> SandboxExecutionResult:
     # ... write to temp file ...
     # Set memory and CPU limits
     def set_limits():
         resource.setrlimit(resource.RLIMIT_CPU, (2, 2))
         resource.setrlimit(resource.RLIMIT_AS, (512 * 1024 * 1024, 512 * 1024 * 1024))
-    
+
     proc = subprocess.run(
         [sys.executable, temp_path],
-        capture_output=True, text=True,
-        timeout=self.timeout_sec, preexec_fn=set_limits
+        capture_output=True,
+        text=True,
+        timeout=self.timeout_sec,
+        preexec_fn=set_limits,
     )
 ```
 
@@ -518,7 +536,7 @@ Ensure any vector projected into the Poincaré manifold is strictly bounded.
 # observability_hud.py
 u = np.random.uniform(-0.2, 0.2, size=12)
 # Contract to ensure norm < 1.0 strictly
-u = u / (np.linalg.norm(u) + 1.5) 
+u = u / (np.linalg.norm(u) + 1.5)
 pt = PoincareManifoldND.project(tuple(u), target_dim=12)
 ```
 
@@ -537,7 +555,7 @@ clean = re.sub(
 ```python
 # cohezion_agi_server.py
 c = float(arguments.get("coherence", 0.5))
-c = max(0.0, min(1.0, c)) # Clamp to [0, 1]
+c = max(0.0, min(1.0, c))  # Clamp to [0, 1]
 ```
 
 ### 4. FINAL VERDICT

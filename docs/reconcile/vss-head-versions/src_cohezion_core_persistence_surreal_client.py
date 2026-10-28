@@ -442,6 +442,7 @@ DEFINE INDEX embedding_hnsw_idx ON TABLE universe_nodes FIELDS embedding HNSW DI
         try:
             data = node.to_dict(compress=compress)
             from datetime import datetime
+
             for dt_field in ("created_at", "updated_at"):
                 val = data.get(dt_field)
                 if isinstance(val, str):
@@ -1008,7 +1009,11 @@ DEFINE INDEX embedding_hnsw_idx ON TABLE universe_nodes FIELDS embedding HNSW DI
             node_type=data.get("node_type", "document"),
             created_at=datetime.fromisoformat(data["created_at"])
             if isinstance(data.get("created_at"), str)
-            else (data["created_at"] if isinstance(data.get("created_at"), datetime) else datetime.now()),
+            else (
+                data["created_at"]
+                if isinstance(data.get("created_at"), datetime)
+                else datetime.now()
+            ),
             metadata=data.get("metadata", {}),
             compressed=compressed,
         )

@@ -187,15 +187,17 @@ def _(
         margin={"l": 0, "r": 0, "b": 0, "t": 40},
     )
 
-    mo.vstack([
-        mo.md(
-            f"### 🛡️ Poincaré Anomaly Quarantine Status: `{quarantine_action or 'NOMINAL (Pass)'}`"
-        ),
-        mo.md(
-            f"**AutoHarness Rules Active**: `{len(policy_engine._verifiers)}` | **ZKFV Proof Hash**: `{zk_compiler.compile_proof('marimo_state').polynomial_signature[:12]}`"
-        ),
-        fig,
-    ])
+    mo.vstack(
+        [
+            mo.md(
+                f"### 🛡️ Poincaré Anomaly Quarantine Status: `{quarantine_action or 'NOMINAL (Pass)'}`"
+            ),
+            mo.md(
+                f"**AutoHarness Rules Active**: `{len(policy_engine._verifiers)}` | **ZKFV Proof Hash**: `{zk_compiler.compile_proof('marimo_state').polynomial_signature[:12]}`"
+            ),
+            fig,
+        ]
+    )
     return (
         EVIHealer,
         PoincareManifoldTracker,

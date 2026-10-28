@@ -18,13 +18,18 @@ import baml_py
 
 from . import types
 
-StreamStateValueT = typing.TypeVar('StreamStateValueT')
+StreamStateValueT = typing.TypeVar("StreamStateValueT")
+
+
 class StreamState(BaseModel, typing.Generic[StreamStateValueT]):
     value: StreamStateValueT
     state: typing_extensions.Literal["Pending", "Incomplete", "Complete"]
+
+
 # #########################################################################
 # Generated classes (4)
 # #########################################################################
+
 
 class CodeHarness(BaseModel):
     harness_name: typing.Optional[str] = None
@@ -33,24 +38,59 @@ class CodeHarness(BaseModel):
     python_verifier_code: typing.Optional[str] = None
     estimated_latency_ms: typing.Optional[float] = None
 
+
 class NextStep(BaseModel):
     action: typing.Optional[str] = None
     rationale: typing.Optional[str] = None
-    risk_level: typing.Optional[typing.Union[typing_extensions.Literal['low'], typing_extensions.Literal['medium'], typing_extensions.Literal['high']]] = None
+    risk_level: typing.Optional[
+        typing.Union[
+            typing_extensions.Literal["low"],
+            typing_extensions.Literal["medium"],
+            typing_extensions.Literal["high"],
+        ]
+    ] = None
+
 
 class SubmissionStrategy(BaseModel):
     competition_id: typing.Optional[str] = None
     target_metric_goal: typing.Optional[str] = None
-    recommended_action: typing.Optional[typing.Union[typing_extensions.Literal['generate_ensemble'], typing_extensions.Literal['hyperparameter_tune'], typing_extensions.Literal['submit_highest_cv'], typing_extensions.Literal['hold_for_audit']]] = None
+    recommended_action: typing.Optional[
+        typing.Union[
+            typing_extensions.Literal["generate_ensemble"],
+            typing_extensions.Literal["hyperparameter_tune"],
+            typing_extensions.Literal["submit_highest_cv"],
+            typing_extensions.Literal["hold_for_audit"],
+        ]
+    ] = None
     confidence_score: typing.Optional[float] = None
     reasoning: typing.Optional[str] = None
 
+
 class TaskInvariants(BaseModel):
-    grid_dimension_rule: typing.Optional[typing.Union[typing_extensions.Literal['identity'], typing_extensions.Literal['constant'], typing_extensions.Literal['scaled'], typing_extensions.Literal['dynamic'], typing_extensions.Literal['crop']]] = None
+    grid_dimension_rule: typing.Optional[
+        typing.Union[
+            typing_extensions.Literal["identity"],
+            typing_extensions.Literal["constant"],
+            typing_extensions.Literal["scaled"],
+            typing_extensions.Literal["dynamic"],
+            typing_extensions.Literal["crop"],
+        ]
+    ] = None
     conserved_colors: typing.List[int]
     forbidden_colors: typing.List[int]
-    symmetry_detected: typing.Optional[typing.Union[typing_extensions.Literal['none'], typing_extensions.Literal['horizontal'], typing_extensions.Literal['vertical'], typing_extensions.Literal['rotational_90'], typing_extensions.Literal['rotational_180'], typing_extensions.Literal['main_diagonal'], typing_extensions.Literal['anti_diagonal']]] = None
+    symmetry_detected: typing.Optional[
+        typing.Union[
+            typing_extensions.Literal["none"],
+            typing_extensions.Literal["horizontal"],
+            typing_extensions.Literal["vertical"],
+            typing_extensions.Literal["rotational_90"],
+            typing_extensions.Literal["rotational_180"],
+            typing_extensions.Literal["main_diagonal"],
+            typing_extensions.Literal["anti_diagonal"],
+        ]
+    ] = None
     description: typing.Optional[str] = None
+
 
 # #########################################################################
 # Generated type aliases (0)

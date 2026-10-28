@@ -63,11 +63,11 @@ def __(hud, mo):
         ### 📊 Real-Time Swarm Metrics
         | Metric Category | Current Telemetry | Invariant Target |
         |---|---|---|
-        | **Memory Available** | **{snap['memory']['available_gb']} GiB** (Total: {snap['memory']['total_gb']} GiB) | Safe Floor $\\ge 20.0\\text{{ GiB}}$ ({'🟢 PASS' if snap['memory']['is_safe'] else '🔴 WARN'}) |
-        | **Poincaré 12D Geodesic** | **$d_P = {snap['geometry']['hyperbolic_distance']:.4f}$** (Norm: {snap['geometry']['poincare_norm']}) | Hyperbolic Boundary $\\|x\\| < 1.0$ (🟢 VALID) |
-        | **Sheaf Cohomology** | **$\\dim H^0 = {snap['sheaf_cohomology']['dim_h0_consensus']}$**, **$\\dim H^1 = {snap['sheaf_cohomology']['dim_h1_obstructions']}$** | Obstruction $\\dim H^1 = 0$ ({'🟢 CONSENSUS' if snap['sheaf_cohomology']['is_consistent'] else '🔴 CONFLICT'}) |
-        | **HIHO 0.5 Field Sonification** | **{snap['hiho_sonification']['fundamental_hz']:.1f} Hz** (Dissonance: {snap['hiho_sonification']['dissonance_index']}) | 432 Hz Fundamental Target (🟢 STABLE) |
-        | **Bioelectric Morphogenesis** | **{snap['bioelectric_swarm']['node_count']} Nodes** ($R_c = {snap['bioelectric_swarm']['light_cone_radius']}$) | Mean Coupling $\\kappa = {snap['bioelectric_swarm']['mean_gap_junction_coupling']}$ |
+        | **Memory Available** | **{snap["memory"]["available_gb"]} GiB** (Total: {snap["memory"]["total_gb"]} GiB) | Safe Floor $\\ge 20.0\\text{{ GiB}}$ ({"🟢 PASS" if snap["memory"]["is_safe"] else "🔴 WARN"}) |
+        | **Poincaré 12D Geodesic** | **$d_P = {snap["geometry"]["hyperbolic_distance"]:.4f}$** (Norm: {snap["geometry"]["poincare_norm"]}) | Hyperbolic Boundary $\\|x\\| < 1.0$ (🟢 VALID) |
+        | **Sheaf Cohomology** | **$\\dim H^0 = {snap["sheaf_cohomology"]["dim_h0_consensus"]}$**, **$\\dim H^1 = {snap["sheaf_cohomology"]["dim_h1_obstructions"]}$** | Obstruction $\\dim H^1 = 0$ ({"🟢 CONSENSUS" if snap["sheaf_cohomology"]["is_consistent"] else "🔴 CONFLICT"}) |
+        | **HIHO 0.5 Field Sonification** | **{snap["hiho_sonification"]["fundamental_hz"]:.1f} Hz** (Dissonance: {snap["hiho_sonification"]["dissonance_index"]}) | 432 Hz Fundamental Target (🟢 STABLE) |
+        | **Bioelectric Morphogenesis** | **{snap["bioelectric_swarm"]["node_count"]} Nodes** ($R_c = {snap["bioelectric_swarm"]["light_cone_radius"]}$) | Mean Coupling $\\kappa = {snap["bioelectric_swarm"]["mean_gap_junction_coupling"]}$ |
         """
     )
     return (snap,)
@@ -91,10 +91,10 @@ def __(mo, sandbox):
         f"""
         ### 🛡️ Live Micro-Sandbox Execution Verification
         - **Input Code**: `compute_harmonic_coherence`
-        - **AST Static Verified**: `{'🟢 TRUE' if res.static_ast_verified else '🔴 FALSE'}`
-        - **Execution Result**: `{'🟢 PASSED' if res.passed else '🔴 FAILED'}`
+        - **AST Static Verified**: `{"🟢 TRUE" if res.static_ast_verified else "🔴 FALSE"}`
+        - **Execution Result**: `{"🟢 PASSED" if res.passed else "🔴 FAILED"}`
         - **Execution Latency**: `{res.execution_time_ms} ms`
-        - **Sanitization Status**: `{'⚠️ REDACTED' if res.sanitized else '🟢 CLEAN'}`
+        - **Sanitization Status**: `{"⚠️ REDACTED" if res.sanitized else "🟢 CLEAN"}`
         """
     )
     return res, test_code

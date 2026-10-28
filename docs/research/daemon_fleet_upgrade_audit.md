@@ -95,14 +95,14 @@ for step in range(1, iterations + 1):
 t_verify_start = time.perf_counter()
 v_res = verifier.verify_code(sample_code)
 t_verify = time.perf_counter() - t_verify_start
-assert t_verify < 0.001, f"AutoHarness verification too slow: {t_verify*1000:.3f} ms"
+assert t_verify < 0.001, f"AutoHarness verification too slow: {t_verify * 1000:.3f} ms"
 ```
 
 ### 4. Sheaf Consistency Check
 
 ```python
 h0, h1 = SHEAF_CHECKER.check(z_intent, z_step)
-sheaf_ok = (h0 == 1 and h1 == 0)  # example consistency condition
+sheaf_ok = h0 == 1 and h1 == 0  # example consistency condition
 ```
 
 ### 5. HMAC Signing and Dual-Store Logging
@@ -111,6 +111,7 @@ sheaf_ok = (h0 == 1 and h1 == 0)  # example consistency condition
 def sign_payload(payload: dict) -> str:
     msg = json.dumps(payload, sort_keys=True).encode()
     return hmac.new(HMAC_KEY.encode(), msg, hashlib.sha256).hexdigest()
+
 
 # Build record
 record = {
@@ -222,7 +223,8 @@ mem = OOMGuard.get_memory_state()
 if mem.available_gb < 20.0:
     logger.warning(
         "Insufficient memory floor: %.2f GiB < 20.0 GiB. Skipping cycle %d.",
-        mem.available_gb, cycle_num,
+        mem.available_gb,
+        cycle_num,
     )
     continue
 ```
@@ -449,7 +451,7 @@ async def main() -> None:
                 sheaf_result = SheafConsistency.check(
                     state=p2048,
                     projected=smoke,
-                    expected_h0=1,      # adjust to actual expected dimension
+                    expected_h0=1,  # adjust to actual expected dimension
                     tolerance=1e-6,
                 )
                 if sheaf_result.dim_h1 != 0:
@@ -567,10 +569,12 @@ Check available system RAM before any heavy operation (safetensors load, inferen
 ```python
 import psutil
 
+
 def assert_oom_guard(min_gib: float = 20.0):
     avail_gib = psutil.virtual_memory().available / (1024**3)
     assert avail_gib >= min_gib, f"OOMGuard: only {avail_gib:.2f} GiB available (< {min_gib})"
     logger.info("OOMGuard: %.2f GiB available", avail_gib)
+
 
 # Call before safetensors load and before each inference
 assert_oom_guard()
@@ -583,11 +587,13 @@ Verify the AST of the harness module and each action function before execution.
 import ast
 from pathlib import Path
 
+
 def verify_ast(source: str):
     try:
         ast.parse(source)
     except SyntaxError as e:
         raise RuntimeError(f"AutoHarness AST verification failed: {e}")
+
 
 # At start of run_dogfooding
 verify_ast(Path(__file__).read_text())
@@ -616,9 +622,11 @@ from cohezion.data_mesh.dual_store import DualStoreLogger
 SECRET = os.environ["COHEZION_HMAC_SECRET"]
 dual_logger = DualStoreLogger()
 
+
 def sign_payload(payload: dict) -> str:
     msg = json.dumps(payload, sort_keys=True).encode()
     return hmac.new(SECRET.encode(), msg, hashlib.sha256).hexdigest()
+
 
 # Example for an event
 sig = sign_payload(start_event.to_dict())

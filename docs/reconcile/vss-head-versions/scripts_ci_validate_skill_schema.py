@@ -74,10 +74,7 @@ def main() -> int:
         failed = True
 
     if failed:
-        print(
-            "\nRequired frontmatter fields: "
-            + ", ".join(REQUIRED_FIELDS)
-        )
+        print("\nRequired frontmatter fields: " + ", ".join(REQUIRED_FIELDS))
         return 1
 
     print("OK: All skills have required YAML frontmatter fields")

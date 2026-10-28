@@ -48,7 +48,9 @@ def parse_frontmatter(content: str) -> tuple[dict, str]:
             val = val.strip()
 
             # Strip quotes
-            if (val.startswith('"') and val.endswith('"')) or (val.startswith("'") and val.endswith("'")):
+            if (val.startswith('"') and val.endswith('"')) or (
+                val.startswith("'") and val.endswith("'")
+            ):
                 val = val[1:-1]
             # Parse list format like [a, b, c]
             elif val.startswith("[") and val.endswith("]"):

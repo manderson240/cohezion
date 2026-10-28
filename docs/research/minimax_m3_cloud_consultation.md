@@ -137,13 +137,11 @@ class ARCVerifier(nn.Module):
     def __init__(self, d=384):
         super().__init__()
         # Shared hyperbolic encoder with ARC trunk
-        self.encoder = PoincareEncoder(d)         # 384D, not 2048D
+        self.encoder = PoincareEncoder(d)  # 384D, not 2048D
         # Cross-attention between candidate and demos
         self.cross_attn = HyperbolicCrossAttention(d, heads=8)
         # Generalization probability head
-        self.head = nn.Sequential(
-            GyroLinear(d, 256), GyroActivation(),
-            GyroLinear(256, 1))
+        self.head = nn.Sequential(GyroLinear(d, 256), GyroActivation(), GyroLinear(256, 1))
 
     def forward(self, candidate_ast, demo_pairs):
         z_cand = self.encoder(candidate_ast)
@@ -205,13 +203,16 @@ class DeepCFRBackbone(nn.Module):
         self.encoder = PoincareEncoder(d_state)
         # Advantage network: per-action regret
         self.advantage_net = nn.Sequential(
-            GyroLinear(d_state, 512), nn.GELU(),
-            GyroLinear(512, 256), nn.GELU(),
-            GyroLinear(256, n_actions))
+            GyroLinear(d_state, 512),
+            nn.GELU(),
+            GyroLinear(512, 256),
+            nn.GELU(),
+            GyroLinear(256, n_actions),
+        )
         # Strategy network: action probabilities
         self.strategy_net = nn.Sequential(
-            GyroLinear(d_state, 512), nn.GELU(),
-            GyroLinear(512, n_actions))
+            GyroLinear(d_state, 512), nn.GELU(), GyroLinear(512, n_actions)
+        )
 
     def forward_advantage(self, state_hyperbolic):
         z = self.encoder(state_hyperbolic)

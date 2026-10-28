@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Post-cycle scan: compare K-Search trees before/after to confirm metric updates."""
+
 import json
 import os
 
@@ -50,7 +51,9 @@ for t in targets_seen:
     elif n_unique > 2 and any(s > 0 for s in unique_scores):
         status_flags.append("HAS_SIGNAL")
 
-    print(f"[{t}] nodes={node_count} root_total={root_total} trials(len(all))={len(all_scores)} unique={n_unique} best={best_score}")
+    print(
+        f"[{t}] nodes={node_count} root_total={root_total} trials(len(all))={len(all_scores)} unique={n_unique} best={best_score}"
+    )
     if status_flags:
         print(f"   Flag: {', '.join(status_flags)}")
     # Show per-node state for current rotation target
@@ -59,5 +62,7 @@ for t in targets_seen:
             mv = data.get("metric_values", [])
             trials = data.get("trials", 0)
             wins = data.get("wins", 0)
-            print(f"   node='{name}' trials={trials} wins={wins} scores=[{', '.join(str(round(s,4)) for s in mv[-3:])}]")
+            print(
+                f"   node='{name}' trials={trials} wins={wins} scores=[{', '.join(str(round(s, 4)) for s in mv[-3:])}]"
+            )
     print()

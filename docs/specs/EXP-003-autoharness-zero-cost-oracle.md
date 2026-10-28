@@ -27,13 +27,14 @@ Reference: arXiv:2603.03329v1 (AutoHarness: Code-as-action verifiers).
 import ast
 from typing import Callable, Any
 
+
 class StandaloneAutoHarness:
     def __init__(self):
         self.rules: dict[str, Callable[[Any], bool]] = {
             "valid_python_syntax": lambda code: self._check_syntax(code),
             "no_unregistered_imports": lambda code: self._check_imports(code),
         }
-        
+
     def _check_syntax(self, code: str) -> bool:
         try:
             ast.parse(code)

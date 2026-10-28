@@ -96,7 +96,11 @@ def _(GAIALocalRouter, GeometricCorrespondenceEngine, mo, time):
 
         # Execute Live End-to-End Local Agent Dispatch Natively Awaited
         router = GAIALocalRouter()
-        task_type = "coding" if any(w in user_prompt.lower() for w in ["code", "python", "fix", "refactor"]) else "reasoning"
+        task_type = (
+            "coding"
+            if any(w in user_prompt.lower() for w in ["code", "python", "fix", "refactor"])
+            else "reasoning"
+        )
 
         gaia_res = await router.route_gaia_agent_call(
             agent_id="marimo-sidebar-agent-01",
@@ -189,13 +193,15 @@ def _(mo, sidebar_agent_chat):
     )
 
     # PIN CONVERSATIONAL LOCAL AGENT & CONTROLS IN MARIMO LEFT SIDEBAR
-    mo.sidebar([
-        mo.md("## 🤖 Cohezion Local Agent"),
-        mo.md("*Powered by Strix Halo NPU / iGPU / CPU*"),
-        model_selector,
-        profile_selector,
-        sidebar_agent_chat,
-    ])
+    mo.sidebar(
+        [
+            mo.md("## 🤖 Cohezion Local Agent"),
+            mo.md("*Powered by Strix Halo NPU / iGPU / CPU*"),
+            model_selector,
+            profile_selector,
+            sidebar_agent_chat,
+        ]
+    )
     return (
         auto_refresh,
         model_selector,
@@ -281,10 +287,20 @@ def _(go):
     fig_throughput = go.Figure()
     fig_throughput.add_trace(
         go.Bar(
-            x=["XDNA2 NPU (Reasoning)", "Radeon iGPU (Coding)", "Ryzen 9 CPU (AVX-512)", "Measured Generation Speed"],
+            x=[
+                "XDNA2 NPU (Reasoning)",
+                "Radeon iGPU (Coding)",
+                "Ryzen 9 CPU (AVX-512)",
+                "Measured Generation Speed",
+            ],
             y=[185.5, 128.0, 96.4, 45.2],
             marker_color=["#3b82f6", "#8b5cf6", "#f59e0b", "#10b981"],
-            text=["185.5 t/s (NPU Peak)", "128.0 t/s (iGPU Peak)", "96.4 t/s (CPU Peak)", "45.2 t/s (Measured)"],
+            text=[
+                "185.5 t/s (NPU Peak)",
+                "128.0 t/s (iGPU Peak)",
+                "96.4 t/s (CPU Peak)",
+                "45.2 t/s (Measured)",
+            ],
             textposition="auto",
         )
     )
@@ -298,7 +314,13 @@ def _(go):
     fig_perplexity = go.Figure()
     fig_perplexity.add_trace(
         go.Scatter(
-            x=["Epoch 0 (Base)", "Epoch 1 (2.5k)", "Epoch 2 (5.0k)", "Epoch 3 (7.5k)", "Epoch 4 (10.0k Verified Pairs)"],
+            x=[
+                "Epoch 0 (Base)",
+                "Epoch 1 (2.5k)",
+                "Epoch 2 (5.0k)",
+                "Epoch 3 (7.5k)",
+                "Epoch 4 (10.0k Verified Pairs)",
+            ],
             y=[12.50, 10.82, 9.15, 7.84, 6.89],
             mode="lines+markers",
             line=dict(color="#10b981", width=3),
@@ -330,48 +352,54 @@ def _(
     # TAB 1: LIVE AGENT DISPATCH CONTROL & SCORECARD
     if click_count == 0 or agent_response is None:
         agent_scorecard = mo.callout(
-            mo.md("👉 Click the **'⚡ Run Live End-to-End Local Agent Execution'** button below to launch an actual local silicon agent dispatch!"),
+            mo.md(
+                "👉 Click the **'⚡ Run Live End-to-End Local Agent Execution'** button below to launch an actual local silicon agent dispatch!"
+            ),
             kind="info",
         )
     else:
         agent_scorecard = mo.callout(
             mo.md(f"""
-            ### 🤖 Live End-to-End Local Agent Scorecard (Execution #{agent_response['click_count']})
+            ### 🤖 Live End-to-End Local Agent Scorecard (Execution #{agent_response["click_count"]})
 
-            * ⏱️ **Execution Timestamp**: `{agent_response['timestamp']}`
-            * 🆔 **Live Agent ID**: `{agent_response['agent_id']}`
-            * 🤖 **Model Active**: `{agent_response['model']}`
-            * 📦 **Fine-Tuned Adapter Checkpoint**: `{agent_response['finetuned_checkpoint']}`
-            * 💻 **Hardware Engine Target**: `{agent_response['hardware_target']}`
-            * 🥩 **Latency Profile**: `{agent_response['profile']}`
-            * 🚀 **Measured Generation Throughput**: **{agent_response['speculative_tps']} tok/s** ({agent_response['speedup']} Speedup over base)
-            * 📐 **Hyperbolic Distance $d_P(u, 0)$**: **{agent_response['hyp_distance']}** ({agent_response['alignment']} Isomorphic Alignment)
-            * 🛡️ **AutoHarness AST Gate**: **{agent_response['autoharness']}**
-            * ⚡ **End-to-End Agent Latency**: `{agent_response['exec_latency_ms']}`
+            * ⏱️ **Execution Timestamp**: `{agent_response["timestamp"]}`
+            * 🆔 **Live Agent ID**: `{agent_response["agent_id"]}`
+            * 🤖 **Model Active**: `{agent_response["model"]}`
+            * 📦 **Fine-Tuned Adapter Checkpoint**: `{agent_response["finetuned_checkpoint"]}`
+            * 💻 **Hardware Engine Target**: `{agent_response["hardware_target"]}`
+            * 🥩 **Latency Profile**: `{agent_response["profile"]}`
+            * 🚀 **Measured Generation Throughput**: **{agent_response["speculative_tps"]} tok/s** ({agent_response["speedup"]} Speedup over base)
+            * 📐 **Hyperbolic Distance $d_P(u, 0)$**: **{agent_response["hyp_distance"]}** ({agent_response["alignment"]} Isomorphic Alignment)
+            * 🛡️ **AutoHarness AST Gate**: **{agent_response["autoharness"]}**
+            * ⚡ **End-to-End Agent Latency**: `{agent_response["exec_latency_ms"]}`
 
             > 📢 **Live Agent Execution Output**:
-            > {agent_response['response_text']}
+            > {agent_response["response_text"]}
 
             > 🧠 **Agent Retrospective & Reflection**:
-            > {agent_response['reflection']}
+            > {agent_response["reflection"]}
             """),
             kind="success",
         )
 
-    tab_agent_execution = mo.vstack([
-        mo.md("### 🎛️ Agent Execution Parameters"),
-        model_selector,
-        profile_selector,
-        prompt_input,
-        trigger_button,
-        agent_scorecard,
-    ])
+    tab_agent_execution = mo.vstack(
+        [
+            mo.md("### 🎛️ Agent Execution Parameters"),
+            model_selector,
+            profile_selector,
+            prompt_input,
+            trigger_button,
+            agent_scorecard,
+        ]
+    )
 
     # TAB 2: PERFORMANCE & PERPLEXITY ANALYTICS
-    tab_analytics = mo.vstack([
-        auto_refresh,
-        mo.hstack([mo.ui.plotly(fig_throughput), mo.ui.plotly(fig_perplexity)]),
-    ])
+    tab_analytics = mo.vstack(
+        [
+            auto_refresh,
+            mo.hstack([mo.ui.plotly(fig_throughput), mo.ui.plotly(fig_perplexity)]),
+        ]
+    )
 
     # TAB 3: DAEMON HARDWARE ALLOCATION TABLE
     daemon_data = [
@@ -404,17 +432,21 @@ def _(
             "Cloud Cost Saving": "$0.00 (100% Local)",
         },
     ]
-    tab_daemons = mo.vstack([
-        mo.md("### 📊 Active Production Daemons & Tri-Engine Hardware Allocation Scorecard"),
-        mo.ui.table(daemon_data),
-    ])
+    tab_daemons = mo.vstack(
+        [
+            mo.md("### 📊 Active Production Daemons & Tri-Engine Hardware Allocation Scorecard"),
+            mo.ui.table(daemon_data),
+        ]
+    )
 
     # RENDER MARIMO TABS FEATURE WITH PINNED SIDEBAR CHAT WIDGET
-    mo.ui.tabs({
-        "🤖 Live Agent Dispatch": tab_agent_execution,
-        "📈 Performance & Analytics": tab_analytics,
-        "📊 Hardware & Daemon Scorecard": tab_daemons,
-    })
+    mo.ui.tabs(
+        {
+            "🤖 Live Agent Dispatch": tab_agent_execution,
+            "📈 Performance & Analytics": tab_analytics,
+            "📊 Hardware & Daemon Scorecard": tab_daemons,
+        }
+    )
     return
 
 

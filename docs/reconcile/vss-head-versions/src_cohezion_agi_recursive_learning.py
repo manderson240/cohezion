@@ -75,7 +75,9 @@ class RecursiveLearningEngine:
 
         # 1. AutoHarness Policy Evaluation via live OOMGuard memory state
         mem = OOMGuard.get_memory_state()
-        p_res = self.policy_engine.evaluate_policy("recursive_learning_action", {"available_gb": mem.available_gb})
+        p_res = self.policy_engine.evaluate_policy(
+            "recursive_learning_action", {"available_gb": mem.available_gb}
+        )
 
         # 2. AutoContext 2048D Dimension Tracking
         autocontext_dim = 2048

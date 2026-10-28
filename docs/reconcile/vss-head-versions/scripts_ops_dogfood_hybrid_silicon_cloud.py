@@ -37,7 +37,9 @@ class SystemArchitectAgent(BaseOOAgent):
             router=router,
         )
 
-    @capability(name="evaluate_architecture", description="Evaluate a system architecture description.")
+    @capability(
+        name="evaluate_architecture", description="Evaluate a system architecture description."
+    )
     def evaluate_architecture(self, system_desc: str) -> dict[str, Any]:
         """Deterministic evaluation of system properties."""
         return {
@@ -80,7 +82,9 @@ async def run_dogfooding() -> int:
     # Step 1: Tier-1 Local Inference (Lemonade OmniRouter :13305)
     # -----------------------------------------------------------------------
     print("--- 1. Testing Tier-1 Local Silicon (Lemonade OmniRouter :13305) ---")
-    prompt_tier1 = "Summarize in 2 sentences the core advantage of hybrid local/cloud AI swarm orchestration."
+    prompt_tier1 = (
+        "Summarize in 2 sentences the core advantage of hybrid local/cloud AI swarm orchestration."
+    )
     print(f"Prompt: {prompt_tier1!r}")
 
     resp_tier1 = await router.route_by_capability(
@@ -96,14 +100,16 @@ async def run_dogfooding() -> int:
     print(f"Content     : {resp_tier1.content.strip()[:250]!r}")
     print()
 
-    results.append({
-        "step": "Tier-1 Local Silicon",
-        "tier": resp_tier1.tier_used,
-        "model": resp_tier1.model_name,
-        "latency_ms": resp_tier1.latency_ms,
-        "verified": resp_tier1.verified,
-        "content_length": len(resp_tier1.content),
-    })
+    results.append(
+        {
+            "step": "Tier-1 Local Silicon",
+            "tier": resp_tier1.tier_used,
+            "model": resp_tier1.model_name,
+            "latency_ms": resp_tier1.latency_ms,
+            "verified": resp_tier1.verified,
+            "content_length": len(resp_tier1.content),
+        }
+    )
 
     # -----------------------------------------------------------------------
     # Step 2: Tier-2 Ollama Cloud Models (:11434)
@@ -126,14 +132,16 @@ async def run_dogfooding() -> int:
     print(f"Content     : {resp_tier2.content.strip()[:300]!r}")
     print()
 
-    results.append({
-        "step": "Tier-2 Ollama Cloud",
-        "tier": resp_tier2.tier_used,
-        "model": resp_tier2.model_name,
-        "latency_ms": resp_tier2.latency_ms,
-        "verified": resp_tier2.verified,
-        "content_length": len(resp_tier2.content),
-    })
+    results.append(
+        {
+            "step": "Tier-2 Ollama Cloud",
+            "tier": resp_tier2.tier_used,
+            "model": resp_tier2.model_name,
+            "latency_ms": resp_tier2.latency_ms,
+            "verified": resp_tier2.verified,
+            "content_length": len(resp_tier2.content),
+        }
+    )
 
     # -----------------------------------------------------------------------
     # Step 3: Object-Oriented Agent Live Dynamic Execution
@@ -161,13 +169,15 @@ async def run_dogfooding() -> int:
     print(f"Recommendation: {str(recommendation).strip()[:350]!r}")
     print()
 
-    results.append({
-        "step": "OO-Agent Dynamic Capability",
-        "agent_id": architect.state.agent_id,
-        "role": architect.state.role,
-        "latency_ms": agent_latency,
-        "content_length": len(str(recommendation)),
-    })
+    results.append(
+        {
+            "step": "OO-Agent Dynamic Capability",
+            "agent_id": architect.state.agent_id,
+            "role": architect.state.role,
+            "latency_ms": agent_latency,
+            "content_length": len(str(recommendation)),
+        }
+    )
 
     # -----------------------------------------------------------------------
     # Step 4: Persist Dogfooding Results to SurrealDB
