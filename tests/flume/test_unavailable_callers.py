@@ -42,6 +42,29 @@ def test_curator_refuses_before_writing_anything(tmp_path):
     assert not out.exists()
 
 
+def test_curator_refuses_even_with_empty_input(tmp_path):
+    """Only the up-front availability check can raise here: an empty file never reaches encode."""
+    from cohezion.integrations.kaggle_curation import KaggleCurator
+
+    src = tmp_path / "in.jsonl"
+    src.write_text("")
+    curator = KaggleCurator()
+    curator.encoder = _dead()
+    with pytest.raises(TextLatentUnavailable):
+        asyncio.run(curator.process_dataset(src, tmp_path / "out.jsonl"))
+
+
+def test_encode_or_none_counts_and_warns_once(caplog):
+    import logging
+
+    enc = _dead()
+    with caplog.at_level(logging.WARNING, logger="cohezion.flume.canonical_latent"):
+        assert enc.encode_or_none("a") is None
+        assert enc.encode_or_none("b") is None
+    assert enc.skipped_calls == 2
+    assert sum("returned None so far" in r.message for r in caplog.records) == 1
+
+
 def test_translator_propagates():
     from cohezion.flume.manifolds.translator import ManifoldTranslator
 

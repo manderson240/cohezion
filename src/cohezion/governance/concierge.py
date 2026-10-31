@@ -45,6 +45,7 @@ logger = logging.getLogger(__name__)
 
 # FLUME semantic routing (falls back to keyword matching if unavailable)
 try:
+    from cohezion.flume.canonical_latent import TextLatentUnavailable
     from cohezion.governance.flume_bridge import encode_prompt, flume_route_similarity
 
     # FLUME semantic routing is available but only activates when
@@ -180,8 +181,13 @@ class ConciergeAgent:
             "kernel": "challenge/nvidia-nemotron-reasoning",
         }
 
+        prompt_embedding = None
         if FLUME_AVAILABLE:
-            prompt_embedding = encode_prompt(user_prompt)
+            try:
+                prompt_embedding = encode_prompt(user_prompt)
+            except TextLatentUnavailable as exc:
+                logger.warning("semantic routing skipped, using keyword fallback: %s", exc)
+        if prompt_embedding is not None:
 
             # First: check against historical routes (learned preferences)
             if self._history:

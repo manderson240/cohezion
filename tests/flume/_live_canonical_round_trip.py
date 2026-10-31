@@ -35,6 +35,26 @@ exceeds = {
 python_q = enc.encode("Explain what Python is")
 python_cos = [float(python_q @ enc.encode(t)) for t in ("What is Python?", "Tell me about Python")]
 
+# The original (un-mocked) body of tests/cache/test_semantic_embeddings.py::
+# test_semantic_cache_hit_rate_improvement, run against the real cache class.
+from cohezion.cache.semantic_cache import SemanticCache as L2Cache  # noqa: E402
+
+_orig = L2Cache(similarity_threshold=0.85)
+
+
+async def _orig_run():
+    await _orig.put("What is Python?", "Python is a programming language")
+    await _orig.put("Tell me about Python", "Python is an interpreted, high-level language")
+    return await _orig.get("Explain what Python is")
+
+
+_orig_result = asyncio.run(_orig_run())
+original_body = {
+    "result": _orig_result,
+    "hits_l1": _orig.hits_l1,
+    "hits_l2": _orig.hits_l2,
+}
+
 para = [float(enc.encode(a) @ enc.encode(b)) for a, b in PARAPHRASE]
 unrel = [float(enc.encode(a) @ enc.encode(b)) for a, b in UNRELATED]
 auc = float(np.mean([p > u for p in para for u in unrel]))
@@ -88,6 +108,7 @@ print(
             "pair": [a, b],
             "golden": golden,
             "python_cos": python_cos,
+            "original_body": original_body,
             "exceeds": exceeds,
         }
     )

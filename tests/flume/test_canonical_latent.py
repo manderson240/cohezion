@@ -333,3 +333,12 @@ def test_live_python_paraphrase_clears_cache_threshold():
     the query must clear the 0.85 threshold against the stored paraphrase."""
     res = _live()
     assert max(res["python_cos"]) >= 0.85  # measured 0.936 / 0.874
+
+
+def test_live_original_hit_rate_body_unmocked():
+    """The known-regression test's own assertions, un-mocked: a paraphrase lands an L2 hit on
+    the first stored answer through cohezion.cache.semantic_cache.SemanticCache."""
+    body = _live()["original_body"]
+    assert body["result"] == "Python is a programming language"
+    assert body["hits_l2"] >= 1
+    assert body["hits_l1"] == 0

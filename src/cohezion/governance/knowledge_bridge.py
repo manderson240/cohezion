@@ -116,8 +116,9 @@ def persist_to_surrealdb(learning: Learning) -> bool:
 
             embedding = encode_prompt(f"{learning.title}: {learning.content}")
             embedding_list = embedding.tolist()
-        except (ImportError, RuntimeError, ValueError):
-            pass
+        except (ImportError, RuntimeError, ValueError) as exc:
+            # TextLatentUnavailable is a RuntimeError: the learning is stored WITHOUT an embedding.
+            logger.warning("learning stored without embedding: %s", exc)
 
         slug = learning.title.lower().replace(" ", "-").replace(":", "")[:60]
         vault_path = f"cerebellum/{learning.date}-{slug}.md"

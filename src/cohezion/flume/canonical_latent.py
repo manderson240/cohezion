@@ -125,6 +125,8 @@ class CanonicalTextLatent:
         self._embed: Callable[[str], np.ndarray] | None = None
         self._error: str | None = None
         self._error_at = 0.0
+        self.skipped_calls = 0
+        self._skip_logged_at = -RETRY_AFTER_S  # first skip always logs
         self._proj: np.ndarray | None = None
         self._lock = threading.Lock()
 
@@ -181,9 +183,21 @@ class CanonicalTextLatent:
         return bool(counter and limit and counter(text) > limit)
 
     def encode_or_none(self, text: str) -> np.ndarray | None:
+        """``encode`` or None. A None is never silent: skipped calls are counted and a warning is
+        logged at most once per RETRY_AFTER_S, so empty ``flume_state``/``z_vector`` fields and
+        skipped cache tiers downstream are traceable to this cause."""
         try:
             return self.encode(text)
-        except TextLatentUnavailable:
+        except TextLatentUnavailable as exc:
+            self.skipped_calls += 1
+            now = time.monotonic()
+            if now - self._skip_logged_at >= RETRY_AFTER_S:
+                self._skip_logged_at = now
+                logger.warning(
+                    "text latent unavailable: %d call(s) returned None so far (%s)",
+                    self.skipped_calls,
+                    exc,
+                )
             return None
 
     def is_available(self) -> bool:
