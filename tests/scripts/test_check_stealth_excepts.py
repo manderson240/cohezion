@@ -22,7 +22,9 @@ def test_gate_is_wired_with_self_test(gate):
     assert text.count("check_stealth_excepts.py") >= 2, f"{gate} self-tests but never runs the scan"
     self_test = text.find("check_stealth_excepts.py --self-test")
     scan = text.rfind("check_stealth_excepts.py")
-    assert self_test < scan, f"{gate}: self-test must run before the scan, or a broken detector passes"
+    assert self_test < scan, (
+        f"{gate}: self-test must run before the scan, or a broken detector passes"
+    )
 
 
 def test_self_test_passes():
