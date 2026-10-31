@@ -115,6 +115,13 @@ with contextlib.suppress(ImportError):
 
     app.include_router(architecture_router, prefix="/api/architecture")
 
+# Register extended physics endpoints (bioelectric, natural-capital, cosmogony chain, Phase-18
+# substrates). Dropped silently by the #267 squash (8f712a8bd) -- its 22 endpoint tests 404'd.
+with contextlib.suppress(ImportError):
+    from cohezion.api.services.physics_extended import physics_ext_router
+
+    app.include_router(physics_ext_router, prefix="/api")
+
 # Register telemetry websocket
 app.include_router(telemetry_router)
 
