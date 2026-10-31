@@ -166,3 +166,33 @@ async def test_route_by_capability_oom_guard_trigger(mock_unsafe_memory):
         assert isinstance(res, HybridRouteResponse)
         assert res.tier_used == "Tier 2 (Ollama Cloud)"
         assert res.model_name == "deepseek-v4-pro:cloud"
+
+
+_ROUTE_CASES = [
+    (tt, p, imp)
+    for imp in (0.1, 0.3, 0.5, 0.9)
+    for tt, p in [
+        ("coding", "Write a python function to parse CSV"),
+        ("fast_qa", "hi"),
+        ("reasoning", "Prove that sqrt 2 is irrational"),
+    ]
+]
+
+
+def test_prompt_text_never_changes_the_route():
+    """quality_gap is declared-quality only. A cosine(prompt, boilerplate) term makes every
+    prompt look 'far' from the boilerplate under a real encoder and escalates everything
+    (measured 3/12 -> 9/12 Tier 2 with MiniLM, including 'hi')."""
+    router = UnifiedHybridRouter()
+    router.logger.log_delegation = lambda e: None
+    for task_type, prompt, importance in _ROUTE_CASES:
+        with_prompt = router.route(task_type, task_importance=importance, prompt=prompt)
+        without = router.route(task_type, task_importance=importance)
+        assert with_prompt.selected_tier == without.selected_tier, (task_type, prompt, importance)
+        assert with_prompt.evi_score == without.evi_score
+
+
+def test_trivial_prompt_stays_on_tier1_at_high_importance():
+    router = UnifiedHybridRouter()
+    router.logger.log_delegation = lambda e: None
+    assert router.route("fast_qa", task_importance=0.5, prompt="hi").selected_tier == 1

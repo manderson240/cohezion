@@ -301,7 +301,7 @@ class UnifiedHybridRouter:
         force_tier: Optional[int]
             Explicit override tier (1, 2, or 3)
         prompt: Optional[str]
-            Optional task prompt encoded into FLUME 256D VAE latent space for geometric correspondence
+            Accepted for compatibility; does not influence the tier (see quality_gap below)
         """
         if force_tier in (1, 2, 3):
             model = self._select_model_for_tier(force_tier, task_type)
@@ -314,22 +314,12 @@ class UnifiedHybridRouter:
             )
             return res
 
-        # Compute quality gap — geometrically derived via FLUME VAE if prompt provided
-        if prompt:
-            try:
-                from cohezion.governance.flume_bridge import encode_prompt, flume_route_similarity
-
-                prompt_z = encode_prompt(prompt)
-                # Compute geometric correspondence against benchmark reference for task_type
-                ref_capability = f"high quality {task_type} execution and deterministic reasoning"
-                sim = flume_route_similarity(prompt_z, ref_capability)
-                # Dynamic manifold quality gap derived from latent space distance
-                quality_gap = max(0.0, 1.0 - sim)
-            except Exception as exc:
-                logger.debug("FLUME geometric correspondence fallback: %s", exc)
-                quality_gap = max(0.0, target_quality_required - estimated_tier1_quality)
-        else:
-            quality_gap = max(0.0, target_quality_required - estimated_tier1_quality)
+        # Quality gap comes only from declared quality: target minus the Tier-1 estimate.
+        # It is NOT derived from cos(prompt, boilerplate). Under a real text encoder that cosine
+        # measures topical overlap with a fixed sentence (gaps 0.83-1.00 for every prompt, so even
+        # "hi" escalated: 3/12 -> 9/12 Tier 2 measured), and it says nothing about whether a local
+        # model can answer. ``prompt`` is accepted for API compatibility and is not consulted here.
+        quality_gap = max(0.0, target_quality_required - estimated_tier1_quality)
 
         # Baseline: Start at Tier 1 if not saturated and context fits Tier 1
         current_tier = 1
