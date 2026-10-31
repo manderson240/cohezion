@@ -238,10 +238,14 @@ def _canonical_latent_test_embedder(monkeypatch):
 
     def _embed(text: str) -> np.ndarray:
         v = np.zeros(384, dtype=np.float32)
-        for tok in str(text).lower().split():
+        # Like the real MiniLM: input past the 256-token window is silently ignored.
+        for tok in str(text).lower().split()[:256]:
             h = hashlib.sha256(tok.encode()).digest()
             v[int.from_bytes(h[:4], "little") % 384] += 1.0 if h[4] & 1 else -1.0
         return v if v.any() else np.ones(384, dtype=np.float32)
+
+    _embed.max_tokens = 256  # type: ignore[attr-defined]
+    _embed.count_tokens = lambda t: len(str(t).split())  # type: ignore[attr-defined]
 
     monkeypatch.setattr(cl, "_load_minilm", lambda: _embed)
     ve._encoder_instance = None

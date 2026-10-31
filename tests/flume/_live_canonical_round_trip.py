@@ -11,18 +11,26 @@ import numpy as np
 
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "fixtures"))
-from flume_latent_pairs import PARAPHRASE, UNRELATED  # noqa: E402
+from flume_latent_pairs import PARAPHRASE, UNRELATED
 
-from cohezion.agents.base import BaseAgent  # noqa: E402
-from cohezion.flume.canonical_latent import PARAPHRASE_THRESHOLD  # noqa: E402
-from cohezion.flume.vae_encoder import get_encoder  # noqa: E402
-from cohezion.reliability.semantic_cache import SemanticCache  # noqa: E402
+from cohezion.agents.base import BaseAgent
+from cohezion.flume.canonical_latent import PARAPHRASE_THRESHOLD
+from cohezion.flume.vae_encoder import get_encoder
+from cohezion.reliability.semantic_cache import SemanticCache
 
 
 enc = get_encoder()
 if not enc.is_available():
     print(json.dumps({"unavailable": enc._error}))
     raise SystemExit(0)
+
+GOLDEN_TEXT = "Restart the web server after the config change."
+golden = [float(x) for x in enc.encode(GOLDEN_TEXT)[:8]]
+exceeds = {
+    "short": enc.exceeds_token_limit(GOLDEN_TEXT),
+    "long": enc.exceeds_token_limit("word " * 300),
+    "max_tokens": enc.max_tokens,
+}
 
 para = [float(enc.encode(a) @ enc.encode(b)) for a, b in PARAPHRASE]
 unrel = [float(enc.encode(a) @ enc.encode(b)) for a, b in UNRELATED]
@@ -75,6 +83,8 @@ print(
             "query_dim": int(enc.encode(b).shape[0]),
             "paraphrase_cos": float(enc.encode(a) @ enc.encode(b)),
             "pair": [a, b],
+            "golden": golden,
+            "exceeds": exceeds,
         }
     )
 )

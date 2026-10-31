@@ -13,8 +13,11 @@ explicit "no latent" state (cache becomes a no-op, journey metadata omits the ve
 
 from __future__ import annotations
 
+import asyncio
 import logging
+import os
 import threading
+import time
 from collections.abc import Callable
 
 import numpy as np
@@ -24,11 +27,25 @@ logger = logging.getLogger(__name__)
 
 LATENT_DIM = 256
 SOURCE = "all-MiniLM-L6-v2/gauss-proj256-seed7"
-_MODEL_NAME = "all-MiniLM-L6-v2"
+_MODEL_REPO = "sentence-transformers/all-MiniLM-L6-v2"
+# Pinned weights revision (hub "main" as of 2026-10-31). A moving "main" would change every stored
+# vector silently; bump this together with SOURCE and re-run tests/flume/test_canonical_latent.py.
+MODEL_REVISION = "1110a243fdf4706b3f48f1d95db1a4f5529b4d41"
 _PROJECTION_SEED = 7
+# Network fetch of the weights is OPT-IN (never at first use by accident) and time-bounded.
+ALLOW_DOWNLOAD_ENV = "COHEZION_LATENT_ALLOW_DOWNLOAD"
+DOWNLOAD_TIMEOUT_ENV = "COHEZION_LATENT_DOWNLOAD_TIMEOUT_S"
+_DEFAULT_DOWNLOAD_TIMEOUT_S = 30.0
+# A failed load is remembered this long, then retried (not for the process lifetime).
+RETRY_AFTER_S = 300.0
 # Calibrated on MiniLM-256 (bench, 40 paraphrase / 20 hard-negative / 20 unrelated pairs):
 # 0.80 -> 0% unrelated false hits, 20% paraphrase recall, 15% hard-negative false hits.
 # Lower thresholds buy recall only by serving hard negatives at the same rate (0.70: 42% / 45%).
+# NO cosine threshold separates paraphrases from hard negatives on this encoder: e.g. "Move $100
+# from savings to checking" vs its reverse = 0.993, "Should I sell/buy my shares" = 0.939,
+# "Do not commit/Commit the secrets" = 0.931, "Open/Close the valve" = 0.911, all above 0.80 and
+# the first two above 0.95, while most true paraphrases sit below 0.80. Raising or lowering the
+# threshold only trades recall for false hits; it is a precision/recall dial, not a safety gate.
 PARAPHRASE_THRESHOLD = 0.80
 
 
@@ -36,14 +53,67 @@ class TextLatentUnavailable(RuntimeError):  # noqa: N818 - name is the cross-rep
     """No real text encoder is available. Never answer with a substitute vector."""
 
 
+def _download_timeout() -> float:
+    try:
+        return float(os.environ.get(DOWNLOAD_TIMEOUT_ENV, _DEFAULT_DOWNLOAD_TIMEOUT_S))
+    except ValueError:
+        return _DEFAULT_DOWNLOAD_TIMEOUT_S
+
+
+def _resolve_snapshot() -> str:
+    """Local path of the pinned snapshot. Cache only unless the download is opted in.
+
+    ``local_files_only=True`` never touches the network, so an offline box fails in milliseconds
+    instead of retrying for 23-83 s. (Loading by bare model name under HF_HUB_OFFLINE=1 also fails
+    on this stack with "Unrecognized processing class"; loading from the resolved path works.)
+    """
+    from huggingface_hub import snapshot_download
+
+    try:
+        return str(snapshot_download(_MODEL_REPO, revision=MODEL_REVISION, local_files_only=True))
+    except Exception as exc:
+        if os.environ.get(ALLOW_DOWNLOAD_ENV) != "1":
+            raise OSError(
+                f"{_MODEL_REPO}@{MODEL_REVISION[:8]} not in the local HF cache and download is "
+                f"not enabled (set {ALLOW_DOWNLOAD_ENV}=1 to fetch once): {exc}"
+            ) from exc
+
+    box: dict[str, object] = {}
+
+    def _fetch() -> None:
+        try:
+            box["path"] = str(
+                snapshot_download(_MODEL_REPO, revision=MODEL_REVISION, etag_timeout=5)
+            )
+        except Exception as exc:  # reported through the join below
+            box["error"] = exc
+
+    worker = threading.Thread(target=_fetch, name="latent-weights-fetch", daemon=True)
+    worker.start()
+    worker.join(_download_timeout())
+    if "path" in box:
+        return str(box["path"])
+    raise OSError(
+        f"weights download failed or timed out ({_download_timeout()}s): {box.get('error')}"
+    )
+
+
 def _load_minilm() -> Callable[[str], np.ndarray]:
     from sentence_transformers import SentenceTransformer
 
-    model = SentenceTransformer(_MODEL_NAME, device="cpu")
+    model = SentenceTransformer(_resolve_snapshot(), device="cpu")
+    max_tokens = int(model.max_seq_length)
+    tokenizer = model.tokenizer
 
     def embed(text: str) -> np.ndarray:
         return np.asarray(model.encode(text), dtype=np.float32)
 
+    def count_tokens(text: str) -> int:
+        return len(tokenizer(text, add_special_tokens=True)["input_ids"])
+
+    # The model silently truncates input past max_tokens; callers must not rely on the tail.
+    embed.max_tokens = max_tokens  # type: ignore[attr-defined]
+    embed.count_tokens = count_tokens  # type: ignore[attr-defined]
     return embed
 
 
@@ -54,6 +124,7 @@ class CanonicalTextLatent:
         self._loader = embed_loader or _load_minilm
         self._embed: Callable[[str], np.ndarray] | None = None
         self._error: str | None = None
+        self._error_at = 0.0
         self._proj: np.ndarray | None = None
         self._lock = threading.Lock()
 
@@ -65,12 +136,14 @@ class CanonicalTextLatent:
             return self._embed
         with self._lock:
             if self._embed is None:
-                if self._error is not None:
+                if self._error is not None and time.monotonic() - self._error_at < RETRY_AFTER_S:
                     raise TextLatentUnavailable(self._error)
                 try:
                     self._embed = self._loader()
+                    self._error = None
                 except Exception as exc:  # converted to the explicit state
                     self._error = f"{type(exc).__name__}: {exc}"
+                    self._error_at = time.monotonic()
                     logger.warning("canonical text latent unavailable (%s)", self._error)
                     raise TextLatentUnavailable(self._error) from exc
         return self._embed
@@ -88,6 +161,24 @@ class CanonicalTextLatent:
         z = (raw / np.linalg.norm(raw)) @ self._proj
         out: np.ndarray = (z / np.linalg.norm(z)).astype(np.float32)
         return out
+
+    async def aencode(self, text: str) -> np.ndarray:
+        """``encode`` off the event loop (the first call loads weights: seconds, not ms)."""
+        return await asyncio.to_thread(self.encode, text)
+
+    @property
+    def max_tokens(self) -> int | None:
+        """Backend input limit in tokens (inputs beyond it are silently truncated), if known."""
+        return getattr(self._embed, "max_tokens", None)
+
+    def exceeds_token_limit(self, text: str) -> bool:
+        """True when ``text`` is longer than the backend's input window (its tail is ignored).
+
+        Unknown (no counter on the backend) is reported as False; the real backend always has one.
+        """
+        counter = getattr(self._ensure(), "count_tokens", None)
+        limit = self.max_tokens
+        return bool(counter and limit and counter(text) > limit)
 
     def encode_or_none(self, text: str) -> np.ndarray | None:
         try:
