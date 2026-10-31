@@ -325,3 +325,11 @@ def test_aencode_runs_off_the_event_loop_thread():
     enc = CanonicalTextLatent(loader)
     asyncio.run(enc.aencode("x"))
     assert seen and seen[0] != threading.get_ident()
+
+
+def test_live_python_paraphrase_clears_cache_threshold():
+    """Un-mocked counterpart of tests/cache/test_semantic_embeddings.py::
+    test_semantic_cache_hit_rate_improvement (skipped under the suite's mocked ST):
+    the query must clear the 0.85 threshold against the stored paraphrase."""
+    res = _live()
+    assert max(res["python_cos"]) >= 0.85  # measured 0.936 / 0.874

@@ -32,6 +32,9 @@ exceeds = {
     "max_tokens": enc.max_tokens,
 }
 
+python_q = enc.encode("Explain what Python is")
+python_cos = [float(python_q @ enc.encode(t)) for t in ("What is Python?", "Tell me about Python")]
+
 para = [float(enc.encode(a) @ enc.encode(b)) for a, b in PARAPHRASE]
 unrel = [float(enc.encode(a) @ enc.encode(b)) for a, b in UNRELATED]
 auc = float(np.mean([p > u for p in para for u in unrel]))
@@ -84,6 +87,7 @@ print(
             "paraphrase_cos": float(enc.encode(a) @ enc.encode(b)),
             "pair": [a, b],
             "golden": golden,
+            "python_cos": python_cos,
             "exceeds": exceeds,
         }
     )
