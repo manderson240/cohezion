@@ -63,6 +63,10 @@ class EVOLatentState:
     journey_timestamps: list[float] = field(default_factory=list)
     journey_positions: list[np.ndarray] = field(default_factory=list)  # In latent space
 
+    # VAIE information content. AgenticEVOMHD reads it to source the B-field and adds reconnection
+    # energy to it; it was never declared here (it lives on evo_simulation's agent), so both raised.
+    information_content: float = 0.0
+
     def compute_coherence(self) -> float:
         """Distance from ideal 0.5 in latent space."""
         return float(np.mean(np.abs(self.latent_vector - 0.5)))
