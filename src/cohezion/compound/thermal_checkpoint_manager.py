@@ -36,6 +36,9 @@ if TYPE_CHECKING:
 
 logger = logging.getLogger(__name__)
 
+# Same floor DynamicConcurrencyGate applies before acting on a thermal forecast.
+_MIN_PREDICTION_CONFIDENCE = 0.5
+
 
 class ThermalState(Enum):
     """Thermal execution states."""
@@ -158,7 +161,7 @@ class ThermalCheckpointManager:
         # Try to resume from existing checkpoint
         existing = await self._load_latest_checkpoint(task_id)
         if existing:
-            logger.info(f"Resuming from checkpoint: {existing.checkpoint_id}")
+            logger.info(f"Resuming from checkpoint: {existing.task_id} ({existing.phase})")
             self.current_checkpoint = existing
             hypotheses_completed = existing.hypotheses_completed
         else:
@@ -304,10 +307,11 @@ class ThermalCheckpointManager:
 
         # Check predictive (30-min ahead)
         try:
-            prediction = self.predictor.predict_30min_ahead()
-            if prediction and prediction.predicted_temp_c > self.config.pause_temp:
+            predicted_temp, confidence = self.predictor.predict_temperature_ahead(30)
+            # confidence 0.0 is the predictor's cold-start answer (no history): never pause on it.
+            if confidence > _MIN_PREDICTION_CONFIDENCE and predicted_temp > self.config.pause_temp:
                 self.state = ThermalState.ELEVATED
-                return True, f"PREDICTED: {prediction.predicted_temp_c:.1f}°C in 30 min"
+                return True, f"PREDICTED: {predicted_temp:.1f}°C in 30 min"
         except Exception as e:
             logger.warning(f"Prediction failed: {e}")
 
