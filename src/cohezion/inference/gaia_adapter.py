@@ -308,11 +308,16 @@ class _GaiaLLMClientShim:
         max_tokens: int,
         temperature: float,
         extra_sampling: dict[str, str | float | int] | None = None,
+        timeout: float | None = None,
     ):
         self._client = client
         self._model = model_id
         self._max_tokens = max_tokens
         self._temperature = temperature
+        # Per-request bound in seconds. None keeps the client's own default, which for GAIA's
+        # LemonadeClient is 900 s: a router that accepts the connection and never answers
+        # (wedged / mid-load) then blocks the caller for 15 minutes per call.
+        self._timeout = timeout
         self._extra_sampling = extra_sampling or {}
         # Telemetry from the most recent prompt(). Initialised so a reader before the first call
         # sees 0 rather than an AttributeError -- 0 is also the honest value for "nothing run".
@@ -320,12 +325,14 @@ class _GaiaLLMClientShim:
         self.last_dropped_reasoning_chars: int = 0
 
     def prompt(self, text: str) -> str:
+        bound: dict[str, float] = {} if self._timeout is None else {"timeout": self._timeout}
         resp = self._client.chat_completions(  # type: ignore[attr-defined]
             model=self._model,
             messages=[{"role": "user", "content": text}],
             max_tokens=self._max_tokens,
             temperature=self._temperature,
             auto_download=False,
+            **bound,
             **self._extra_sampling,
         )
         # OpenAI-compatible shape; raise (don't silently return '') on an unexpected body
