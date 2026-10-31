@@ -20,9 +20,17 @@ import pytest
 from fastapi.testclient import TestClient
 
 from cohezion.api import app
+from cohezion.api.services import physics_extended
 
 
 client = TestClient(app)
+
+
+@pytest.fixture(autouse=True)
+def _fresh_physics_agents(monkeypatch):
+    """Status params seed an agent on first access only, so other suites' agent ids must not leak in."""
+    monkeypatch.setattr(physics_extended, "_lenr_agents", {})
+    monkeypatch.setattr(physics_extended, "_ionic_cluster_agents", {})
 
 
 class TestLenrWiring:
