@@ -404,3 +404,35 @@ class TestFlumeVAEEmbeddingModel:
         else:
             # Miss is ok too - depends on embedding model availability
             assert hit is None
+
+
+class TestEncoderWindowTruncation:
+    """MiniLM ignores everything past 256 tokens. The conftest embedder truncates the same way,
+    so these fail if the cache again embeds ``system + prompt`` as one string (the long system
+    prompt eats the window and every prompt gets cosine 1.0)."""
+
+    LONG_SYSTEM = "You are a careful assistant for the platform operations team. " * 40
+
+    @pytest.mark.asyncio
+    async def test_long_system_does_not_make_distinct_prompts_collide(self, tmp_path):
+        cache = SemanticCache(cache_dir=tmp_path)
+        await cache.put("Delete the production database", self.LONG_SYSTEM, "m", "DELETE-ANSWER")
+        assert (await cache.get("What is the capital of Australia?", self.LONG_SYSTEM)) is None
+        assert (await cache.get("Keep the production database", self.LONG_SYSTEM)) is None
+        hit = await cache.get("Delete the production database", self.LONG_SYSTEM)
+        assert hit is not None and hit.value == "DELETE-ANSWER"
+
+    @pytest.mark.asyncio
+    async def test_other_system_prompt_never_hits(self, tmp_path):
+        cache = SemanticCache(cache_dir=tmp_path)
+        await cache.put("Delete the production database", "system A", "m", "A-ANSWER")
+        assert await cache.get("Delete the production database", "system B") is None
+
+    @pytest.mark.asyncio
+    async def test_prompt_longer_than_window_is_not_cached_or_matched(self, tmp_path):
+        cache = SemanticCache(cache_dir=tmp_path)
+        shared = "word " * 300  # first 256 tokens identical, tails differ
+        await cache.put(shared + "alpha", "", "m", "ALPHA")
+        assert len(cache._embedding_cache) == 0  # fail closed: nothing stored
+        assert await cache.get(shared + "beta", "") is None
+        assert cache.get_stats()["embedding_errors"] >= 1
