@@ -196,3 +196,59 @@ class TestKSearchTree:
         assert node["trials"] == 1
         assert node["metric_values"] == [0.6]
         assert tree["total_trials"] == 1
+
+
+class TestLatentSourceTagging:
+    """z_vectors persisted before the canonical latent (hash space, same 256-d width) must not
+    be dotted with MiniLM vectors; SOURCE tags the producer and is consumed here."""
+
+    @staticmethod
+    def _tree(source):
+        def node(h, wins, metric, z):
+            n = {"hypothesis": h, "wins": wins, "trials": 1, "metric_values": [metric]}
+            n["z_vector"] = z
+            if source is not None:
+                n["z_source"] = source
+            return n
+
+        e0 = [1.0] + [0.0] * 255
+        e1 = [0.0, 1.0] + [0.0] * 254
+        # C is listed before B; B resembles the winner A, C does not. Equal stats otherwise.
+        return {
+            "total_trials": 3,
+            "nodes": {
+                "A": node("A", 1, 0.6, e0),
+                "C": node("C", 0, 0.9, e1),
+                "B": node("B", 0, 0.9, e0),
+            },
+        }
+
+    def test_tagged_vectors_give_latent_guidance(self):
+        from cohezion.flume.canonical_latent import SOURCE
+        from cohezion.research.autoresearch_driver import _ucb1_select
+
+        assert _ucb1_select(self._tree(SOURCE)) == "B"
+
+    def test_untagged_legacy_vectors_are_ignored(self):
+        from cohezion.research.autoresearch_driver import _ucb1_select
+
+        assert _ucb1_select(self._tree(None)) == "C"  # no bonus -> first of the tied nodes
+
+    def test_update_tree_refreshes_stale_vector_and_tags_it(self):
+        from cohezion.flume.canonical_latent import SOURCE
+        from cohezion.research.autoresearch_driver import ExperimentOutcome, _update_tree
+
+        tree = self._tree(None)
+        out = ExperimentOutcome(
+            run_id="r",
+            target="t",
+            hypothesis="B",
+            metric_name="m",
+            metric_value=1.0,
+            status="ok",
+            wall_time_s=0.1,
+            z_vector=[0.5] * 256,
+        )
+        _update_tree(tree, out, 0.9)
+        assert tree["nodes"]["B"]["z_source"] == SOURCE
+        assert tree["nodes"]["B"]["z_vector"] == [0.5] * 256

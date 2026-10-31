@@ -58,6 +58,7 @@ class AgentResponse(str):
 
 
 class BaseAgent(ABC):
+    _novelty_warned: bool = False
     """
     Abstract base class for Swarm agents.
 
@@ -186,7 +187,7 @@ class BaseAgent(ABC):
         # Phase 4: Semantic Fallback
         if not images:
             # Only semantic search for text-only prompts; no real encoder -> no-op
-            query_vec = self._semantic_vector(prompt)
+            query_vec = await asyncio.to_thread(self._semantic_vector, prompt)
             if query_vec is not None:
                 semantic_hit = await self._semantic_cache.search(query_vec, query_text=prompt)
                 if semantic_hit:
@@ -232,7 +233,7 @@ class BaseAgent(ABC):
         cache_file.write_text(json.dumps(data, ensure_ascii=False))
 
         # Phase 4: Semantic Projection (only for text-only)
-        query_vec = None if images else self._semantic_vector(prompt)
+        query_vec = None if images else await asyncio.to_thread(self._semantic_vector, prompt)
         if query_vec is not None:
             await self._semantic_cache.add(
                 vector=query_vec,
@@ -518,7 +519,7 @@ class BaseAgent(ABC):
         final_result = self._output_filter.filter(final_result).content
 
         # 2. FLUME Encoding
-        z = self._semantic_vector(final_result)
+        z = await asyncio.to_thread(self._semantic_vector, final_result)
         if z is not None:
             embedding = z.tolist()
 
@@ -588,6 +589,17 @@ class BaseAgent(ABC):
                         similarity = similar_nodes[0].get("score", 0.0)
                         novelty = max(0.01, 1.0 - similarity)
                 except Exception as e:
+                    # Visible once per process: the latent is 256-d (canonical_latent.LATENT_DIM)
+                    # while the universe_nodes HNSW index is declared 768-d, so this fails on every
+                    # call and novelty is pinned at 1.0. Needs a schema decision, not a swallow.
+                    if not BaseAgent._novelty_warned:
+                        BaseAgent._novelty_warned = True
+                        logger.warning(
+                            "novelty detection failing, novelty pinned to 1.0 "
+                            "(latent width %d): %s",
+                            len(embedding),
+                            e,
+                        )
                     logger.debug(f"Novelty detection failed, defaulting to 1.0: {e}")
 
             experience_data: dict[str, Any] = {

@@ -26,7 +26,7 @@ import numpy as np
 logger = logging.getLogger(__name__)
 
 LATENT_DIM = 256
-SOURCE = "all-MiniLM-L6-v2/gauss-proj256-seed7"
+SOURCE = "all-MiniLM-L6-v2@1110a243/gauss-proj256-seed7"  # keep in step with MODEL_REVISION
 _MODEL_REPO = "sentence-transformers/all-MiniLM-L6-v2"
 # Pinned weights revision (hub "main" as of 2026-10-31). A moving "main" would change every stored
 # vector silently; bump this together with SOURCE and re-run tests/flume/test_canonical_latent.py.

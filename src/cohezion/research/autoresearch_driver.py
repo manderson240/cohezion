@@ -25,6 +25,7 @@ from typing import Any
 
 import numpy as np
 
+from cohezion.flume.canonical_latent import SOURCE as LATENT_SOURCE
 from cohezion.flume.vae_encoder import get_encoder
 from cohezion.ouroboros.failure_analyzer import OuroborosFailureAnalyzer
 
@@ -123,6 +124,7 @@ def _load_tree(target: str, hypotheses: list[str]) -> dict:
         z = encoder.encode_or_none(h)
         if z is not None:
             node["z_vector"] = z.tolist()
+            node["z_source"] = LATENT_SOURCE
     path.write_text(json.dumps(tree, indent=2))
     return tree
 
@@ -130,6 +132,16 @@ def _load_tree(target: str, hypotheses: list[str]) -> dict:
 def _save_tree(target: str, tree: dict) -> None:
     path = KSEARCH_DIR / f"{target}.json"
     path.write_text(json.dumps(tree, indent=2))
+
+
+def _has_current_latent(node: dict) -> bool:
+    """True only for a z_vector produced by the CURRENT canonical latent (tag matches SOURCE).
+
+    Trees persisted before the canonical latent hold hash vectors in the same 256-d width but a
+    different space; dotting them with MiniLM vectors yields meaningless "similarity". Untagged
+    vectors are ignored, never mixed.
+    """
+    return bool(node.get("z_vector")) and node.get("z_source") == LATENT_SOURCE
 
 
 def _ucb1_select(tree: dict) -> str:
@@ -146,7 +158,7 @@ def _ucb1_select(tree: dict) -> str:
     win_vectors = [
         np.array(node["z_vector"])
         for node in tree["nodes"].values()
-        if node.get("wins", 0) > 0 and node.get("z_vector")
+        if node.get("wins", 0) > 0 and _has_current_latent(node)
     ]
 
     # Simple index selection for unvisited
@@ -162,7 +174,7 @@ def _ucb1_select(tree: dict) -> str:
 
         # Latent guidance: prefer nodes closer to known successes
         latent_bonus = 0.0
-        if win_vectors and node.get("z_vector"):
+        if win_vectors and _has_current_latent(node):
             current_vec = np.array(node["z_vector"])
             # Calculate mean distance to wins (similarity)
             similarities = [np.dot(current_vec, wv) for wv in win_vectors]
@@ -196,8 +208,13 @@ def _update_tree(tree: dict, outcome: ExperimentOutcome | str, reward: float) ->
             "trials": 0,
             "metric_values": [],
             "z_vector": z_vector,
+            "z_source": LATENT_SOURCE if z_vector else None,
         },
     )
+    if z_vector and node.get("z_source") != LATENT_SOURCE:
+        # refresh a stale/untagged vector with the current producer's
+        node["z_vector"] = z_vector
+        node["z_source"] = LATENT_SOURCE
     node["trials"] += 1
     node["metric_values"].append(reward)
     if reward > 0.5:  # Consider > 0.5 reward a 'win'
