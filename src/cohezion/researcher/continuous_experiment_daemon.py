@@ -19,6 +19,7 @@ from typing import Any
 from cohezion.core.event_bus import Event, EventBus, EventType
 from cohezion.data_mesh.kanban_bridge import persist_item
 from cohezion.flume.evo_visualizer import EVOJourneyVisualizer
+from cohezion.flume.vae_encoder import TextLatentUnavailable
 from cohezion.inference.fleet import route
 from cohezion.inference.registry import Task
 from cohezion.physics.evo_model import ExoticVacuumObject
@@ -119,9 +120,15 @@ class ContinuousExperimentDaemon:
             f"CPU architecture evaluation complete ({res_cpu.model})",
         ]
         viz = EVOJourneyVisualizer(output_path=f".obsidian/exp-{exp_id}-graph.json")
-        graph_data = viz.process_evo(evo, actions)
-
-        topologies = [node["topology"] for node in graph_data.get("nodes", [])]
+        try:
+            graph_data = await asyncio.to_thread(viz.process_evo, evo, actions)
+            topologies = [node["topology"] for node in graph_data.get("nodes", [])]
+        except TextLatentUnavailable as exc:
+            # Deliberate, visible: no real encoder -> no topology. Recorded as an explicit marker
+            # on the result (not an empty list, not a guessed topology).
+            logger.warning("experiment %s: EVO topology skipped, no text latent (%s)", exp_id, exc)
+            graph_data = {}
+            topologies = ["latent_unavailable"]
 
         result = ExperimentResult(
             experiment_id=exp_id,
