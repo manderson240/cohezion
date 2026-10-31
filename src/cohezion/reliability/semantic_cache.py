@@ -15,6 +15,7 @@ import numpy as np
 
 from cohezion.compound.exp_persistence.vault import get_vault_logger
 from cohezion.core.persistence.redis_aggregator import get_redis
+from cohezion.flume.canonical_latent import LATENT_DIM
 
 
 logger = logging.getLogger(__name__)
@@ -40,26 +41,56 @@ class SemanticCache:
             self._vault = get_vault_logger()
         return self._vault
 
+    def _purge_stale_widths(self) -> int:
+        """Drop (vector, metadata) pairs whose vector is not LATENT_DIM wide, in lockstep.
+
+        Entries written by an older producer (hash 256-d is the same width but a different space
+        and cannot be told apart here; 384/768-d can) would make ``np.array(self.vectors)`` ragged
+        and silently lose every later save. Returns the number of pairs dropped.
+        """
+        n = min(len(self.vectors), len(self.metadata))
+        keep = [i for i in range(n) if self.vectors[i].shape == (LATENT_DIM,)]
+        dropped = len(self.vectors) - len(keep)
+        if dropped or len(self.metadata) != len(keep):
+            self.vectors = [self.vectors[i] for i in keep]
+            self.metadata = [self.metadata[i] for i in keep]
+        return dropped
+
     def _load_cache(self):
         """Load existing cache from disk if available."""
         if self.index_path.exists() and self.vectors_path.exists():
             try:
                 self.metadata = json.loads(self.index_path.read_text())
                 raw_vectors = np.load(self.vectors_path)
-                self.vectors = list(raw_vectors)
+                self.vectors = [np.asarray(v) for v in raw_vectors]
             except Exception:
                 # If loading fails, start fresh to avoid corruption
                 self.metadata = []
                 self.vectors = []
+                return
+            dropped = self._purge_stale_widths()
+            if dropped:
+                logger.warning(
+                    "semantic cache: dropped %d persisted entries not %d-d (older producer)",
+                    dropped,
+                    LATENT_DIM,
+                )
+                self.save()
 
     def save(self):
-        """Persist cache index and vectors to disk."""
-        if not self.vectors:
+        """Persist cache index and vectors to disk (stale widths purged first, lockstep)."""
+        self._purge_stale_widths()
+        if not self.vectors and not self.vectors_path.exists():
             return
 
         try:
+            matrix = (
+                np.stack(self.vectors)
+                if self.vectors
+                else np.empty((0, LATENT_DIM), dtype=np.float32)
+            )
             self.index_path.write_text(json.dumps(self.metadata, indent=2))
-            np.save(self.vectors_path, np.array(self.vectors))
+            np.save(self.vectors_path, matrix)
         except Exception as e:
             logger.warning("Failed to persist semantic cache to disk: %s", e)
 
@@ -140,6 +171,11 @@ class SemanticCache:
         query_text: str | None = None,
     ):
         """Add a new entry to the semantic cache and broadcast to L1."""
+        if vector.shape != (LATENT_DIM,):
+            logger.warning(
+                "semantic cache add skipped: vector shape %s is not (%d,)", vector.shape, LATENT_DIM
+            )
+            return
         # Check if already exists locally
         for idx, m in enumerate(self.metadata):
             if m.get("response") == response:
@@ -151,6 +187,7 @@ class SemanticCache:
                     if self.index_path.exists()
                     else 0,
                 }
+                self.save()
                 return
 
         self.vectors.append(vector)
