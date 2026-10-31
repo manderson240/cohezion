@@ -222,6 +222,34 @@ def _cosmic_fire_stays_in_the_lab(monkeypatch):
 
 
 @pytest.fixture(autouse=True)
+def _canonical_latent_test_embedder(monkeypatch):
+    """Install a deterministic 384-d bag-of-words embedder behind get_encoder().
+
+    The mocked ``sentence_transformers`` above returns an empty vector, which the canonical latent
+    (correctly) reports as unavailable. Tests of consumers need a real fixed-width latent; tests of
+    the unavailable state build their own CanonicalTextLatent(embed_loader=...). Signed hashed
+    bag-of-words, so unrelated texts are near-orthogonal (unlike non-negative hash vectors)."""
+    import hashlib
+
+    import numpy as np
+
+    from cohezion.flume import canonical_latent as cl
+    from cohezion.flume import vae_encoder as ve
+
+    def _embed(text: str) -> np.ndarray:
+        v = np.zeros(384, dtype=np.float32)
+        for tok in str(text).lower().split():
+            h = hashlib.sha256(tok.encode()).digest()
+            v[int.from_bytes(h[:4], "little") % 384] += 1.0 if h[4] & 1 else -1.0
+        return v if v.any() else np.ones(384, dtype=np.float32)
+
+    monkeypatch.setattr(cl, "_load_minilm", lambda: _embed)
+    ve._encoder_instance = None
+    yield
+    ve._encoder_instance = None
+
+
+@pytest.fixture(autouse=True)
 def reset_singletons():
     """Auto-reset critical singletons before each test to prevent state pollution.
 
