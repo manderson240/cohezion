@@ -170,7 +170,7 @@ class TestCacheRoundTrip:
     async def test_set_and_get_cached(self, tmp_path):
         agent, patchers = _make_agent(tmp_path)
         try:
-            agent._encoder = None  # Skip semantic cache
+            agent._semantic_vector = lambda text: None  # Skip semantic cache
 
             await agent._set_cached("test prompt", "test response")
 
@@ -185,7 +185,7 @@ class TestCacheRoundTrip:
     async def test_get_cached_miss(self, tmp_path):
         agent, patchers = _make_agent(tmp_path)
         try:
-            agent._encoder = None
+            agent._semantic_vector = lambda text: None
             result = await agent._get_cached("nonexistent prompt")
             assert result is None
         finally:
@@ -195,7 +195,7 @@ class TestCacheRoundTrip:
     async def test_cache_expired(self, tmp_path):
         agent, patchers = _make_agent(tmp_path)
         try:
-            agent._encoder = None
+            agent._semantic_vector = lambda text: None
             agent.config.cache_ttl_seconds = 0  # Immediate expiry
 
             await agent._set_cached("prompt", "response")

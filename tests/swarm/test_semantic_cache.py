@@ -301,15 +301,13 @@ class TestFlumeVAEEmbeddingModel:
     """Test FlumeVAEEmbeddingModel for production semantic embeddings."""
 
     def test_initialization(self):
-        """Test FLUME VAE model initialization."""
+        """Width is fixed at the canonical latent's."""
         model = FlumeVAEEmbeddingModel()
         assert model._embedding_dim == 256
-        assert model._initialized is False
-        assert model._vae_encoder is None
 
     @pytest.mark.asyncio
     async def test_encode_with_vae(self):
-        """Test encoding with FLUME VAE (or fallback to hash)."""
+        """Test encoding with FLUME VAE ."""
         model = FlumeVAEEmbeddingModel()
         result = await model.encode("Test prompt for VAE encoding")
 
@@ -335,15 +333,18 @@ class TestFlumeVAEEmbeddingModel:
         assert result1.embedding == result2.embedding
 
     @pytest.mark.asyncio
-    async def test_fallback_to_hash(self):
-        """Test fallback to hash-based embeddings if VAE unavailable."""
-        model = FlumeVAEEmbeddingModel()
-        # Force fallback by setting VAE as unavailable
-        model._initialize_encoder()
-        if model._vae_encoder and not model._vae_encoder.is_available():
-            # VAE not available - should use fallback
-            result = await model.encode("Test fallback encoding")
-            assert len(result.embedding) == 256
+    async def test_unavailable_encoder_raises_not_hash(self, monkeypatch):
+        """No encoder => TextLatentUnavailable. Never a hash vector."""
+        from cohezion.flume import canonical_latent as cl
+        from cohezion.flume.vae_encoder import reset_encoder
+
+        def boom():
+            raise RuntimeError("no encoder")
+
+        monkeypatch.setattr(cl, "_load_minilm", boom)
+        reset_encoder()
+        with pytest.raises(cl.TextLatentUnavailable):
+            await FlumeVAEEmbeddingModel().encode("Test fallback encoding")
 
     @pytest.mark.asyncio
     async def test_semantic_cache_with_vae_model(self):

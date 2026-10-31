@@ -139,11 +139,11 @@ class CharterAlignedSkillTracker:
         execution_coherence = 1.0 - abs(coherence_after - coherence_before)
 
         # Encode prompt in FLUME space
-        flume_state = self.vae.encode(prompt)
-
-        # Convert numpy array to list for JSON serialization
-        if isinstance(flume_state, np.ndarray):
-            flume_state = flume_state.tolist()
+        flume_state_raw = self.vae.encode_or_none(prompt)
+        # list for JSON serialization; no real encoder -> explicit empty latent, never a hash
+        flume_state: list[float] = (
+            flume_state_raw.tolist() if isinstance(flume_state_raw, np.ndarray) else []
+        )
 
         # Create event
         return SkillUsageEvent(

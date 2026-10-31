@@ -275,34 +275,20 @@ class TestAdaptiveThreshold:
 
 
 class TestEmbeddingFallback:
-    """Hash fallback when both encoders raise."""
+    """No hash fallback: an unavailable encoder yields None."""
 
-    def test_text_to_embedding_falls_back_to_hash(self, monkeypatch):
-        """If text encoder + VAE both raise, deterministic SHA-256 vector wins.
+    def test_text_to_embedding_is_none_when_no_encoder(self, monkeypatch):
+        """No real encoder => None (L2 becomes a no-op). Never a hash vector."""
+        from cohezion.flume import canonical_latent as cl
 
-        The fallback must be 384-D, dtype float32, and L2-normalized.
-        """
+        def boom():
+            raise RuntimeError("no encoder")
 
-        # Force both encoder paths to raise.
-        def boom_text():
-            raise RuntimeError("no text encoder")
+        monkeypatch.setattr(cl, "_load_minilm", boom)
+        from cohezion.flume.vae_encoder import reset_encoder
 
-        def boom_vae():
-            raise RuntimeError("no VAE")
-
-        monkeypatch.setattr("cohezion.cache.semantic_cache.get_text_encoder", boom_text)
-        monkeypatch.setattr("cohezion.cache.semantic_cache.get_encoder", boom_vae)
-
-        emb = SemanticCache._text_to_embedding("deterministic input")
-
-        assert emb.shape == (384,)
-        assert emb.dtype == np.float32
-        # Normalized to unit length (within float32 tolerance).
-        assert np.linalg.norm(emb) == pytest.approx(1.0, abs=1e-5)
-
-        # Determinism: same input => same vector.
-        emb2 = SemanticCache._text_to_embedding("deterministic input")
-        assert np.allclose(emb, emb2)
+        reset_encoder()
+        assert SemanticCache._text_to_embedding("deterministic input") is None
 
 
 # ---------------------------------------------------------------------------

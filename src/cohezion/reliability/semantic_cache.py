@@ -86,21 +86,25 @@ class SemanticCache:
                 logger.debug(f"🔥 Redis L1 Hit for query hash: {key_hash[:8]}")
                 return cached_result
 
-        # Tier 2: Local Vector Search (L0) - High-speed memory search
-        if not self.vectors:
+        # Tier 2: Local Vector Search (L0) - High-speed memory search.
+        # Only vectors of the query's width are comparable; entries persisted by an older
+        # producer (different width) are ignored, never compared and never a crash.
+        usable = [i for i, v in enumerate(self.vectors) if v.shape == query_vec.shape]
+        if not usable:
             return None
 
         q_norm = np.linalg.norm(query_vec)
         if q_norm == 0:
             return None
 
-        matrix = np.array(self.vectors)
+        matrix = np.array([self.vectors[i] for i in usable])
         norms = np.linalg.norm(matrix, axis=1)
         norms[norms == 0] = 1e-10
 
         cosine_sim = np.dot(matrix, query_vec) / (norms * q_norm)
-        best_idx = np.argmax(cosine_sim)
-        score = cosine_sim[best_idx]
+        best_local = int(np.argmax(cosine_sim))
+        best_idx = usable[best_local]
+        score = cosine_sim[best_local]
 
         if score >= self.threshold:
             result = self.metadata[best_idx].copy()

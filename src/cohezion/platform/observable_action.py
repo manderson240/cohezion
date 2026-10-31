@@ -81,11 +81,11 @@ class ObservableActionProposer:
 
         # Encode current state in FLUME space
         context = f"{action_type}: {description}\nRationale: {rationale}"
-        flume_state = self.vae.encode(context)
-
-        # Convert numpy array to list for JSON serialization
-        if isinstance(flume_state, np.ndarray):
-            flume_state = flume_state.tolist()
+        flume_state_raw = self.vae.encode_or_none(context)
+        # list for JSON serialization; no real encoder -> explicit empty latent, never a hash
+        flume_state: list[float] = (
+            flume_state_raw.tolist() if isinstance(flume_state_raw, np.ndarray) else []
+        )
 
         # Estimate coherence impact
         coherence_impact = await self._estimate_coherence_impact(

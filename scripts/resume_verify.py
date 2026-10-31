@@ -662,7 +662,7 @@ def check_tek_agent() -> CheckResult:
         from cohezion.swarm.providers.gemma4_provider import Gemma4Provider
 
         async def _run():
-            enc = FlumeVAEEncoder()  # hash-fallback; no checkpoint needed
+            enc = FlumeVAEEncoder()  # canonical latent; raises TextLatentUnavailable if absent
             prov = Gemma4Provider({"base_url": fleet_url, "timeout": 60})
             translator = ManifoldTranslator(encoder=enc)
             spectral = SpectralEncoder(encoder=enc)

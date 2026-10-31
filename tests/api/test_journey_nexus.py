@@ -381,11 +381,13 @@ async def test_narrate_real_encode_path_offline_fallback(monkeypatch):
     assert out.audio_b64
 
 
-def test_encode_journey_text_prefers_live_bridge(monkeypatch):
-    """When the OmniRouter is healthy, the semantic embedding is used as-is."""
+def test_encode_journey_text_ignores_router_bridge(monkeypatch):
+    """The journey latent is the canonical one regardless of router state (width and basis must
+    not flip with the router). The bridge is never consulted."""
     from cohezion.api.services.journey_nexus import _encode_journey_text
+    from cohezion.flume.vae_encoder import get_encoder
 
-    sentinel = np.full(256, 1.0 / 16.0, dtype=np.float32)  # unit norm
+    sentinel = np.full(256, 1.0 / 16.0, dtype=np.float32)
     monkeypatch.setattr(
         "cohezion.inference.lemonade_embed_bridge.LemonadeEmbedBridge.is_available",
         lambda self: True,
@@ -395,7 +397,9 @@ def test_encode_journey_text_prefers_live_bridge(monkeypatch):
         lambda self, text: sentinel,
     )
     z = _encode_journey_text("hello manifold")
-    assert np.allclose(z, sentinel)
+    assert z.shape == (256,)
+    assert not np.allclose(z, sentinel)
+    assert np.allclose(z, get_encoder().encode("hello manifold"))
 
 
 def test_encode_journey_text_zero_vector_falls_back_to_hash(monkeypatch):

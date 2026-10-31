@@ -2648,7 +2648,7 @@ async def experiment_e72_flume_encoding_latency(n_samples: int = 50, use_llm: bo
     t0 = timeit.default_timer()
     from cohezion.flume.vae_encoder import FlumeVAEEncoder
 
-    encoder = FlumeVAEEncoder(fallback_to_hash=True)
+    encoder = FlumeVAEEncoder()
 
     texts = [f"compound engineering task {i} with skill refinement" for i in range(n_samples)]
     t_encode = timeit.default_timer()

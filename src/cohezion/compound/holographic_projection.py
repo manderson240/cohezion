@@ -36,13 +36,13 @@ MODULATION_PROFILES: dict[str, np.ndarray] = {
 
 
 def _try_load_flume_encoder() -> Any:
-    """Auto-initialize FLUME encoder if checkpoint exists. Returns None on any failure."""
+    """Return the canonical text encoder if a real one is available, else None."""
     try:
-        from cohezion.flume.vae_encoder import FlumeVAEEncoder
+        from cohezion.flume.vae_encoder import get_encoder
 
-        enc = FlumeVAEEncoder(fallback_to_hash=False)
-        if enc.enabled:
-            logger.info("FLUME semantic encoder active (v%d)", enc._version)
+        enc = get_encoder()
+        if enc.is_available():
+            logger.info("FLUME semantic encoder active (%s)", enc.source)
             return enc
     except Exception as e:
         logger.debug("FLUME encoder not loaded: %s", e)

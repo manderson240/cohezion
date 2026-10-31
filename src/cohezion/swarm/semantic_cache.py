@@ -134,75 +134,24 @@ class DistilledEmbeddingModel(EmbeddingModel):
 
 
 class FlumeVAEEmbeddingModel(EmbeddingModel):
-    """Production FLUME VAE embedding model for real semantic discrimination.
+    """Canonical 256D text latent (``cohezion.flume.canonical_latent``).
 
-    Wraps FlumeVAEEncoder to provide learned 256D embeddings with 50×+ better
-    discrimination than hash-based embeddings. Automatically falls back to
-    hash-based embeddings if VAE model is unavailable.
+    There is no hash fallback: when no real encoder is available ``encode`` raises
+    ``TextLatentUnavailable`` and SemanticCache counts an embedding error and misses.
     """
 
     def __init__(self):
-        """Initialize FLUME VAE embedding model.
-
-        Lazy-loads FLUME VAE encoder on first use.
-        Falls back to hash-based embeddings if VAE unavailable.
-        """
-        self._vae_encoder = None
-        self._fallback_model = None
         self._embedding_dim = 256
-        self._initialized = False
 
     async def encode(self, text: str) -> EmbeddingResult:
-        """Generate 256D semantic embedding using FLUME VAE.
+        """Encode text to the canonical 256D vector or raise TextLatentUnavailable."""
+        from cohezion.flume.vae_encoder import get_encoder
 
-        Args:
-            text: Text to encode
-
-        Returns:
-            EmbeddingResult with 256D embedding vector
-
-        Note:
-            First call lazy-loads FLUME VAE encoder. Falls back to hash-based
-            if VAE unavailable.
-        """
-        # Lazy-load VAE encoder on first use
-        if not self._initialized:
-            self._initialize_encoder()
-
-        if self._vae_encoder is not None and self._vae_encoder.is_available():
-            try:
-                # Use FLUME VAE encoder (production path)
-                embedding = self._vae_encoder.encode(text)
-                return EmbeddingResult(
-                    embedding=embedding.tolist(),
-                    tokens_used=len(text) // 4,  # Rough token estimate
-                )
-            except Exception as e:
-                logger.debug(f"FLUME VAE encoding failed: {e}, using fallback")
-                # Fall through to hash-based fallback
-
-        # Fallback: use hash-based embeddings
-        if self._fallback_model is None:
-            self._fallback_model = DistilledEmbeddingModel(embedding_dim=self._embedding_dim)
-
-        return await self._fallback_model.encode(text)
-
-    def _initialize_encoder(self) -> None:
-        """Lazy-initialize FLUME VAE encoder on first use."""
-        try:
-            from cohezion.flume.vae_encoder import get_encoder
-
-            self._vae_encoder = get_encoder()
-            if self._vae_encoder.is_available():
-                logger.info("FLUME VAE encoder loaded successfully")
-            else:
-                logger.debug("FLUME VAE encoder unavailable, will use hash fallback")
-        except ImportError:
-            logger.debug("FLUME VAE module not available, using hash-based fallback")
-        except Exception as e:
-            logger.debug(f"Failed to initialize FLUME VAE encoder: {e}")
-        finally:
-            self._initialized = True
+        embedding = get_encoder().encode(text)
+        return EmbeddingResult(
+            embedding=embedding.tolist(),
+            tokens_used=len(text) // 4,  # Rough token estimate
+        )
 
 
 class SemanticCache:

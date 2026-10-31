@@ -16,7 +16,7 @@ from typing import TYPE_CHECKING, Any
 
 
 if TYPE_CHECKING:
-    from cohezion.flume.autoencoder import FlumeEncoder
+    from cohezion.flume.vae_encoder import FlumeVAEEncoder
     from cohezion.swarm.swarm_types import SwarmConfig
 
 import httpx
@@ -96,7 +96,7 @@ class BaseAgent(ABC):
         }
 
         # Native Intelligence & Persistence
-        self._encoder: FlumeEncoder | None = None
+        self._encoder: FlumeVAEEncoder | None = None
         self._db: SurrealClient = SurrealClient()
         self._query_history: dict[str, int] = {}  # query_hash -> count
         self._credit_manager = get_credit_manager()
@@ -157,6 +157,14 @@ class BaseAgent(ABC):
             content += ":" + ":".join(images[:3])  # Use first 3 images for keying
         return hashlib.sha256(content.encode()).hexdigest()
 
+    def _semantic_vector(self, text: str) -> Any:
+        """Canonical 256-d latent for query AND store (one producer), or None if unavailable."""
+        if self._encoder is None:
+            from cohezion.flume.vae_encoder import get_encoder
+
+            self._encoder = get_encoder()
+        return self._encoder.encode_or_none(text)
+
     async def _get_cached(
         self, prompt: str, images: list[str] | None = None
     ) -> dict[str, Any] | None:
@@ -176,16 +184,17 @@ class BaseAgent(ABC):
             logger.debug("Cache read failed for %s: %s", cache_file, e)
 
         # Phase 4: Semantic Fallback
-        if not images and self._encoder:
-            # Only semantic search for text-only prompts
-            query_vec = self._encoder.encode(prompt)
-            if hasattr(query_vec, "cpu"):
-                query_vec = query_vec.cpu().numpy()
-            semantic_hit = await self._semantic_cache.search(query_vec, query_text=prompt)
-            if semantic_hit:
-                logger.info(f"✨ Semantic Cache Hit (score: {semantic_hit['semantic_score']:.2f})")
-                self._metrics["cache_hits"] += 1
-                return semantic_hit
+        if not images:
+            # Only semantic search for text-only prompts; no real encoder -> no-op
+            query_vec = self._semantic_vector(prompt)
+            if query_vec is not None:
+                semantic_hit = await self._semantic_cache.search(query_vec, query_text=prompt)
+                if semantic_hit:
+                    logger.info(
+                        f"✨ Semantic Cache Hit (score: {semantic_hit['semantic_score']:.2f})"
+                    )
+                    self._metrics["cache_hits"] += 1
+                    return semantic_hit
 
         return None
 
@@ -223,10 +232,8 @@ class BaseAgent(ABC):
         cache_file.write_text(json.dumps(data, ensure_ascii=False))
 
         # Phase 4: Semantic Projection (only for text-only)
-        if not images and self._encoder:
-            query_vec = self._encoder.encode(prompt)
-            if hasattr(query_vec, "cpu"):
-                query_vec = query_vec.cpu().numpy()
+        query_vec = None if images else self._semantic_vector(prompt)
+        if query_vec is not None:
             await self._semantic_cache.add(
                 vector=query_vec,
                 response=response,
@@ -511,15 +518,9 @@ class BaseAgent(ABC):
         final_result = self._output_filter.filter(final_result).content
 
         # 2. FLUME Encoding
-        try:
-            if self._encoder is None:
-                from cohezion.flume.autoencoder import FlumeConfig, FlumeEncoder
-
-                self._encoder = FlumeEncoder(config=FlumeConfig())
-            z = self._encoder.get_semantic_vector(final_result)
-            embedding = z.tolist() if hasattr(z, "tolist") else list(z)
-        except (ImportError, RuntimeError, OSError) as e:
-            logger.debug(f"FLUME encoding unavailable, skipping: {e}")
+        z = self._semantic_vector(final_result)
+        if z is not None:
+            embedding = z.tolist()
 
         # 2.5 Journey Narration
         narration = self._narrator.generate_narration(
@@ -589,7 +590,7 @@ class BaseAgent(ABC):
                 except Exception as e:
                     logger.debug(f"Novelty detection failed, defaulting to 1.0: {e}")
 
-            experience_data = {
+            experience_data: dict[str, Any] = {
                 "mission_id": persistence_id,
                 "agent": self.__class__.__name__,
                 "model": active_model,

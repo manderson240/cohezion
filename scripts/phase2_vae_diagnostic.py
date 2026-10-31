@@ -36,8 +36,7 @@ def diagnostic_vae_availability():
 
     encoder = get_encoder()
     logger.info(f"VAE Available: {encoder.is_available()}")
-    logger.info(f"VAE Model Path: {encoder.model_path}")
-    logger.info(f"Model Exists: {encoder.model_path.exists()}")
+    logger.info(f"Latent source: {encoder.source}")
     logger.info("")
 
     if encoder.is_available():

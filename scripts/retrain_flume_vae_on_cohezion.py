@@ -234,8 +234,10 @@ def evaluate(ckpt_path: str) -> None:
     _sys.path.insert(0, str(REPO / "src"))
     from cohezion.flume.vae_encoder import FlumeVAEEncoder
 
-    enc = FlumeVAEEncoder(model_path=Path(ckpt_path))
-    print(f"[eval] enabled={enc.enabled} ckpt={ckpt_path}")
+    # The checkpoint loader (and its silent hash fallback) was removed: this scores the
+    # canonical text latent, not ckpt_path. Score a checkpoint via the bench script instead.
+    enc = FlumeVAEEncoder()
+    print(f"[eval] enabled={enc.enabled} source={enc.source} (ckpt_path ignored: {ckpt_path})")
 
     texts = [
         "GEPA reflective prompt evolution Pareto mutation outperforms RL",

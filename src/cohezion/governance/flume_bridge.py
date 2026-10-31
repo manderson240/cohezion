@@ -29,44 +29,15 @@ logger = logging.getLogger(__name__)
 FLUME_DIM = 256
 
 
-def _get_encoder():
-    """Lazy-load the FLUME encoder to avoid import-time overhead."""
-    try:
-        from cohezion.flume.vae_encoder import get_encoder
-
-        return get_encoder()
-    except ImportError:
-        logger.debug("FLUME VAE encoder not available, using hash fallback")
-        return None
-
-
 def encode_prompt(prompt: str) -> np.ndarray:
-    """Encode a user prompt into FLUME 256D space.
+    """Encode a user prompt into the canonical 256D text latent.
 
-    Used by the concierge for semantic routing — finds the nearest
-    historical route by FLUME distance instead of keyword matching.
-
-    Falls back to deterministic hash expansion if FLUME VAE is unavailable.
+    Used by the concierge for semantic routing. Raises TextLatentUnavailable when no real
+    encoder is available; there is no hash substitute (callers treat it as "no signal").
     """
-    encoder = _get_encoder()
-    if encoder is not None:
-        try:
-            return encoder.encode(prompt)
-        except (RuntimeError, ValueError, TypeError) as exc:
-            logger.warning("FLUME encode failed, using hash fallback: %s", exc)
+    from cohezion.flume.vae_encoder import get_encoder
 
-    # Delegate to VAE encoder's hash fallback for consistency
-    try:
-        from cohezion.flume.vae_encoder import FlumeVAEEncoder
-
-        return FlumeVAEEncoder._hash_encode(prompt)
-    except (ImportError, AttributeError):
-        # Last resort: deterministic 256D hash expansion
-        import hashlib
-
-        h = hashlib.sha256(prompt.encode()).digest()
-        expanded = np.frombuffer(h * 8, dtype=np.uint8)[:FLUME_DIM].astype(np.float32)
-        return expanded / (np.linalg.norm(expanded) + 1e-10)
+    return get_encoder().encode(prompt)
 
 
 def flume_route_similarity(prompt_embedding: np.ndarray, history_prompt: str) -> float:

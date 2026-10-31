@@ -21,6 +21,7 @@ import time
 from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
+from typing import Any
 
 import numpy as np
 
@@ -104,7 +105,7 @@ def _load_tree(target: str, hypotheses: list[str]) -> dict:
 
     # Initialise with hypothesis nodes
     encoder = get_encoder()
-    tree = {
+    tree: dict[str, Any] = {
         "target": target,
         "total_trials": 0,
         "nodes": {
@@ -113,11 +114,15 @@ def _load_tree(target: str, hypotheses: list[str]) -> dict:
                 "wins": 0,
                 "trials": 0,
                 "metric_values": [],
-                "z_vector": encoder.encode(h).tolist(),
             }
             for h in hypotheses
         },
     }
+    # Latent guidance only exists for nodes with a real latent; no encoder -> key omitted.
+    for h, node in tree["nodes"].items():
+        z = encoder.encode_or_none(h)
+        if z is not None:
+            node["z_vector"] = z.tolist()
     path.write_text(json.dumps(tree, indent=2))
     return tree
 
@@ -141,7 +146,7 @@ def _ucb1_select(tree: dict) -> str:
     win_vectors = [
         np.array(node["z_vector"])
         for node in tree["nodes"].values()
-        if node.get("wins", 0) > 0 and "z_vector" in node
+        if node.get("wins", 0) > 0 and node.get("z_vector")
     ]
 
     # Simple index selection for unvisited
@@ -157,7 +162,7 @@ def _ucb1_select(tree: dict) -> str:
 
         # Latent guidance: prefer nodes closer to known successes
         latent_bonus = 0.0
-        if win_vectors and "z_vector" in node:
+        if win_vectors and node.get("z_vector"):
             current_vec = np.array(node["z_vector"])
             # Calculate mean distance to wins (similarity)
             similarities = [np.dot(current_vec, wv) for wv in win_vectors]
@@ -368,7 +373,8 @@ class AutoresearchDriver:
         run_id = f"ar_{uuid.uuid4().hex[:8]}"
         start = time.perf_counter()
 
-        z_vector = self.encoder.encode(hypothesis).tolist()
+        z_arr = self.encoder.encode_or_none(hypothesis)
+        z_vector = [] if z_arr is None else z_arr.tolist()
 
         if self.target in ("aimo", "agi"):
             metric_val, status, logs = await self.run_kaggle_experiment(hypothesis, run_id)

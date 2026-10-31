@@ -95,22 +95,8 @@ class FlumeVAEEmbeddingModel:
         return EmbeddingResult(vector=vector, model="flume-vae-256d")
 
     def _encode_blocking(self, text: str) -> np.ndarray:
-        try:
-            encoder = self._get_encoder()
-            return encoder.encode(text)
-        except Exception as exc:
-            logger.warning("FLUME VAE encode failed, using hash fallback: %s", exc)
-            return self._hash_encode(text)
-
-    @staticmethod
-    def _hash_encode(text: str) -> np.ndarray:
-        """Deterministic 256D hash fallback."""
-        h = hashlib.sha256(text.encode()).digest()
-        embedding = np.array([h[i % len(h)] / 255.0 for i in range(256)], dtype=np.float32)
-        norm = np.linalg.norm(embedding)
-        if norm > 0:
-            embedding /= norm
-        return embedding
+        """Canonical latent; raises TextLatentUnavailable (no hash fallback)."""
+        return self._get_encoder().encode(text)
 
 
 # ---------------------------------------------------------------------------
