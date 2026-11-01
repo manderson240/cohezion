@@ -7,9 +7,15 @@ Follows the router pattern established in genesis.py.
 from __future__ import annotations
 
 import logging
+from typing import TYPE_CHECKING
 
 from fastapi import APIRouter
 from pydantic import BaseModel, Field
+
+
+if TYPE_CHECKING:
+    from cohezion.physics.ionic_cluster import IonicClusterState
+    from cohezion.physics.lenr import LENRHamiltonian
 
 
 logger = logging.getLogger(__name__)
@@ -718,433 +724,262 @@ async def get_tensor_metric_status(
     )
 
 
-# ─── Phase-18 Orphan Substrate Wiring (BEC, Mercury, COLIBRE, MHD, Bismuth, Toroidal, TensorMetric) ───
+# ─── LENR, Ionic-Cluster, Dielectric, Sarfatti, QGP endpoints ─────────────
+# The underlying physics/{lenr,ionic_cluster,dielectric,sarfatti_bridge}.py bridges
+# already existed (harness.md S1-S9) but were never exposed here. The exact
+# contract below is dictated by tests/physics/test_wiring_stealthskater.py
+# (module-level `pytestmark = pytest.mark.xfail(..., strict=True)`, dated
+# 2026-07-29, PR #241): "To re-enable: implement the routes, then delete the
+# pytestmark below. Do NOT 'fix' these by weakening the assertions -- they
+# encode the intended contract." tests/api/services/test_physics_extended.py
+# covers the same endpoints with looser assertions.
+# lenr/event and ionic-cluster/status+step are stateful per agent_id (mirrors
+# LENRHamiltonian's own agent_id field and IonicClusterState.step() mutating
+# in place); the other three are stateless, matching every other endpoint in
+# this file.
 
 
-class BECStatusResponse(BaseModel):
-    """Bose-Einstein condensate HIHO state."""
+class LenrSimulateResponse(BaseModel):
+    """LENR lattice-confined nuclear reaction rate at a given coherence."""
 
-    condensate_fraction: float
-    transition_rate: float
-    hiho_equilibrium: bool
-    condensed_atoms: int
-    thermal_atoms: int
-
-
-class MercuryLatticeResponse(BaseModel):
-    """Mercury BCS superconducting lattice HIHO state."""
-
-    coherence: float
+    reaction_threshold: float
     lattice_coupling: float
-    bcs_gap_rate: float
-    is_superconducting: bool
-
-
-class ColibreStatusResponse(BaseModel):
-    """COLIBRE cosmic ISM HIHO state + agent-as-EVO mapping."""
-
-    redshift: float
-    ism_hot_fraction: float
-    colibre_coherence: float
-    hiho_engaged: bool
-    sfr_as_lenr_rate: float
-    cosmic_time_gyr: float
-    agent_particle_type: str
-    agent_can_star_form: bool
-
-
-class MHDStatusResponse(BaseModel):
-    """Magnetohydrodynamic plasma equilibrium HIHO state."""
-
-    plasma_beta: float
-    alfven_coherence: float
-    hiho_magnetized: bool
-    is_alfvenic: bool
-
-
-class BismuthResponse(BaseModel):
-    """Bismuth diamagnetic levitation state."""
-
-    field_strength_tesla: float
-    levitation_threshold_tesla: float
-    diamagnetic_coherence: float
-    hiho_levitation: bool
-
-
-class ToroidalResponse(BaseModel):
-    """Fractal toroidal moment (EVO) HIHO state."""
-
     coherence: float
-    ring_count: int
-    toroidal_moment_magnitude: float
-    fractal_dimension: float
-    time_reversal_broken: bool
-    hiho_toroidal: bool
+    reaction_rate: float
 
 
-class TensorMetricResponse(BaseModel):
-    """Sarfatti ZPF tensor-metric engineering state."""
-
-    sarfatti_coherence: float
-    destiny_weight: float
-    epsilon: float
-    back_action_amplitude: float
-    metric_determinant: float
-    is_flat: bool
+class LenrEventRequest(BaseModel):
+    coherence: float
+    agent_id: str = "lenr-bridge"
 
 
-@physics_ext_router.get("/bec/status", response_model=BECStatusResponse)
-async def get_bec_status(
-    condensate_fraction: float = 0.5,
-    atom_count: int = 100_000,
-) -> BECStatusResponse:
-    """Bose-Einstein condensate HIHO state — quantum coherence ground state."""
-    from cohezion.physics.bec_bridge import BECState
+class LenrEventResponse(BaseModel):
+    """Result of recording one LENR coherence event for an agent."""
 
-    bec = BECState(condensate_fraction=condensate_fraction, atom_count=atom_count)
-    return BECStatusResponse(
-        condensate_fraction=bec.condensate_fraction,
-        transition_rate=bec.transition_rate(),
-        hiho_equilibrium=bec.hiho_equilibrium(),
-        condensed_atoms=bec.condensed_atoms,
-        thermal_atoms=bec.thermal_atoms,
-    )
+    agent_id: str
+    coherence: float
+    reaction_rate: float
+    mean_rate: float
+    event_count: int
 
 
-@physics_ext_router.get("/mercury/status", response_model=MercuryLatticeResponse)
-async def get_mercury_status(
-    coherence: float = 0.5,
-    lattice_coupling: float = 1.0,
-) -> MercuryLatticeResponse:
-    """Mercury BCS superconducting lattice — LENR lattice medium."""
-    from cohezion.physics.bec_bridge import MercuryLattice
+class IonicClusterStatusResponse(BaseModel):
+    """Ionic cluster HIHO plasma state for one agent."""
 
-    hg = MercuryLattice(coherence=coherence, lattice_coupling=lattice_coupling)
-    return MercuryLatticeResponse(
-        coherence=hg.coherence,
-        lattice_coupling=hg.lattice_coupling,
-        bcs_gap_rate=hg.bcs_gap_rate(),
-        is_superconducting=hg.is_superconducting(),
-    )
-
-
-@physics_ext_router.get("/colibre/status", response_model=ColibreStatusResponse)
-async def get_colibre_status(
-    redshift: float = 0.0,
-    ism_hot_fraction: float = 0.5,
-    sfr_density: float = 0.02,
-    agent_type: str = "engineer",
-) -> ColibreStatusResponse:
-    """COLIBRE cosmic ISM HIHO state — galaxy-formation substrate + agent-as-EVO."""
-    from cohezion.physics.colibre_bridge import AgentAsEVO, ColibreState
-
-    state = ColibreState(
-        redshift=redshift,
-        ism_hot_fraction=ism_hot_fraction,
-        sfr_density=sfr_density,
-    )
-    agent = AgentAsEVO(agent_id="api-agent", agent_type=agent_type)
-    return ColibreStatusResponse(
-        redshift=state.redshift,
-        ism_hot_fraction=state.ism_hot_fraction,
-        colibre_coherence=state.colibre_coherence,
-        hiho_engaged=state.hiho_engaged(),
-        sfr_as_lenr_rate=state.sfr_as_lenr_rate(),
-        cosmic_time_gyr=state.cosmic_time_gyr,
-        agent_particle_type=agent.particle_type,
-        agent_can_star_form=agent.can_star_form(state),
-    )
-
-
-@physics_ext_router.get("/mhd/status", response_model=MHDStatusResponse)
-async def get_mhd_status(
-    plasma_beta: float = 0.5,
-    lundquist_number: float = 1e6,
-) -> MHDStatusResponse:
-    """Magnetohydrodynamic plasma equilibrium — IonicCluster at astrophysical scale."""
-    from cohezion.physics.mhd_plasma import MHDEquilibrium
-
-    mhd = MHDEquilibrium(plasma_beta=plasma_beta, lundquist_number=lundquist_number)
-    return MHDStatusResponse(
-        plasma_beta=mhd.plasma_beta,
-        alfven_coherence=mhd.alfven_coherence(),
-        hiho_magnetized=mhd.hiho_magnetized(),
-        is_alfvenic=mhd.is_alfvenic(),
-    )
-
-
-@physics_ext_router.get("/bismuth/status", response_model=BismuthResponse)
-async def get_bismuth_status(
-    field_strength_tesla: float = 10.0,
-    mass_kg: float = 1e-3,
-) -> BismuthResponse:
-    """Bismuth diamagnetic levitation — Biefield-Brown magnetic analog."""
-    from cohezion.physics.mhd_plasma import BismuthDiamagnet
-
-    bi = BismuthDiamagnet(field_strength_tesla=field_strength_tesla, mass_kg=mass_kg)
-    return BismuthResponse(
-        field_strength_tesla=bi.field_strength_tesla,
-        levitation_threshold_tesla=bi.levitation_threshold_tesla(),
-        diamagnetic_coherence=bi.diamagnetic_coherence(),
-        hiho_levitation=bi.hiho_levitation(),
-    )
-
-
-@physics_ext_router.get("/toroidal/status", response_model=ToroidalResponse)
-async def get_toroidal_status(
-    coherence: float = 0.5,
-    ring_count: int = 7,
-) -> ToroidalResponse:
-    """Fractal toroidal moment — time-reversal-breaking EVO topology."""
-    from cohezion.physics.toroidal_moment import FractalToroidalMoment
-
-    ft = FractalToroidalMoment(coherence=coherence, ring_count=ring_count)
-    return ToroidalResponse(
-        coherence=ft.coherence,
-        ring_count=ft.ring_count,
-        toroidal_moment_magnitude=ft.toroidal_moment_magnitude(),
-        fractal_dimension=ft.fractal_dimension(),
-        time_reversal_broken=ft.time_reversal_broken(),
-        hiho_toroidal=ft.hiho_toroidal(),
-    )
-
-
-@physics_ext_router.get("/tensor-metric/status", response_model=TensorMetricResponse)
-async def get_tensor_metric_status(
-    sarfatti_coherence: float = 0.5,
-    destiny_weight: float = 0.5,
-    epsilon: float = 0.01,
-) -> TensorMetricResponse:
-    """Sarfatti ZPF tensor-metric engineering — coherence coupling to spacetime."""
-    from cohezion.physics.tensor_metric_engineering import TensorMetricEngineering
-
-    tm = TensorMetricEngineering(
-        sarfatti_coherence=sarfatti_coherence,
-        destiny_weight=destiny_weight,
-        epsilon=epsilon,
-    )
-    return TensorMetricResponse(
-        sarfatti_coherence=tm.sarfatti_coherence,
-        destiny_weight=tm.destiny_weight,
-        epsilon=tm.epsilon,
-        back_action_amplitude=tm.back_action_amplitude,
-        metric_determinant=tm.metric_determinant(),
-        is_flat=tm.is_flat(),
-    )
-
-
-# ─── Phase-18 Orphan Substrate Wiring (BEC, Mercury, COLIBRE, MHD, Bismuth, Toroidal, TensorMetric) ───
-
-
-class BECStatusResponse(BaseModel):
-    """Bose-Einstein condensate HIHO state."""
-
-    condensate_fraction: float
-    transition_rate: float
+    agent_id: str
+    plasma_density: float
+    cluster_size: int
+    hiho_tolerance: float
+    ionisation_rate: float
     hiho_equilibrium: bool
-    condensed_atoms: int
-    thermal_atoms: int
+    active_ions: int
+    steps_taken: int
+    previous_density: float | None = None
 
 
-class MercuryLatticeResponse(BaseModel):
-    """Mercury BCS superconducting lattice HIHO state."""
-
-    coherence: float
-    lattice_coupling: float
-    bcs_gap_rate: float
-    is_superconducting: bool
+class IonicClusterStepRequest(BaseModel):
+    delta: float
+    agent_id: str
 
 
-class ColibreStatusResponse(BaseModel):
-    """COLIBRE cosmic ISM HIHO state + agent-as-EVO mapping."""
+class DielectricPolarizationResponse(BaseModel):
+    """Dielectric field EHD thrust and polarization metrics."""
 
-    redshift: float
-    ism_hot_fraction: float
-    colibre_coherence: float
-    hiho_engaged: bool
-    sfr_as_lenr_rate: float
-    cosmic_time_gyr: float
-    agent_particle_type: str
-    agent_can_star_form: bool
+    voltage: float
+    electrode_separation: float
+    permittivity_diagonal: list[float]
+    mean_permittivity: float
+    biefield_brown_force: list[float]
+    gauge_connection_potential: list[list[float]]
 
 
-class MHDStatusResponse(BaseModel):
-    """Magnetohydrodynamic plasma equilibrium HIHO state."""
-
-    plasma_beta: float
-    alfven_coherence: float
-    hiho_magnetized: bool
-    is_alfvenic: bool
-
-
-class BismuthResponse(BaseModel):
-    """Bismuth diamagnetic levitation state."""
-
-    field_strength_tesla: float
-    levitation_threshold_tesla: float
-    diamagnetic_coherence: float
-    hiho_levitation: bool
-
-
-class ToroidalResponse(BaseModel):
-    """Fractal toroidal moment (EVO) HIHO state."""
+class SarfattiBackactionResponse(BaseModel):
+    """Sarfatti retrocausal back-action dynamics."""
 
     coherence: float
-    ring_count: int
-    toroidal_moment_magnitude: float
-    fractal_dimension: float
-    time_reversal_broken: bool
-    hiho_toroidal: bool
-
-
-class TensorMetricResponse(BaseModel):
-    """Sarfatti ZPF tensor-metric engineering state."""
-
-    sarfatti_coherence: float
     destiny_weight: float
-    epsilon: float
     back_action_amplitude: float
-    metric_determinant: float
-    is_flat: bool
+    metric_coupling: float
+    hiho_attractor_engaged: bool
 
 
-@physics_ext_router.get("/bec/status", response_model=BECStatusResponse)
-async def get_bec_status(
-    condensate_fraction: float = 0.5,
-    atom_count: int = 100_000,
-) -> BECStatusResponse:
-    """Bose-Einstein condensate HIHO state — quantum coherence ground state."""
-    from cohezion.physics.bec_bridge import BECState
+class QgpStatusResponse(BaseModel):
+    """Quark-Gluon Plasma deconfinement/confinement crossover status."""
 
-    bec = BECState(condensate_fraction=condensate_fraction, atom_count=atom_count)
-    return BECStatusResponse(
-        condensate_fraction=bec.condensate_fraction,
-        transition_rate=bec.transition_rate(),
-        hiho_equilibrium=bec.hiho_equilibrium(),
-        condensed_atoms=bec.condensed_atoms,
-        thermal_atoms=bec.thermal_atoms,
-    )
+    quark_coherence: float
+    temperature_mev: float
+    deconfinement_rate: float
+    qcd_hiho: bool
+    is_deconfined: bool
+    chromatic_coherence: float
+    lenr_analogy_rate: float
 
 
-@physics_ext_router.get("/mercury/status", response_model=MercuryLatticeResponse)
-async def get_mercury_status(
+# Per-agent state, mirroring the mutable-dataclass design of LENRHamiltonian
+# (event history) and IonicClusterState (step() mutates in place).
+_lenr_agents: dict[str, LENRHamiltonian] = {}
+_ionic_cluster_agents: dict[str, IonicClusterState] = {}
+
+
+@physics_ext_router.get("/lenr/simulate", response_model=LenrSimulateResponse)
+async def get_lenr_simulate(
     coherence: float = 0.5,
+    reaction_threshold: float = 0.5,
     lattice_coupling: float = 1.0,
-) -> MercuryLatticeResponse:
-    """Mercury BCS superconducting lattice — LENR lattice medium."""
-    from cohezion.physics.bec_bridge import MercuryLattice
+) -> LenrSimulateResponse:
+    """LENR reaction rate at a given lattice coherence — stateless."""
+    from cohezion.physics.lenr import LENRHamiltonian
 
-    hg = MercuryLattice(coherence=coherence, lattice_coupling=lattice_coupling)
-    return MercuryLatticeResponse(
-        coherence=hg.coherence,
-        lattice_coupling=hg.lattice_coupling,
-        bcs_gap_rate=hg.bcs_gap_rate(),
-        is_superconducting=hg.is_superconducting(),
+    h = LENRHamiltonian(reaction_threshold=reaction_threshold, lattice_coupling=lattice_coupling)
+    return LenrSimulateResponse(
+        reaction_threshold=h.reaction_threshold,
+        lattice_coupling=h.lattice_coupling,
+        coherence=coherence,
+        reaction_rate=h.reaction_rate(coherence),
     )
 
 
-@physics_ext_router.get("/colibre/status", response_model=ColibreStatusResponse)
-async def get_colibre_status(
-    redshift: float = 0.0,
-    ism_hot_fraction: float = 0.5,
-    sfr_density: float = 0.02,
-    agent_type: str = "engineer",
-) -> ColibreStatusResponse:
-    """COLIBRE cosmic ISM HIHO state — galaxy-formation substrate + agent-as-EVO."""
-    from cohezion.physics.colibre_bridge import AgentAsEVO, ColibreState
+@physics_ext_router.post("/lenr/event", response_model=LenrEventResponse)
+async def post_lenr_event(payload: LenrEventRequest) -> LenrEventResponse:
+    """Record a LENR coherence event for an agent and return its running mean rate."""
+    from cohezion.physics.lenr import LENRHamiltonian
 
-    state = ColibreState(
-        redshift=redshift,
-        ism_hot_fraction=ism_hot_fraction,
-        sfr_density=sfr_density,
-    )
-    agent = AgentAsEVO(agent_id="api-agent", agent_type=agent_type)
-    return ColibreStatusResponse(
-        redshift=state.redshift,
-        ism_hot_fraction=state.ism_hot_fraction,
-        colibre_coherence=state.colibre_coherence,
-        hiho_engaged=state.hiho_engaged(),
-        sfr_as_lenr_rate=state.sfr_as_lenr_rate(),
-        cosmic_time_gyr=state.cosmic_time_gyr,
-        agent_particle_type=agent.particle_type,
-        agent_can_star_form=agent.can_star_form(state),
+    h = _lenr_agents.get(payload.agent_id)
+    if h is None:
+        h = LENRHamiltonian(agent_id=payload.agent_id)
+        _lenr_agents[payload.agent_id] = h
+    rate = h.record_coherence_event(payload.coherence)
+    return LenrEventResponse(
+        agent_id=payload.agent_id,
+        coherence=payload.coherence,
+        reaction_rate=rate,
+        mean_rate=h.mean_rate,
+        event_count=h.event_count,
     )
 
 
-@physics_ext_router.get("/mhd/status", response_model=MHDStatusResponse)
-async def get_mhd_status(
-    plasma_beta: float = 0.5,
-    lundquist_number: float = 1e6,
-) -> MHDStatusResponse:
-    """Magnetohydrodynamic plasma equilibrium — IonicCluster at astrophysical scale."""
-    from cohezion.physics.mhd_plasma import MHDEquilibrium
+@physics_ext_router.get("/ionic-cluster/status", response_model=IonicClusterStatusResponse)
+async def get_ionic_cluster_status(
+    agent_id: str = "ionic-cluster-default",
+    plasma_density: float = 0.5,
+    cluster_size: int = 100,
+    hiho_tolerance: float = 0.05,
+) -> IonicClusterStatusResponse:
+    """Ionic cluster HIHO status for an agent.
 
-    mhd = MHDEquilibrium(plasma_beta=plasma_beta, lundquist_number=lundquist_number)
-    return MHDStatusResponse(
-        plasma_beta=mhd.plasma_beta,
-        alfven_coherence=mhd.alfven_coherence(),
-        hiho_magnetized=mhd.hiho_magnetized(),
-        is_alfvenic=mhd.is_alfvenic(),
+    plasma_density/cluster_size/hiho_tolerance seed the agent's state on first
+    access only; an existing agent's state is returned unchanged (the params
+    exist to initialize a fresh agent, not to reset one already in progress).
+    """
+    from cohezion.physics.ionic_cluster import IonicClusterState
+
+    state = _ionic_cluster_agents.get(agent_id)
+    if state is None:
+        state = IonicClusterState(
+            plasma_density=plasma_density,
+            cluster_size=cluster_size,
+            hiho_tolerance=hiho_tolerance,
+        )
+        _ionic_cluster_agents[agent_id] = state
+    return IonicClusterStatusResponse(
+        agent_id=agent_id,
+        plasma_density=state.plasma_density,
+        cluster_size=state.cluster_size,
+        hiho_tolerance=state.hiho_tolerance,
+        ionisation_rate=state.ionisation_rate(),
+        hiho_equilibrium=state.hiho_equilibrium(),
+        active_ions=state.active_ions,
+        steps_taken=state.steps_taken,
     )
 
 
-@physics_ext_router.get("/bismuth/status", response_model=BismuthResponse)
-async def get_bismuth_status(
-    field_strength_tesla: float = 10.0,
-    mass_kg: float = 1e-3,
-) -> BismuthResponse:
-    """Bismuth diamagnetic levitation — Biefield-Brown magnetic analog."""
-    from cohezion.physics.mhd_plasma import BismuthDiamagnet
+@physics_ext_router.post("/ionic-cluster/step", response_model=IonicClusterStatusResponse)
+async def post_ionic_cluster_step(payload: IonicClusterStepRequest) -> IonicClusterStatusResponse:
+    """Advance an agent's ionic cluster plasma density by delta."""
+    from cohezion.physics.ionic_cluster import IonicClusterState
 
-    bi = BismuthDiamagnet(field_strength_tesla=field_strength_tesla, mass_kg=mass_kg)
-    return BismuthResponse(
-        field_strength_tesla=bi.field_strength_tesla,
-        levitation_threshold_tesla=bi.levitation_threshold_tesla(),
-        diamagnetic_coherence=bi.diamagnetic_coherence(),
-        hiho_levitation=bi.hiho_levitation(),
+    state = _ionic_cluster_agents.get(payload.agent_id)
+    if state is None:
+        state = IonicClusterState()
+        _ionic_cluster_agents[payload.agent_id] = state
+    previous_density = state.plasma_density
+    state.step(payload.delta)
+    return IonicClusterStatusResponse(
+        agent_id=payload.agent_id,
+        plasma_density=state.plasma_density,
+        cluster_size=state.cluster_size,
+        hiho_tolerance=state.hiho_tolerance,
+        ionisation_rate=state.ionisation_rate(),
+        hiho_equilibrium=state.hiho_equilibrium(),
+        active_ions=state.active_ions,
+        steps_taken=state.steps_taken,
+        previous_density=previous_density,
     )
 
 
-@physics_ext_router.get("/toroidal/status", response_model=ToroidalResponse)
-async def get_toroidal_status(
-    coherence: float = 0.5,
-    ring_count: int = 7,
-) -> ToroidalResponse:
-    """Fractal toroidal moment — time-reversal-breaking EVO topology."""
-    from cohezion.physics.toroidal_moment import FractalToroidalMoment
+@physics_ext_router.get("/dielectric/polarization", response_model=DielectricPolarizationResponse)
+async def get_dielectric_polarization(
+    voltage: float = 1e4,
+    electrode_separation: float = 0.01,
+    permittivity_diagonal: str = "1.0,1.0,1.0",
+) -> DielectricPolarizationResponse:
+    """Dielectric field EHD thrust (Biefield-Brown) and U(1) gauge potential — stateless."""
+    import numpy as np
 
-    ft = FractalToroidalMoment(coherence=coherence, ring_count=ring_count)
-    return ToroidalResponse(
-        coherence=ft.coherence,
-        ring_count=ft.ring_count,
-        toroidal_moment_magnitude=ft.toroidal_moment_magnitude(),
-        fractal_dimension=ft.fractal_dimension(),
-        time_reversal_broken=ft.time_reversal_broken(),
-        hiho_toroidal=ft.hiho_toroidal(),
+    from cohezion.physics.dielectric import DielectricField
+
+    diag = [float(v.strip()) for v in permittivity_diagonal.split(",")]
+    if len(diag) != 3:
+        diag = [1.0, 1.0, 1.0]
+    field = DielectricField(
+        permittivity_tensor=np.diag(diag),
+        electrode_separation=electrode_separation,
+        voltage=voltage,
+    )
+    connection = field.to_gauge_connection()
+    return DielectricPolarizationResponse(
+        voltage=field.voltage,
+        electrode_separation=field.electrode_separation,
+        permittivity_diagonal=diag,
+        mean_permittivity=field.mean_permittivity,
+        biefield_brown_force=field.biefield_brown_force().tolist(),
+        gauge_connection_potential=connection.potential.tolist(),
     )
 
 
-@physics_ext_router.get("/tensor-metric/status", response_model=TensorMetricResponse)
-async def get_tensor_metric_status(
-    sarfatti_coherence: float = 0.5,
-    destiny_weight: float = 0.5,
-    epsilon: float = 0.01,
-) -> TensorMetricResponse:
-    """Sarfatti ZPF tensor-metric engineering — coherence coupling to spacetime."""
-    from cohezion.physics.tensor_metric_engineering import TensorMetricEngineering
+@physics_ext_router.get("/sarfatti/backaction", response_model=SarfattiBackactionResponse)
+async def get_sarfatti_backaction(
+    coherence: float = 0.5, destiny_weight: float = 0.5
+) -> SarfattiBackactionResponse:
+    """Sarfatti retrocausal back-action amplitude at a given coherence — stateless."""
+    from cohezion.physics.sarfatti_bridge import SarfattiBackAction
 
-    tm = TensorMetricEngineering(
-        sarfatti_coherence=sarfatti_coherence,
-        destiny_weight=destiny_weight,
-        epsilon=epsilon,
+    sba = SarfattiBackAction(coherence=coherence, destiny_weight=destiny_weight)
+    return SarfattiBackactionResponse(
+        coherence=sba.coherence,
+        destiny_weight=sba.destiny_weight,
+        back_action_amplitude=sba.back_action_amplitude(),
+        metric_coupling=sba.metric_coupling(),
+        hiho_attractor_engaged=sba.hiho_attractor_engaged(),
     )
-    return TensorMetricResponse(
-        sarfatti_coherence=tm.sarfatti_coherence,
-        destiny_weight=tm.destiny_weight,
-        epsilon=tm.epsilon,
-        back_action_amplitude=tm.back_action_amplitude,
-        metric_determinant=tm.metric_determinant(),
-        is_flat=tm.is_flat(),
+
+
+@physics_ext_router.get("/qgp/status", response_model=QgpStatusResponse)
+async def get_qgp_status(
+    quark_coherence: float = 0.5, temperature_mev: float = 155.0
+) -> QgpStatusResponse:
+    """Quark-Gluon Plasma deconfinement crossover status — stateless."""
+    from cohezion.physics.sarfatti_bridge import QuarkGluonPlasma
+
+    qgp = QuarkGluonPlasma(quark_coherence=quark_coherence, temperature_mev=temperature_mev)
+    return QgpStatusResponse(
+        quark_coherence=qgp.quark_coherence,
+        temperature_mev=qgp.temperature_mev,
+        deconfinement_rate=qgp.deconfinement_rate(),
+        qcd_hiho=qgp.qcd_hiho(),
+        is_deconfined=qgp.is_deconfined(),
+        chromatic_coherence=qgp.chromatic_coherence(),
+        lenr_analogy_rate=qgp.to_lenr_analogy(),
     )
 
 

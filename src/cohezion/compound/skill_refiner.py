@@ -33,6 +33,11 @@ except ImportError:
 
 logger = logging.getLogger(__name__)
 
+# Per-call bound for the local adversarial reviewer. The gate fails open on a transport error, but
+# only an error that actually arrives: without a bound, a router that accepts and never answers
+# held each of the 3 perspectives for GAIA's 900 s default.
+_ADVERSARIAL_TIMEOUT_S = 60.0
+
 
 @dataclass
 class ExecutionMetrics:
@@ -1494,6 +1499,7 @@ class SkillRefiner:
                     _model,
                     max_tokens=2048,
                     temperature=_sampling.get("temperature", 0.3),
+                    timeout=_ADVERSARIAL_TIMEOUT_S,
                 ).prompt
                 self._adversarial_chat_fn = chat_fn
             except Exception as exc:

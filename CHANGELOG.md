@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.27.2] - 2026-10-31
+
+### Fixed — Coherence pass
+- CI runs the stealth-except gate (Learning 359), self-test first, over `src` and `scripts`, in `ci.yml` and `automerge_guard.sh`.
+- The skill refiner bounds its local adversarial review request at 60 s instead of 900 s.
+- The thermal predictive pause calls the predictor API that exists, so it can now return True.
+- `EVOLatentState.information_content` is declared, removing the AttributeError in `AgenticEVOMHD`. Nothing seeds the value yet, so the MHD fields stay zero.
+- `physics_ext_router` is mounted again, its duplicate Phase-18 blocks are gone, and the LENR, ionic-cluster, dielectric and QGP endpoints complete their contract.
+
 ## [1.27.1] - 2026-09-27
 
 ### Performance — Lazy package facades (dynamic modularity audit R1/R2)
