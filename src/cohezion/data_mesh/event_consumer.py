@@ -62,6 +62,13 @@ TALLY_ONLY_EVENT_TYPES = {
 }
 
 
+def _is_timeout(exc: BaseException) -> bool:
+    """A timeout, bare or wrapped in URLError (connect-phase timeouts arrive wrapped)."""
+    if isinstance(exc, urllib.error.URLError):
+        exc = exc.reason if isinstance(exc.reason, BaseException) else exc
+    return isinstance(exc, TimeoutError)
+
+
 def _default_sql(query: str, timeout: float = 10.0) -> list[dict[str, Any]]:
     req = urllib.request.Request(
         SURREAL_URL,
@@ -183,7 +190,12 @@ class EventConsumer:
             f"WHERE !array::find(claimed_by ?? [], '{self.consumer_id}') "
             f"ORDER BY timestamp ASC LIMIT {int(batch)};"
         )
-        rows = res[-1].get("result") or []
+        last = res[-1] if res else {}
+        if isinstance(last, dict) and last.get("status") == "ERR":
+            # SurrealDB answers HTTP 200 with a per-statement ERR. Reading its string result as
+            # "no rows" would make a broken query look like an idle backbone.
+            raise RuntimeError(f"event fetch query failed: {last.get('result')}")
+        rows = last.get("result") or []
         return [r for r in rows if isinstance(r, dict)]
 
     def claim(self, record_id: str) -> None:
@@ -326,7 +338,19 @@ class EventConsumer:
             rid = str(event.get("id", ""))
             summary["fetched"] += 1
             try:
-                self.claim(rid)  # claim-before-handle: exactly-once per consumer
+                try:
+                    self.claim(rid)  # claim-before-handle: exactly-once per consumer
+                except (TimeoutError, urllib.error.URLError) as exc:
+                    if not _is_timeout(exc):
+                        raise
+                    # The UPDATE may or may not have been applied. Either way handle() has NOT
+                    # run, so nothing can be processed twice: if the claim did not land, the next
+                    # tick re-fetches the event; if it did land, this consumer drops that one
+                    # event (the same at-most-once-handled rule as a handler crash after claim),
+                    # and it is named here. The server is slow, so stop this pass.
+                    logger.warning("claim of %s timed out; ending this pass: %s", rid, exc)
+                    summary.setdefault("claim_timed_out", []).append(rid)
+                    break
                 outcome = self.handle(event)
                 # Any outcome that filed a work item is ACTIONED — matching on the
                 # action string alone silently misfiled land-review outcomes as

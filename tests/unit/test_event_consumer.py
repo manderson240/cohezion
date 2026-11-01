@@ -85,3 +85,64 @@ def test_fetch_filters_by_consumer_and_orders_by_time():
 def test_unsafe_consumer_id_rejected():
     with pytest.raises(ValueError):
         EventConsumer("bad'id", sql_fn=FakeSQL([]))
+
+
+# --- F10 / F11: claim timeouts and statement errors -------------------------------------------
+
+
+def test_fetch_statement_error_is_loud_not_an_empty_batch():
+    def sql(query):
+        if query.startswith("SELECT"):
+            return [{"status": "ERR", "result": "Parse error: bad query"}]
+        return [{"status": "OK", "result": []}]
+
+    with pytest.raises(RuntimeError, match="event fetch query failed"):
+        _consumer(sql, []).run_once()
+
+
+def test_claim_timeout_skips_without_handling_or_failing():
+    filed, queries = [], []
+
+    def sql(query):
+        queries.append(query)
+        if query.startswith("SELECT"):
+            return [{"status": "OK", "result": [_event(1), _event(2)]}]
+        if query.startswith("UPDATE"):
+            raise TimeoutError("timed out")
+        return [{"status": "OK", "result": []}]
+
+    summary = _consumer(sql, filed).run_once()
+    assert summary["failed"] == {}  # not a failure: the unit must not page rc 1
+    assert summary["claim_timed_out"] == ["data_product_event:ev001"]
+    assert filed == []  # handle() never ran without a confirmed claim
+    assert sum(q.startswith("UPDATE") for q in queries) == 1  # pass ended, no hammering
+
+
+def test_claim_connect_timeout_wrapped_in_urlerror_is_also_skipped():
+    import urllib.error
+
+    def sql(query):
+        if query.startswith("SELECT"):
+            return [{"status": "OK", "result": [_event(1)]}]
+        if query.startswith("UPDATE"):
+            raise urllib.error.URLError(TimeoutError("timed out"))
+        return [{"status": "OK", "result": []}]
+
+    summary = _consumer(sql, []).run_once()
+    assert summary["claim_timed_out"] == ["data_product_event:ev001"]
+    assert summary["failed"] == {}
+
+
+def test_claim_refused_connection_stays_a_failure():
+    import urllib.error
+
+    def sql(query):
+        if query.startswith("SELECT"):
+            return [{"status": "OK", "result": [_event(1)]}]
+        if query.startswith("UPDATE"):
+            raise urllib.error.URLError(ConnectionRefusedError("refused"))
+        return [{"status": "OK", "result": []}]
+
+    summary = _consumer(sql, []).run_once()
+    assert "data_product_event:ev001" in summary["failed"]
+    assert "claim_timed_out" not in summary
