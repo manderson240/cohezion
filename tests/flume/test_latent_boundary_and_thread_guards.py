@@ -139,7 +139,7 @@ def test_call_ollama_final_encode_runs_off_the_event_loop(tmp_path, monkeypatch)
             seen.append(threading.current_thread() is threading.main_thread())
             return np.ones(4, dtype=np.float32)
 
-        agent._semantic_vector = spy
+        agent._response_vector = spy
         agent._get_cached = AsyncMock(return_value=None)
         agent._set_cached = AsyncMock()
         agent.self_evaluate = AsyncMock(return_value=(1.0, 1.0, {}))

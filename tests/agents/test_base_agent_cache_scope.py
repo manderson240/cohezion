@@ -21,6 +21,7 @@ from cohezion.agents.base import BaseAgent
 from cohezion.flume.canonical_latent import CanonicalTextLatent
 from cohezion.reliability.semantic_cache import SemanticCache, query_digest
 from cohezion.swarm.swarm_types import SwarmConfig
+from tests.flume.test_canonical_latent_concurrency import LONG_A, real_loader  # noqa: F401
 
 
 SAVINGS = "Move $100 from savings to checking"
@@ -133,7 +134,7 @@ def test_same_scope_exact_prompt_is_served_from_semantic_tier(world):
 
 @pytest.mark.parametrize(
     "other",
-    [dict(model="model-b"), dict(cls=AgentB)],
+    [{"model": "model-b"}, {"cls": AgentB}],
     ids=["other-model", "other-agent-class"],
 )
 @pytest.mark.parametrize("tier", ["redis", "vectors-only"])
@@ -285,4 +286,24 @@ def test_file_tier_hit_through_call_ollama(world):
     n = len(world.calls)
     out = _ask(agent, SAVINGS)  # same agent: its own file cache answers first
     assert str(out) == "fresh-1" and len(world.calls) == n
+    assert out.embedding is not None and len(out.embedding) == 256
+
+
+# ---- F3: a long OUTPUT keeps its embedding; cache identity stays strict -----------------------------
+
+
+def test_long_output_keeps_its_embedding_while_cache_identity_stays_strict(
+    world, monkeypatch, real_loader
+):
+    import cohezion.core.routing.router as router
+
+    async def long_answer(*a, **k):
+        return LONG_A  # beyond the stub encoder window (16 tokens)
+
+    monkeypatch.setattr(router.LOCAL_ROUTER, "route_task", long_answer)
+    agent = world.make()
+    agent._encoder = CanonicalTextLatent(real_loader)
+    assert agent._encoder.exceeds_token_limit(LONG_A)  # precondition: really past the window
+    assert agent._semantic_vector(LONG_A) is None  # identity use: strict, unchanged
+    out = _ask(agent, "short question")
     assert out.embedding is not None and len(out.embedding) == 256

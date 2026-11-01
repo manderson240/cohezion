@@ -166,13 +166,28 @@ class BaseAgent(ABC):
         system_digest = hashlib.sha256((system_prompt or "").encode()).hexdigest()
         return f"{type(self).__name__}\0{model or self.model_name}\0{system_digest}"
 
-    def _semantic_vector(self, text: str) -> Any:
-        """Canonical 256-d latent for query AND store (one producer), or None if unavailable."""
+    def _text_encoder(self) -> Any:
         if self._encoder is None:
             from cohezion.flume.vae_encoder import get_encoder
 
             self._encoder = get_encoder()
-        return self._encoder.encode_or_none(text, strict_window=True)
+        return self._encoder
+
+    def _semantic_vector(self, text: str) -> Any:
+        """Canonical 256-d latent used as a cache IDENTITY (query AND store), or None.
+
+        Strict: a text longer than the encoder window is None, since two long prompts sharing
+        their head would otherwise collide at cosine 1.0.
+        """
+        return self._text_encoder().encode_or_none(text, strict_window=True)
+
+    def _response_vector(self, text: str) -> Any:
+        """Canonical 256-d latent of an agent OUTPUT (embedding field, novelty, learning loop).
+
+        Not an identity use, so a long output is embedded from its head (non-strict), as other
+        non-identity callers do; None only when the latent is unavailable.
+        """
+        return self._text_encoder().encode_or_none(text)
 
     async def _get_cached(
         self,
@@ -548,7 +563,7 @@ class BaseAgent(ABC):
         final_result = self._output_filter.filter(final_result).content
 
         # 2. FLUME Encoding
-        z = await asyncio.to_thread(self._semantic_vector, final_result)
+        z = await asyncio.to_thread(self._response_vector, final_result)
         if z is not None:
             embedding = z.tolist()
 
