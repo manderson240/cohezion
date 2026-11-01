@@ -132,3 +132,114 @@ def test_calibration_main_never_saves_when_no_threshold_is_valid(monkeypatch, tm
     with pytest.raises(SystemExit):
         asyncio.run(mod.main())
     assert saved == []
+
+
+# --- over-window queries are skipped and counted, an encoder outage still fails ---------------
+
+
+class _WindowedEncoder:
+    """Healthy deterministic encoder; any text containing LONG is over the window (None, as the
+    real encode_or_none(strict_window=True) reports it). ``down`` flips it to a real outage."""
+
+    def __init__(self):
+        self.down = False
+
+    def is_available(self):
+        return not self.down
+
+    def encode_or_none(self, text, strict_window=False):
+        import hashlib
+
+        from cohezion.flume.canonical_latent import LATENT_DIM
+
+        if self.down or "LONG" in text:
+            return None
+        seed = int.from_bytes(hashlib.md5(text.encode()).digest()[:4], "little")
+        v = np.random.default_rng(seed).standard_normal(LATENT_DIM).astype(np.float32)
+        return v / np.linalg.norm(v)
+
+
+def _healthy_main(monkeypatch, tmp_path, samples, encoder=None):
+    import cohezion.cache.semantic_cache as sc
+
+    enc = encoder or _WindowedEncoder()
+    monkeypatch.setattr(sc, "get_encoder", lambda: enc)
+    monkeypatch.setenv("HOME", str(tmp_path))
+    mod = _load("calibration/run_cache_calibration.py")
+    saved = []
+    monkeypatch.setattr(mod, "load_local_logs", lambda min_len=0: iter(samples))
+    monkeypatch.setattr(mod, "save_calibration_profile", lambda *a, **k: saved.append(a))
+    real_sweep = mod.run_parameter_sweep
+
+    async def sweep_no_ram_gate(s, fn, grid, min_ram_mb=0):
+        return await real_sweep(s, fn, grid, min_ram_mb=0)
+
+    monkeypatch.setattr(mod, "run_parameter_sweep", sweep_no_ram_gate)
+    return mod, enc, saved
+
+
+def _dup_samples(n=4):
+    out = []
+    for i in range(n):
+        p = f"distinct calibration prompt number {i} about topic {i * 7}"
+        out += [{"prompt": p, "response": f"a{i}"}, {"prompt": p, "response": f"a{i}"}]
+    return out
+
+
+@pytest.mark.parametrize("position", ["first", "middle", "last"])
+def test_over_window_prompt_is_skipped_counted_and_calibration_completes(
+    monkeypatch, tmp_path, capsys, position
+):
+    samples = _dup_samples()
+    long_one = {"prompt": "LONG " + "word " * 400, "response": "r"}
+    idx = {"first": 0, "middle": len(samples) // 2, "last": len(samples)}[position]
+    samples.insert(idx, long_one)
+    mod, _, saved = _healthy_main(monkeypatch, tmp_path, samples)
+    asyncio.run(mod.main())  # must NOT sys.exit
+    out = capsys.readouterr().out
+    assert "Skipped 1 sample(s)" in out
+    assert len(saved) == 1 and saved[0][0] == "semantic_cache"
+
+
+def test_all_samples_over_window_fails_saying_so_and_saves_nothing(
+    monkeypatch, tmp_path, caplog
+):
+    samples = [{"prompt": f"LONG {i} " + "w " * 300, "response": "r"} for i in range(3)]
+    mod, _, saved = _healthy_main(monkeypatch, tmp_path, samples)
+    with caplog.at_level(logging.ERROR), pytest.raises(SystemExit) as exc:
+        asyncio.run(mod.main())
+    assert exc.value.code == 1
+    assert "All samples were skipped" in caplog.text
+    assert "encoder" not in caplog.text.lower().replace("encoder window", "")
+    assert saved == []
+
+
+def test_encoder_down_at_start_still_fails_and_saves_nothing(monkeypatch, tmp_path):
+    enc = _WindowedEncoder()
+    enc.down = True
+    mod, _, saved = _healthy_main(monkeypatch, tmp_path, _dup_samples(), encoder=enc)
+    with pytest.raises(SystemExit) as exc:
+        asyncio.run(mod.main())
+    assert exc.value.code == 1
+    assert saved == []
+
+
+def test_encoder_dying_mid_partition_is_an_outage_not_a_skip(monkeypatch, tmp_path):
+    """The probe passes, then the encoder goes down: every later None is an outage."""
+    samples = _dup_samples()
+    enc = _WindowedEncoder()
+    mod, _, saved = _healthy_main(monkeypatch, tmp_path, samples, encoder=enc)
+    real = enc.encode_or_none
+    calls = []
+
+    def dies_after_probe(text, strict_window=False):
+        calls.append(1)
+        if len(calls) > 3:
+            enc.down = True
+        return real(text, strict_window)
+
+    enc.encode_or_none = dies_after_probe
+    with pytest.raises(SystemExit) as exc:
+        asyncio.run(mod.main())
+    assert exc.value.code == 1
+    assert saved == []

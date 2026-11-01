@@ -7,6 +7,7 @@ Uses vector similarity to retrieve cached agent responses.
 import hashlib
 import json
 import logging
+import math
 import time
 from pathlib import Path
 from typing import Any
@@ -46,6 +47,8 @@ class SemanticCache:
 
     # Redis key version: v1 keys were unscoped (sha256 of the query only) and are never read.
     _REDIS_PREFIX = "semantic_cache:exact:v2:"
+    # Tolerated clock disagreement for a timestamp ahead of "now" (seconds); beyond it = expired.
+    _FUTURE_SKEW_S = 300.0
 
     def __init__(
         self,
@@ -131,13 +134,25 @@ class SemanticCache:
         return self._REDIS_PREFIX + hashlib.sha256(f"{scope}\0{query_text}".encode()).hexdigest()
 
     def _expired(self, meta: dict[str, Any]) -> bool:
-        """True when the entry is older than ``ttl_seconds``. No/zero/invalid timestamp = expired."""
+        """True when the entry is older than ``ttl_seconds``.
+
+        No, zero, non-numeric or non-finite (NaN, +-inf) timestamp = expired. A timestamp more than
+        ``_FUTURE_SKEW_S`` ahead of the clock is expired too (it would otherwise outlive any ttl).
+        """
         if self.ttl_seconds is None:
             return False
         stamp = meta.get("timestamp")
-        if isinstance(stamp, bool) or not isinstance(stamp, (int, float)) or stamp <= 0:
+        if (
+            isinstance(stamp, bool)
+            or not isinstance(stamp, (int, float))
+            or not math.isfinite(stamp)
+            or stamp <= 0
+        ):
             return True
-        return time.time() - stamp >= self.ttl_seconds
+        now = time.time()
+        if stamp > now + self._FUTURE_SKEW_S:
+            return True
+        return now - stamp >= self.ttl_seconds
 
     def _redis_ttl(self) -> float:
         return min(3600 * 24, self.ttl_seconds) if self.ttl_seconds is not None else 3600 * 24

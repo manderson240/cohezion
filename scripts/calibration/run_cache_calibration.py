@@ -28,6 +28,27 @@ from cohezion.validation.calibration_harness import (  # noqa: E402
 )
 
 
+def drop_unencodable(samples: list[dict]) -> tuple[list[dict], int]:
+    """Split off prompts the cache cannot index (over the encoder window, or unencodable).
+
+    put() skips L2 for these, so they can never be hit or hit against; they are SKIPPED and
+    counted, not treated as an encoder outage. A genuinely unavailable encoder still raises
+    TextLatentUnavailable (checked after every None, so an outage cannot hide as a skip).
+    """
+    import cohezion.cache.semantic_cache as semantic_cache_module
+
+    kept: list[dict] = []
+    skipped = 0
+    for sample in samples:
+        if SemanticCache._text_to_embedding(sample["prompt"]) is not None:
+            kept.append(sample)
+        elif semantic_cache_module.get_encoder().is_available():
+            skipped += 1
+        else:
+            raise TextLatentUnavailable("text latent unavailable: encoder went down mid-run")
+    return kept, skipped
+
+
 def jaccard_similarity(s1: str, s2: str) -> float:
     """Compute word-level Jaccard similarity between two strings."""
     w1 = set(s1.lower().split())
@@ -128,6 +149,16 @@ async def main():
     # Refuse before sweeping: without the real encoder L2 never fills and the sweep measures nothing.
     if SemanticCache._text_to_embedding("calibration encoder probe") is None:
         logger.error("Text latent unavailable: refusing to calibrate. Nothing saved.")
+        sys.exit(1)
+
+    try:
+        samples, skipped = drop_unencodable(samples)
+    except TextLatentUnavailable as exc:
+        logger.error("%s. Nothing saved.", exc)
+        sys.exit(1)
+    print(f"Skipped {skipped} sample(s) over the encoder window or unencodable; {len(samples)} kept.")
+    if not samples:
+        logger.error("All samples were skipped (none indexable by the cache). Nothing saved.")
         sys.exit(1)
 
     # Define candidate parameter grid
