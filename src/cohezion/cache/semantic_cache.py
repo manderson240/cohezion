@@ -24,7 +24,7 @@ from typing import Any
 
 import numpy as np
 
-from cohezion.flume.canonical_latent import LATENT_DIM, PARAPHRASE_THRESHOLD, TextLatentUnavailable
+from cohezion.flume.canonical_latent import LATENT_DIM, PARAPHRASE_THRESHOLD
 from cohezion.flume.vae_encoder import get_encoder
 
 
@@ -91,6 +91,9 @@ class CacheEntry:
     scope: str = ""  # AOEP scope axis: "" = global, else agent/task scope tag
     # PR 2: (model_id, family, thinking_mode) the entry was stored under.
     card_signature: tuple[str, str, str] | None = None
+    # sha256 of (system, model): L2 only matches inside one partition, because the embedding is of
+    # the prompt alone and cannot tell a different system prompt or model apart.
+    partition: str = ""
 
 
 _singleton: "SemanticCache | None" = None
@@ -273,7 +276,30 @@ class SemanticCache:
         dot_product = np.dot(a, b)
         return float(dot_product)
 
-    def _is_novel(self, embedding: np.ndarray) -> bool:
+    @staticmethod
+    def _partition(system: str | None, model: str | None) -> str:
+        if not system and not model:
+            return ""
+        return hashlib.sha256(f"{system or ''}\x00{model or ''}".encode()).hexdigest()[:16]
+
+    def _best_l2(self, embedding: np.ndarray, partition: str) -> tuple[str | None, float]:
+        """Best (key, cosine) among L2 entries in ``partition``; (None, 0.0) if there are none."""
+        if self._l2_matrix is None or not self._l2_keys:
+            return None, 0.0
+        sims = np.dot(self._l2_matrix, embedding)
+        if partition or any(self.l2_cache[k].partition for k in self._l2_keys):
+            mask = np.fromiter(
+                (self.l2_cache[k].partition == partition for k in self._l2_keys),
+                dtype=bool,
+                count=len(self._l2_keys),
+            )
+            if not mask.any():
+                return None, 0.0
+            sims = np.where(mask, sims, -np.inf)
+        idx = int(np.argmax(sims))
+        return self._l2_keys[idx], float(sims[idx])
+
+    def _is_novel(self, embedding: np.ndarray, partition: str = "") -> bool:
         """Check if embedding is novel relative to existing L2 entries.
 
         Returns True if the embedding's max cosine similarity to any existing
@@ -286,10 +312,8 @@ class SemanticCache:
         Returns:
             True if novel (should insert), False if near-duplicate (skip).
         """
-        if self._l2_matrix is None or len(self._l2_keys) == 0:
-            return True
-        sims = np.dot(self._l2_matrix, embedding)
-        return float(np.max(sims)) < self.novelty_threshold
+        key, sim = self._best_l2(embedding, partition)
+        return key is None or sim < self.novelty_threshold
 
     def _get_adaptive_threshold(self) -> float:
         """Adjust similarity threshold based on observed hit rates.
@@ -405,12 +429,11 @@ class SemanticCache:
         best_similarity = 0.0
         current_threshold = self._get_adaptive_threshold()
 
-        if query_embedding is not None and self._l2_matrix is not None and len(self._l2_keys) > 0:
-            sims = np.dot(self._l2_matrix, query_embedding)
-            best_idx = int(np.argmax(sims))
-            best_similarity = float(sims[best_idx])
-            best_key = self._l2_keys[best_idx]
-            best_match = self.l2_cache.get(best_key)
+        if query_embedding is not None:
+            best_key, best_similarity = self._best_l2(
+                query_embedding, self._partition(system, model)
+            )
+            best_match = self.l2_cache.get(best_key) if best_key is not None else None
 
         if best_match and best_similarity > current_threshold and _scope_ok(best_match):
             self.hits_l2 += 1
@@ -463,12 +486,11 @@ class SemanticCache:
         embed_text = full_prompt if card_signature is not None else prompt
         query_embedding = await asyncio.to_thread(self._text_to_embedding, embed_text)
         current_threshold = self._get_adaptive_threshold()
-        if query_embedding is not None and self._l2_matrix is not None and len(self._l2_keys) > 0:
-            sims = np.dot(self._l2_matrix, query_embedding)
-            best_idx = int(np.argmax(sims))
-            best_similarity = float(sims[best_idx])
-            best_key = self._l2_keys[best_idx]
-            best_match = self.l2_cache.get(best_key)
+        if query_embedding is not None:
+            best_key, best_similarity = self._best_l2(
+                query_embedding, self._partition(system, model)
+            )
+            best_match = self.l2_cache.get(best_key) if best_key is not None else None
         else:
             best_match = None
             best_similarity = 0.0
@@ -523,6 +545,7 @@ class SemanticCache:
             scope=scope,
             embedding=embedding,
             card_signature=card_signature,
+            partition=self._partition(system, model),
         )
 
         # Store in L1 (exact match)
@@ -531,7 +554,7 @@ class SemanticCache:
         # Store in L2 (semantic) — skip if near-duplicate (novelty gate) or if no real encoder
         if embedding is None:
             logger.debug("L2 insertion skipped: canonical text latent unavailable")
-        elif self._is_novel(embedding):
+        elif self._is_novel(embedding, entry.partition):
             self._put_l2(hash_key, entry)
         else:
             self.novelty_skipped += 1
