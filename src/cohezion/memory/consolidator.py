@@ -63,6 +63,9 @@ class ConsolidatedFact:
     fact: TrustedFact
     supporting_episode_ids: list[str]
     confidence: float
+    # True when this fact was compared against the existing store with at least one missing
+    # embedding (no encoder, or text beyond its window), so a duplicate may have gone undetected.
+    dedup_unchecked: bool = False
 
     @property
     def content(self) -> str:
@@ -138,6 +141,8 @@ class MemoryConsolidator:
         self._support_threshold = support_threshold
         self._confidence_floor = confidence_floor
         self._persist = persist
+        # Number of _embed() CALLS that returned no vector (not facts: one candidate checked
+        # against K stored facts can add up to K + 1). Per-fact state: ConsolidatedFact.dedup_unchecked.
         self.embed_missing = 0
 
     # ── public API ────────────────────────────────────────────────────────────
@@ -168,7 +173,9 @@ class MemoryConsolidator:
                 continue
 
             # dedup (>= threshold) against the existing semantic store — corroborate, don't re-add
+            missing_before = self.embed_missing
             existing = self._nearest_existing(text)
+            dedup_unchecked = self.embed_missing > missing_before
             if existing is not None:
                 self._hierarchy.corroborate(existing.content, True)
                 continue
@@ -188,7 +195,10 @@ class MemoryConsolidator:
                     self._persist_fact(fact, confidence, support_ids)
             promoted.append(
                 ConsolidatedFact(
-                    fact=fact, supporting_episode_ids=support_ids, confidence=confidence
+                    fact=fact,
+                    supporting_episode_ids=support_ids,
+                    confidence=confidence,
+                    dedup_unchecked=dedup_unchecked,
                 )
             )
         return promoted
@@ -242,7 +252,9 @@ class MemoryConsolidator:
             self.embed_missing += 1
             if self.embed_missing == 1:
                 logger.warning(
-                    "consolidator: no embedding available, dedup is disabled for those texts"
+                    "consolidator: no embedding available for a text (no encoder, or beyond its "
+                    "window); it scores 0.0 similarity, so it is never merged and, if a fact, "
+                    "is flagged dedup_unchecked"
                 )
             return None
         return np.asarray(vec, dtype=np.float64)
