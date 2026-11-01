@@ -164,7 +164,7 @@ class BaseAgent(ABC):
             from cohezion.flume.vae_encoder import get_encoder
 
             self._encoder = get_encoder()
-        return self._encoder.encode_or_none(text)
+        return self._encoder.encode_or_none(text, strict_window=True)
 
     async def _get_cached(
         self, prompt: str, images: list[str] | None = None

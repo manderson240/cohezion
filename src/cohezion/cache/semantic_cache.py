@@ -255,16 +255,9 @@ class SemanticCache:
         None makes the L2 tier a no-op for this call (no lookup, no insert); L1 exact-match
         still works. There is no hash substitute and the width never changes.
         """
-        encoder = get_encoder()
-        try:
-            # The backend silently ignores everything past its token window; a vector of the head
-            # of a long (system + prompt) text would collide for distinct prompts. Fail closed.
-            if encoder.exceeds_token_limit(text):
-                logger.warning("L2 skipped: text exceeds the encoder window (%s tokens)", encoder.max_tokens)
-                return None
-        except TextLatentUnavailable:
-            pass  # encode_or_none below reports it (counted + warned)
-        return encoder.encode_or_none(text)
+        # The backend silently ignores everything past its token window; a vector of the head of a
+        # long text would collide for distinct prompts, so identity use fails closed.
+        return get_encoder().encode_or_none(text, strict_window=True)
 
     @staticmethod
     def _cosine_similarity(a: np.ndarray, b: np.ndarray) -> float:

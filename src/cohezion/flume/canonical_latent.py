@@ -188,11 +188,20 @@ class CanonicalTextLatent:
         limit = self.max_tokens
         return bool(counter and limit and counter(text) > limit)
 
-    def encode_or_none(self, text: str) -> np.ndarray | None:
+    def encode_or_none(self, text: str, *, strict_window: bool = False) -> np.ndarray | None:
         """``encode`` or None. A None is never silent: skipped calls are counted and a warning is
         logged at most once per RETRY_AFTER_S, so empty ``flume_state``/``z_vector`` fields and
-        skipped cache tiers downstream are traceable to this cause."""
+        skipped cache tiers downstream are traceable to this cause.
+
+        ``strict_window=True`` is for callers that use the vector as an IDENTITY (cache keys): a
+        text longer than the backend window is reported as None instead of being embedded from
+        its head alone, since two different long texts sharing a head would collide at cosine 1.0.
+        The default stays False so non-identity callers keep embedding long contexts."""
         try:
+            if strict_window and self.exceeds_token_limit(text):
+                raise TextLatentUnavailable(
+                    f"text exceeds the encoder window ({self.max_tokens} tokens)"
+                )
             return self.encode(text)
         except TextLatentUnavailable as exc:
             self.skipped_calls += 1
