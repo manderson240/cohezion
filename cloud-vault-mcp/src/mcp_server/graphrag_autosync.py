@@ -20,11 +20,16 @@ class GraphRAGAutoSync:
     """Auto-sync vault changes to SurrealDB GraphRAG"""
 
     def __init__(
-        self, vault_path: Path, watcher: VaultFileWatcher, enable_edges: bool = True
+        self,
+        vault_path: Path,
+        watcher: VaultFileWatcher,
+        enable_edges: bool = True,
+        surrealdb_url: str | None = None,
     ):
         self.vault_path = Path(vault_path).resolve()
         self.watcher = watcher
         self.enable_edges = enable_edges
+        self.surrealdb_url = surrealdb_url  # None -> the importer's default
 
         self.importer: GraphRAGImporter | None = None
         self.task: asyncio.Task | None = None
@@ -37,7 +42,8 @@ class GraphRAGAutoSync:
             return
 
         # Initialize importer
-        self.importer = GraphRAGImporter(self.vault_path)
+        extra = {"surrealdb_url": self.surrealdb_url} if self.surrealdb_url else {}
+        self.importer = GraphRAGImporter(self.vault_path, **extra)
         await self.importer.__aenter__()
 
         # Subscribe to watcher
@@ -115,7 +121,10 @@ _auto_sync: GraphRAGAutoSync | None = None
 
 
 async def start_autosync(
-    vault_path: Path, watcher: VaultFileWatcher, enable_edges: bool = True
+    vault_path: Path,
+    watcher: VaultFileWatcher,
+    enable_edges: bool = True,
+    surrealdb_url: str | None = None,
 ):
     """Start global auto-sync instance"""
     global _auto_sync
@@ -124,7 +133,7 @@ async def start_autosync(
         logger.warning("Auto-sync already running")
         return _auto_sync
 
-    _auto_sync = GraphRAGAutoSync(vault_path, watcher, enable_edges)
+    _auto_sync = GraphRAGAutoSync(vault_path, watcher, enable_edges, surrealdb_url)
     await _auto_sync.start()
     return _auto_sync
 
