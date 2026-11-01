@@ -188,7 +188,6 @@ class ConciergeAgent:
             except TextLatentUnavailable as exc:
                 logger.warning("semantic routing skipped, using keyword fallback: %s", exc)
         if prompt_embedding is not None:
-
             # First: check against historical routes (learned preferences)
             if self._history:
                 best_sim = 0.0

@@ -20,7 +20,10 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(
 logger = logging.getLogger(__name__)
 
 from cohezion.cache.semantic_cache import SemanticCache  # noqa: E402
-from cohezion.flume.canonical_latent import TextLatentUnavailable  # noqa: E402
+from cohezion.flume.canonical_latent import (  # noqa: E402
+    TextLatentUnavailable,
+    _require_encodable,
+)
 from cohezion.validation.calibration_harness import (  # noqa: E402
     load_local_logs,
     run_parameter_sweep,
@@ -32,21 +35,35 @@ def drop_unencodable(samples: list[dict]) -> tuple[list[dict], int]:
     """Split off prompts the cache cannot index (over the encoder window, or unencodable).
 
     put() skips L2 for these, so they can never be hit or hit against; they are SKIPPED and
-    counted, not treated as an encoder outage. A genuinely unavailable encoder still raises
-    TextLatentUnavailable (checked after every None, so an outage cannot hide as a skip).
+    counted, not treated as an encoder outage. encode_or_none returns None for an outage and for
+    a failed inference too, so a None only counts as a skip when the prompt itself explains it;
+    anything else raises TextLatentUnavailable.
     """
     import cohezion.cache.semantic_cache as semantic_cache_module
 
     kept: list[dict] = []
     skipped = 0
     for sample in samples:
-        if SemanticCache._text_to_embedding(sample["prompt"]) is not None:
+        prompt = sample["prompt"]
+        if SemanticCache._text_to_embedding(prompt) is not None:
             kept.append(sample)
-        elif semantic_cache_module.get_encoder().is_available():
-            skipped += 1
-        else:
+            continue
+        encoder = semantic_cache_module.get_encoder()
+        if not encoder.is_available():
             raise TextLatentUnavailable("text latent unavailable: encoder went down mid-run")
+        if not _is_unindexable(encoder, prompt):
+            raise TextLatentUnavailable("text latent unavailable: inference failed on a prompt")
+        skipped += 1
     return kept, skipped
+
+
+def _is_unindexable(encoder, prompt: str) -> bool:
+    """True when the prompt alone explains a None: not valid text, or over the encoder window."""
+    try:
+        _require_encodable(prompt)
+    except TextLatentUnavailable:
+        return True
+    return encoder.exceeds_token_limit(prompt)
 
 
 def jaccard_similarity(s1: str, s2: str) -> float:
@@ -185,6 +202,7 @@ async def main():
 
     optimal_threshold = None
     best_valid_hit_rate = 0.0
+    errored = 0
 
     for res in sweep_results:
         cand = res["candidate"]
@@ -193,6 +211,7 @@ async def main():
 
         if "error" in metrics:
             print(f"| {t:.2f} | ERROR: {metrics['error']} |")
+            errored += 1
             continue
 
         print(
@@ -209,6 +228,11 @@ async def main():
         ):
             best_valid_hit_rate = metrics["valid_hit_rate_pct"]
             optimal_threshold = t
+
+    if errored:
+        # A best threshold from a partial sweep is the best of whichever ones happened to run.
+        logger.error("%d threshold(s) errored; refusing to save a profile.", errored)
+        sys.exit(1)
 
     if optimal_threshold is None:
         # No candidate produced a valid hit (all errored, collided, or never hit): nothing was

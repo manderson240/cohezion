@@ -147,12 +147,15 @@ class _WindowedEncoder:
     def is_available(self):
         return not self.down
 
+    def exceeds_token_limit(self, text):
+        return "LONG" in text
+
     def encode_or_none(self, text, strict_window=False):
         import hashlib
 
         from cohezion.flume.canonical_latent import LATENT_DIM
 
-        if self.down or "LONG" in text:
+        if self.down or "LONG" in text or "FLAKY" in text:
             return None
         seed = int.from_bytes(hashlib.sha256(text.encode()).digest()[:4], "little")
         v = np.random.default_rng(seed).standard_normal(LATENT_DIM).astype(np.float32)
@@ -241,4 +244,50 @@ def test_encoder_dying_mid_partition_is_an_outage_not_a_skip(monkeypatch, tmp_pa
         asyncio.run(mod.main())
     assert exc.value.code == 1
     assert "went down mid-run" in caplog.text  # reported as an outage, not as skipped samples
+    assert saved == []
+
+
+def test_failed_inference_on_a_short_prompt_is_not_a_skip(monkeypatch, tmp_path, caplog):
+    """A transient failure returns None with the encoder still up: it must not read as a skip."""
+    samples = [*_dup_samples(), {"prompt": "FLAKY short prompt", "response": "r"}]
+    mod, _, saved = _healthy_main(monkeypatch, tmp_path, samples)
+    with caplog.at_level(logging.ERROR), pytest.raises(SystemExit) as exc:
+        asyncio.run(mod.main())
+    assert exc.value.code == 1
+    assert "inference failed" in caplog.text
+    assert saved == []
+
+
+def test_unencodable_prompt_is_skipped_without_asking_for_a_token_count(
+    monkeypatch, tmp_path, capsys
+):
+    samples = [*_dup_samples(), {"prompt": "lone surrogate \ud800 prompt", "response": "r"}]
+    enc = _WindowedEncoder()
+    real = enc.encode_or_none
+    enc.encode_or_none = lambda text, strict_window=False: (
+        None if "\ud800" in text else real(text, strict_window)
+    )
+    # The real exceeds_token_limit raises TypeError on a surrogate.
+    enc.exceeds_token_limit = lambda text: (_ for _ in ()).throw(TypeError("surrogate"))
+    mod, _, saved = _healthy_main(monkeypatch, tmp_path, samples, encoder=enc)
+    asyncio.run(mod.main())
+    assert "Skipped 1 sample(s)" in capsys.readouterr().out
+    assert len(saved) == 1
+
+
+def test_encoder_dying_during_the_sweep_saves_nothing(monkeypatch, tmp_path, caplog):
+    """The filter passes, then the encoder dies: rows that did finish must not pick a threshold."""
+    mod, enc, saved = _healthy_main(monkeypatch, tmp_path, _dup_samples())
+    real_eval = mod.evaluate_cache_threshold
+
+    async def dies_at_the_third_threshold(samples, candidate):
+        if candidate["similarity_threshold"] >= 0.5:
+            enc.down = True
+        return await real_eval(samples, candidate)
+
+    monkeypatch.setattr(mod, "evaluate_cache_threshold", dies_at_the_third_threshold)
+    with caplog.at_level(logging.ERROR), pytest.raises(SystemExit) as exc:
+        asyncio.run(mod.main())
+    assert exc.value.code == 1
+    assert "threshold(s) errored" in caplog.text
     assert saved == []

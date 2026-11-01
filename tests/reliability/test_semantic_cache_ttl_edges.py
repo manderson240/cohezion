@@ -137,3 +137,21 @@ def test_ttl_none_still_serves_everything(tmp_path, clock, redis):
     _add(cache)
     cache.metadata[0]["timestamp"] = 0
     assert _search(cache) is not None
+
+
+# The Redis tier has its own expiry check; a stale L1 row must not be served.
+def test_redis_l1_serves_a_fresh_row_and_refuses_a_stale_one(tmp_path, clock, redis):
+    cache = _cache(tmp_path, 3600)
+    row = {"response": "L1", "scope": "s", "query_digest": sc.query_digest("q")}
+
+    async def fresh(key):
+        return {**row, "timestamp": NOW}
+
+    redis.get = fresh
+    assert _search(cache)["response"] == "L1"
+
+    async def stale(key):
+        return {**row, "timestamp": NOW - 7200}
+
+    redis.get = stale
+    assert _search(cache) is None

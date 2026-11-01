@@ -88,7 +88,12 @@ def test_observable_action_proposal_survives_unavailable_latent():
     seen = []
     ok = asyncio.run(
         p.propose_action(
-            "update", "d", "r", 0.5, AsyncMock(), approval_callback=lambda pr: seen.append(pr) or True
+            "update",
+            "d",
+            "r",
+            0.5,
+            AsyncMock(),
+            approval_callback=lambda pr: seen.append(pr) or True,
         )
     )
     assert ok is True
