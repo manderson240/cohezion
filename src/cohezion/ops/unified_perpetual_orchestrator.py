@@ -381,8 +381,10 @@ class UnifiedPerpetualLoopDaemon:
             if snapshot.hardware.available_ram_gb < 20.0 or snapshot.hardware.gtt_used_gb > 46.0:
                 healing_info = self.control_plane.hardware.heal_hardware()
 
-            # persisted['surreal'] only says the snapshot's own raw-HTTP write landed. It says
-            # nothing about whether the loop's SurrealClient is writing to memory instead.
+            # persisted['surreal'] only says the snapshot's own raw-HTTP write landed. The
+            # SurrealClient fallback registry is informational ONLY: it is process-local (a
+            # dropped client vanishes from it while its writes stay in memory, an unrelated
+            # client can flip it, and it cannot see other processes), so it never decides success.
             store = persistence_status()
             in_fallback = store["in_memory_fallback"]
 
@@ -395,11 +397,12 @@ class UnifiedPerpetualLoopDaemon:
             )
             if in_fallback:
                 summary += (
-                    f" | LOOP STORE: IN-MEMORY FALLBACK ({store['clients_in_fallback']} client(s))"
+                    f" | THIS PROCESS: {store['clients_in_fallback']} SurrealClient(s) "
+                    "in IN-MEMORY FALLBACK (other processes not visible)"
                 )
             return PhaseResult(
                 phase_name="control_sentry",
-                success=not in_fallback,
+                success=True,
                 duration_ms=round(elapsed_ms, 1),
                 summary=summary,
                 details={

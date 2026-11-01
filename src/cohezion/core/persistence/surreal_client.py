@@ -53,12 +53,24 @@ _FALLBACK_CLIENTS: "weakref.WeakSet[SurrealClient]" = weakref.WeakSet()
 
 _FALLBACK_RETRY_BASE_S = 5.0
 _FALLBACK_RETRY_MAX_S = 300.0
+# Bounds on the websocket handshake (connect + signin + use). A server that accepts the TCP/WS
+# connection but never answers would otherwise block the caller indefinitely. The retry bound is
+# short and below the minimum backoff so a fallback operation is never held up for long.
+_CONNECT_TIMEOUT_S = 10.0
+_FALLBACK_RETRY_TIMEOUT_S = 2.0
+_CLOSE_TIMEOUT_S = 2.0
 
 
 def persistence_status() -> dict[str, Any]:
-    """Report whether any SurrealClient is writing to memory instead of SurrealDB."""
+    """Report SurrealClients of THIS PROCESS that are writing to memory instead of SurrealDB.
+
+    Scope is this process only: other processes' clients are invisible, a client that was
+    garbage-collected (its in-memory writes are still in the shared store) drops out of the
+    count, and a process that never constructed a client reports zero. It is a diagnostic,
+    not a health verdict: do not derive a pass/fail from it.
+    """
     n = len(_FALLBACK_CLIENTS)
-    return {"in_memory_fallback": n > 0, "clients_in_fallback": n}
+    return {"in_memory_fallback": n > 0, "clients_in_fallback": n, "scope": "this_process_only"}
 
 
 class InsecureSurrealCredentialsError(RuntimeError):
@@ -380,6 +392,9 @@ DEFINE FIELD stability_score ON TABLE universe_nodes VALUE (
         self._using_fallback = False
         self._fallback_failures = 0
         self._fallback_retry_at = 0.0  # time.monotonic() deadline for the next real attempt
+        self._fallback_write_mark = 0  # InMemoryStore.writes when this client entered fallback
+        self._connect_lock = asyncio.Lock()  # one connection attempt in flight at a time
+        self._creds_warned = False
         self._client: Any = None  # Will be surrealdb client when connected
 
     @property
@@ -390,53 +405,111 @@ DEFINE FIELD stability_score ON TABLE universe_nodes VALUE (
         return "connected" if self._connected else "disconnected"
 
     async def _ensure_connected(self) -> None:
-        """Connect if needed; while in fallback, retry the real connection on a backoff."""
+        """Connect if needed; while in fallback, retry the real connection on a backoff.
+
+        Known limit: writes made while in fallback live only in the process-wide InMemoryStore.
+        They are NOT replayed to SurrealDB on recovery, and after recovery reads go to the real
+        database, so those writes are not readable through this client. Recovery logs how many.
+        """
         if not self._connected:
             await self.connect()
         elif self._using_fallback and time.monotonic() >= self._fallback_retry_at:
+            if self._connect_lock.locked():
+                return  # an attempt is already in flight: keep serving from memory
             # Claim the slot first so concurrent callers do not stampede the server.
             self._fallback_retry_at = time.monotonic() + self._fallback_delay()
             logger.info("Retrying SurrealDB connection (in-memory fallback active)")
-            await self.connect()
+            await self._connect(initial=False)
 
     def _fallback_delay(self) -> float:
         # Clamp the exponent: float * 2**n raises OverflowError past n~1024, about 85 h into an outage.
         exponent = min(self._fallback_failures, 16)
         return min(_FALLBACK_RETRY_BASE_S * 2**exponent, _FALLBACK_RETRY_MAX_S)
 
+    @staticmethod
+    async def _close_quietly(client: Any) -> None:
+        """Release a handshake that did not complete (socket + receive/keepalive tasks)."""
+        with contextlib.suppress(Exception):
+            await asyncio.wait_for(client.close(), _CLOSE_TIMEOUT_S)
+
+    async def _open_real_client(self, timeout: float) -> Any:
+        """Handshake with SurrealDB and return the client; closes it on EVERY failure path."""
+        from surrealdb import AsyncSurreal  # ImportError propagates to the caller
+
+        # Resolve credentials via vault-first pattern — see _resolve_surreal_credentials above.
+        username, password = _resolve_surreal_credentials()
+        client = AsyncSurreal(self.url)
+
+        async def _handshake() -> None:
+            await client.connect()
+            await client.signin({"username": username, "password": password})
+            await client.use(self.namespace, self.database)
+
+        try:
+            await asyncio.wait_for(_handshake(), timeout)
+        except BaseException:
+            await self._close_quietly(client)
+            raise
+        return client
+
     async def connect(self) -> bool:
         """
         Connect to SurrealDB.
 
-        Returns True if connected successfully.
+        Returns True if connected successfully (or serving from the in-memory fallback).
+        Raises InsecureSurrealCredentialsError on a real initial connection without credentials.
         """
-        breaker = get_circuit("surrealdb", failure_threshold=5)
-        if not breaker.allow_request():
-            logger.warning("🛑 Circuit Open: SurrealDB connection rejected. Using fallback.")
-            self._use_fallback()
-            return True
+        return await self._connect(initial=True)
 
-        global _SHARED_STORE
-        try:
-            # Try to import surrealdb
-            try:
-                from surrealdb import AsyncSurreal
-            except ImportError:
-                logger.warning("surrealdb package not installed. Using in-memory fallback.")
-                self._connected = True
-                if _SHARED_STORE is None:
-                    _SHARED_STORE = InMemoryStore()
-                self._client = _SHARED_STORE
+    async def _connect(self, *, initial: bool) -> bool:
+        """`initial=False` is the background fallback retry: bounded, serialized, never raises
+        the credential error (the gate stays strict for a real initial connection)."""
+        async with self._connect_lock:
+            if not initial and not self._using_fallback:
+                return True  # recovered while we waited: a stale attempt must not undo it
+            breaker = get_circuit("surrealdb", failure_threshold=5)
+            if not breaker.allow_request():
+                logger.warning("🛑 Circuit Open: SurrealDB connection rejected. Using fallback.")
+                self._use_fallback()
                 return True
 
-            # Use AsyncSurreal with the new API (v1.0.8+)
-            # Resolve credentials via vault-first pattern — see _resolve_surreal_credentials above.
-            username, password = _resolve_surreal_credentials()
+            timeout = _CONNECT_TIMEOUT_S if initial else _FALLBACK_RETRY_TIMEOUT_S
+            try:
+                client = await self._open_real_client(timeout)
+            except ImportError:
+                logger.warning("surrealdb package not installed. Using in-memory fallback.")
+                self._use_fallback()
+                return True
+            except InsecureSurrealCredentialsError:
+                breaker.record_failure()
+                if initial:
+                    # Do NOT fall back to InMemoryStore on an insecure-credentials refusal —
+                    # that would mask the misconfiguration. Re-raise so callers can degrade.
+                    # INFO (not ERROR): callers treat this as an optional tier skip.
+                    logger.info(
+                        "SurrealDB skipped: insecure credentials (configure root password to enable)"
+                    )
+                    raise
+                if not self._creds_warned:
+                    self._creds_warned = True
+                    logger.warning(
+                        "SurrealDB fallback retry cannot proceed: no secure credentials. "
+                        "Staying on InMemoryStore (the credential gate is not weakened)."
+                    )
+                self._use_fallback()
+                return True
+            except Exception as e:
+                breaker.record_failure()
+                logger.error(
+                    "Failed to connect to SurrealDB: %s. Falling back to InMemoryStore.",
+                    e,
+                    exc_info=True,
+                )
+                self._use_fallback()
+                return True
 
-            client = AsyncSurreal(self.url)
-            await client.connect()
-            await client.signin({"username": username, "password": password})
-            await client.use(self.namespace, self.database)
+            was_fallback = self._using_fallback
+            unreplayed = self._unreplayed_fallback_writes() if was_fallback else 0
             # Publish only after the handshake succeeds so concurrent callers never see a
             # half-open client while a fallback retry is in flight.
             self._client = client
@@ -448,32 +521,26 @@ DEFINE FIELD stability_score ON TABLE universe_nodes VALUE (
             logger.info(
                 f"✅ REAL CLIENT: Connected to SurrealDB at {self.url} ({self.namespace}/{self.database})"
             )
+            if unreplayed:
+                logger.warning(
+                    "SurrealDB recovered, but %d write(s) made to the in-memory fallback were NOT "
+                    "replayed and are not readable via the real database (count is process-wide: "
+                    "the InMemoryStore is shared by all clients in this process).",
+                    unreplayed,
+                )
             return True
-        except InsecureSurrealCredentialsError:
-            # Do NOT fall back to InMemoryStore on an insecure-credentials refusal — that
-            # would mask the misconfiguration. Re-raise so callers can degrade gracefully.
-            # Log at INFO (not ERROR): callers like experience_collector treat this as an
-            # optional tier skip, so ERROR is misleading noise in dev environments.
-            breaker.record_failure()
-            logger.info(
-                "SurrealDB skipped: insecure credentials (configure root password to enable)"
-            )
-            raise
-        except Exception as e:
-            breaker.record_failure()
-            logger.error(
-                "Failed to connect to SurrealDB: %s. Falling back to InMemoryStore.",
-                e,
-                exc_info=True,
-            )
-            self._use_fallback()
-            return True
+
+    def _unreplayed_fallback_writes(self) -> int:
+        store = _SHARED_STORE
+        return max(0, store.writes - self._fallback_write_mark) if store is not None else 0
 
     def _use_fallback(self):
         """Enable in-memory fallback."""
         global _SHARED_STORE
         if _SHARED_STORE is None:
             _SHARED_STORE = InMemoryStore()
+        if not self._using_fallback:
+            self._fallback_write_mark = _SHARED_STORE.writes
         self._client = _SHARED_STORE
         self._connected = True
         self._using_fallback = True
@@ -1115,8 +1182,10 @@ class InMemoryStore:
 
     def __init__(self):
         self._data: dict[str, dict[str, Any]] = {}
+        self.writes = 0  # total store() calls; lets a recovering client count unreplayed writes
 
     def store(self, key: str, value: dict[str, Any]) -> None:
+        self.writes += 1
         self._data[key] = value
 
     def get(self, key: str) -> dict[str, Any] | None:

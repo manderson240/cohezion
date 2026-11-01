@@ -168,8 +168,8 @@ async def test_run_sentry_phase(mock_daemon):
 
 
 @pytest.mark.asyncio
-async def test_sentry_reports_inmemory_fallback_not_healthy(mock_daemon):
-    """persist_snapshot's raw-HTTP 'Surreal: True' must not hide a SurrealClient on memory."""
+async def test_sentry_reports_inmemory_fallback_without_failing_on_it(mock_daemon):
+    """A SurrealClient on memory is surfaced in the summary, labelled as this process only."""
     from unittest.mock import MagicMock
 
     snap = MagicMock()
@@ -190,8 +190,11 @@ async def test_sentry_reports_inmemory_fallback_not_healthy(mock_daemon):
         ),
     ):
         res = await mock_daemon.run_sentry_phase(cycle_num=1)
-    assert res.success is False
+    # The registry is process-local, so it is reported but must never decide success.
+    assert res.success is True
     assert "IN-MEMORY FALLBACK" in res.summary
+    assert "THIS PROCESS" in res.summary
+    assert res.details["persistence"]["clients_in_fallback"] == 1
 
 
 @pytest.mark.asyncio
