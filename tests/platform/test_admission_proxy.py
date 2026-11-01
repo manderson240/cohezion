@@ -209,6 +209,15 @@ class TestMultipartGating:
 
 def test_bad_retry_after_env_does_not_stop_the_gate(monkeypatch):
     monkeypatch.setenv("COHEZION_ADMISSION_RETRY_AFTER_S", "30s")
-    assert _retry_after_seconds() == 30
+    assert _retry_after_seconds() == 5
     monkeypatch.setenv("COHEZION_ADMISSION_RETRY_AFTER_S", "0")
     assert _retry_after_seconds() == 1
+
+
+def test_retry_after_default_is_short_and_env_override_is_capped(monkeypatch):
+    monkeypatch.delenv("COHEZION_ADMISSION_RETRY_AFTER_S", raising=False)
+    assert _retry_after_seconds() == 5
+    monkeypatch.setenv("COHEZION_ADMISSION_RETRY_AFTER_S", "20")
+    assert _retry_after_seconds() == 20
+    monkeypatch.setenv("COHEZION_ADMISSION_RETRY_AFTER_S", "999999")
+    assert _retry_after_seconds() == 300
