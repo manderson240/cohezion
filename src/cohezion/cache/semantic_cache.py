@@ -287,11 +287,12 @@ class SemanticCache:
         if self._l2_matrix is None or not self._l2_keys:
             return None, 0.0
         sims = np.dot(self._l2_matrix, embedding)
-        if partition or any(self.l2_cache[k].partition for k in self._l2_keys):
+        entries = [self.l2_cache.get(k) for k in self._l2_keys]  # tolerate keys already evicted
+        if partition or any(e is not None and e.partition for e in entries):
             mask = np.fromiter(
-                (self.l2_cache[k].partition == partition for k in self._l2_keys),
+                (e is not None and e.partition == partition for e in entries),
                 dtype=bool,
-                count=len(self._l2_keys),
+                count=len(entries),
             )
             if not mask.any():
                 return None, 0.0
