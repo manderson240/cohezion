@@ -190,8 +190,10 @@ class EventConsumer:
             f"WHERE !array::find(claimed_by ?? [], '{self.consumer_id}') "
             f"ORDER BY timestamp ASC LIMIT {int(batch)};"
         )
-        last = res[-1] if res else {}
-        if isinstance(last, dict) and last.get("status") == "ERR":
+        last = res[-1] if res else None
+        if not isinstance(last, dict):
+            raise RuntimeError(f"event fetch returned no statement result: {res!r}")
+        if last.get("status") == "ERR":
             # SurrealDB answers HTTP 200 with a per-statement ERR. Reading its string result as
             # "no rows" would make a broken query look like an idle backbone.
             raise RuntimeError(f"event fetch query failed: {last.get('result')}")

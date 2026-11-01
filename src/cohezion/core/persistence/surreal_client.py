@@ -458,6 +458,13 @@ DEFINE FIELD stability_score ON TABLE universe_nodes VALUE (
 
         Returns True if connected successfully (or serving from the in-memory fallback).
         Raises InsecureSurrealCredentialsError on a real initial connection without credentials.
+
+        Fallback limits (by design): while in fallback, writes live only in the process-wide
+        InMemoryStore. They are NOT replayed to SurrealDB on recovery, and after recovery reads
+        go to the real database, so those writes are no longer readable through this client
+        (read-your-write breaks across the outage). Recovery logs how many were left behind.
+        Handshakes are bounded (`_CONNECT_TIMEOUT_S`, `_FALLBACK_RETRY_TIMEOUT_S`), but the
+        synchronous credential lookup runs outside that bound.
         """
         return await self._connect(initial=True)
 
@@ -465,8 +472,6 @@ DEFINE FIELD stability_score ON TABLE universe_nodes VALUE (
         """`initial=False` is the background fallback retry: bounded, serialized, never raises
         the credential error (the gate stays strict for a real initial connection)."""
         async with self._connect_lock:
-            if not initial and not self._using_fallback:
-                return True  # recovered while we waited: a stale attempt must not undo it
             breaker = get_circuit("surrealdb", failure_threshold=5)
             if not breaker.allow_request():
                 logger.warning("🛑 Circuit Open: SurrealDB connection rejected. Using fallback.")
@@ -509,6 +514,7 @@ DEFINE FIELD stability_score ON TABLE universe_nodes VALUE (
                 return True
 
             was_fallback = self._using_fallback
+            superseded = self._client
             unreplayed = self._unreplayed_fallback_writes() if was_fallback else 0
             # Publish only after the handshake succeeds so concurrent callers never see a
             # half-open client while a fallback retry is in flight.
@@ -517,6 +523,8 @@ DEFINE FIELD stability_score ON TABLE universe_nodes VALUE (
             self._using_fallback = False
             self._fallback_failures = 0
             _FALLBACK_CLIENTS.discard(self)
+            if superseded is not None and not isinstance(superseded, InMemoryStore):
+                await self._close_quietly(superseded)  # repeated connect(): do not leak the old one
             breaker.record_success()
             logger.info(
                 f"✅ REAL CLIENT: Connected to SurrealDB at {self.url} ({self.namespace}/{self.database})"

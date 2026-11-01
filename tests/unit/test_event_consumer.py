@@ -100,6 +100,11 @@ def test_fetch_statement_error_is_loud_not_an_empty_batch():
         _consumer(sql, []).run_once()
 
 
+def test_fetch_with_no_statement_result_is_loud():
+    with pytest.raises(RuntimeError, match="no statement result"):
+        _consumer(lambda q: [] if q.startswith("SELECT") else [{"status": "OK"}], []).run_once()
+
+
 def test_claim_timeout_skips_without_handling_or_failing():
     filed, queries = [], []
 

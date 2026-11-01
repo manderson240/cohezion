@@ -125,7 +125,7 @@ async def test_f3_timed_out_handshake_is_closed(fake_db, monkeypatch):
     fake_db.connect_impl = _never
     monkeypatch.setattr(sc, "_CONNECT_TIMEOUT_S", 0.05)
     client = sc.SurrealClient()
-    await client.connect()
+    await asyncio.wait_for(client.connect(), 5)
     assert [i.closed for i in fake_db.instances] == [1]
 
 
@@ -309,7 +309,7 @@ _LEAKED = []
 
 
 @pytest.mark.asyncio
-async def test_b1_a_leaves_a_client_in_fallback(fake_db):
+async def test_b1_a_leaves_a_client_in_fallback():
     c = sc.SurrealClient()
     c._use_fallback()
     _LEAKED.append(c)  # strong ref: survives until the next test, like a leaked fixture
@@ -317,8 +317,18 @@ async def test_b1_a_leaves_a_client_in_fallback(fake_db):
 
 
 def test_b1_b_registry_starts_empty_for_every_test():
-    assert _LEAKED, "ordering precondition: the previous test must have run in this process"
+    if not _LEAKED:
+        pytest.skip("ordering precondition: test_b1_a must have run first in this process")
     assert sc.persistence_status()["clients_in_fallback"] == 0
+
+
+@pytest.mark.asyncio
+async def test_repeated_connect_closes_the_superseded_real_client(fake_db):
+    client = sc.SurrealClient()
+    await client.connect()
+    await client.connect()
+    assert [i.closed for i in fake_db.instances] == [1, 0]
+    assert client._client is fake_db.instances[1]
 
 
 def test_b1_status_is_labelled_process_local():
