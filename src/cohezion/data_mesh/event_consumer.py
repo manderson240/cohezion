@@ -29,10 +29,12 @@ from __future__ import annotations
 import inspect
 import json
 import logging
+import os
 import re
 import urllib.error
 import urllib.request
 from collections.abc import Callable
+from pathlib import Path
 from typing import Any
 
 
@@ -60,6 +62,58 @@ TALLY_ONLY_EVENT_TYPES = {
     "lineage_updated",
     "custom",
 }
+
+
+# A timer unit runs one process per tick, so "N consecutive stalled passes" has to persist
+# between processes. One slow read still exits 0; this many in a row means consumption stopped.
+STALL_EXIT_THRESHOLD = 3
+
+
+def _stall_state_path(consumer_id: str, state_dir: Path | None = None) -> Path:
+    base = state_dir or Path(os.environ.get("XDG_STATE_HOME") or Path.home() / ".local" / "state")
+    if state_dir is None:
+        base = base / "cohezion"
+    return base / f"datamesh-consumer-{consumer_id}.stall.json"
+
+
+def pass_stalled_on_timeout(summary: dict[str, Any]) -> bool:
+    """True when a timeout (fetch or claim) left this pass with nothing handled."""
+    timed_out = bool(summary.get("skipped") or summary.get("claim_timed_out"))
+    handled = bool(summary.get("actioned") or summary.get("tallied") or summary.get("failed"))
+    return timed_out and not handled
+
+
+def record_pass_outcome(
+    consumer_id: str, summary: dict[str, Any], state_dir: Path | None = None
+) -> int:
+    """Persist and return the count of consecutive timeout-stalled passes (0 after a clean one).
+
+    A state-file read or write failure never raises and is logged at ERROR: the count then
+    restarts from what could be read (0), which is a degraded answer, not a healthy one.
+    """
+    path = _stall_state_path(consumer_id, state_dir)
+    previous = 0
+    try:
+        if path.exists():
+            previous = int(json.loads(path.read_text()).get("consecutive_stalled_passes", 0))
+    except (OSError, ValueError, TypeError, AttributeError) as exc:
+        logger.error(
+            "stall-state read failed for %s (%s); counting from 0: %s", consumer_id, path, exc
+        )
+    count = previous + 1 if pass_stalled_on_timeout(summary) else 0
+    try:
+        path.parent.mkdir(parents=True, exist_ok=True)
+        tmp = path.with_suffix(".tmp")
+        tmp.write_text(json.dumps({"consecutive_stalled_passes": count}))
+        tmp.replace(path)
+    except OSError as exc:
+        logger.error(
+            "stall-state write failed for %s (%s); the stall counter cannot persist: %s",
+            consumer_id,
+            path,
+            exc,
+        )
+    return count
 
 
 def _is_timeout(exc: BaseException) -> bool:
@@ -336,9 +390,9 @@ class EventConsumer:
             logger.warning("event fetch timed out connecting; skipping this batch: %s", exc)
             summary["skipped"] = f"fetch timed out: {exc}"
             return summary
+        summary["fetched"] = len(events)
         for event in events:
             rid = str(event.get("id", ""))
-            summary["fetched"] += 1
             try:
                 try:
                     self.claim(rid)  # claim-before-handle: exactly-once per consumer

@@ -32,10 +32,23 @@ def main() -> int:
     args = ap.parse_args()
     logging.basicConfig(level=logging.INFO, format="%(levelname)s %(message)s")
 
-    from cohezion.data_mesh.event_consumer import EventConsumer
+    from cohezion.data_mesh.event_consumer import (
+        STALL_EXIT_THRESHOLD,
+        EventConsumer,
+        record_pass_outcome,
+    )
 
     summary = EventConsumer(args.consumer_id).run_once(batch=args.batch)
+    stalled = record_pass_outcome(args.consumer_id, summary)
+    summary["consecutive_stalled_passes"] = stalled
     print(json.dumps(summary, indent=2))
+    if stalled >= STALL_EXIT_THRESHOLD:
+        logging.error(
+            "consumer %s handled nothing because of timeouts for %d passes in a row",
+            args.consumer_id,
+            stalled,
+        )
+        return 1
     return 1 if summary["failed"] else 0
 
 
