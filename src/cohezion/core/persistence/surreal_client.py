@@ -15,6 +15,7 @@ import logging
 import os
 import re
 import time
+import weakref
 import zlib
 from dataclasses import dataclass, field
 from datetime import datetime
@@ -45,6 +46,19 @@ logger = logging.getLogger(__name__)
 
 # Shared in-memory store for fallback/testing
 _SHARED_STORE = None
+
+# Clients currently serving from InMemoryStore after a failed real connection.
+# Health checks read this via persistence_status() so a fallback is never reported as healthy.
+_FALLBACK_CLIENTS: "weakref.WeakSet[SurrealClient]" = weakref.WeakSet()
+
+_FALLBACK_RETRY_BASE_S = 5.0
+_FALLBACK_RETRY_MAX_S = 300.0
+
+
+def persistence_status() -> dict[str, Any]:
+    """Report whether any SurrealClient is writing to memory instead of SurrealDB."""
+    n = len(_FALLBACK_CLIENTS)
+    return {"in_memory_fallback": n > 0, "clients_in_fallback": n}
 
 
 class InsecureSurrealCredentialsError(RuntimeError):
@@ -353,7 +367,29 @@ DEFINE FIELD stability_score ON TABLE universe_nodes VALUE (
         self.database = database
         self._connected = False
         self._using_fallback = False
+        self._fallback_failures = 0
+        self._fallback_retry_at = 0.0  # time.monotonic() deadline for the next real attempt
         self._client: Any = None  # Will be surrealdb client when connected
+
+    @property
+    def persistence_state(self) -> str:
+        """'connected' (real SurrealDB), 'fallback' (InMemoryStore) or 'disconnected'."""
+        if self._using_fallback:
+            return "fallback"
+        return "connected" if self._connected else "disconnected"
+
+    async def _ensure_connected(self) -> None:
+        """Connect if needed; while in fallback, retry the real connection on a backoff."""
+        if not self._connected:
+            await self.connect()
+        elif self._using_fallback and time.monotonic() >= self._fallback_retry_at:
+            # Claim the slot first so concurrent callers do not stampede the server.
+            self._fallback_retry_at = time.monotonic() + self._fallback_delay()
+            logger.info("Retrying SurrealDB connection (in-memory fallback active)")
+            await self.connect()
+
+    def _fallback_delay(self) -> float:
+        return min(_FALLBACK_RETRY_BASE_S * 2**self._fallback_failures, _FALLBACK_RETRY_MAX_S)
 
     async def connect(self) -> bool:
         """
@@ -384,11 +420,17 @@ DEFINE FIELD stability_score ON TABLE universe_nodes VALUE (
             # Resolve credentials via vault-first pattern — see _resolve_surreal_credentials above.
             username, password = _resolve_surreal_credentials()
 
-            self._client = AsyncSurreal(self.url)
-            await self._client.connect()
-            await self._client.signin({"username": username, "password": password})
-            await self._client.use(self.namespace, self.database)
+            client = AsyncSurreal(self.url)
+            await client.connect()
+            await client.signin({"username": username, "password": password})
+            await client.use(self.namespace, self.database)
+            # Publish only after the handshake succeeds so concurrent callers never see a
+            # half-open client while a fallback retry is in flight.
+            self._client = client
             self._connected = True
+            self._using_fallback = False
+            self._fallback_failures = 0
+            _FALLBACK_CLIENTS.discard(self)
             breaker.record_success()
             logger.info(
                 f"✅ REAL CLIENT: Connected to SurrealDB at {self.url} ({self.namespace}/{self.database})"
@@ -422,7 +464,13 @@ DEFINE FIELD stability_score ON TABLE universe_nodes VALUE (
         self._client = _SHARED_STORE
         self._connected = True
         self._using_fallback = True
-        logger.warning("🔸 FALLBACK: Using InMemoryStore for persistence.")
+        self._fallback_retry_at = time.monotonic() + self._fallback_delay()
+        self._fallback_failures += 1
+        _FALLBACK_CLIENTS.add(self)
+        logger.warning(
+            "🔸 FALLBACK: Using InMemoryStore for persistence (next real attempt in %.0fs).",
+            self._fallback_retry_at - time.monotonic(),
+        )
 
     async def setup_schema(self) -> bool:
         """
@@ -430,8 +478,7 @@ DEFINE FIELD stability_score ON TABLE universe_nodes VALUE (
 
         Should be run once on initial setup.
         """
-        if not self._connected:
-            await self.connect()
+        await self._ensure_connected()
 
         try:
             if isinstance(self._client, InMemoryStore):
@@ -458,8 +505,7 @@ DEFINE FIELD stability_score ON TABLE universe_nodes VALUE (
 
         Returns the node ID.
         """
-        if not self._connected:
-            await self.connect()
+        await self._ensure_connected()
 
         try:
             data = node.to_dict(compress=compress)
@@ -504,8 +550,7 @@ DEFINE FIELD stability_score ON TABLE universe_nodes VALUE (
 
     async def create(self, table: str, data: dict[str, Any]) -> Any:
         """Create a record in a specific table."""
-        if not self._connected:
-            await self.connect()
+        await self._ensure_connected()
         try:
             if isinstance(self._client, InMemoryStore):
                 # For InMemoryStore, we need to simulate creation.
@@ -531,8 +576,7 @@ DEFINE FIELD stability_score ON TABLE universe_nodes VALUE (
 
     async def query(self, sql: str, vars: dict[str, Any] | None = None) -> Any:
         """Execute a raw SQL query against the database."""
-        if not self._connected:
-            await self.connect()
+        await self._ensure_connected()
 
         breaker = get_circuit("surrealdb")
         try:
@@ -682,8 +726,7 @@ DEFINE FIELD stability_score ON TABLE universe_nodes VALUE (
 
     async def get_node(self, node_id: str) -> UniverseNode | None:
         """Retrieve a node by ID."""
-        if not self._connected:
-            await self.connect()
+        await self._ensure_connected()
 
         try:
             if isinstance(self._client, InMemoryStore):
@@ -721,8 +764,7 @@ DEFINE FIELD stability_score ON TABLE universe_nodes VALUE (
 
         Uses cosine similarity.
         """
-        if not self._connected:
-            await self.connect()
+        await self._ensure_connected()
 
         if isinstance(vector, np.ndarray):
             vector = vector.tolist()
@@ -760,8 +802,7 @@ DEFINE FIELD stability_score ON TABLE universe_nodes VALUE (
 
     async def get_all_nodes(self, limit: int = 100) -> list[UniverseNode]:
         """Get all nodes (for visualization)."""
-        if not self._connected:
-            await self.connect()
+        await self._ensure_connected()
 
         try:
             if isinstance(self._client, InMemoryStore):
@@ -813,8 +854,7 @@ DEFINE FIELD stability_score ON TABLE universe_nodes VALUE (
         Returns:
             Relationship ID if successful
         """
-        if not self._connected:
-            await self.connect()
+        await self._ensure_connected()
 
         try:
             if isinstance(self._client, InMemoryStore):
@@ -880,8 +920,7 @@ DEFINE FIELD stability_score ON TABLE universe_nodes VALUE (
         Returns:
             List of relationship dictionaries
         """
-        if not self._connected:
-            await self.connect()
+        await self._ensure_connected()
 
         try:
             if isinstance(self._client, InMemoryStore):
@@ -934,8 +973,7 @@ DEFINE FIELD stability_score ON TABLE universe_nodes VALUE (
         Returns:
             List of bridge candidates with connection strength
         """
-        if not self._connected:
-            await self.connect()
+        await self._ensure_connected()
 
         try:
             if isinstance(self._client, InMemoryStore):
