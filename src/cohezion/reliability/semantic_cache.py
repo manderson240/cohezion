@@ -7,7 +7,7 @@ Uses vector similarity to retrieve cached agent responses.
 import hashlib
 import json
 import logging
-import os
+import time
 from pathlib import Path
 from typing import Any
 
@@ -39,6 +39,9 @@ class SemanticCache:
     direction-reversed instruction ("Move $100 from savings to checking" vs its reverse = 0.993).
     A scope fix cannot repair that embedding limit; only not serving fuzzy matches can. With
     ``exact_only=False`` the cosine threshold decides and wrong answers CAN be served.
+
+    ``ttl_seconds`` (None = unbounded) bounds every tier: an entry older than that, or one with no
+    timestamp (written by an earlier version), is never served from Redis or the local vectors.
     """
 
     # Redis key version: v1 keys were unscoped (sha256 of the query only) and are never read.
@@ -49,8 +52,10 @@ class SemanticCache:
         cache_dir: str = "cache/semantic",
         threshold: float = 0.95,
         exact_only: bool = True,
+        ttl_seconds: float | None = None,
     ):
         self.exact_only = exact_only
+        self.ttl_seconds = ttl_seconds
         self.cache_dir = Path(cache_dir)
         self.cache_dir.mkdir(parents=True, exist_ok=True)
         self.threshold = threshold
@@ -125,9 +130,24 @@ class SemanticCache:
     def _redis_key(self, scope: str, query_text: str) -> str:
         return self._REDIS_PREFIX + hashlib.sha256(f"{scope}\0{query_text}".encode()).hexdigest()
 
-    @staticmethod
-    def _in_scope(meta: dict[str, Any], scope: str, qdigest: str | None, exact_only: bool) -> bool:
+    def _expired(self, meta: dict[str, Any]) -> bool:
+        """True when the entry is older than ``ttl_seconds``. No/zero/invalid timestamp = expired."""
+        if self.ttl_seconds is None:
+            return False
+        stamp = meta.get("timestamp")
+        if isinstance(stamp, bool) or not isinstance(stamp, (int, float)) or stamp <= 0:
+            return True
+        return time.time() - stamp >= self.ttl_seconds
+
+    def _redis_ttl(self) -> float:
+        return min(3600 * 24, self.ttl_seconds) if self.ttl_seconds is not None else 3600 * 24
+
+    def _in_scope(
+        self, meta: dict[str, Any], scope: str, qdigest: str | None, exact_only: bool
+    ) -> bool:
         if meta.get("scope") != scope:  # missing scope never matches
+            return False
+        if self._expired(meta):
             return False
         return not exact_only or (qdigest is not None and meta.get("query_digest") == qdigest)
 
@@ -161,6 +181,7 @@ class SemanticCache:
                 isinstance(cached_result, dict)
                 and cached_result.get("scope") == scope
                 and cached_result.get("query_digest") == qdigest
+                and not self._expired(cached_result)
             ):
                 logger.debug("Redis L1 hit for %s", redis_key[-8:])
                 return cached_result
@@ -198,8 +219,8 @@ class SemanticCache:
             # Populate L1 cache for future exact hits
             if query_text:
                 await self.redis.set(
-                    redis_key, {**result, "query_digest": qdigest}, ttl=3600 * 24
-                )  # 24h TTL
+                    redis_key, {**result, "query_digest": qdigest}, ttl=self._redis_ttl()
+                )
 
             return result
 
@@ -253,15 +274,14 @@ class SemanticCache:
                 self.metadata[idx] = {
                     **m,
                     **metadata,
-                    "timestamp": os.path.getmtime(self.index_path)
-                    if self.index_path.exists()
-                    else 0,
+                    "timestamp": time.time(),
                 }
                 self.save()
                 return
 
         self.vectors.append(vector)
-        self.metadata.append({"response": response, "timestamp": 0, **metadata})
+        stamped = {**metadata, "timestamp": time.time()}
+        self.metadata.append({"response": response, **stamped})
         self.save()
 
         # Broadcast to L1 only for a scoped entry
@@ -269,11 +289,11 @@ class SemanticCache:
             await self.redis.set(
                 self._redis_key(scope, query_text),
                 {
-                    **metadata,
+                    **stamped,
                     "response": response,
                     "semantic_score": 1.0,  # Exact match
                 },
-                ttl=3600 * 24,
+                ttl=self._redis_ttl(),
             )
 
     def get_stats(self) -> dict[str, Any]:

@@ -126,6 +126,7 @@ class BaseAgent(ABC):
         self._semantic_cache = SemanticCache(
             cache_dir=str(self.cache_dir / "semantic"),
             threshold=self.config.semantic_cache_threshold,
+            ttl_seconds=self.config.cache_ttl_seconds,
         )
 
         # Gateway 12: Memory Recovery Protocol (MRP)
@@ -157,6 +158,17 @@ class BaseAgent(ABC):
         if images:
             content += ":" + ":".join(images[:3])  # Use first 3 images for keying
         return hashlib.sha256(content.encode()).hexdigest()
+
+    def _file_cache_key(
+        self, prompt: str, images: list[str] | None = None, scope: str | None = None
+    ) -> str:
+        """File-tier key: the prompt key partitioned by the same scope as the semantic tiers.
+
+        Without the scope, two system prompts, two agent classes or two models asking the same
+        text shared one file (the default dir is shared by every agent).
+        """
+        scope = self._cache_scope() if scope is None else scope
+        return hashlib.sha256(f"{scope}\0{self._cache_key(prompt, images)}".encode()).hexdigest()
 
     def _cache_scope(self, system_prompt: str | None = None, model: str | None = None) -> str:
         """Scope of the semantic tiers: agent class, requested model and the raw system prompt.
@@ -198,10 +210,9 @@ class BaseAgent(ABC):
     ) -> dict[str, Any] | None:
         """Retrieve a cached response if available and not expired.
 
-        ``scope`` (see ``_cache_scope``) bounds the semantic tiers; the file tier is keyed by
-        model and exact prompt only.
+        ``scope`` (see ``_cache_scope``) bounds every tier, the file tier included.
         """
-        key = self._cache_key(prompt, images)
+        key = self._file_cache_key(prompt, images, scope)
         cache_file = self.cache_dir / f"{key}.json"
 
         if not cache_file.exists():
@@ -248,7 +259,7 @@ class BaseAgent(ABC):
         scope: str | None = None,
     ) -> None:
         """Cache a response with its intelligence metadata."""
-        key = self._cache_key(prompt, images)
+        key = self._file_cache_key(prompt, images, scope)
         cache_file = self.cache_dir / f"{key}.json"
 
         data = {
