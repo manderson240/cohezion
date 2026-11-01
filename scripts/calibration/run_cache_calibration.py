@@ -156,7 +156,9 @@ async def main():
     except TextLatentUnavailable as exc:
         logger.error("%s. Nothing saved.", exc)
         sys.exit(1)
-    print(f"Skipped {skipped} sample(s) over the encoder window or unencodable; {len(samples)} kept.")
+    print(
+        f"Skipped {skipped} sample(s) over the encoder window or unencodable; {len(samples)} kept."
+    )
     if not samples:
         logger.error("All samples were skipped (none indexable by the cache). Nothing saved.")
         sys.exit(1)

@@ -154,7 +154,7 @@ class _WindowedEncoder:
 
         if self.down or "LONG" in text:
             return None
-        seed = int.from_bytes(hashlib.md5(text.encode()).digest()[:4], "little")
+        seed = int.from_bytes(hashlib.sha256(text.encode()).digest()[:4], "little")
         v = np.random.default_rng(seed).standard_normal(LATENT_DIM).astype(np.float32)
         return v / np.linalg.norm(v)
 
@@ -201,9 +201,7 @@ def test_over_window_prompt_is_skipped_counted_and_calibration_completes(
     assert len(saved) == 1 and saved[0][0] == "semantic_cache"
 
 
-def test_all_samples_over_window_fails_saying_so_and_saves_nothing(
-    monkeypatch, tmp_path, caplog
-):
+def test_all_samples_over_window_fails_saying_so_and_saves_nothing(monkeypatch, tmp_path, caplog):
     samples = [{"prompt": f"LONG {i} " + "w " * 300, "response": "r"} for i in range(3)]
     mod, _, saved = _healthy_main(monkeypatch, tmp_path, samples)
     with caplog.at_level(logging.ERROR), pytest.raises(SystemExit) as exc:
@@ -224,7 +222,7 @@ def test_encoder_down_at_start_still_fails_and_saves_nothing(monkeypatch, tmp_pa
     assert saved == []
 
 
-def test_encoder_dying_mid_partition_is_an_outage_not_a_skip(monkeypatch, tmp_path):
+def test_encoder_dying_mid_partition_is_an_outage_not_a_skip(monkeypatch, tmp_path, caplog):
     """The probe passes, then the encoder goes down: every later None is an outage."""
     samples = _dup_samples()
     enc = _WindowedEncoder()
@@ -239,7 +237,8 @@ def test_encoder_dying_mid_partition_is_an_outage_not_a_skip(monkeypatch, tmp_pa
         return real(text, strict_window)
 
     enc.encode_or_none = dies_after_probe
-    with pytest.raises(SystemExit) as exc:
+    with caplog.at_level(logging.ERROR), pytest.raises(SystemExit) as exc:
         asyncio.run(mod.main())
     assert exc.value.code == 1
+    assert "went down mid-run" in caplog.text  # reported as an outage, not as skipped samples
     assert saved == []
