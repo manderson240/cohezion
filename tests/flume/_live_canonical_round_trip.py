@@ -63,7 +63,9 @@ a, b = next((a, b) for a, b in PARAPHRASE if enc.encode(a) @ enc.encode(b) > 0.8
 unrelated = "What wine pairs well with grilled salmon?"
 
 tmp = Path(tempfile.mkdtemp())
-cache = SemanticCache(cache_dir=str(tmp / "sem"), threshold=PARAPHRASE_THRESHOLD)
+cache = SemanticCache(
+    cache_dir=str(tmp / "sem"), threshold=PARAPHRASE_THRESHOLD, exact_only=False
+)  # paraphrase serving is opt-in
 
 
 async def _none(*_a, **_k):

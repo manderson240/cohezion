@@ -137,11 +137,15 @@ def test_live_base_agent_round_trip_store_hit_miss():
     assert res["paraphrase_cos"] > PARAPHRASE_THRESHOLD
 
 
-def _make_agent(tmp_path, encoder):
+def _make_agent(tmp_path, encoder, fuzzy=False):
     from cohezion.agents.base import BaseAgent
     from cohezion.reliability.semantic_cache import SemanticCache
 
-    cache = SemanticCache(cache_dir=str(tmp_path / "sem"), threshold=PARAPHRASE_THRESHOLD)
+    # Requirement change (F2): BaseAgent's reliability cache serves exact prompts only by default;
+    # paraphrase serving is the explicit opt-in these tests exercise.
+    cache = SemanticCache(
+        cache_dir=str(tmp_path / "sem"), threshold=PARAPHRASE_THRESHOLD, exact_only=not fuzzy
+    )
 
     async def _none(*a, **k):
         return None
@@ -176,7 +180,7 @@ def test_base_agent_round_trip_with_mapped_vectors(tmp_path):
     far = np.zeros(384, dtype=np.float32)
     far[7] = 1.0
     enc = _mapped_encoder({"A": base, "A-paraphrase": near, "unrelated": far})
-    agent = _make_agent(tmp_path, enc)
+    agent = _make_agent(tmp_path, enc, fuzzy=True)
 
     async def run():
         await agent._set_cached("A", "RESPONSE-A")

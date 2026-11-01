@@ -158,6 +158,14 @@ class BaseAgent(ABC):
             content += ":" + ":".join(images[:3])  # Use first 3 images for keying
         return hashlib.sha256(content.encode()).hexdigest()
 
+    def _cache_scope(self, system_prompt: str | None = None, model: str | None = None) -> str:
+        """Scope of the semantic tiers: agent class, requested model and the raw system prompt.
+
+        A semantic/Redis entry is only served inside the scope that stored it.
+        """
+        system_digest = hashlib.sha256((system_prompt or "").encode()).hexdigest()
+        return f"{type(self).__name__}\0{model or self.model_name}\0{system_digest}"
+
     def _semantic_vector(self, text: str) -> Any:
         """Canonical 256-d latent for query AND store (one producer), or None if unavailable."""
         if self._encoder is None:
@@ -167,9 +175,17 @@ class BaseAgent(ABC):
         return self._encoder.encode_or_none(text, strict_window=True)
 
     async def _get_cached(
-        self, prompt: str, images: list[str] | None = None
+        self,
+        prompt: str,
+        images: list[str] | None = None,
+        *,
+        scope: str | None = None,
     ) -> dict[str, Any] | None:
-        """Retrieve a cached response if available and not expired."""
+        """Retrieve a cached response if available and not expired.
+
+        ``scope`` (see ``_cache_scope``) bounds the semantic tiers; the file tier is keyed by
+        model and exact prompt only.
+        """
         key = self._cache_key(prompt, images)
         cache_file = self.cache_dir / f"{key}.json"
 
@@ -189,7 +205,11 @@ class BaseAgent(ABC):
             # Only semantic search for text-only prompts; no real encoder -> no-op
             query_vec = await asyncio.to_thread(self._semantic_vector, prompt)
             if query_vec is not None:
-                semantic_hit = await self._semantic_cache.search(query_vec, query_text=prompt)
+                semantic_hit = await self._semantic_cache.search(
+                    query_vec,
+                    query_text=prompt,
+                    scope=self._cache_scope() if scope is None else scope,
+                )
                 if semantic_hit:
                     logger.info(
                         f"✨ Semantic Cache Hit (score: {semantic_hit['semantic_score']:.2f})"
@@ -210,6 +230,7 @@ class BaseAgent(ABC):
         alignment_score: float = 1.0,
         images: list[str] | None = None,
         narration: str | None = None,
+        scope: str | None = None,
     ) -> None:
         """Cache a response with its intelligence metadata."""
         key = self._cache_key(prompt, images)
@@ -243,8 +264,12 @@ class BaseAgent(ABC):
                     "phi_score": phi_score,
                     "confidence": confidence,
                     "agent": self.__class__.__name__,
+                    "persistence_id": persistence_id,
+                    "alignment_score": alignment_score,
+                    "narration": narration,
                 },
                 query_text=prompt,
+                scope=self._cache_scope() if scope is None else scope,
             )
 
     async def enqueue_batch_task(self, query: str, context: str | None = None) -> str:
@@ -347,7 +372,10 @@ class BaseAgent(ABC):
             )
 
         # Check cache first
-        cached_data = await self._get_cached(prompt, images) if not ignore_cache else None
+        cache_scope = self._cache_scope(system_prompt, model)
+        cached_data = (
+            await self._get_cached(prompt, images, scope=cache_scope) if not ignore_cache else None
+        )
         if cached_data:
             # Log cache hit event
             await tk.log_event(
@@ -359,8 +387,9 @@ class BaseAgent(ABC):
             # Return enriched response from cache
             return AgentResponse(
                 cached_data["response"],
-                embedding=cached_data["embedding"],
-                persistence_id=cached_data["persistence_id"],
+                # Semantic/Redis/vault hits carry metadata only; the file tier carries both.
+                embedding=cached_data.get("embedding"),
+                persistence_id=cached_data.get("persistence_id"),
                 frequency=freq,
                 phi_score=cached_data.get("phi_score", 0.0),
                 confidence=cached_data.get("confidence", 1.0),
@@ -574,6 +603,7 @@ class BaseAgent(ABC):
             alignment_score=alignment_score,
             images=images,
             narration=narration,
+            scope=cache_scope,
         )
 
         # Autonomic Experience Persistence

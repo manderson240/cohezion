@@ -21,8 +21,36 @@ from cohezion.flume.canonical_latent import LATENT_DIM
 logger = logging.getLogger(__name__)
 
 
+def query_digest(query_text: str) -> str:
+    """Digest of the FULL query text (stored prompts are truncated, so they cannot identify it)."""
+    return hashlib.sha256(query_text.encode()).hexdigest()
+
+
 class SemanticCache:
-    def __init__(self, cache_dir: str = "cache/semantic", threshold: float = 0.95):
+    """Scoped answer cache: an entry is only ever served inside the scope that stored it.
+
+    ``scope`` is an opaque string (BaseAgent: agent class + model + system prompt). An entry or a
+    lookup without a scope is never served, so legacy unscoped entries on disk or in Redis can
+    not leak into a scoped lookup.
+
+    ``exact_only`` (default True) additionally requires the stored query text to be identical to
+    the lookup text. This is a deliberate precision choice, not a performance one: on the
+    canonical MiniLM-256 latent no cosine threshold separates a paraphrase from a
+    direction-reversed instruction ("Move $100 from savings to checking" vs its reverse = 0.993).
+    A scope fix cannot repair that embedding limit; only not serving fuzzy matches can. With
+    ``exact_only=False`` the cosine threshold decides and wrong answers CAN be served.
+    """
+
+    # Redis key version: v1 keys were unscoped (sha256 of the query only) and are never read.
+    _REDIS_PREFIX = "semantic_cache:exact:v2:"
+
+    def __init__(
+        self,
+        cache_dir: str = "cache/semantic",
+        threshold: float = 0.95,
+        exact_only: bool = True,
+    ):
+        self.exact_only = exact_only
         self.cache_dir = Path(cache_dir)
         self.cache_dir.mkdir(parents=True, exist_ok=True)
         self.threshold = threshold
@@ -94,35 +122,61 @@ class SemanticCache:
         except Exception as e:
             logger.warning("Failed to persist semantic cache to disk: %s", e)
 
+    def _redis_key(self, scope: str, query_text: str) -> str:
+        return self._REDIS_PREFIX + hashlib.sha256(f"{scope}\0{query_text}".encode()).hexdigest()
+
+    @staticmethod
+    def _in_scope(meta: dict[str, Any], scope: str, qdigest: str | None, exact_only: bool) -> bool:
+        if meta.get("scope") != scope:  # missing scope never matches
+            return False
+        return not exact_only or (qdigest is not None and meta.get("query_digest") == qdigest)
+
     async def search(
-        self, query_vec: np.ndarray, query_text: str | None = None
+        self,
+        query_vec: np.ndarray,
+        query_text: str | None = None,
+        scope: str | None = None,
     ) -> dict[str, Any] | None:
         """
-        Perform semantic similarity search with Redis L1 tier.
+        Perform a scoped lookup: Redis L1, then local vectors (then vault, fuzzy mode only).
 
         Args:
             query_vec: The vector representation of the query.
-            query_text: The raw text of the query for exact-match L1 lookup.
+            query_text: The raw text of the query (L1 key and, in exact mode, the identity check).
+            scope: Required. ``None`` is refused (returns None) rather than treated as a wildcard.
 
         Returns:
             Optional[Dict[str, Any]]: The cached metadata if found.
         """
-        # Tier 1: Redis Exact Match (L1) - Fastest for identical queries
+        if scope is None:
+            return None
+        qdigest = query_digest(query_text) if query_text else None
+
+        # Tier 1: Redis Exact Match (L1) - keyed by scope AND full query text
         redis_key = ""
         if query_text:
-            key_hash = hashlib.sha256(query_text.encode()).hexdigest()
-            redis_key = f"semantic_cache:exact:{key_hash}"
+            redis_key = self._redis_key(scope, query_text)
             cached_result = await self.redis.get(redis_key)
-            if cached_result:
-                logger.debug(f"🔥 Redis L1 Hit for query hash: {key_hash[:8]}")
+            if (
+                isinstance(cached_result, dict)
+                and cached_result.get("scope") == scope
+                and cached_result.get("query_digest") == qdigest
+            ):
+                logger.debug("Redis L1 hit for %s", redis_key[-8:])
                 return cached_result
 
         # Tier 2: Local Vector Search (L0) - High-speed memory search.
         # Only vectors of the query's width are comparable; entries persisted by an older
         # producer (different width) are ignored, never compared and never a crash.
-        usable = [i for i, v in enumerate(self.vectors) if v.shape == query_vec.shape]
+        usable = [
+            i
+            for i, v in enumerate(self.vectors)
+            if v.shape == query_vec.shape
+            and i < len(self.metadata)
+            and self._in_scope(self.metadata[i], scope, qdigest, self.exact_only)
+        ]
         if not usable:
-            return None
+            return None if self.exact_only else await self._vault_hit(query_text)
 
         q_norm = np.linalg.norm(query_vec)
         if q_norm == 0:
@@ -143,24 +197,30 @@ class SemanticCache:
 
             # Populate L1 cache for future exact hits
             if query_text:
-                await self.redis.set(redis_key, result, ttl=3600 * 24)  # 24h TTL
+                await self.redis.set(
+                    redis_key, {**result, "query_digest": qdigest}, ttl=3600 * 24
+                )  # 24h TTL
 
             return result
 
-        # Tier 3: Vault Search (L3) - Fallback for architectural patterns
-        if query_text:
-            try:
-                guidance = self.vault.get_experience_guidance(query_text)
-                if guidance and guidance.get("relevant_context"):
-                    logger.debug(f"📜 Vault L3 Hit for query: {query_text[:20]}...")
-                    return {
-                        "response": f"VAULT GUIDANCE:\n{guidance.get('guidance', '')}\n\nCONTEXT:\n{json.dumps(guidance.get('relevant_context', []), indent=2)}",
-                        "semantic_score": 0.5,  # Qualitative hit
-                        "source": "vault",
-                    }
-            except Exception as e:
-                logger.debug(f"Vault L3 search failed: {e}")
+        return None if self.exact_only else await self._vault_hit(query_text)
 
+    async def _vault_hit(self, query_text: str | None) -> dict[str, Any] | None:
+        """Tier 3 (vault guidance). Unscoped by nature and not an answer to THIS prompt, so it is
+        reachable only in fuzzy mode; exact mode fails closed."""
+        if not query_text:
+            return None
+        try:
+            guidance = self.vault.get_experience_guidance(query_text)
+            if guidance and guidance.get("relevant_context"):
+                logger.debug("Vault L3 hit for query: %s...", query_text[:20])
+                return {
+                    "response": f"VAULT GUIDANCE:\n{guidance.get('guidance', '')}\n\nCONTEXT:\n{json.dumps(guidance.get('relevant_context', []), indent=2)}",
+                    "semantic_score": 0.5,  # Qualitative hit
+                    "source": "vault",
+                }
+        except Exception as e:
+            logger.debug(f"Vault L3 search failed: {e}")
         return None
 
     async def add(
@@ -169,16 +229,26 @@ class SemanticCache:
         response: str,
         metadata: dict[str, Any],
         query_text: str | None = None,
+        scope: str | None = None,
     ):
-        """Add a new entry to the semantic cache and broadcast to L1."""
+        """Add a new entry to the semantic cache and broadcast to L1.
+
+        An entry stored without ``scope`` is persisted but can never be served.
+        """
         if vector.shape != (LATENT_DIM,):
             logger.warning(
                 "semantic cache add skipped: vector shape %s is not (%d,)", vector.shape, LATENT_DIM
             )
             return
-        # Check if already exists locally
+        qdigest = query_digest(query_text) if query_text else None
+        metadata = {**metadata, "scope": scope, "query_digest": qdigest}
+        # Check if already exists locally: same scope, same query, same response
         for idx, m in enumerate(self.metadata):
-            if m.get("response") == response:
+            if (
+                m.get("response") == response
+                and m.get("scope") == scope
+                and m.get("query_digest") == qdigest
+            ):
                 self.vectors[idx] = vector
                 self.metadata[idx] = {
                     **m,
@@ -194,12 +264,10 @@ class SemanticCache:
         self.metadata.append({"response": response, "timestamp": 0, **metadata})
         self.save()
 
-        # Broadcast to L1 if query text is provided
-        if query_text:
-            key_hash = hashlib.sha256(query_text.encode()).hexdigest()
-            redis_key = f"semantic_cache:exact:{key_hash}"
+        # Broadcast to L1 only for a scoped entry
+        if query_text and scope is not None:
             await self.redis.set(
-                redis_key,
+                self._redis_key(scope, query_text),
                 {
                     **metadata,
                     "response": response,

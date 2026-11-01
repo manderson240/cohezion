@@ -38,10 +38,10 @@ def _agent(tmp_path, encoder):
         def __init__(self):
             self.rows = []
 
-        async def add(self, vector, response, metadata, query_text=None):
+        async def add(self, vector, response, metadata, query_text=None, scope=None):
             self.rows.append((np.asarray(vector), response))
 
-        async def search(self, vector, query_text=None):
+        async def search(self, vector, query_text=None, scope=None):
             for v, r in self.rows:
                 if float(np.dot(v, vector)) > 0.95:
                     return {"response": r, "semantic_score": 1.0}
