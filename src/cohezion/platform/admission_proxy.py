@@ -41,6 +41,29 @@ logger = logging.getLogger(__name__)
 # one wholesale on the hot path is pure memory/latency cost (review 2026-09-01, F4).
 _MAX_PARSE_BYTES = 1_000_000
 
+
+# An admission refusal is a normal "come back later" outcome (memory headroom), not a fault.
+# Default is short on purpose: the OpenAI SDK sleeps up to ~2x the header before it retries and
+# then still fails through the proxy, and a long stall delays the cascade's fall back to a
+# smaller model. Nothing in the repo honours the header on the path it was meant to quiet.
+_RETRY_AFTER_DEFAULT_S = 5
+_RETRY_AFTER_MAX_S = 300
+
+
+def _retry_after_seconds() -> int:
+    raw = os.environ.get("COHEZION_ADMISSION_RETRY_AFTER_S", str(_RETRY_AFTER_DEFAULT_S))
+    try:
+        return min(max(1, int(raw)), _RETRY_AFTER_MAX_S)
+    except ValueError:
+        # A typo in a tuning knob must not stop the gate on :13305 from starting.
+        logger.warning(
+            "Ignoring COHEZION_ADMISSION_RETRY_AFTER_S=%r; using %d", raw, _RETRY_AFTER_DEFAULT_S
+        )
+        return _RETRY_AFTER_DEFAULT_S
+
+
+_RETRY_AFTER_S = _retry_after_seconds()
+
 # Hop-by-hop headers must not be forwarded verbatim (RFC 9110 §7.6.1).
 _HOP_HEADERS = frozenset(
     {
@@ -152,6 +175,7 @@ def build_app(
             counters["refused"] += 1
             return JSONResponse(
                 status_code=503,
+                headers={"Retry-After": str(_RETRY_AFTER_S)},
                 content={
                     "error": {
                         "type": "admission_refused",

@@ -58,7 +58,7 @@ class PatternDetector:
     def __init__(
         self,
         vault_path: Path,
-        surrealdb_url: str = "http://localhost:8000",
+        surrealdb_url: str = "http://localhost:8001",
         namespace: str = "cohezion",
         database: str = "vault",
     ):
@@ -68,6 +68,16 @@ class PatternDetector:
         self.database = database
         self.query_engine = GraphRAGQuery(
             surrealdb_url=surrealdb_url, namespace=namespace, database=database
+        )
+
+    async def _execute(self, query: str) -> list[dict[str, Any]]:
+        """Run SurrealQL through the query engine's HTTP client and configured URL."""
+        return await execute_surreal_async(
+            query,
+            self.query_engine.http_client,
+            self.namespace,
+            self.database,
+            url=f"{self.query_engine.surrealdb_url}/sql",
         )
 
     async def __aenter__(self):
@@ -113,9 +123,7 @@ class PatternDetector:
             LIMIT {max_results};
             """
 
-            results = await execute_surreal_async(
-                query, self.surrealdb_url, self.namespace, self.database
-            )
+            results = await self._execute(query)
 
             if not results or not results[0].get("result"):
                 logger.warning("No patterns found in graph")
@@ -196,9 +204,7 @@ class PatternDetector:
             LIMIT 50;
             """
 
-            results = await execute_surreal_async(
-                query, self.surrealdb_url, self.namespace, self.database
-            )
+            results = await self._execute(query)
 
             if not results or not results[0].get("result"):
                 logger.warning("No unpatternized documents found")
@@ -311,9 +317,7 @@ class PatternDetector:
             GROUP ALL;
             """
 
-            results = await execute_surreal_async(
-                query, self.surrealdb_url, self.namespace, self.database
-            )
+            results = await self._execute(query)
 
             if not results or not results[0].get("result"):
                 return {
@@ -346,9 +350,7 @@ class PatternDetector:
               AND count(<-led_to) = 0;
             """
 
-            unused_results = await execute_surreal_async(
-                unused_query, self.surrealdb_url, self.namespace, self.database
-            )
+            unused_results = await self._execute(unused_query)
             unused_count = 0
             if unused_results and unused_results[0].get("result"):
                 unused_count = unused_results[0]["result"][0].get("unused", 0)

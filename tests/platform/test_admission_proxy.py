@@ -13,7 +13,7 @@ import pytest
 from fastapi.testclient import TestClient
 
 from cohezion.platform.admission_gate import AdmissionGate, GateConfig
-from cohezion.platform.admission_proxy import build_app
+from cohezion.platform.admission_proxy import _retry_after_seconds, build_app
 
 
 def _gate(available_gb: float, resident: list[str] | None = None, enforce: bool = True):
@@ -48,6 +48,13 @@ class TestRefusalPath:
         assert r.json()["error"]["type"] == "admission_refused"
         assert "floor" in r.json()["error"]["message"].lower()
         assert seen == []  # the refused request MUST NOT touch lemond
+
+    def test_refusal_carries_retry_after_so_callers_back_off(self) -> None:
+        app = build_app(_gate(available_gb=10.4), client=_upstream([]))
+        with TestClient(app) as c:
+            r = c.post("/api/v1/chat/completions", json={"model": "Qwen3.6-35B-A3B-GGUF"})
+        assert r.status_code == 503
+        assert int(r.headers["Retry-After"]) >= 1
 
     def test_shadow_mode_forwards_but_counts(self) -> None:
         seen: list[httpx.Request] = []
@@ -198,3 +205,19 @@ class TestMultipartGating:
             )
         assert r.status_code == 503
         assert seen == []
+
+
+def test_bad_retry_after_env_does_not_stop_the_gate(monkeypatch):
+    monkeypatch.setenv("COHEZION_ADMISSION_RETRY_AFTER_S", "30s")
+    assert _retry_after_seconds() == 5
+    monkeypatch.setenv("COHEZION_ADMISSION_RETRY_AFTER_S", "0")
+    assert _retry_after_seconds() == 1
+
+
+def test_retry_after_default_is_short_and_env_override_is_capped(monkeypatch):
+    monkeypatch.delenv("COHEZION_ADMISSION_RETRY_AFTER_S", raising=False)
+    assert _retry_after_seconds() == 5
+    monkeypatch.setenv("COHEZION_ADMISSION_RETRY_AFTER_S", "20")
+    assert _retry_after_seconds() == 20
+    monkeypatch.setenv("COHEZION_ADMISSION_RETRY_AFTER_S", "999999")
+    assert _retry_after_seconds() == 300

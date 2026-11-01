@@ -109,11 +109,14 @@ async def check_document_exists(
     client: httpx.AsyncClient,
     namespace: str = "cohezion",
     database: str = "vault",
+    url: str = "http://localhost:8001/sql",
 ) -> bool:
     """Check if document exists in vault_memory"""
     try:
         query = f"SELECT id FROM {doc_id} LIMIT 1;"
-        results = await execute_surreal_async(query, client, namespace, database)
+        results = await execute_surreal_async(
+            query, client, namespace, database, url=url
+        )
 
         if results and results[0].get("status") == "OK":
             result = results[0].get("result", [])
@@ -134,6 +137,7 @@ async def safe_create_edge(
     namespace: str = "cohezion",
     database: str = "vault",
     skip_missing: bool = True,
+    url: str = "http://localhost:8001/sql",
 ) -> str | None:
     """
     Create graph edge with existence checks
@@ -147,12 +151,15 @@ async def safe_create_edge(
         namespace: SurrealDB namespace
         database: SurrealDB database
         skip_missing: If True, skip edge if target missing; if False, create placeholder
+        url: SurrealDB /sql endpoint
 
     Returns:
         Edge ID if created, None if skipped
     """
     # Check if target exists
-    target_exists = await check_document_exists(target_id, client, namespace, database)
+    target_exists = await check_document_exists(
+        target_id, client, namespace, database, url=url
+    )
 
     if not target_exists:
         if skip_missing:
@@ -168,7 +175,9 @@ async def safe_create_edge(
                 path = 'pending',
                 created_at = time::now();
             """
-            await execute_surreal_async(placeholder_query, client, namespace, database)
+            await execute_surreal_async(
+                placeholder_query, client, namespace, database, url=url
+            )
 
     # Build metadata SET clause
     metadata_clause = ""
@@ -185,7 +194,9 @@ async def safe_create_edge(
     """
 
     try:
-        results = await execute_surreal_async(edge_query, client, namespace, database)
+        results = await execute_surreal_async(
+            edge_query, client, namespace, database, url=url
+        )
         if results and results[0].get("status") == "OK":
             edge_id = results[0]["result"][0]["id"]
             logger.info(f"Created edge: {source_id}->{edge_type}->{target_id}")
@@ -206,6 +217,7 @@ async def detect_circular_reference(
     max_depth: int = 5,
     namespace: str = "cohezion",
     database: str = "vault",
+    url: str = "http://localhost:8001/sql",
 ) -> bool:
     """
     Detect if creating edge would cause circular reference
@@ -225,7 +237,9 @@ async def detect_circular_reference(
     """
 
     try:
-        results = await execute_surreal_async(query, client, namespace, database)
+        results = await execute_surreal_async(
+            query, client, namespace, database, url=url
+        )
         if results and results[0].get("status") == "OK":
             result = results[0].get("result", [])
             return len(result) > 0
@@ -241,6 +255,7 @@ async def batch_create_edges(
     namespace: str = "cohezion",
     database: str = "vault",
     max_concurrent: int = 10,
+    url: str = "http://localhost:8001/sql",
 ) -> int:
     """
     Create multiple edges in parallel with bounded concurrency
@@ -251,6 +266,7 @@ async def batch_create_edges(
         namespace: SurrealDB namespace
         database: SurrealDB database
         max_concurrent: Max parallel operations
+        url: SurrealDB /sql endpoint
 
     Returns:
         Count of successfully created edges
@@ -267,6 +283,7 @@ async def batch_create_edges(
                 client=client,
                 namespace=namespace,
                 database=database,
+                url=url,
             )
 
     # Execute all edge creations in parallel with limit

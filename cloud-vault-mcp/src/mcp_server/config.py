@@ -79,7 +79,7 @@ class ServerConfig:
         )
     )
     surrealdb_url: str = field(
-        default_factory=lambda: os.environ.get("SURREALDB_URL", "http://localhost:8000")
+        default_factory=lambda: os.environ.get("SURREALDB_URL", "http://localhost:8001")
     )
     surrealdb_namespace: str = field(
         default_factory=lambda: os.environ.get("SURREALDB_NAMESPACE", "cohezion")

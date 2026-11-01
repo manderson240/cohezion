@@ -24,6 +24,7 @@ from typing import Any
 from cohezion.arc.strix_dsl_search import StrixHaloDSLEngine
 from cohezion.autopoiesis.tri_silicon_engine import TriSiliconAutopoiesisEngine
 from cohezion.core.event_bus import Event, EventBus
+from cohezion.core.persistence.surreal_client import persistence_status
 from cohezion.data_mesh.kanban_bridge import persist_item
 from cohezion.flume.loop_goal_refactor_engine import MemoryAsPlans
 from cohezion.inference.dynamic_model_evaluator import DynamicModelEvaluator
@@ -380,6 +381,13 @@ class UnifiedPerpetualLoopDaemon:
             if snapshot.hardware.available_ram_gb < 20.0 or snapshot.hardware.gtt_used_gb > 46.0:
                 healing_info = self.control_plane.hardware.heal_hardware()
 
+            # persisted['surreal'] only says the snapshot's own raw-HTTP write landed. The
+            # SurrealClient fallback registry is informational ONLY: it is process-local (a
+            # dropped client vanishes from it while its writes stay in memory, an unrelated
+            # client can flip it, and it cannot see other processes), so it never decides success.
+            store = persistence_status()
+            in_fallback = store["in_memory_fallback"]
+
             elapsed_ms = (time.perf_counter() - t0) * 1000.0
             summary = (
                 f"Status: {snapshot.overall_status} | "
@@ -387,6 +395,11 @@ class UnifiedPerpetualLoopDaemon:
                 f"GTT: {snapshot.hardware.gtt_used_gb:.1f}G | "
                 f"Surreal: {persisted['surreal']} | Vault: {persisted['vault']}"
             )
+            if in_fallback:
+                summary += (
+                    f" | THIS PROCESS: {store['clients_in_fallback']} SurrealClient(s) "
+                    "in IN-MEMORY FALLBACK (other processes not visible)"
+                )
             return PhaseResult(
                 phase_name="control_sentry",
                 success=True,
@@ -395,6 +408,7 @@ class UnifiedPerpetualLoopDaemon:
                 details={
                     "snapshot": snapshot.to_dict(),
                     "persisted": persisted,
+                    "persistence": store,
                     "healing": healing_info,
                 },
             )

@@ -266,6 +266,15 @@ def reset_singletons():
     if hasattr(BudgetEnforcer, "reset_instance"):
         BudgetEnforcer.reset_instance()
 
+    # SurrealClient fallback registry is a process-global WeakSet: clients left over from earlier
+    # tests (GC-timing dependent) would otherwise show up as 'in fallback' in later tests.
+    try:
+        from cohezion.core.persistence import surreal_client as _sc
+
+        _sc._FALLBACK_CLIENTS.clear()
+    except (ImportError, AttributeError):
+        pass
+
     # Reset the MyceliumRegistry singleton (shared writer/reader registry).
     try:
         from cohezion.learning.mycelium_registry import MyceliumRegistry

@@ -37,7 +37,7 @@ class GraphRAGImporter:
         self,
         vault_path: Path,
         ollama_url: str = "http://localhost:13305",  # lemonade OmniRouter (OpenAI-compatible)
-        surrealdb_url: str = "http://localhost:8000",
+        surrealdb_url: str = "http://localhost:8001",
         namespace: str = "cohezion",
         database: str = "vault",
         embedding_model: str = "Qwen3-Embedding-0.6B-GGUF-Q8_0",
@@ -215,6 +215,7 @@ class GraphRAGImporter:
                 self.namespace,
                 self.database,
                 self.max_concurrent,
+                url=f"{self.surrealdb_url.rstrip('/')}/sql",
             )
             logger.info(f"Created {count}/{len(edges)} edges for {source_id}")
 
@@ -308,7 +309,7 @@ class GraphRAGImporter:
 async def import_vault_to_graphrag(
     vault_path: Path,
     ollama_url: str = "http://localhost:11434",
-    surrealdb_url: str = "http://localhost:8000",
+    surrealdb_url: str = "http://localhost:8001",
 ) -> dict[str, Any]:
     """
     Convenience function for full vault import

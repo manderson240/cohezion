@@ -22,6 +22,18 @@ from .graphrag_helpers import GraphRAGError, execute_surreal_async
 _TOKEN = re.compile(r"[a-z0-9]+")
 
 
+def _first_statement_rows(results: list[dict[str, Any]]) -> list[Any]:
+    """Rows of the first statement, raising when SurrealDB reported a statement error.
+
+    A failed statement still arrives as HTTP 200, with the error text in ``result``. Returned
+    as is, that string would reach callers as if it were rows.
+    """
+    failed = [r for r in results if r.get("status") == "ERR"]
+    if failed:
+        raise GraphRAGError("; ".join(str(r.get("result"))[:300] for r in failed))
+    return results[0].get("result", [])
+
+
 def _tokenize(text: str) -> list[str]:
     return _TOKEN.findall((text or "").lower())
 
@@ -77,14 +89,14 @@ class GraphRAGQuery:
     def __init__(
         self,
         embed_url: str = "http://localhost:13305",  # lemonade OmniRouter (OpenAI-compatible)
-        surrealdb_url: str = "http://localhost:8000",
+        surrealdb_url: str = "http://localhost:8001",
         namespace: str = "cohezion",
         database: str = "vault",
         embedding_model: str = "Qwen3-Embedding-0.6B-GGUF-Q8_0",
         max_graph_depth: int = 3,
     ):
         self.embed_url = embed_url.rstrip("/")
-        self.surrealdb_url = surrealdb_url
+        self.surrealdb_url = surrealdb_url.rstrip("/")
         self.namespace = namespace
         self.database = database
         self.embedding_model = embedding_model
@@ -158,10 +170,14 @@ class GraphRAGQuery:
         """
 
         results = await execute_surreal_async(
-            search_query, self.http_client, self.namespace, self.database
+            search_query,
+            self.http_client,
+            self.namespace,
+            self.database,
+            url=f"{self.surrealdb_url}/sql",
         )
 
-        return results[0].get("result", [])
+        return _first_statement_rows(results)
 
     async def bm25_fused_search(
         self, query: str, top_k: int = 5, pool: int = 20, min_score: float = 0.3
@@ -247,10 +263,14 @@ class GraphRAGQuery:
         """
 
         results = await execute_surreal_async(
-            hybrid_query, self.http_client, self.namespace, self.database
+            hybrid_query,
+            self.http_client,
+            self.namespace,
+            self.database,
+            url=f"{self.surrealdb_url}/sql",
         )
 
-        return results[0].get("result", [])
+        return _first_statement_rows(results)
 
     async def find_related(
         self,
@@ -291,10 +311,14 @@ class GraphRAGQuery:
         """
 
         results = await execute_surreal_async(
-            query, self.http_client, self.namespace, self.database
+            query,
+            self.http_client,
+            self.namespace,
+            self.database,
+            url=f"{self.surrealdb_url}/sql",
         )
 
-        result_list = results[0].get("result", [])
+        result_list = _first_statement_rows(results)
         return result_list[0] if result_list else {}
 
 

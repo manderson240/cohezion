@@ -9,6 +9,7 @@ import asyncio
 import logging
 from pathlib import Path
 
+from .config import ServerConfig
 from .graphrag_import import GraphRAGImporter
 from .vault_watcher import VaultEvent, VaultFileWatcher
 
@@ -20,11 +21,17 @@ class GraphRAGAutoSync:
     """Auto-sync vault changes to SurrealDB GraphRAG"""
 
     def __init__(
-        self, vault_path: Path, watcher: VaultFileWatcher, enable_edges: bool = True
+        self,
+        vault_path: Path,
+        watcher: VaultFileWatcher,
+        enable_edges: bool = True,
+        surrealdb_url: str | None = None,
     ):
         self.vault_path = Path(vault_path).resolve()
         self.watcher = watcher
         self.enable_edges = enable_edges
+        # None -> ServerConfig().surrealdb_url, resolved in start()
+        self.surrealdb_url = surrealdb_url
 
         self.importer: GraphRAGImporter | None = None
         self.task: asyncio.Task | None = None
@@ -37,7 +44,9 @@ class GraphRAGAutoSync:
             return
 
         # Initialize importer
-        self.importer = GraphRAGImporter(self.vault_path)
+        # Honour SURREALDB_URL (ServerConfig), not the importer default.
+        url = self.surrealdb_url or ServerConfig().surrealdb_url
+        self.importer = GraphRAGImporter(self.vault_path, surrealdb_url=url)
         await self.importer.__aenter__()
 
         # Subscribe to watcher
@@ -115,7 +124,10 @@ _auto_sync: GraphRAGAutoSync | None = None
 
 
 async def start_autosync(
-    vault_path: Path, watcher: VaultFileWatcher, enable_edges: bool = True
+    vault_path: Path,
+    watcher: VaultFileWatcher,
+    enable_edges: bool = True,
+    surrealdb_url: str | None = None,
 ):
     """Start global auto-sync instance"""
     global _auto_sync
@@ -124,7 +136,7 @@ async def start_autosync(
         logger.warning("Auto-sync already running")
         return _auto_sync
 
-    _auto_sync = GraphRAGAutoSync(vault_path, watcher, enable_edges)
+    _auto_sync = GraphRAGAutoSync(vault_path, watcher, enable_edges, surrealdb_url)
     await _auto_sync.start()
     return _auto_sync
 

@@ -8,6 +8,7 @@ Usage: python .claude/rules/harness_check.py [files...]
 """
 
 import json
+import os
 import subprocess
 import sys
 import time
@@ -105,8 +106,22 @@ def _run_harness_bash_check(t0: float) -> dict:
     }
 
 
+def _resolve_tool(cmd: list[str]) -> list[str]:
+    """Resolve cmd[0] from the repo venv (then ~/.local/bin) instead of a bare PATH lookup.
+
+    A plain-PATH run (systemd, hook, agent shell) has no ruff/mypy/uv and reports false FAILs.
+    """
+    if not cmd:
+        return cmd
+    for bin_dir in (PROJECT_ROOT / ".venv" / "bin", Path.home() / ".local" / "bin"):
+        candidate = bin_dir / cmd[0]
+        if candidate.is_file() and os.access(candidate, os.X_OK):
+            return [str(candidate), *cmd[1:]]
+    return cmd
+
+
 def run_check(name: str, cfg: dict, files: list[str]) -> dict:
-    cmd = cfg["cmd"]
+    cmd = _resolve_tool(cfg["cmd"])
     if files:
         cmd = cmd + files
 

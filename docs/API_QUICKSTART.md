@@ -41,6 +41,9 @@ curl http://localhost:8080/health
 
 ### 1. Execute a Skill
 
+> **Not available:** the `/compound/*` router is not mounted on `cohezion.api:app`, so
+> `/compound/execute` is not served. The examples below are not runnable as written.
+
 Execute a PRIME skill with input text:
 
 ```bash

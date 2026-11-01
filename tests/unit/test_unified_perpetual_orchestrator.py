@@ -168,6 +168,36 @@ async def test_run_sentry_phase(mock_daemon):
 
 
 @pytest.mark.asyncio
+async def test_sentry_reports_inmemory_fallback_without_failing_on_it(mock_daemon):
+    """A SurrealClient on memory is surfaced in the summary, labelled as this process only."""
+    from unittest.mock import MagicMock
+
+    snap = MagicMock()
+    snap.overall_status = "HEALTHY"
+    snap.hardware.available_ram_gb = 45.0
+    snap.hardware.gtt_used_gb = 15.0
+    snap.to_dict.return_value = {}
+    with (
+        patch.object(mock_daemon.control_plane, "snapshot", return_value=snap),
+        patch.object(
+            mock_daemon.control_plane,
+            "persist_snapshot",
+            return_value={"surreal": True, "vault": True},
+        ),
+        patch(
+            "cohezion.ops.unified_perpetual_orchestrator.persistence_status",
+            return_value={"in_memory_fallback": True, "clients_in_fallback": 1},
+        ),
+    ):
+        res = await mock_daemon.run_sentry_phase(cycle_num=1)
+    # The registry is process-local, so it is reported but must never decide success.
+    assert res.success is True
+    assert "IN-MEMORY FALLBACK" in res.summary
+    assert "THIS PROCESS" in res.summary
+    assert res.details["persistence"]["clients_in_fallback"] == 1
+
+
+@pytest.mark.asyncio
 async def test_run_trace_refactor_phase(mock_daemon):
     with patch("scripts.ops.refactor_traces_to_goals.fetch_recent_traces", return_value=[]):
         res = await mock_daemon.run_trace_refactor_phase(cycle_num=1)
