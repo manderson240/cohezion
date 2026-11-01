@@ -94,6 +94,11 @@ async def evaluate_cache_threshold(samples: list[dict], candidate: dict) -> dict
             with contextlib.suppress(Exception):
                 await cache.put(prompt, response)
 
+    if total_lookups > 0 and len(cache._l2_keys) == 0:
+        # put() skips L2 without a real encoder, so every lookup above was a guaranteed miss and
+        # the zero hit rate would read as "no collisions at this threshold".
+        raise TextLatentUnavailable("text latent unavailable: L2 empty after ingest")
+
     hit_rate = (hits / total_lookups) * 100 if total_lookups > 0 else 0
     collision_rate = (collisions / hits) * 100 if hits > 0 else 0
     valid_hit_rate = (valid_hits / total_lookups) * 100 if total_lookups > 0 else 0
@@ -120,6 +125,11 @@ async def main():
 
     logger.info("Loaded %d prompt samples for sweep.", len(samples))
 
+    # Refuse before sweeping: without the real encoder L2 never fills and the sweep measures nothing.
+    if SemanticCache._text_to_embedding("calibration encoder probe") is None:
+        logger.error("Text latent unavailable: refusing to calibrate. Nothing saved.")
+        sys.exit(1)
+
     # Define candidate parameter grid
     thresholds = [0.40, 0.45, 0.50, 0.55, 0.60, 0.65, 0.70, 0.75, 0.80, 0.85, 0.90, 0.95]
     param_grid = [{"similarity_threshold": t} for t in thresholds]
@@ -140,8 +150,8 @@ async def main():
     )
     print("|---|---|---|---|---|---|---|---|")
 
-    optimal_threshold = 0.80
-    best_valid_hit_rate = -1.0
+    optimal_threshold = None
+    best_valid_hit_rate = 0.0
 
     for res in sweep_results:
         cand = res["candidate"]
@@ -166,6 +176,12 @@ async def main():
         ):
             best_valid_hit_rate = metrics["valid_hit_rate_pct"]
             optimal_threshold = t
+
+    if optimal_threshold is None:
+        # No candidate produced a valid hit (all errored, collided, or never hit): nothing was
+        # validated, so saving any threshold would override the cache's own with an unmeasured one.
+        logger.error("No threshold produced a valid hit; refusing to save a profile.")
+        sys.exit(1)
 
     print(f"\n**Recommended Optimal Similarity Threshold:** {optimal_threshold:.2f}")
 

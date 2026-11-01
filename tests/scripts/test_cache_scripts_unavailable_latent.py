@@ -55,3 +55,76 @@ def test_semantic_discrimination_diagnostic_reports_and_returns_without_a_latent
     with caplog.at_level(logging.ERROR):
         mod.diagnostic_semantic_discrimination()
     assert "text latent unavailable" in caplog.text
+
+
+class _NoEncoder:
+    """The real cold state: an encoder object whose latent is unavailable."""
+
+    def encode_or_none(self, text, strict_window=False):
+        return None
+
+
+def _cold_calibration(monkeypatch, tmp_path):
+    """Load the real script with the REAL SemanticCache but no encoder (nothing faked in the cache)."""
+    import cohezion.cache.semantic_cache as sc
+
+    monkeypatch.setattr(sc, "get_encoder", lambda: _NoEncoder())
+    monkeypatch.setenv("HOME", str(tmp_path))
+    return _load("calibration/run_cache_calibration.py")
+
+
+SAMPLES = [{"prompt": f"prompt number {i} " * 6, "response": f"answer {i}"} for i in range(4)]
+
+
+def test_calibration_evaluate_refuses_when_l2_stays_empty_cold(monkeypatch, tmp_path):
+    mod = _cold_calibration(monkeypatch, tmp_path)
+    with pytest.raises(TextLatentUnavailable):
+        asyncio.run(mod.evaluate_cache_threshold(SAMPLES, {"similarity_threshold": 0.4}))
+
+
+def test_calibration_main_cold_saves_no_profile(monkeypatch, tmp_path):
+    """Real main(), real SemanticCache, no encoder: must exit nonzero and save nothing."""
+    mod = _cold_calibration(monkeypatch, tmp_path)
+    saved = []
+    monkeypatch.setattr(mod, "load_local_logs", lambda min_len=0: iter(SAMPLES))
+    monkeypatch.setattr(mod, "save_calibration_profile", lambda *a, **k: saved.append(a))
+    real_sweep = mod.run_parameter_sweep
+
+    async def sweep_no_ram_gate(samples, fn, grid, min_ram_mb=0):
+        return await real_sweep(samples, fn, grid, min_ram_mb=0)
+
+    monkeypatch.setattr(mod, "run_parameter_sweep", sweep_no_ram_gate)
+    with pytest.raises(SystemExit) as exc:
+        asyncio.run(mod.main())
+    assert exc.value.code == 1
+    assert saved == []
+
+
+def test_calibration_main_never_saves_when_no_threshold_is_valid(monkeypatch, tmp_path):
+    """Probe passes but every candidate errors (e.g. L2 stays empty): still nothing is saved."""
+    mod = _cold_calibration(monkeypatch, tmp_path)
+    saved = []
+    monkeypatch.setattr(mod.SemanticCache, "_text_to_embedding", staticmethod(lambda t: object()))
+    monkeypatch.setattr(mod, "load_local_logs", lambda min_len=0: iter(SAMPLES))
+    monkeypatch.setattr(mod, "save_calibration_profile", lambda *a, **k: saved.append(a))
+    real_sweep = mod.run_parameter_sweep
+
+    async def sweep_no_ram_gate(samples, fn, grid, min_ram_mb=0):
+        return await real_sweep(samples, fn, grid, min_ram_mb=0)
+
+    async def zero_hits(samples, cand):
+        return {
+            "total_lookups": 4,
+            "hits": 0,
+            "valid_hits": 0,
+            "collisions": 0,
+            "hit_rate_pct": 0.0,
+            "collision_rate_pct": 0.0,
+            "valid_hit_rate_pct": 0.0,
+        }
+
+    monkeypatch.setattr(mod, "run_parameter_sweep", sweep_no_ram_gate)
+    monkeypatch.setattr(mod, "evaluate_cache_threshold", zero_hits)
+    with pytest.raises(SystemExit):
+        asyncio.run(mod.main())
+    assert saved == []
