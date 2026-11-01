@@ -49,6 +49,13 @@ class TestRefusalPath:
         assert "floor" in r.json()["error"]["message"].lower()
         assert seen == []  # the refused request MUST NOT touch lemond
 
+    def test_refusal_carries_retry_after_so_callers_back_off(self) -> None:
+        app = build_app(_gate(available_gb=10.4), client=_upstream([]))
+        with TestClient(app) as c:
+            r = c.post("/api/v1/chat/completions", json={"model": "Qwen3.6-35B-A3B-GGUF"})
+        assert r.status_code == 503
+        assert int(r.headers["Retry-After"]) >= 1
+
     def test_shadow_mode_forwards_but_counts(self) -> None:
         seen: list[httpx.Request] = []
         app = build_app(_gate(available_gb=10.4, enforce=False), client=_upstream(seen))

@@ -41,6 +41,10 @@ logger = logging.getLogger(__name__)
 # one wholesale on the hot path is pure memory/latency cost (review 2026-09-01, F4).
 _MAX_PARSE_BYTES = 1_000_000
 
+# An admission refusal is a normal "come back later" outcome (memory headroom), not a fault.
+# Callers that honour Retry-After back off instead of hammering the gate every couple of seconds.
+_RETRY_AFTER_S = max(1, int(os.environ.get("COHEZION_ADMISSION_RETRY_AFTER_S", "30")))
+
 # Hop-by-hop headers must not be forwarded verbatim (RFC 9110 §7.6.1).
 _HOP_HEADERS = frozenset(
     {
@@ -152,6 +156,7 @@ def build_app(
             counters["refused"] += 1
             return JSONResponse(
                 status_code=503,
+                headers={"Retry-After": str(_RETRY_AFTER_S)},
                 content={
                     "error": {
                         "type": "admission_refused",
