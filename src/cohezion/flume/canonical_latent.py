@@ -19,6 +19,7 @@ import os
 import threading
 import time
 from collections.abc import Callable
+from typing import Any
 
 import numpy as np
 
@@ -51,6 +52,14 @@ PARAPHRASE_THRESHOLD = 0.80
 
 class TextLatentUnavailable(RuntimeError):  # noqa: N818 - name is the cross-repo contract
     """No real text encoder is available. Never answer with a substitute vector."""
+
+
+# What a loaded backend raises at INFERENCE time: torch/allocator/tokenizer failures are
+# RuntimeError ("DefaultCPUAllocator: can't allocate memory", "Already borrowed"), MemoryError and
+# OSError (device/mmap), ValueError (tokenizer rejecting a value). They become the explicit
+# "unavailable" state for this call only; programming errors (TypeError, AttributeError, ...)
+# still propagate.
+_INFERENCE_ERRORS = (RuntimeError, MemoryError, OSError, ValueError)
 
 
 def _download_timeout() -> float:
@@ -156,9 +165,33 @@ class CanonicalTextLatent:
                     raise TextLatentUnavailable(self._error) from exc
         return self._embed
 
+    def _infer(self, fn: Callable[[str], Any], text: str) -> Any:
+        """Run one backend call; an inference-time failure becomes ``TextLatentUnavailable``.
+
+        ``_ensure()`` is resolved by the caller OUTSIDE this guard (its own unavailable error is
+        already explicit), and the encoder is NOT marked dead: a transient OOM or "Already
+        borrowed" must not disable the latent for RETRY_AFTER_S. Never falls back to a hash vector.
+        """
+        try:
+            return fn(text)
+        except TextLatentUnavailable:
+            raise
+        except _INFERENCE_ERRORS as exc:
+            logger.warning(
+                "text latent backend failed at inference (%s: %s)", type(exc).__name__, exc
+            )
+            raise TextLatentUnavailable(f"inference failed: {type(exc).__name__}: {exc}") from exc
+
     def encode(self, text: str) -> np.ndarray:
-        """Return a unit-norm float32 vector of exactly LATENT_DIM, or raise."""
-        raw = np.asarray(self._ensure()(text), dtype=np.float32).reshape(-1)
+        """Return a unit-norm float32 vector of exactly LATENT_DIM, or raise.
+
+        ``text`` must be a ``str`` (TypeError otherwise): a list or other value reaches the
+        backend as a batch and would return a flattened mix at another width.
+        """
+        if not isinstance(text, str):
+            raise TypeError(f"text must be str, got {type(text).__name__}")
+        embed = self._ensure()
+        raw = np.asarray(self._infer(embed, text), dtype=np.float32).reshape(-1)
         if not np.isfinite(raw).all() or float(np.linalg.norm(raw)) < 1e-6:
             raise TextLatentUnavailable("encoder returned a zero or non-finite vector")
         if self._proj is None or self._proj.shape[0] != raw.shape[0]:
@@ -186,7 +219,7 @@ class CanonicalTextLatent:
         """
         counter = getattr(self._ensure(), "count_tokens", None)
         limit = self.max_tokens
-        return bool(counter and limit and counter(text) > limit)
+        return bool(counter and limit and self._infer(counter, text) > limit)
 
     def encode_or_none(self, text: str, *, strict_window: bool = False) -> np.ndarray | None:
         """``encode`` or None. A None is never silent: skipped calls are counted and a warning is
@@ -196,8 +229,14 @@ class CanonicalTextLatent:
         ``strict_window=True`` is for callers that use the vector as an IDENTITY (cache keys): a
         text longer than the backend window is reported as None instead of being embedded from
         its head alone, since two different long texts sharing a head would collide at cosine 1.0.
-        The default stays False so non-identity callers keep embedding long contexts."""
+        The default stays False so non-identity callers keep embedding long contexts.
+
+        Returns None (never raises) for an unavailable backend, an inference-time backend
+        failure, and a non-``str`` input (callers pass free-form context; None means "no latent").
+        """
         try:
+            if not isinstance(text, str):
+                raise TextLatentUnavailable(f"input is {type(text).__name__}, not str")
             if strict_window and self.exceeds_token_limit(text):
                 raise TextLatentUnavailable(
                     f"text exceeds the encoder window ({self.max_tokens} tokens)"
