@@ -2,13 +2,14 @@
 
 import asyncio
 from pathlib import Path
+from typing import ClassVar
 from unittest.mock import MagicMock, patch
 
 from mcp_server import graphrag_autosync as ga
 
 
 class _Importer:
-    seen: dict = {}
+    seen: ClassVar[dict] = {}
 
     def __init__(self, vault_path, **kwargs):
         _Importer.seen = kwargs
@@ -34,6 +35,13 @@ def test_configured_surrealdb_url_reaches_the_importer():
     assert _Importer.seen == {"surrealdb_url": "http://example.invalid:9999"}
 
 
-def test_default_leaves_importer_default():
+def test_no_argument_resolves_from_surrealdb_url_env(monkeypatch):
+    monkeypatch.setenv("SURREALDB_URL", "http://env.invalid:7777")
     _start()
-    assert _Importer.seen == {}
+    assert _Importer.seen == {"surrealdb_url": "http://env.invalid:7777"}
+
+
+def test_no_argument_no_env_uses_config_default(monkeypatch):
+    monkeypatch.delenv("SURREALDB_URL", raising=False)
+    _start()
+    assert _Importer.seen == {"surrealdb_url": "http://localhost:8001"}

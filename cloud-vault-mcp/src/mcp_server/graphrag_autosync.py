@@ -9,6 +9,7 @@ import asyncio
 import logging
 from pathlib import Path
 
+from .config import ServerConfig
 from .graphrag_import import GraphRAGImporter
 from .vault_watcher import VaultEvent, VaultFileWatcher
 
@@ -29,7 +30,8 @@ class GraphRAGAutoSync:
         self.vault_path = Path(vault_path).resolve()
         self.watcher = watcher
         self.enable_edges = enable_edges
-        self.surrealdb_url = surrealdb_url  # None -> the importer's default
+        # None -> ServerConfig().surrealdb_url, resolved in start()
+        self.surrealdb_url = surrealdb_url
 
         self.importer: GraphRAGImporter | None = None
         self.task: asyncio.Task | None = None
@@ -42,8 +44,9 @@ class GraphRAGAutoSync:
             return
 
         # Initialize importer
-        extra = {"surrealdb_url": self.surrealdb_url} if self.surrealdb_url else {}
-        self.importer = GraphRAGImporter(self.vault_path, **extra)
+        # Honour SURREALDB_URL (ServerConfig), not the importer default.
+        url = self.surrealdb_url or ServerConfig().surrealdb_url
+        self.importer = GraphRAGImporter(self.vault_path, surrealdb_url=url)
         await self.importer.__aenter__()
 
         # Subscribe to watcher
