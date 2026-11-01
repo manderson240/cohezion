@@ -209,7 +209,7 @@ SkillConsensusVoter (multi-agent validation)
   ↓
 Updated Skill (loop again)
 ```
-**CLI**: `uv run python scripts/drivers/compound_cycle.py` (dry-run) or via `/compound` API endpoint.
+**CLI**: `uv run python scripts/drivers/compound_cycle.py` (dry-run). The `/compound` HTTP router (`api/routes/compound.py`) exists but is deliberately NOT mounted on `cohezion.api:app`: `POST /compound/feedback` rewrites PRIME skill files and the API has no auth on its neighbouring routes. Mount it only together with an auth dependency.
 
 ## Coding Standards (Cohezion-Specific)
 
