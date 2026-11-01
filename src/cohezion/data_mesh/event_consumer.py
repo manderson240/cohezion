@@ -305,7 +305,15 @@ class EventConsumer:
             "tallied": 0,
             "failed": {},
         }
-        for event in self.fetch_unclaimed(batch):
+        try:
+            events = self.fetch_unclaimed(batch)
+        except TimeoutError as exc:
+            # A slow SurrealDB read is transient and nothing was claimed, so the next timer
+            # tick re-fetches the same events. Exiting non-zero only paged the unit as failed.
+            logger.warning("event fetch timed out; skipping this batch: %s", exc)
+            summary["skipped"] = f"fetch timed out: {exc}"
+            return summary
+        for event in events:
             rid = str(event.get("id", ""))
             summary["fetched"] += 1
             try:
