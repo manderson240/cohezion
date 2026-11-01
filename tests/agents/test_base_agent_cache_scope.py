@@ -1,3 +1,4 @@
+# ruff: noqa: F811
 """F1/F2: the reliability semantic cache is scoped and every tier's hit survives _call_ollama.
 
 These go through the REAL reliability SemanticCache (fake Redis only) and the real

@@ -402,9 +402,11 @@ def test_encode_journey_text_ignores_router_bridge(monkeypatch):
     assert np.allclose(z, get_encoder().encode("hello manifold"))
 
 
-def test_encode_journey_text_zero_vector_falls_back_to_hash(monkeypatch):
-    """The bridge's failure sentinel (zero vector) must trigger the hash fallback."""
+def test_encode_journey_text_ignores_bridge_zero_vector_and_uses_canonical_latent(monkeypatch):
+    """The bridge is never consulted, so its failure sentinel (zero vector) changes nothing:
+    the result is the canonical latent, not a zero vector and not a hash substitute."""
     from cohezion.api.services.journey_nexus import _encode_journey_text
+    from cohezion.flume.vae_encoder import get_encoder
 
     monkeypatch.setattr(
         "cohezion.inference.lemonade_embed_bridge.LemonadeEmbedBridge.is_available",
@@ -416,7 +418,8 @@ def test_encode_journey_text_zero_vector_falls_back_to_hash(monkeypatch):
     )
     z = _encode_journey_text("hello manifold")
     assert z.shape == (256,)
-    assert float(np.linalg.norm(z)) > 0.0  # non-degenerate: hash fallback engaged
+    assert float(np.linalg.norm(z)) == pytest.approx(1.0, abs=1e-5)
+    assert np.allclose(z, get_encoder().encode("hello manifold"))
 
 
 class _FakeToolCallLog:
