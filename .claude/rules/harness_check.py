@@ -8,6 +8,7 @@ Usage: python .claude/rules/harness_check.py [files...]
 """
 
 import json
+import os
 import subprocess
 import sys
 import time
@@ -114,7 +115,7 @@ def _resolve_tool(cmd: list[str]) -> list[str]:
         return cmd
     for bin_dir in (PROJECT_ROOT / ".venv" / "bin", Path.home() / ".local" / "bin"):
         candidate = bin_dir / cmd[0]
-        if candidate.is_file():
+        if candidate.is_file() and os.access(candidate, os.X_OK):
             return [str(candidate), *cmd[1:]]
     return cmd
 

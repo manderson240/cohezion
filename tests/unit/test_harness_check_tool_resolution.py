@@ -21,6 +21,7 @@ def test_resolves_from_venv_bin_when_present(tmp_path, monkeypatch):
     fake_bin = tmp_path / ".venv" / "bin"
     fake_bin.mkdir(parents=True)
     (fake_bin / "ruff").write_text("#!/bin/sh\n")
+    (fake_bin / "ruff").chmod(0o755)
     monkeypatch.setattr(mod, "PROJECT_ROOT", tmp_path)
     assert mod._resolve_tool(["ruff", "format", "--check"]) == [
         str(fake_bin / "ruff"),
@@ -41,6 +42,7 @@ def test_run_check_executes_the_resolved_path(tmp_path, monkeypatch):
     fake_bin = tmp_path / ".venv" / "bin"
     fake_bin.mkdir(parents=True)
     (fake_bin / "ruff").write_text("#!/bin/sh\n")
+    (fake_bin / "ruff").chmod(0o755)
     monkeypatch.setattr(mod, "PROJECT_ROOT", tmp_path)
     seen = []
 
@@ -51,3 +53,14 @@ def test_run_check_executes_the_resolved_path(tmp_path, monkeypatch):
     monkeypatch.setattr(mod.subprocess, "run", fake_run)
     mod.run_check("format", {"cmd": ["ruff", "format"], "desc": "d", "timeout": 1}, ["a.py"])
     assert seen == [[str(fake_bin / "ruff"), "format", "a.py"]]
+
+
+def test_non_executable_candidate_is_skipped(tmp_path, monkeypatch):
+    mod = _load()
+    fake_bin = tmp_path / ".venv" / "bin"
+    fake_bin.mkdir(parents=True)
+    (fake_bin / "ruff").write_text("not a program\n")
+    (fake_bin / "ruff").chmod(0o644)
+    monkeypatch.setattr(mod, "PROJECT_ROOT", tmp_path)
+    monkeypatch.setattr(mod.Path, "home", classmethod(lambda cls: tmp_path))
+    assert mod._resolve_tool(["ruff", "check"]) == ["ruff", "check"]
