@@ -209,7 +209,7 @@ SkillConsensusVoter (multi-agent validation)
   ↓
 Updated Skill (loop again)
 ```
-**CLI**: `uv run python scripts/drivers/compound_cycle.py` (dry-run). The `/compound` HTTP router (`api/routes/compound.py`) exists but is deliberately NOT mounted on `cohezion.api:app`: `POST /compound/feedback` rewrites PRIME skill files and the API has no auth on its neighbouring routes. Mount it only together with an auth dependency.
+**CLI**: `uv run python scripts/drivers/compound_cycle.py` (dry-run). The `/compound` HTTP router (`api/routes/compound.py`) exists but is deliberately NOT mounted on `cohezion.api:app`: `POST /compound/feedback` does not work today: if mounted, every POST fails with `TypeError: CompoundFeedbackLoop.__init__() missing 1 required positional argument: 'executor'`, and the route calls `run_cycle` / `run_multi_cycle`, which `CompoundFeedbackLoop` does not define (measured; nothing is rewritten). Auth is also missing on the neighbours: of the 14 mutating routes, only 2 use `verify_a2a_token` (`api/routes/main.py:47-58, 356, 390`) and 12 have none. Fix the route and add an auth dependency before mounting it.
 
 ## Coding Standards (Cohezion-Specific)
 

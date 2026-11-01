@@ -22,7 +22,7 @@
 | **RL Policy** | 5 | `/rl/*` |
 | **Skills** | 3 | `/skills/*`, `/query/*`, `/templates/*` |
 | **Observability** | 9 | `/metrics/*` (dashboard, trends, reset, etc.) |
-| **Compound Engineering** | 5 | `/compound/*` |
+| **Compound Engineering** | 5 | `/compound/*` (router not mounted; not served) |
 | **Streaming** | 6 | `/inference/*` |
 | **Anima** | 3 | `/anima/*` |
 | **Vault** | 3 | `/vault/*` |
@@ -35,7 +35,7 @@
 | Method | Count | Example Endpoints |
 |--------|-------|-------------------|
 | **GET** | 42 | `/health`, `/metrics/*`, `/journeys/{id}` |
-| **POST** | 25 | `/compound/execute`, `/swarm/debate`, `/flume/train` |
+| **POST** | 25 | `/compound/execute` (not mounted), `/swarm/debate`, `/flume/train` |
 | **DELETE** | 2 | `/inference/cancel/{id}` |
 | **WebSocket** | 1 | `/pulse` |
 | **SSE** | 2 | `/inference/stream`, `/inference/resume/*` |
