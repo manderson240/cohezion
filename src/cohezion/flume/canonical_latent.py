@@ -62,6 +62,15 @@ class TextLatentUnavailable(RuntimeError):  # noqa: N818 - name is the cross-rep
 _INFERENCE_ERRORS = (RuntimeError, MemoryError, OSError, ValueError)
 
 
+def _require_encodable(text: str) -> None:
+    """A lone surrogate (e.g. from ``json.loads('"\\ud83d"')``) cannot be passed to a tokenizer: the
+    backend raises TypeError, which must stay a propagating programming error for other inputs."""
+    try:
+        text.encode("utf-8")
+    except UnicodeEncodeError as exc:
+        raise TextLatentUnavailable(f"input is not valid unicode: {exc.reason}") from exc
+
+
 def _download_timeout() -> float:
     try:
         return float(os.environ.get(DOWNLOAD_TIMEOUT_ENV, _DEFAULT_DOWNLOAD_TIMEOUT_S))
@@ -190,6 +199,7 @@ class CanonicalTextLatent:
         """
         if not isinstance(text, str):
             raise TypeError(f"text must be str, got {type(text).__name__}")
+        _require_encodable(text)
         embed = self._ensure()
         raw = np.asarray(self._infer(embed, text), dtype=np.float32).reshape(-1)
         if not np.isfinite(raw).all() or float(np.linalg.norm(raw)) < 1e-6:
@@ -237,6 +247,7 @@ class CanonicalTextLatent:
         try:
             if not isinstance(text, str):
                 raise TextLatentUnavailable(f"input is {type(text).__name__}, not str")
+            _require_encodable(text)  # before the window check, which also tokenizes
             if strict_window and self.exceeds_token_limit(text):
                 raise TextLatentUnavailable(
                     f"text exceeds the encoder window ({self.max_tokens} tokens)"

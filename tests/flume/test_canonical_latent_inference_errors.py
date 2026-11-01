@@ -101,6 +101,52 @@ def test_non_str_input_is_none_from_encode_or_none_and_typeerror_from_encode(bad
     assert enc._proj is None  # the shared projection was not rebuilt for a batch shape
 
 
+class _SurrogateIntolerant(_Flaky):
+    """Like the real HF fast tokenizer: a lone surrogate is a TypeError at the Rust boundary."""
+
+    def __call__(self, text: str) -> np.ndarray:
+        try:
+            text.encode("utf-8")
+        except UnicodeEncodeError as exc:
+            raise TypeError("TextEncodeInput must be Union[...]") from exc
+        return super().__call__(text)
+
+    def count_tokens(self, text: str) -> int:
+        try:
+            text.encode("utf-8")
+        except UnicodeEncodeError as exc:
+            raise TypeError("TextEncodeInput must be Union[...]") from exc
+        return len(text.split())
+
+
+LONE_SURROGATE = "bad \ud83d text"
+
+
+@pytest.mark.parametrize("strict", [False, True])
+def test_lone_surrogate_is_none_from_encode_or_none_never_raises(strict):
+    backend = _SurrogateIntolerant(RuntimeError(OOM))
+    backend.broken = False
+    enc = CanonicalTextLatent(lambda: backend)
+    assert enc.encode_or_none(LONE_SURROGATE, strict_window=strict) is None
+    assert enc.encode_or_none("fine text", strict_window=strict) is not None
+    with pytest.raises(TextLatentUnavailable):
+        enc.encode(LONE_SURROGATE)
+
+
+def test_backend_typeerror_on_valid_text_still_propagates_with_strict_window():
+    """The surrogate fix must not widen the catch: a TypeError for ordinary text is still a bug."""
+    backend = _SurrogateIntolerant(RuntimeError(OOM))
+    backend.broken = False
+
+    def bad_count(text: str) -> int:
+        raise TypeError("bug")
+
+    backend.count_tokens = bad_count
+    enc = CanonicalTextLatent(lambda: backend)
+    with pytest.raises(TypeError):
+        enc.encode_or_none("fine text", strict_window=True)
+
+
 def test_list_input_cannot_rebuild_the_shared_projection():
     enc, backend = _flaky()
     backend.broken = False
@@ -138,12 +184,16 @@ def test_cache_text_to_embedding_is_none_on_inference_failure(monkeypatch):
     assert sc.SemanticCache._text_to_embedding("anything") is None
 
 
-def test_journey_tracker_text_to_latent_degrades_to_its_fallback_on_inference_failure():
+def test_journey_tracker_text_to_latent_raises_on_transient_inference_failure():
+    """A transient failure while the encoder IS available must not become an untagged hash
+    latent (cosine ~ -0.02 to the real one); it raises, as at base. Changed from "degrades to
+    its fallback" on the checker's finding N1. No encoder at all still uses the hash path."""
     from cohezion.compound.journey_tracker import JourneyTracker
 
     jt = JourneyTracker(seed=7)
-    jt._flume_encoder = None
-    expected = jt.text_to_latent("some task")
     jt._flume_encoder = _broken_encoder()
-    got = jt.text_to_latent("some task")
-    assert got.shape == (2048,) and np.allclose(got, expected)
+    assert jt._flume_encoder.is_available() is True  # precondition: failure is transient
+    with pytest.raises(TextLatentUnavailable):
+        jt.text_to_latent("some task")
+    jt._flume_encoder = None  # unavailable from the start: pre-existing hash path stays
+    assert jt.text_to_latent("some task").shape == (2048,)
