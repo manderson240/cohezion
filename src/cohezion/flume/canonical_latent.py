@@ -105,11 +105,17 @@ def _load_minilm() -> Callable[[str], np.ndarray]:
     max_tokens = int(model.max_seq_length)
     tokenizer = model.tokenizer
 
+    # The HF fast tokenizer is a Rust object that raises RuntimeError("Already borrowed") when
+    # two threads use it at once, and model.encode and count_tokens share it. One lock covers both.
+    infer_lock = threading.Lock()
+
     def embed(text: str) -> np.ndarray:
-        return np.asarray(model.encode(text), dtype=np.float32)
+        with infer_lock:
+            return np.asarray(model.encode(text), dtype=np.float32)
 
     def count_tokens(text: str) -> int:
-        return len(tokenizer(text, add_special_tokens=True)["input_ids"])
+        with infer_lock:
+            return len(tokenizer(text, add_special_tokens=True)["input_ids"])
 
     # The model silently truncates input past max_tokens; callers must not rely on the tail.
     embed.max_tokens = max_tokens  # type: ignore[attr-defined]
