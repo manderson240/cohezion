@@ -20,6 +20,7 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(
 logger = logging.getLogger(__name__)
 
 from cohezion.cache.semantic_cache import SemanticCache  # noqa: E402
+from cohezion.flume.canonical_latent import TextLatentUnavailable  # noqa: E402
 from cohezion.validation.calibration_harness import (  # noqa: E402
     load_local_logs,
     run_parameter_sweep,
@@ -65,6 +66,9 @@ async def evaluate_cache_threshold(samples: list[dict], candidate: dict) -> dict
 
         if cache._l2_matrix is not None and len(cache._l2_keys) > 0:
             query_embedding = cache._text_to_embedding(prompt)
+            if query_embedding is None:
+                # A sweep without the real latent measures nothing (put() would skip L2 too).
+                raise TextLatentUnavailable("text latent unavailable: refusing to calibrate")
             sims = np.dot(cache._l2_matrix, query_embedding)
             best_idx = int(np.argmax(sims))
             best_similarity = float(sims[best_idx])
