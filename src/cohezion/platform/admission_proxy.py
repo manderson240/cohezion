@@ -41,9 +41,20 @@ logger = logging.getLogger(__name__)
 # one wholesale on the hot path is pure memory/latency cost (review 2026-09-01, F4).
 _MAX_PARSE_BYTES = 1_000_000
 
+
 # An admission refusal is a normal "come back later" outcome (memory headroom), not a fault.
 # Callers that honour Retry-After back off instead of hammering the gate every couple of seconds.
-_RETRY_AFTER_S = max(1, int(os.environ.get("COHEZION_ADMISSION_RETRY_AFTER_S", "30")))
+def _retry_after_seconds() -> int:
+    raw = os.environ.get("COHEZION_ADMISSION_RETRY_AFTER_S", "30")
+    try:
+        return max(1, int(raw))
+    except ValueError:
+        # A typo in a tuning knob must not stop the gate on :13305 from starting.
+        logger.warning("Ignoring COHEZION_ADMISSION_RETRY_AFTER_S=%r; using 30", raw)
+        return 30
+
+
+_RETRY_AFTER_S = _retry_after_seconds()
 
 # Hop-by-hop headers must not be forwarded verbatim (RFC 9110 §7.6.1).
 _HOP_HEADERS = frozenset(

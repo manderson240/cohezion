@@ -400,7 +400,9 @@ DEFINE FIELD stability_score ON TABLE universe_nodes VALUE (
             await self.connect()
 
     def _fallback_delay(self) -> float:
-        return min(_FALLBACK_RETRY_BASE_S * 2**self._fallback_failures, _FALLBACK_RETRY_MAX_S)
+        # Clamp the exponent: float * 2**n raises OverflowError past n~1024, about 85 h into an outage.
+        exponent = min(self._fallback_failures, 16)
+        return min(_FALLBACK_RETRY_BASE_S * 2**exponent, _FALLBACK_RETRY_MAX_S)
 
     async def connect(self) -> bool:
         """
@@ -1099,6 +1101,9 @@ DEFINE FIELD stability_score ON TABLE universe_nodes VALUE (
         if self._client and not isinstance(self._client, InMemoryStore):
             await self._client.close()
         self._connected = False
+        # A closed client no longer holds writes in memory, so it must not report a fallback.
+        self._using_fallback = False
+        _FALLBACK_CLIENTS.discard(self)
 
 
 class InMemoryStore:

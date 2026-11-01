@@ -92,3 +92,42 @@ async def test_failed_retry_stays_in_fallback_and_backs_off(fake_db):
     assert client.persistence_state == "fallback"
     assert client._fallback_failures == 2
     assert client._fallback_delay() >= 0.04
+
+
+@pytest.mark.asyncio
+async def test_long_outage_does_not_overflow_the_backoff(fake_db):
+    client = sc.SurrealClient()
+    await client.connect()
+    client._fallback_failures = 5000  # past float range for 2**n
+    assert client._fallback_delay() == sc._FALLBACK_RETRY_MAX_S
+    await client.connect()  # the failed retry recomputes the delay inside _use_fallback
+    assert client.persistence_state == "fallback"
+
+
+@pytest.mark.asyncio
+async def test_close_clears_the_fallback_report(fake_db):
+    client = sc.SurrealClient()
+    await client.connect()
+    assert sc.persistence_status()["clients_in_fallback"] == 1
+    await client.close()
+    assert client.persistence_state == "disconnected"
+    assert sc.persistence_status()["in_memory_fallback"] is False
+
+
+@pytest.mark.asyncio
+async def test_concurrent_callers_share_one_retry(fake_db, monkeypatch):
+    attempts = 0
+
+    async def counting_connect(self) -> None:
+        nonlocal attempts
+        attempts += 1
+        await asyncio.sleep(0)
+        raise OSError("server still down")
+
+    monkeypatch.setattr(_FakeSurreal, "connect", counting_connect)
+    client = sc.SurrealClient()
+    await client.connect()
+    attempts = 0
+    await asyncio.sleep(0.05)  # past the first backoff deadline
+    await asyncio.gather(*(client._ensure_connected() for _ in range(5)))
+    assert attempts == 1

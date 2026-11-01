@@ -30,6 +30,7 @@ import inspect
 import json
 import logging
 import re
+import urllib.error
 import urllib.request
 from collections.abc import Callable
 from typing import Any
@@ -311,6 +312,14 @@ class EventConsumer:
             # A slow SurrealDB read is transient and nothing was claimed, so the next timer
             # tick re-fetches the same events. Exiting non-zero only paged the unit as failed.
             logger.warning("event fetch timed out; skipping this batch: %s", exc)
+            summary["skipped"] = f"fetch timed out: {exc}"
+            return summary
+        except urllib.error.URLError as exc:
+            # A timeout during connect arrives wrapped in URLError. Anything else (refused,
+            # DNS) means SurrealDB is really unreachable, so it stays loud.
+            if not isinstance(exc.reason, TimeoutError):
+                raise
+            logger.warning("event fetch timed out connecting; skipping this batch: %s", exc)
             summary["skipped"] = f"fetch timed out: {exc}"
             return summary
         for event in events:

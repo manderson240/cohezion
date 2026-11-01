@@ -13,7 +13,7 @@ import pytest
 from fastapi.testclient import TestClient
 
 from cohezion.platform.admission_gate import AdmissionGate, GateConfig
-from cohezion.platform.admission_proxy import build_app
+from cohezion.platform.admission_proxy import _retry_after_seconds, build_app
 
 
 def _gate(available_gb: float, resident: list[str] | None = None, enforce: bool = True):
@@ -205,3 +205,10 @@ class TestMultipartGating:
             )
         assert r.status_code == 503
         assert seen == []
+
+
+def test_bad_retry_after_env_does_not_stop_the_gate(monkeypatch):
+    monkeypatch.setenv("COHEZION_ADMISSION_RETRY_AFTER_S", "30s")
+    assert _retry_after_seconds() == 30
+    monkeypatch.setenv("COHEZION_ADMISSION_RETRY_AFTER_S", "0")
+    assert _retry_after_seconds() == 1

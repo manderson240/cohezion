@@ -34,3 +34,20 @@ def test_unknown_tool_left_untouched(tmp_path, monkeypatch):
     monkeypatch.setattr(mod, "PROJECT_ROOT", tmp_path)
     monkeypatch.setattr(mod.Path, "home", classmethod(lambda cls: tmp_path))
     assert mod._resolve_tool(["no-such-tool-xyz", "a"]) == ["no-such-tool-xyz", "a"]
+
+
+def test_run_check_executes_the_resolved_path(tmp_path, monkeypatch):
+    mod = _load()
+    fake_bin = tmp_path / ".venv" / "bin"
+    fake_bin.mkdir(parents=True)
+    (fake_bin / "ruff").write_text("#!/bin/sh\n")
+    monkeypatch.setattr(mod, "PROJECT_ROOT", tmp_path)
+    seen = []
+
+    def fake_run(cmd, **kwargs):
+        seen.append(cmd)
+        return mod.subprocess.CompletedProcess(cmd, 0, "", "")
+
+    monkeypatch.setattr(mod.subprocess, "run", fake_run)
+    mod.run_check("format", {"cmd": ["ruff", "format"], "desc": "d", "timeout": 1}, ["a.py"])
+    assert seen == [[str(fake_bin / "ruff"), "format", "a.py"]]

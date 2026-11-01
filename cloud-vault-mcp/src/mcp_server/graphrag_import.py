@@ -215,6 +215,7 @@ class GraphRAGImporter:
                 self.namespace,
                 self.database,
                 self.max_concurrent,
+                url=f"{self.surrealdb_url.rstrip('/')}/sql",
             )
             logger.info(f"Created {count}/{len(edges)} edges for {source_id}")
 

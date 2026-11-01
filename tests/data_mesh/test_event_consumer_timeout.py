@@ -4,7 +4,10 @@ from __future__ import annotations
 
 import importlib.util
 import sys
+import urllib.error
 from pathlib import Path
+
+import pytest
 
 from cohezion.data_mesh.event_consumer import EventConsumer
 
@@ -20,6 +23,23 @@ def test_run_once_skips_batch_on_fetch_timeout():
     assert summary["failed"] == {}
     assert summary["fetched"] == 0
     assert "timed out" in summary["skipped"]
+
+
+def test_run_once_skips_batch_on_connect_timeout():
+    def sql_fn(query: str):
+        raise urllib.error.URLError(TimeoutError("timed out"))
+
+    summary = EventConsumer("c1", sql_fn=sql_fn).run_once()
+    assert summary["failed"] == {}
+    assert "timed out" in summary["skipped"]
+
+
+def test_refused_connection_stays_loud():
+    def sql_fn(query: str):
+        raise urllib.error.URLError(ConnectionRefusedError("refused"))
+
+    with pytest.raises(urllib.error.URLError):
+        EventConsumer("c1", sql_fn=sql_fn).run_once()
 
 
 def test_driver_exit_code_is_zero_on_fetch_timeout(monkeypatch, capsys):
