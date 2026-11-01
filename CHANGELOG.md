@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.28.0] - 2026-11-01
+
+### Added
+- `surreal_basic_auth()` so raw-HTTP callers can go through the SurrealDB credential gate. No caller is converted yet.
+- `SurrealClient.persistence_state` and `persistence_status()` report whether a client is on the real database or on InMemoryStore.
+
+### Fixed — Defects found mapping how to operate each capability
+- `SurrealClient` retries the real database after falling back to InMemoryStore instead of staying there for the life of the process. Retries are bounded and serialized, and concurrent first use makes one handshake.
+- The datamesh event consumer skips a batch on a slow SurrealDB read or claim, and its driver exits non-zero after 3 consecutive timeout-stalled passes.
+- The admission proxy sends `Retry-After` with a refusal: 5 s by default, capped at 300 s.
+- cloud-vault-mcp defaults SurrealDB to :8001 (was :8000 in 9 modules), and `GraphRAGQuery` and `GraphRAGAutoSync` honour the configured URL.
+- `GraphRAGQuery` raises `GraphRAGError` on a statement error. An HTTP-200 `ERR` previously reached callers as if its error text were rows.
+- The harness check resolves ruff, mypy and uv from the repo venv and requires an executable bit.
+- `CLAUDE.md` no longer advertises the unmounted `/compound` route.
+
 ## [1.27.1] - 2026-09-27
 
 ### Performance — Lazy package facades (dynamic modularity audit R1/R2)
