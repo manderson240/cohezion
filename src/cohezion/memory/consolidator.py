@@ -138,6 +138,7 @@ class MemoryConsolidator:
         self._support_threshold = support_threshold
         self._confidence_floor = confidence_floor
         self._persist = persist
+        self.embed_missing = 0
 
     # ── public API ────────────────────────────────────────────────────────────
     def consolidate(self, episodes: list[dict]) -> list[ConsolidatedFact]:
@@ -231,8 +232,20 @@ class MemoryConsolidator:
                 out.append({"text": item})
         return out
 
-    def _embed(self, text: str) -> np.ndarray:
-        return np.asarray(self._embed_fn(text), dtype=np.float64)
+    def _embed(self, text: str) -> np.ndarray | None:
+        """Embedding or None. None (no encoder / text beyond its window) is counted in
+        ``embed_missing`` and warned once; ``_cosine`` then scores it 0.0, so dedup and
+        support-matching treat that text as dissimilar to everything: a fact whose embedding
+        is missing is never merged as a duplicate (fail-open: it is promoted, not dropped)."""
+        vec = self._embed_fn(text)
+        if vec is None:
+            self.embed_missing += 1
+            if self.embed_missing == 1:
+                logger.warning(
+                    "consolidator: no embedding available, dedup is disabled for those texts"
+                )
+            return None
+        return np.asarray(vec, dtype=np.float64)
 
     def _nearest_existing(self, text: str) -> TrustedFact | None:
         """Return an existing fact within dedup_threshold of ``text`` (most similar), else None."""
@@ -274,7 +287,9 @@ class MemoryConsolidator:
         return [str(ep["id"]) for ep in episodes if ep.get("id") is not None]
 
     @staticmethod
-    def _cosine(a: np.ndarray, b: np.ndarray) -> float:
+    def _cosine(a: np.ndarray | None, b: np.ndarray | None) -> float:
+        if a is None or b is None:
+            return 0.0
         na, nb = np.linalg.norm(a), np.linalg.norm(b)
         if na == 0.0 or nb == 0.0:
             return 0.0
