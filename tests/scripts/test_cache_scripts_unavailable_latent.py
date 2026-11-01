@@ -90,7 +90,10 @@ def test_calibration_main_cold_saves_no_profile(monkeypatch, tmp_path):
     monkeypatch.setattr(mod, "save_calibration_profile", lambda *a, **k: saved.append(a))
     real_sweep = mod.run_parameter_sweep
 
+    swept = []
+
     async def sweep_no_ram_gate(samples, fn, grid, min_ram_mb=0):
+        swept.append(1)
         return await real_sweep(samples, fn, grid, min_ram_mb=0)
 
     monkeypatch.setattr(mod, "run_parameter_sweep", sweep_no_ram_gate)
@@ -98,6 +101,7 @@ def test_calibration_main_cold_saves_no_profile(monkeypatch, tmp_path):
         asyncio.run(mod.main())
     assert exc.value.code == 1
     assert saved == []
+    assert swept == []  # refused BEFORE the sweep, not merely after it found nothing
 
 
 def test_calibration_main_never_saves_when_no_threshold_is_valid(monkeypatch, tmp_path):

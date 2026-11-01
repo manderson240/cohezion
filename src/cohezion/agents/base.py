@@ -629,7 +629,9 @@ class BaseAgent(ABC):
             alignment_score=alignment_score,
             images=images,
             narration=narration,
-            scope=cache_scope,
+            # Stored under the model that answered (the credit manager may have downgraded it);
+            # the lookup above can only use the requested model.
+            scope=self._cache_scope(system_prompt, active_model),
         )
 
         # Autonomic Experience Persistence

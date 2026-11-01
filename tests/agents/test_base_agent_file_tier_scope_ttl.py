@@ -149,3 +149,41 @@ def test_agent_passes_its_ttl_to_the_semantic_cache(tmp_path):
         "model-a", config=SwarmConfig(mrp_sync=False, cache_ttl_seconds=123), cache_dir=tmp_path
     )
     assert real._semantic_cache.ttl_seconds == 123
+
+
+def test_agents_own_semantic_cache_expires_entries(world, monkeypatch, tmp_path):
+    """Consumption: the cache BaseAgent.__init__ constructs must itself carry the TTL."""
+    from cohezion.reliability import semantic_cache as rel
+
+    built = AgentA("model-a", config=SwarmConfig(mrp_sync=False), cache_dir=tmp_path / "files")
+    assert isinstance(built._semantic_cache, rel.SemanticCache)
+    built._semantic_cache.redis = FakeRedis()
+    built._encoder = world.make()._encoder
+    built.self_evaluate = world.make().self_evaluate
+    _ask(built)
+    n = len(world.calls)
+    for f in (tmp_path / "files").glob("*.json"):
+        f.unlink()  # only the persisted vector tier / Redis can answer
+    _age(monkeypatch, 99999)
+    again = AgentA("model-a", config=SwarmConfig(mrp_sync=False), cache_dir=tmp_path / "files")
+    again._semantic_cache.redis = FakeRedis()
+    again._encoder = built._encoder
+    again.self_evaluate = built.self_evaluate
+    assert str(_ask(again)) != "fresh-1" and len(world.calls) == n + 1
+
+
+def test_downgraded_answer_is_stored_under_the_model_that_answered(world):
+    agent = _agent(world)
+    agent._credit_manager = type(
+        "CM",
+        (),
+        {
+            "can_afford": lambda self, a, m: False,
+            "get_best_affordable_model": lambda self, a, m: "cheap-model",
+        },
+    )()
+    _ask(agent)  # requested model-a, answered by cheap-model
+    n = len(world.calls)
+    plain = _agent(world, sem_dir=world.tmp / "sem2")  # model-a, affordable
+    out = _ask(plain)
+    assert str(out) != "fresh-1" and len(world.calls) == n + 1
