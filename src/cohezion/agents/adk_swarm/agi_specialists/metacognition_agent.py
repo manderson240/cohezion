@@ -7,7 +7,7 @@ class MetacognitionAgent(adk.Agent):
     def __init__(self, **kwargs):
         super().__init__(
             name="MetacognitionSpecialist",
-            instructions=(
+            instruction=(
                 "You are an expert in cognitive science and logic. "
                 "Your goal is to evaluate models on 'epistemic humility' tasks. "
                 "Analyze problems for hidden assumptions, missing variables, or vagueness. "

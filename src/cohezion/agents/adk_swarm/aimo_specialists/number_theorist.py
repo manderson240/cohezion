@@ -7,7 +7,7 @@ class NumberTheoristAgent(adk.Agent):
     def __init__(self, **kwargs):
         super().__init__(
             name="NumberTheorist",
-            instructions=(
+            instruction=(
                 "You are an expert in number theory and modular arithmetic. "
                 "Solve problems involving primes, divisibility, and integer properties. "
                 "Think step-by-step. Final answer in \\boxed{X} format."

@@ -20,13 +20,13 @@ from pathlib import Path
 from typing import Any
 
 import psutil
-from model_capability_registry import (
+
+from cohezion.swarm.compute_backend_router import BackendType
+from cohezion.swarm.model_capability_registry import (
     ModelBenchmark,
     ModelCapabilityRegistry,
     ModelProfile,
 )
-
-from cohezion.swarm.compute_backend_router import BackendType
 
 
 logger = logging.getLogger(__name__)

@@ -30,7 +30,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
-from mcp import Server
+from mcp.server.fastmcp import FastMCP
 
 
 # Configuration
@@ -43,7 +43,7 @@ _UV = shutil.which("uv") or "/usr/local/bin/uv"
 _GIT = shutil.which("git") or "/usr/bin/git"
 
 # Create server
-app = Server("traceability")
+app = FastMCP("traceability")
 
 
 # ============================================================================
@@ -284,17 +284,14 @@ async def get_findings_resource() -> str:
 
 def main():
     """Main entry point."""
-    import asyncio
     import sys
-
-    from mcp.server import stdio
 
     print(f"🔍 Traceability MCP Server starting on port {MCP_PORT}", file=sys.stderr)
     print(f"📁 Project root: {PROJECT_ROOT}", file=sys.stderr)
     print("📊 Tools: 6 (engine, health, party, dashboard, findings, commit)", file=sys.stderr)
 
     # Run server
-    asyncio.run(stdio.run(app))
+    app.run()
 
 
 if __name__ == "__main__":
