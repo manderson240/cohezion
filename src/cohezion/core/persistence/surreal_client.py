@@ -122,6 +122,17 @@ def _resolve_surreal_credentials() -> tuple[str, str]:
     )
 
 
+def surreal_basic_auth() -> str:
+    """`Authorization` header value for raw-HTTP SurrealDB callers, via the credential gate.
+
+    Raw `urllib`/`httpx` callers used to hardcode root:root (base64 `cm9vdDpyb290`), which
+    bypasses `_resolve_surreal_credentials()` so rotating the password would break them
+    silently. Raises `InsecureSurrealCredentialsError` exactly as the SurrealClient does.
+    """
+    user, password = _resolve_surreal_credentials()
+    return "Basic " + base64.b64encode(f"{user}:{password}".encode()).decode()
+
+
 @dataclass
 class PhysicsState:
     """
