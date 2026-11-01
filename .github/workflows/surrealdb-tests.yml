@@ -250,7 +250,12 @@ jobs:
         run: uv sync --frozen --extra dev
 
       - name: Run unit tests (shard ${{ matrix.shard }}/4)
+        # Code under test writes through Path.home(), often in constants built at import.
+        # This runner's real HOME holds the live vault, so give pytest a throwaway one.
+        env:
+          HOME: ${{ runner.temp }}/test-home
         run: |
+          mkdir -p "$HOME"
           uv run pytest \
             --dist loadgroup \
             --tx "4*popen//python=python${{ matrix.python-version }}" \
@@ -359,10 +364,14 @@ jobs:
           fi
 
       - name: Run integration tests
+        # Code under test writes through Path.home(), often in constants built at import.
+        # This runner's real HOME holds the live vault, so give pytest a throwaway one.
         env:
+          HOME: ${{ runner.temp }}/test-home
           SURREAL_URL: ws://localhost:8000/rpc
           TEST_WITH_LIVE_DB: "1"
         run: |
+          mkdir -p "$HOME"
           # Run by path, NOT `-m integration`: no test in tests/integration/
           # carries that marker, so the marker filter deselected 114/114 tests
           # and the stage silently validated nothing even when the DB was up.
@@ -438,7 +447,12 @@ jobs:
         run: uv sync --frozen --extra dev
 
       - name: Run benchmark tests
+        # Code under test writes through Path.home(), often in constants built at import.
+        # This runner's real HOME holds the live vault, so give pytest a throwaway one.
+        env:
+          HOME: ${{ runner.temp }}/test-home
         run: |
+          mkdir -p "$HOME"
           uv run pytest -m benchmark \
             --benchmark-only \
             --benchmark-json=benchmark-results.json \
@@ -517,13 +531,17 @@ jobs:
           fi
 
       - name: Run live tests
+        # Code under test writes through Path.home(), often in constants built at import.
+        # This runner's real HOME holds the live vault, so give pytest a throwaway one.
         env:
+          HOME: ${{ runner.temp }}/test-home
           SURREAL_URL: ${{ secrets.SURREAL_URL }}
           SURREAL_USER: ${{ secrets.SURREAL_USER }}
           SURREAL_PASS: ${{ secrets.SURREAL_PASS }}
           TEST_WITH_LIVE_DB: "1"
           PYTEST_CURRENT_TEST_LIVE: "1"
         run: |
+          mkdir -p "$HOME"
           uv run pytest -m live \
             --timeout=300 \
             tests/ \
@@ -648,10 +666,14 @@ jobs:
           exit 1
 
       - name: Run compatibility tests
+        # Code under test writes through Path.home(), often in constants built at import.
+        # This runner's real HOME holds the live vault, so give pytest a throwaway one.
         env:
+          HOME: ${{ runner.temp }}/test-home
           SURREAL_URL: ws://localhost:8000/rpc
           TEST_WITH_LIVE_DB: "1"
         run: |
+          mkdir -p "$HOME"
           # Run the full integration suite against the latest image.
           # (The old `tests/integration/test_surreal*.py` glob matched no files.)
           uv run pytest tests/integration/ \
