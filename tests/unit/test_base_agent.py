@@ -168,9 +168,15 @@ class TestCacheKey:
 class TestCacheRoundTrip:
     @pytest.mark.asyncio
     async def test_set_and_get_cached(self, tmp_path):
+        from cohezion.reliability.semantic_cache import SemanticCache as RealSemanticCache
+
         agent, patchers = _make_agent(tmp_path)
         try:
             agent._semantic_vector = lambda text: None  # Skip semantic cache
+            # The file tier asks the real cache for its TTL rule; a MagicMock answers "expired".
+            agent._semantic_cache = RealSemanticCache(
+                cache_dir=str(tmp_path / "semantic"), ttl_seconds=3600
+            )
 
             await agent._set_cached("test prompt", "test response")
 
