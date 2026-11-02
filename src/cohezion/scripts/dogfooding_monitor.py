@@ -18,10 +18,10 @@ import aiofiles
 
 # Resolve project root
 SCRIPT_PATH = Path(__file__).resolve()
-PROJECT_ROOT = SCRIPT_PATH.parent.parent.parent.parent.parent
+PROJECT_ROOT = SCRIPT_PATH.parents[3]
 sys.path.insert(0, str(PROJECT_ROOT / "src"))
 
-from cohezion.mcp.servers.surreal_server import get_server as get_surreal
+from cohezion.mcp.surreal_server import get_server as get_surreal
 from cohezion.observability.unified_metrics import get_metrics_collector
 from cohezion.universe.engine import UniverseSimulationEngine
 

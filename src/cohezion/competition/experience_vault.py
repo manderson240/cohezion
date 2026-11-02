@@ -8,7 +8,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
-from arc_solver import Grid
+from cohezion.competition.arc_solver import Grid
 
 
 @dataclass

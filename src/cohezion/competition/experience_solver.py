@@ -6,7 +6,7 @@ import json
 import time
 from typing import Any
 
-from arc_solver import (
+from cohezion.competition.arc_solver import (
     Grid,
     Program,
     apply_program,
@@ -14,7 +14,7 @@ from arc_solver import (
     grids_equal,
     search_program,
 )
-from experience_vault import ExperienceVault, extract_signature
+from cohezion.competition.experience_vault import ExperienceVault, extract_signature
 
 
 def try_program_on_train(program: list[Program], train: list[dict[str, Grid]]) -> bool:
@@ -107,7 +107,7 @@ def run_evaluation(
                 pred = apply_program(deepcopy_grid(task["test"][0]["input"]), program)
                 solved = pred is not None and grids_equal(pred, sols[0])
 
-            from experience_vault import ExperienceEntry
+            from cohezion.competition.experience_vault import ExperienceEntry
 
             entry = ExperienceEntry(
                 task_id=task_id,

@@ -6,7 +6,7 @@ import json
 import time
 from pathlib import Path
 
-from arc_solver import grids_equal, search_program
+from cohezion.competition.arc_solver import grids_equal, search_program
 
 
 def evaluate() -> None:
@@ -43,7 +43,7 @@ def evaluate() -> None:
             expected = task_sols[0]
             pred_input = task["test"][0]["input"]
             if program:
-                from arc_solver import apply_program
+                from cohezion.competition.arc_solver import apply_program
 
                 pred_attempt1 = apply_program(pred_input, program)
             else:
