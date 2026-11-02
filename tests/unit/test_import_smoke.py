@@ -46,6 +46,18 @@ _KNOWN_BROKEN: dict[str, str] = {
     "cohezion.skills.kaggle.modules.badge-collector.scripts.badge_tracker": (
         "script-style sibling import of badge_registry"
     ),
+    **{
+        f"cohezion.skills.kaggle.modules.badge-collector.scripts.{n}": (
+            "script-style sibling import of badge_tracker"
+        )
+        for n in (
+            "phase_1_instant_api",
+            "phase_2_competition",
+            "phase_3_pipeline",
+            "phase_4_browser",
+            "phase_5_streaks",
+        )
+    },
     "cohezion.skills.kaggle.modules.comp-report.scripts.competition_details": (
         "script-style sibling import of utils"
     ),
@@ -129,10 +141,26 @@ def _missing_third_party(exc: Exception) -> str | None:
         return None
 
 
+def _is_script_dir(entry: str) -> bool:
+    """A directory inside src/ other than src itself: some script put it on sys.path."""
+    try:
+        path = Path(entry).resolve()
+    except OSError:
+        return False
+    return path != _SRC and _SRC in path.parents
+
+
 def _import_in_fresh_process(module_name: str) -> tuple[bool, str]:
     """Import in a new interpreter with this sys.path. Returns (success, stderr tail)."""
     # This tree goes first: importing cohezion can put another checkout's src on sys.path.
-    env = {**os.environ, "PYTHONPATH": os.pathsep.join([str(_SRC), *(p for p in sys.path if p)])}
+    # Script directories that earlier imports added are dropped, or a bare sibling import
+    # would succeed here only because some other module ran first.
+    env = {
+        **os.environ,
+        "PYTHONPATH": os.pathsep.join(
+            [str(_SRC), *(p for p in sys.path if p and not _is_script_dir(p))]
+        ),
+    }
     # Imports can write to the cwd, and -c puts the cwd on sys.path, so use an empty one.
     with tempfile.TemporaryDirectory() as cwd:
         result = subprocess.run(
@@ -151,8 +179,24 @@ def _import_in_fresh_process(module_name: str) -> tuple[bool, str]:
     return result.returncode == 0, result.stderr[-800:]
 
 
+def _undo_script_style_side_effects(path_before: list[str], modules_before: set[str]) -> None:
+    """Undo what a script-style module leaked, so a later bare sibling import cannot pass on it.
+
+    Some modules put their own directory on sys.path and import siblings by bare name. Left
+    in place, that makes another module's identical bare import succeed here and fail in CI.
+    """
+    sys.path[:] = [p for p in sys.path if p in path_before or not _is_script_dir(p)]
+    for name in set(sys.modules) - modules_before:
+        if name.split(".")[0] == "cohezion":
+            continue
+        file = getattr(sys.modules[name], "__file__", None)
+        if file and _is_script_dir(str(Path(file).parent)):
+            del sys.modules[name]
+
+
 def _check_import(module_name: str) -> tuple[str, str]:
     """Try to import a module. Returns (status, detail); status is ok, skip or fail."""
+    path_before, modules_before = list(sys.path), set(sys.modules)
     try:
         importlib.import_module(module_name)
         return "ok", ""
@@ -163,6 +207,8 @@ def _check_import(module_name: str) -> tuple[str, str]:
         if missing:
             return "skip", f"third-party package {missing} is not installed"
         failure = f"{type(e).__name__}: {e}"
+    finally:
+        _undo_script_style_side_effects(path_before, modules_before)
     # Another test's imports can break this one, so only a fresh process can convict it.
     success, stderr = _import_in_fresh_process(module_name)
     if success:
@@ -271,3 +317,42 @@ def test_check_import_clears_failure_caused_by_test_order(
     name = _write_module(tmp_path, monkeypatch, "smoke_fixture_order", body)
     monkeypatch.setitem(sys.modules, "smoke_poison", object())
     assert _check_import(name) == ("ok", "")
+
+
+def test_script_style_import_does_not_make_a_later_bare_import_pass(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Module a puts its directory on sys.path and imports sibling b by bare name; module c
+    does the same bare import without the path edit. c must fail however the run is ordered."""
+    src = tmp_path / "src"
+    scripts = src / "smoke_scripts2"
+    scripts.mkdir(parents=True)
+    (scripts / "__init__.py").write_text("")
+    (scripts / "smoke_sib.py").write_text("")
+    (scripts / "smoke_a.py").write_text(
+        "import sys, pathlib\n"
+        "sys.path.insert(0, str(pathlib.Path(__file__).parent))\n"
+        "import smoke_sib\n"
+    )
+    (scripts / "smoke_c.py").write_text("import smoke_sib\n")
+    monkeypatch.setattr(sys.modules[__name__], "_SRC", src.resolve())
+    monkeypatch.syspath_prepend(str(src))
+    for leaked in ("smoke_sib", "smoke_scripts2"):
+        monkeypatch.delitem(sys.modules, leaked, raising=False)
+    assert _check_import("smoke_scripts2.smoke_a") == ("ok", "")
+    status, detail = _check_import("smoke_scripts2.smoke_c")
+    assert status == "fail", detail
+
+
+def test_fresh_process_does_not_inherit_a_script_directory(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    src = tmp_path / "src"
+    scripts = src / "smoke_scripts3"
+    scripts.mkdir(parents=True)
+    (scripts / "smoke_sib3.py").write_text("")
+    (src / "smoke_user3.py").write_text("import smoke_sib3\n")
+    monkeypatch.setattr(sys.modules[__name__], "_SRC", src.resolve())
+    monkeypatch.syspath_prepend(str(scripts))
+    success, _ = _import_in_fresh_process("smoke_user3")
+    assert not success

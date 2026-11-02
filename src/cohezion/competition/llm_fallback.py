@@ -6,7 +6,7 @@ import json
 import re
 from typing import Any
 
-from arc_solver import Grid
+from cohezion.competition.arc_solver import Grid
 
 
 try:
