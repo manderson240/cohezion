@@ -20,6 +20,8 @@ Phase 5A.1: Production semantic embeddings with FLUME VAE integration (Session 3
 
 from __future__ import annotations
 
+import asyncio
+import hashlib
 import logging
 import threading
 from collections import OrderedDict
@@ -133,76 +135,36 @@ class DistilledEmbeddingModel(EmbeddingModel):
             raise
 
 
-class FlumeVAEEmbeddingModel(EmbeddingModel):
-    """Production FLUME VAE embedding model for real semantic discrimination.
+class InputExceedsEncoderWindowError(ValueError):
+    """The text is longer than the encoder's input window; its tail would be silently ignored."""
 
-    Wraps FlumeVAEEncoder to provide learned 256D embeddings with 50×+ better
-    discrimination than hash-based embeddings. Automatically falls back to
-    hash-based embeddings if VAE model is unavailable.
+
+class FlumeVAEEmbeddingModel(EmbeddingModel):
+    """Canonical 256D text latent (``cohezion.flume.canonical_latent``).
+
+    There is no hash fallback: when no real encoder is available ``encode`` raises
+    ``TextLatentUnavailable`` and SemanticCache counts an embedding error and misses.
     """
 
     def __init__(self):
-        """Initialize FLUME VAE embedding model.
-
-        Lazy-loads FLUME VAE encoder on first use.
-        Falls back to hash-based embeddings if VAE unavailable.
-        """
-        self._vae_encoder = None
-        self._fallback_model = None
         self._embedding_dim = 256
-        self._initialized = False
 
     async def encode(self, text: str) -> EmbeddingResult:
-        """Generate 256D semantic embedding using FLUME VAE.
+        """Encode text to the canonical 256D vector or raise TextLatentUnavailable."""
+        from cohezion.flume.vae_encoder import get_encoder
 
-        Args:
-            text: Text to encode
-
-        Returns:
-            EmbeddingResult with 256D embedding vector
-
-        Note:
-            First call lazy-loads FLUME VAE encoder. Falls back to hash-based
-            if VAE unavailable.
-        """
-        # Lazy-load VAE encoder on first use
-        if not self._initialized:
-            self._initialize_encoder()
-
-        if self._vae_encoder is not None and self._vae_encoder.is_available():
-            try:
-                # Use FLUME VAE encoder (production path)
-                embedding = self._vae_encoder.encode(text)
-                return EmbeddingResult(
-                    embedding=embedding.tolist(),
-                    tokens_used=len(text) // 4,  # Rough token estimate
-                )
-            except Exception as e:
-                logger.debug(f"FLUME VAE encoding failed: {e}, using fallback")
-                # Fall through to hash-based fallback
-
-        # Fallback: use hash-based embeddings
-        if self._fallback_model is None:
-            self._fallback_model = DistilledEmbeddingModel(embedding_dim=self._embedding_dim)
-
-        return await self._fallback_model.encode(text)
-
-    def _initialize_encoder(self) -> None:
-        """Lazy-initialize FLUME VAE encoder on first use."""
-        try:
-            from cohezion.flume.vae_encoder import get_encoder
-
-            self._vae_encoder = get_encoder()
-            if self._vae_encoder.is_available():
-                logger.info("FLUME VAE encoder loaded successfully")
-            else:
-                logger.debug("FLUME VAE encoder unavailable, will use hash fallback")
-        except ImportError:
-            logger.debug("FLUME VAE module not available, using hash-based fallback")
-        except Exception as e:
-            logger.debug(f"Failed to initialize FLUME VAE encoder: {e}")
-        finally:
-            self._initialized = True
+        encoder = get_encoder()
+        # The backend silently truncates at its token window (MiniLM: 256). A vector that ignores
+        # the tail of the text must not be used as a cache key, so fail closed (cache miss / no store).
+        if await asyncio.to_thread(encoder.exceeds_token_limit, text):
+            raise InputExceedsEncoderWindowError(
+                f"text exceeds the encoder window of {encoder.max_tokens} tokens"
+            )
+        embedding = await encoder.aencode(text)
+        return EmbeddingResult(
+            embedding=embedding.tolist(),
+            tokens_used=len(text) // 4,  # Rough token estimate
+        )
 
 
 class SemanticCache:
@@ -265,10 +227,14 @@ class SemanticCache:
 
         self.similarity_threshold = similarity_threshold
         self._model_ready = False
+        self._warned: set[str] = set()
 
         # In-memory embedding store: key → (embedding, cached_value)
         self._embedding_cache: dict[str, tuple[list[float], Any]] = {}
         self._access_order: OrderedDict[str, None] = OrderedDict()
+        # key -> sha256 of the exact system prompt the entry was stored under. Entries only match
+        # queries with the same system prompt; the embedding is of the user prompt alone.
+        self._system_digests: dict[str, str] = {}
 
         # Thread safety
         self._lock = threading.RLock()
@@ -302,7 +268,7 @@ class SemanticCache:
             try:
                 query_embedding = await self._generate_embedding(prompt, system)
             except Exception as e:
-                logger.debug(f"Failed to generate query embedding: {e}")
+                self._warn_l2_skipped("query", e)
                 self._stats["embedding_errors"] += 1
                 self._stats["misses"] += 1
                 return None
@@ -311,7 +277,10 @@ class SemanticCache:
             best_hit = None
             best_similarity = -1.0
 
+            system_digest = self._digest(system)
             for key, (cached_embedding, cached_value) in self._embedding_cache.items():
+                if self._system_digests.get(key, self._digest("")) != system_digest:
+                    continue
                 similarity = self._cosine_similarity(query_embedding, cached_embedding)
 
                 if similarity > best_similarity and similarity >= self.similarity_threshold:
@@ -325,7 +294,7 @@ class SemanticCache:
             if best_hit:
                 self._stats["hits"] += 1
                 # Move to end (recently used)
-                self._access_order.move_to_end(key)
+                self._access_order.move_to_end(best_hit.key)
                 return best_hit
 
             self._stats["misses"] += 1
@@ -353,7 +322,7 @@ class SemanticCache:
             try:
                 embedding = await self._generate_embedding(prompt, system)
             except Exception as e:
-                logger.debug(f"Failed to generate embedding for storage: {e}")
+                self._warn_l2_skipped("store", e)
                 self._stats["embedding_errors"] += 1
                 return
 
@@ -363,6 +332,7 @@ class SemanticCache:
 
             # Store in cache
             self._embedding_cache[cache_key] = (embedding, value)
+            self._system_digests[cache_key] = self._digest(system)
             self._access_order[cache_key] = None
 
             # Evict if necessary
@@ -379,11 +349,21 @@ class SemanticCache:
         Returns:
             Embedding vector as list[float]
         """
-        # Combine prompt and system for richer embedding
-        combined_text = f"{system}\n{prompt}" if system else prompt
-
-        result = await self._embedding_model.encode(combined_text)
+        result = await self._embedding_model.encode(prompt)
         return result.embedding
+
+    @staticmethod
+    def _digest(system: str) -> str:
+        return hashlib.sha256((system or "").encode()).hexdigest()
+
+    def _warn_l2_skipped(self, op: str, exc: Exception) -> None:
+        """L2 is skipped for this call; L1 still works. Visible, once per distinct cause."""
+        cause = f"{type(exc).__name__}"
+        if cause not in self._warned:
+            self._warned.add(cause)
+            logger.warning("semantic cache L2 skipped on %s (%s: %s)", op, cause, exc)
+        else:
+            logger.debug("semantic cache L2 skipped on %s (%s)", op, cause)
 
     def _cosine_similarity(self, vec1: list[float], vec2: list[float]) -> float:
         """Calculate cosine similarity between two vectors.
@@ -416,12 +396,14 @@ class SemanticCache:
             lru_key = next(iter(self._access_order))
             del self._embedding_cache[lru_key]
             del self._access_order[lru_key]
+            self._system_digests.pop(lru_key, None)
 
     def clear(self) -> None:
         """Clear all cached embeddings."""
         with self._lock:
             self._embedding_cache.clear()
             self._access_order.clear()
+            self._system_digests.clear()
 
     def get_stats(self) -> dict[str, Any]:
         """Get cache statistics.

@@ -1,17 +1,20 @@
 """Tests for FLUME VAE encoder."""
 
-from pathlib import Path
-
 import numpy as np
 import pytest
 
-from cohezion.flume.vae_encoder import FlumeVAEEncoder, get_encoder, reset_encoder
+from cohezion.flume.vae_encoder import (
+    FlumeVAEEncoder,
+    TextLatentUnavailable,
+    get_encoder,
+    reset_encoder,
+)
 
 
 @pytest.fixture
 def patched_encoder():
-    """FlumeVAEEncoder using hash fallback (deterministic, no Ollama calls)."""
-    return FlumeVAEEncoder(fallback_to_hash=True)
+    """FlumeVAEEncoder on the conftest deterministic embedder (no model download)."""
+    return FlumeVAEEncoder()
 
 
 class TestVAEEncoderBasics:
@@ -19,7 +22,7 @@ class TestVAEEncoderBasics:
 
     def test_encoder_initialization(self):
         """Test encoder initialization."""
-        encoder = FlumeVAEEncoder(fallback_to_hash=True)
+        encoder = FlumeVAEEncoder()
         assert encoder is not None
         assert encoder.EMBEDDING_DIM == 256
 
@@ -63,30 +66,22 @@ class TestVAEEncoderBasics:
         assert embedding2.shape == (256,)
 
 
-class TestVAEEncoderFallback:
-    """Test fallback behavior."""
+class TestVAEEncoderUnavailable:
+    """No hash fallback exists: an unavailable encoder is an explicit state."""
 
-    def test_fallback_to_hash_enabled(self):
-        """Test fallback to hash when encoder unavailable."""
-        encoder = FlumeVAEEncoder(
-            model_path=Path("/nonexistent/model.pt"),
-            fallback_to_hash=True,
-        )
+    def test_unavailable_raises_instead_of_hashing(self):
+        def boom():
+            raise RuntimeError("no model")
 
-        # Should use hash fallback without error
-        embedding = encoder.encode("test prompt")
-        assert embedding.shape == (256,)
+        encoder = FlumeVAEEncoder(embed_loader=boom)
+        assert encoder.is_available() is False
+        assert encoder.encode_or_none("test prompt") is None
+        with pytest.raises(TextLatentUnavailable):
+            encoder.encode("test prompt")
 
-    def test_fallback_hash_produces_valid_embedding(self):
-        """Test that hash fallback produces valid embeddings."""
-        encoder = FlumeVAEEncoder(
-            model_path=Path("/nonexistent/model.pt"),
-            fallback_to_hash=True,
-        )
-
-        embedding = encoder.encode("test")
-        norm = np.linalg.norm(embedding)
-        assert np.isclose(norm, 1.0, atol=1e-5)
+    def test_no_fallback_kwargs(self):
+        with pytest.raises(TypeError):
+            FlumeVAEEncoder(fallback_to_hash=True)  # type: ignore[call-arg]
 
 
 class TestVAEEncoderSingleton:

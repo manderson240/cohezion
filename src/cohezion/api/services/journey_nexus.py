@@ -20,6 +20,8 @@ from typing import Any
 
 import numpy as np
 
+from cohezion.flume.canonical_latent import TextLatentUnavailable
+
 
 @dataclass
 class EVOEvent:
@@ -71,24 +73,12 @@ class NarrateResult:
     journey_id: str
     text: str
     audio_b64: str
-    coherence: float
+    coherence: float | None  # None: no real text encoder available (never a hash-derived value)
     image_b64: str | None = None
 
 
 def _encode_journey_text(text: str) -> np.ndarray:
-    """Text → 256D FLUME latent.
-
-    Real path: nomic-embed-text-v2-moe via the Lemonade OmniRouter (:13305),
-    subsampled to the 256D FLUME contract by LemonadeEmbedBridge. Offline
-    fallback: FlumeVAEEncoder's deterministic hash encode (never raises).
-    """
-    from cohezion.inference.lemonade_embed_bridge import LemonadeEmbedBridge
-
-    bridge = LemonadeEmbedBridge()
-    if bridge.is_available():
-        z = bridge.encode(text)
-        if float(np.linalg.norm(z)) > 1e-8:
-            return z
+    """Text -> 256D canonical latent. Raises TextLatentUnavailable; never a hash substitute."""
     from cohezion.flume.vae_encoder import get_encoder
 
     return get_encoder().encode(text)
@@ -198,10 +188,16 @@ class JourneyNexus:
         journey = journey_loader.load_journey(journey_id)
         intent = journey.get("intent", "")
         text = f"Journey {journey_id}: {intent}. The manifold remembers."
-        z = _encode_journey_text(text)
-        # compute_coherence measures chunk-mean balance around the HIHO center
-        # (0.5); embeddings are zero-centered, so shift into the HIHO frame.
-        coherence = float(min(1.0, max(0.0, flume.compute_coherence([0.5 + float(v) for v in z]))))
+        coherence: float | None
+        try:
+            z = _encode_journey_text(text)
+            # compute_coherence measures chunk-mean balance around the HIHO center
+            # (0.5); embeddings are zero-centered, so shift into the HIHO frame.
+            coherence = float(
+                min(1.0, max(0.0, flume.compute_coherence([0.5 + float(v) for v in z])))
+            )
+        except TextLatentUnavailable:
+            coherence = None
         from cohezion.inference.tts_tier import TTSRequest
 
         omni = self._get_omni_tier()

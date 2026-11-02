@@ -117,6 +117,11 @@ class TestSemanticCacheWithVAE:
 class TestSemanticCacheEmbeddingQuality:
     """Test embedding quality with VAE."""
 
+    @pytest.mark.skipif(
+        __import__("sys").modules["sentence_transformers"].SentenceTransformer
+        is __import__("unittest.mock").mock.MagicMock,
+        reason="needs real sentence_transformers (mocked in conftest)",
+    )
     def test_vae_vs_hash_similarity(self):
         """Test that VAE provides better semantic similarity."""
         cache = SemanticCache()

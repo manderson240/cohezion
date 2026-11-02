@@ -20,11 +20,50 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(
 logger = logging.getLogger(__name__)
 
 from cohezion.cache.semantic_cache import SemanticCache  # noqa: E402
+from cohezion.flume.canonical_latent import (  # noqa: E402
+    TextLatentUnavailable,
+    _require_encodable,
+)
 from cohezion.validation.calibration_harness import (  # noqa: E402
     load_local_logs,
     run_parameter_sweep,
     save_calibration_profile,
 )
+
+
+def drop_unencodable(samples: list[dict]) -> tuple[list[dict], int]:
+    """Split off prompts the cache cannot index (over the encoder window, or unencodable).
+
+    put() skips L2 for these, so they can never be hit or hit against; they are SKIPPED and
+    counted, not treated as an encoder outage. encode_or_none returns None for an outage and for
+    a failed inference too, so a None only counts as a skip when the prompt itself explains it;
+    anything else raises TextLatentUnavailable.
+    """
+    import cohezion.cache.semantic_cache as semantic_cache_module
+
+    kept: list[dict] = []
+    skipped = 0
+    for sample in samples:
+        prompt = sample["prompt"]
+        if SemanticCache._text_to_embedding(prompt) is not None:
+            kept.append(sample)
+            continue
+        encoder = semantic_cache_module.get_encoder()
+        if not encoder.is_available():
+            raise TextLatentUnavailable("text latent unavailable: encoder went down mid-run")
+        if not _is_unindexable(encoder, prompt):
+            raise TextLatentUnavailable("text latent unavailable: inference failed on a prompt")
+        skipped += 1
+    return kept, skipped
+
+
+def _is_unindexable(encoder, prompt: str) -> bool:
+    """True when the prompt alone explains a None: not valid text, or over the encoder window."""
+    try:
+        _require_encodable(prompt)
+    except TextLatentUnavailable:
+        return True
+    return encoder.exceeds_token_limit(prompt)
 
 
 def jaccard_similarity(s1: str, s2: str) -> float:
@@ -65,6 +104,9 @@ async def evaluate_cache_threshold(samples: list[dict], candidate: dict) -> dict
 
         if cache._l2_matrix is not None and len(cache._l2_keys) > 0:
             query_embedding = cache._text_to_embedding(prompt)
+            if query_embedding is None:
+                # A sweep without the real latent measures nothing (put() would skip L2 too).
+                raise TextLatentUnavailable("text latent unavailable: refusing to calibrate")
             sims = np.dot(cache._l2_matrix, query_embedding)
             best_idx = int(np.argmax(sims))
             best_similarity = float(sims[best_idx])
@@ -89,6 +131,11 @@ async def evaluate_cache_threshold(samples: list[dict], candidate: dict) -> dict
             # 2. Ingest on miss
             with contextlib.suppress(Exception):
                 await cache.put(prompt, response)
+
+    if total_lookups > 0 and len(cache._l2_keys) == 0:
+        # put() skips L2 without a real encoder, so every lookup above was a guaranteed miss and
+        # the zero hit rate would read as "no collisions at this threshold".
+        raise TextLatentUnavailable("text latent unavailable: L2 empty after ingest")
 
     hit_rate = (hits / total_lookups) * 100 if total_lookups > 0 else 0
     collision_rate = (collisions / hits) * 100 if hits > 0 else 0
@@ -116,6 +163,23 @@ async def main():
 
     logger.info("Loaded %d prompt samples for sweep.", len(samples))
 
+    # Refuse before sweeping: without the real encoder L2 never fills and the sweep measures nothing.
+    if SemanticCache._text_to_embedding("calibration encoder probe") is None:
+        logger.error("Text latent unavailable: refusing to calibrate. Nothing saved.")
+        sys.exit(1)
+
+    try:
+        samples, skipped = drop_unencodable(samples)
+    except TextLatentUnavailable as exc:
+        logger.error("%s. Nothing saved.", exc)
+        sys.exit(1)
+    print(
+        f"Skipped {skipped} sample(s) over the encoder window or unencodable; {len(samples)} kept."
+    )
+    if not samples:
+        logger.error("All samples were skipped (none indexable by the cache). Nothing saved.")
+        sys.exit(1)
+
     # Define candidate parameter grid
     thresholds = [0.40, 0.45, 0.50, 0.55, 0.60, 0.65, 0.70, 0.75, 0.80, 0.85, 0.90, 0.95]
     param_grid = [{"similarity_threshold": t} for t in thresholds]
@@ -136,8 +200,9 @@ async def main():
     )
     print("|---|---|---|---|---|---|---|---|")
 
-    optimal_threshold = 0.80
-    best_valid_hit_rate = -1.0
+    optimal_threshold = None
+    best_valid_hit_rate = 0.0
+    errored = 0
 
     for res in sweep_results:
         cand = res["candidate"]
@@ -146,6 +211,7 @@ async def main():
 
         if "error" in metrics:
             print(f"| {t:.2f} | ERROR: {metrics['error']} |")
+            errored += 1
             continue
 
         print(
@@ -162,6 +228,17 @@ async def main():
         ):
             best_valid_hit_rate = metrics["valid_hit_rate_pct"]
             optimal_threshold = t
+
+    if errored:
+        # A best threshold from a partial sweep is the best of whichever ones happened to run.
+        logger.error("%d threshold(s) errored; refusing to save a profile.", errored)
+        sys.exit(1)
+
+    if optimal_threshold is None:
+        # No candidate produced a valid hit (all errored, collided, or never hit): nothing was
+        # validated, so saving any threshold would override the cache's own with an unmeasured one.
+        logger.error("No threshold produced a valid hit; refusing to save a profile.")
+        sys.exit(1)
 
     print(f"\n**Recommended Optimal Similarity Threshold:** {optimal_threshold:.2f}")
 

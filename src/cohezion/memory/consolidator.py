@@ -63,6 +63,9 @@ class ConsolidatedFact:
     fact: TrustedFact
     supporting_episode_ids: list[str]
     confidence: float
+    # True when this fact was compared against the existing store with at least one missing
+    # embedding (no encoder, or text beyond its window), so a duplicate may have gone undetected.
+    dedup_unchecked: bool = False
 
     @property
     def content(self) -> str:
@@ -138,6 +141,9 @@ class MemoryConsolidator:
         self._support_threshold = support_threshold
         self._confidence_floor = confidence_floor
         self._persist = persist
+        # Number of _embed() CALLS that returned no vector (not facts: one candidate checked
+        # against K stored facts can add up to K + 1). Per-fact state: ConsolidatedFact.dedup_unchecked.
+        self.embed_missing = 0
 
     # ── public API ────────────────────────────────────────────────────────────
     def consolidate(self, episodes: list[dict]) -> list[ConsolidatedFact]:
@@ -167,7 +173,9 @@ class MemoryConsolidator:
                 continue
 
             # dedup (>= threshold) against the existing semantic store — corroborate, don't re-add
+            missing_before = self.embed_missing
             existing = self._nearest_existing(text)
+            dedup_unchecked = self.embed_missing > missing_before
             if existing is not None:
                 self._hierarchy.corroborate(existing.content, True)
                 continue
@@ -187,7 +195,10 @@ class MemoryConsolidator:
                     self._persist_fact(fact, confidence, support_ids)
             promoted.append(
                 ConsolidatedFact(
-                    fact=fact, supporting_episode_ids=support_ids, confidence=confidence
+                    fact=fact,
+                    supporting_episode_ids=support_ids,
+                    confidence=confidence,
+                    dedup_unchecked=dedup_unchecked,
                 )
             )
         return promoted
@@ -231,8 +242,22 @@ class MemoryConsolidator:
                 out.append({"text": item})
         return out
 
-    def _embed(self, text: str) -> np.ndarray:
-        return np.asarray(self._embed_fn(text), dtype=np.float64)
+    def _embed(self, text: str) -> np.ndarray | None:
+        """Embedding or None. None (no encoder / text beyond its window) is counted in
+        ``embed_missing`` and warned once; ``_cosine`` then scores it 0.0, so dedup and
+        support-matching treat that text as dissimilar to everything: a fact whose embedding
+        is missing is never merged as a duplicate (fail-open: it is promoted, not dropped)."""
+        vec = self._embed_fn(text)
+        if vec is None:
+            self.embed_missing += 1
+            if self.embed_missing == 1:
+                logger.warning(
+                    "consolidator: no embedding available for a text (no encoder, or beyond its "
+                    "window); it scores 0.0 similarity, so it is never merged and, if a fact, "
+                    "is flagged dedup_unchecked"
+                )
+            return None
+        return np.asarray(vec, dtype=np.float64)
 
     def _nearest_existing(self, text: str) -> TrustedFact | None:
         """Return an existing fact within dedup_threshold of ``text`` (most similar), else None."""
@@ -274,7 +299,9 @@ class MemoryConsolidator:
         return [str(ep["id"]) for ep in episodes if ep.get("id") is not None]
 
     @staticmethod
-    def _cosine(a: np.ndarray, b: np.ndarray) -> float:
+    def _cosine(a: np.ndarray | None, b: np.ndarray | None) -> float:
+        if a is None or b is None:
+            return 0.0
         na, nb = np.linalg.norm(a), np.linalg.norm(b)
         if na == 0.0 or nb == 0.0:
             return 0.0

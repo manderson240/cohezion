@@ -29,6 +29,7 @@ def mock_vae_encoder():
     """Mock FLUME VAE encoder."""
     mock_encoder = MagicMock()
     mock_encoder.encode = MagicMock(return_value=np.zeros(256))  # 256D vector
+    mock_encoder.encode_or_none = mock_encoder.encode  # callers use the explicit-unavailable API
     return mock_encoder
 
 

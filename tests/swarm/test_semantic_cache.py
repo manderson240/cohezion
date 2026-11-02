@@ -301,15 +301,13 @@ class TestFlumeVAEEmbeddingModel:
     """Test FlumeVAEEmbeddingModel for production semantic embeddings."""
 
     def test_initialization(self):
-        """Test FLUME VAE model initialization."""
+        """Width is fixed at the canonical latent's."""
         model = FlumeVAEEmbeddingModel()
         assert model._embedding_dim == 256
-        assert model._initialized is False
-        assert model._vae_encoder is None
 
     @pytest.mark.asyncio
     async def test_encode_with_vae(self):
-        """Test encoding with FLUME VAE (or fallback to hash)."""
+        """Test encoding with FLUME VAE ."""
         model = FlumeVAEEmbeddingModel()
         result = await model.encode("Test prompt for VAE encoding")
 
@@ -335,15 +333,18 @@ class TestFlumeVAEEmbeddingModel:
         assert result1.embedding == result2.embedding
 
     @pytest.mark.asyncio
-    async def test_fallback_to_hash(self):
-        """Test fallback to hash-based embeddings if VAE unavailable."""
-        model = FlumeVAEEmbeddingModel()
-        # Force fallback by setting VAE as unavailable
-        model._initialize_encoder()
-        if model._vae_encoder and not model._vae_encoder.is_available():
-            # VAE not available - should use fallback
-            result = await model.encode("Test fallback encoding")
-            assert len(result.embedding) == 256
+    async def test_unavailable_encoder_raises_not_hash(self, monkeypatch):
+        """No encoder => TextLatentUnavailable. Never a hash vector."""
+        from cohezion.flume import canonical_latent as cl
+        from cohezion.flume.vae_encoder import reset_encoder
+
+        def boom():
+            raise RuntimeError("no encoder")
+
+        monkeypatch.setattr(cl, "_load_minilm", boom)
+        reset_encoder()
+        with pytest.raises(cl.TextLatentUnavailable):
+            await FlumeVAEEmbeddingModel().encode("Test fallback encoding")
 
     @pytest.mark.asyncio
     async def test_semantic_cache_with_vae_model(self):
@@ -403,3 +404,35 @@ class TestFlumeVAEEmbeddingModel:
         else:
             # Miss is ok too - depends on embedding model availability
             assert hit is None
+
+
+class TestEncoderWindowTruncation:
+    """MiniLM ignores everything past 256 tokens. The conftest embedder truncates the same way,
+    so these fail if the cache again embeds ``system + prompt`` as one string (the long system
+    prompt eats the window and every prompt gets cosine 1.0)."""
+
+    LONG_SYSTEM = "You are a careful assistant for the platform operations team. " * 40
+
+    @pytest.mark.asyncio
+    async def test_long_system_does_not_make_distinct_prompts_collide(self, tmp_path):
+        cache = SemanticCache(cache_dir=tmp_path)
+        await cache.put("Delete the production database", self.LONG_SYSTEM, "m", "DELETE-ANSWER")
+        assert (await cache.get("What is the capital of Australia?", self.LONG_SYSTEM)) is None
+        assert (await cache.get("Keep the production database", self.LONG_SYSTEM)) is None
+        hit = await cache.get("Delete the production database", self.LONG_SYSTEM)
+        assert hit is not None and hit.value == "DELETE-ANSWER"
+
+    @pytest.mark.asyncio
+    async def test_other_system_prompt_never_hits(self, tmp_path):
+        cache = SemanticCache(cache_dir=tmp_path)
+        await cache.put("Delete the production database", "system A", "m", "A-ANSWER")
+        assert await cache.get("Delete the production database", "system B") is None
+
+    @pytest.mark.asyncio
+    async def test_prompt_longer_than_window_is_not_cached_or_matched(self, tmp_path):
+        cache = SemanticCache(cache_dir=tmp_path)
+        shared = "word " * 300  # first 256 tokens identical, tails differ
+        await cache.put(shared + "alpha", "", "m", "ALPHA")
+        assert len(cache._embedding_cache) == 0  # fail closed: nothing stored
+        assert await cache.get(shared + "beta", "") is None
+        assert cache.get_stats()["embedding_errors"] >= 1

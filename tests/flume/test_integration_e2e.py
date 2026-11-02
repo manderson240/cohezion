@@ -22,8 +22,8 @@ from cohezion.flume.vae_encoder import FlumeVAEEncoder
 
 @pytest.fixture
 def flume_encoder():
-    """FlumeVAEEncoder using hash fallback (deterministic, no Ollama calls)."""
-    return FlumeVAEEncoder(fallback_to_hash=True)
+    """FlumeVAEEncoder on the conftest deterministic embedder."""
+    return FlumeVAEEncoder()
 
 
 class TestExecutionDataLogged:
@@ -95,28 +95,12 @@ class TestSemanticCacheIntegration:
         """A paraphrase of the stored prompt triggers an L2 semantic hit."""
         from cohezion.cache.semantic_cache import SemanticCache
 
-        # Use hash-based encoder for determinism (no Ollama needed)
-        with (
-            patch("cohezion.cache.semantic_cache.get_text_encoder") as mock_te,
-            patch("cohezion.cache.semantic_cache.get_encoder") as mock_enc,
-        ):
-            # text encoder unavailable → falls through to VAE/hash
-            mock_te.side_effect = Exception("no text encoder")
-            from cohezion.flume.vae_encoder import FlumeVAEEncoder
+        cache = SemanticCache()
+        prompt = "exact same prompt for cache test"
+        asyncio.run(cache.put(prompt=prompt, response="cached response"))
 
-            hash_enc = FlumeVAEEncoder(model_path=Path("/nonexistent"), fallback_to_hash=True)
-            mock_enc.return_value = hash_enc
-
-            cache = SemanticCache()
-            # Lower threshold to guarantee semantic hit with hash embeddings
-            cache.similarity_threshold = 0.95
-
-            prompt = "exact same prompt for cache test"
-            asyncio.run(cache.put(prompt=prompt, response="cached response"))
-
-            # Exact same prompt should hit L1 (hash match)
-            result = asyncio.run(cache.get(prompt=prompt))
-            assert result == "cached response"
+        # Exact same prompt hits L1; the same text also embeds identically for L2.
+        assert asyncio.run(cache.get(prompt=prompt)) == "cached response"
 
 
 class TestFullPipelineIntegration:

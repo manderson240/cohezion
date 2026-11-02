@@ -52,11 +52,11 @@ class JourneyLogger:
         coherence_metrics = await self.coherence_tracker.measure_system_coherence()
 
         # Encode context in FLUME space
-        flume_state = self.vae.encode(context)
-
-        # Convert numpy array to list for JSON serialization
-        if isinstance(flume_state, np.ndarray):
-            flume_state = flume_state.tolist()
+        flume_state_raw = self.vae.encode_or_none(context)
+        # list for JSON serialization; no real encoder -> explicit empty latent, never a hash
+        flume_state: list[float] = (
+            flume_state_raw.tolist() if isinstance(flume_state_raw, np.ndarray) else []
+        )
 
         # Create journey record
         await self.db.query(
@@ -130,11 +130,11 @@ class JourneyLogger:
         coherence_metrics = await self.coherence_tracker.measure_system_coherence()
 
         # Encode ending context in FLUME space
-        flume_state_end = self.vae.encode(context_end)
-
-        # Convert numpy array to list for JSON serialization
-        if isinstance(flume_state_end, np.ndarray):
-            flume_state_end = flume_state_end.tolist()
+        flume_state_end_raw = self.vae.encode_or_none(context_end)
+        # list for JSON serialization; no real encoder -> explicit empty latent, never a hash
+        flume_state_end: list[float] = (
+            flume_state_end_raw.tolist() if isinstance(flume_state_end_raw, np.ndarray) else []
+        )
 
         # Update journey record
         await self.db.query(

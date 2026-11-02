@@ -9,9 +9,12 @@ the local failure threshold.
 from __future__ import annotations
 
 import contextlib
+import logging
 import time
 from dataclasses import dataclass, field
 from typing import Any
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -60,6 +63,9 @@ class RunReport:
     tasks_failed: int = 0
     results: list[dict[str, Any]] = field(default_factory=list)
     sprint_results: list[SprintResult] = field(default_factory=list)
+    facts_promoted: int = 0
+    # Promoted facts whose dedup comparison had a missing embedding (possible undetected duplicates).
+    facts_dedup_unchecked: int = 0
 
 
 class LoopCoordinator:
@@ -221,7 +227,15 @@ class LoopCoordinator:
         from cohezion.memory.consolidator import MemoryConsolidator
 
         consolidator = MemoryConsolidator()
-        consolidator.consolidate(self._episodes)
+        promoted = consolidator.consolidate(self._episodes)
+        report.facts_promoted = len(promoted)
+        report.facts_dedup_unchecked = sum(1 for f in promoted if f.dedup_unchecked)
+        if report.facts_dedup_unchecked:
+            logger.warning(
+                "consolidation: %d of %d promoted facts were not dedup-checked (embedding missing)",
+                report.facts_dedup_unchecked,
+                report.facts_promoted,
+            )
 
     def _record_result(
         self,

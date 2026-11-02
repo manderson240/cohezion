@@ -12,50 +12,20 @@ import torch
 class TestVAEEncoderV2Integration:
     """Test vae_encoder.py with new VAE model."""
 
-    def test_new_vae_produces_256d_output(self, tmp_path: Path):
-        """New VAE model loaded via vae_encoder should produce 256D."""
-        from cohezion.flume.vae import FlumeVAE
+    def test_canonical_encoder_produces_256d_output(self):
+        """The facade yields a unit 256-d vector (no checkpoint/model_path argument any more)."""
         from cohezion.flume.vae_encoder import FlumeVAEEncoder
 
-        # Create and save a v2 model checkpoint
-        model = FlumeVAE(input_dim=768, latent_dim=256)
-        ckpt_path = tmp_path / "test_v2.pt"
-        torch.save(
-            {
-                "model_state_dict": model.state_dict(),
-                "config": {"input_dim": 768, "latent_dim": 256},
-                "version": 2,
-            },
-            ckpt_path,
-        )
-
-        encoder = FlumeVAEEncoder(model_path=ckpt_path, fallback_to_hash=True)
-
-        if encoder.is_available():
-            result = encoder.encode("deploy the API")
-            assert result.shape == (256,)
-            assert abs(np.linalg.norm(result) - 1.0) < 1e-4
-
-    def test_fallback_chain_works_without_ollama(self):
-        """When Ollama is unavailable and no v2 checkpoint, should hash fallback."""
-        from cohezion.flume.vae_encoder import FlumeVAEEncoder
-
-        encoder = FlumeVAEEncoder(
-            model_path=Path("/nonexistent/model.pt"),
-            fallback_to_hash=True,
-        )
-        result = encoder.encode("deploy the API")
+        result = FlumeVAEEncoder().encode("deploy the API")
         assert result.shape == (256,)
         assert abs(np.linalg.norm(result) - 1.0) < 1e-4
 
-    def test_existing_tests_still_pass(self):
-        """Existing public interface should be unchanged."""
+    def test_public_interface(self):
         from cohezion.flume.vae_encoder import FlumeVAEEncoder
 
-        encoder = FlumeVAEEncoder(fallback_to_hash=True)
+        encoder = FlumeVAEEncoder()
         assert encoder.EMBEDDING_DIM == 256
-        result = encoder.encode("test")
-        assert result.shape == (256,)
+        assert encoder.encode("test").shape == (256,)
 
 
 class TestJourneyTrackerFLUMEPath:

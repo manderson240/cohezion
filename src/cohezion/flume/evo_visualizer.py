@@ -16,7 +16,7 @@ from typing import Any
 import numpy as np
 
 from cohezion.flume.vacuum_topology import VacuumLabel, VacuumTopologyClassifier
-from cohezion.flume.vae_encoder import FlumeVAEEncoder
+from cohezion.flume.vae_encoder import get_encoder
 from cohezion.physics.evo_model import ExoticVacuumObject
 
 
@@ -53,11 +53,18 @@ class EVOJourneyVisualizer:
     def __init__(self, output_path: str = ".obsidian/evo-3d-graph.json"):
         self.output_path = Path(output_path)
         self.output_path.parent.mkdir(parents=True, exist_ok=True)
-        self.vae_encoder = FlumeVAEEncoder()
+        self.vae_encoder = (
+            get_encoder()
+        )  # shared singleton: one set of weights, not one per instance
         self.topology_classifier = VacuumTopologyClassifier()
 
     def process_evo(self, evo: ExoticVacuumObject, actions: list[str]) -> dict[str, Any]:
-        """Process an EVO lifecycle agent into a 3D graph trajectory."""
+        """Process an EVO lifecycle agent into a 3D graph trajectory.
+
+        Raises:
+            TextLatentUnavailable: no real encoder. Deliberately propagated; topology of a
+                substitute vector would be fabricated. Callers decide how to surface it.
+        """
         nodes = []
         edges = []
 

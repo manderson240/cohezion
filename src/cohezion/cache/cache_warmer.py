@@ -125,15 +125,13 @@ class CacheWarmer:
             try:
                 embedding = self.cache._text_to_embedding(task_description)
                 if embedding is not None:
-                    best_match = None
-                    best_sim = 0.0
-
-                    for entry in l2_cache.values():
-                        if entry.embedding is not None:
-                            sim = self.cache._cosine_similarity(embedding, entry.embedding)
-                            if sim > best_sim:
-                                best_sim = sim
-                                best_match = entry
+                    # A template match has no system prompt or model, so it may only be answered
+                    # from the unpartitioned entries: an answer stored under another system
+                    # prompt or model must not skip the LLM here (4fbcd0040 partitioned get()).
+                    best_key, best_sim = self.cache._best_l2(
+                        embedding, self.cache._partition(None, None)
+                    )
+                    best_match = l2_cache.get(best_key) if best_key is not None else None
 
                     if best_match and best_sim >= similarity_threshold:
                         logger.info(

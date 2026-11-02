@@ -179,19 +179,19 @@ async def test_circuit_breaker_resets_on_success() -> None:
 # ---------------------------------------------------------------------------
 
 
-def test_flume_hash_encode_returns_256d_vector() -> None:
-    vec = FlumeVAEEmbeddingModel._hash_encode("test text")
+def test_flume_canonical_encode_returns_256d_vector() -> None:
+    vec = FlumeVAEEmbeddingModel()._encode_blocking("test text")
     assert vec.shape == (256,)
     assert vec.dtype == np.float32
 
 
-def test_flume_hash_encode_is_deterministic() -> None:
-    v1 = FlumeVAEEmbeddingModel._hash_encode("consistent input")
-    v2 = FlumeVAEEmbeddingModel._hash_encode("consistent input")
+def test_flume_canonical_encode_is_deterministic() -> None:
+    v1 = FlumeVAEEmbeddingModel()._encode_blocking("consistent input")
+    v2 = FlumeVAEEmbeddingModel()._encode_blocking("consistent input")
     np.testing.assert_array_equal(v1, v2)
 
 
-def test_flume_hash_encode_normalized() -> None:
-    vec = FlumeVAEEmbeddingModel._hash_encode("normalized text")
+def test_flume_canonical_encode_normalized() -> None:
+    vec = FlumeVAEEmbeddingModel()._encode_blocking("normalized text")
     norm = float(np.linalg.norm(vec))
     assert norm == pytest.approx(1.0, abs=1e-5)

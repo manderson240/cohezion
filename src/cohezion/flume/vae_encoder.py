@@ -1,238 +1,39 @@
-"""FLUME VAE Encoder for production semantic embeddings.
+"""Compatibility facade: ``get_encoder()`` returns the canonical text latent.
 
-Wraps the trained FLUME VAE encoder to generate real semantic embeddings
-for cache similarity matching. Replaces deterministic hash-based embeddings
-with learned 256D latent representations.
-
-Features:
-- Load pre-trained VAE encoder from checkpoint
-- Generate 256D semantic embeddings from text
-- Support fallback to hash-based embeddings if VAE unavailable
-- Deterministic encoding for reproducibility
-- GPU support with CPU fallback
+This module used to load a VAE checkpoint and silently fell back to SHA-256 vectors, so every
+consumer compared hashes (hash cos(similar) 0.77 vs cos(unrelated) 0.76: AUC 0.51). There is no
+hash path any more. ``encode`` returns a 256-d unit vector from
+``cohezion.flume.canonical_latent`` or raises ``TextLatentUnavailable``.
 """
 
 from __future__ import annotations
 
-import hashlib
-import logging
-from pathlib import Path
-
-import numpy as np
-
-
-try:
-    import torch
-    import torch.nn as nn
-
-    TORCH_AVAILABLE = True
-except ImportError:
-    TORCH_AVAILABLE = False
-
-logger = logging.getLogger(__name__)
+from cohezion.flume.canonical_latent import (
+    LATENT_DIM,
+    CanonicalTextLatent,
+    TextLatentUnavailable,
+)
 
 
-if TORCH_AVAILABLE:
-
-    class SimpleEncoder(nn.Module):
-        """Encoder to match VAE checkpoint structure."""
-
-        def __init__(self, input_dim: int = 768, latent_dim: int = 256):
-            super().__init__()
-            self.fc1 = nn.Linear(input_dim, 512)
-            self.fc2 = nn.Linear(512, 384)
-            self.fc_mu = nn.Linear(384, latent_dim)
-            self.fc_var = nn.Linear(384, latent_dim)
-            self.relu = nn.ReLU()
-
-        def forward(self, x: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
-            h = self.relu(self.fc1(x))
-            h = self.relu(self.fc2(h))
-            return self.fc_mu(h), self.fc_var(h)
-else:
-
-    class SimpleEncoder:  # type: ignore[no-redef]
-        pass
+__all__ = [
+    "FlumeVAEEncoder",
+    "TextLatentUnavailable",
+    "get_encoder",
+    "reset_encoder",
+]
 
 
-class FlumeVAEEncoder:
-    """Production VAE encoder for semantic embeddings."""
+class FlumeVAEEncoder(CanonicalTextLatent):
+    """Name kept for the ~25 importers; behaviour is the canonical latent."""
 
-    DEFAULT_MODEL_PATH = Path("./data/flume/checkpoints/flume_vae_ep2.pt")
-    EMBEDDING_DIM = 256
-
-    def __init__(
-        self,
-        model_path: Path | None = None,
-        device: str = "cpu",
-        fallback_to_hash: bool = True,
-    ):
-        """Initialize VAE encoder.
-
-        Args:
-            model_path: Path to VAE checkpoint (default: ep50.pt)
-            device: Device to load model on ("cpu" or "cuda")
-            fallback_to_hash: If True, use hash embeddings if VAE load fails
-        """
-        self.device = device
-        self.model_path = model_path or self.DEFAULT_MODEL_PATH
-        self.fallback_to_hash = fallback_to_hash
-        self.encoder: SimpleEncoder | None = None
-        self.mu_head: nn.Linear | None = None
-        self.enabled = False
-
-        if TORCH_AVAILABLE:
-            self._load_encoder()
-        elif not fallback_to_hash:
-            logger.warning("PyTorch not available and fallback disabled")
-
-    def _load_encoder(self) -> None:
-        """Load encoder from checkpoint."""
-        try:
-            if not self.model_path.exists():
-                logger.warning(f"Model path not found: {self.model_path}")
-                return
-
-            # Load checkpoint — weights_only=True prevents arbitrary code execution
-            checkpoint = torch.load(self.model_path, map_location=self.device, weights_only=True)
-
-            # Extract encoder and mu_head
-            encoder_state = checkpoint.get("encoder")
-            mu_state = checkpoint.get("mu_head")
-
-            if encoder_state is None or mu_state is None:
-                logger.warning("Encoder or mu_head not found in checkpoint")
-                return
-
-            # Create and load encoder
-            # Encoder outputs 512D (hidden_size), not 256D
-            # Read dimensions from checkpoint to match architecture
-            first_weight = encoder_state.get("0.weight")
-            if first_weight is not None:
-                ckpt_input_dim = first_weight.shape[1]  # 64 for ep2 checkpoint
-                ckpt_hidden_dim = first_weight.shape[0]  # 128 for ep2 checkpoint
-            else:
-                ckpt_input_dim, ckpt_hidden_dim = 256, 512
-            # NOTE: kwargs don't match SimpleEncoder's real signature (input_dim/latent_dim);
-            # this checkpoint-loading path always falls through to the except-Exception
-            # hash fallback below. A real fix needs SimpleEncoder restructured to accept a
-            # runtime hidden size, so we only silence the type errors here.
-            self.encoder = SimpleEncoder(  # type: ignore[call-arg]
-                input_size=ckpt_input_dim, hidden_size=ckpt_hidden_dim
-            )
-            # The checkpoint stores the sequential module directly, not under "encoder"
-            self.encoder.encoder.load_state_dict(encoder_state)  # type: ignore[union-attr]
-            self.encoder.to(self.device)
-            self.encoder.eval()
-
-            # Create and load mu_head (512 -> 256)
-            # Match mu_head to checkpoint dimensions
-            mu_weight = mu_state.get("weight")
-            mu_out_dim = mu_weight.shape[0] if mu_weight is not None else self.EMBEDDING_DIM
-            mu_in_dim = mu_weight.shape[1] if mu_weight is not None else 512
-            self.mu_head = nn.Linear(mu_in_dim, mu_out_dim)
-            self.mu_head.load_state_dict(mu_state)
-            self.mu_head.to(self.device)
-            self.mu_head.eval()
-
-            # Store actual latent dim from checkpoint
-            self._z_dim = mu_out_dim if "mu_out_dim" in dir() else self.EMBEDDING_DIM
-            self.enabled = True
-            logger.info(f"Loaded FLUME VAE encoder from {self.model_path}")
-
-        except Exception as e:
-            logger.warning(f"Failed to load VAE encoder: {e}")
-            self.encoder = None
-            self.mu_head = None
-
-    def encode(self, text: str) -> np.ndarray:
-        """Encode text to 256D semantic embedding.
-
-        Uses VAE encoder if available, falls back to hash embedding otherwise.
-
-        Args:
-            text: Text to encode
-
-        Returns:
-            256D numpy array, normalized to unit length
-        """
-        if self.enabled and self.encoder is not None:
-            return self._vae_encode(text)
-        elif self.fallback_to_hash:
-            return self._hash_encode(text)
-        else:
-            raise RuntimeError("VAE encoder not available and fallback disabled")
-
-    def _vae_encode(self, text: str) -> np.ndarray:
-        """Encode using trained VAE encoder.
-
-        Args:
-            text: Text to encode
-
-        Returns:
-            256D normalized embedding
-        """
-        try:
-            if self.encoder is None or self.mu_head is None:
-                return self._hash_encode(text)
-            with torch.no_grad():
-                # Generate initial embedding from text hash
-                hash_embedding = self._hash_encode(text)
-                hash_tensor = torch.from_numpy(hash_embedding).float().unsqueeze(0).to(self.device)
-
-                # Pass through encoder and mu_head
-                encoded = self.encoder(hash_tensor)
-                latent = self.mu_head(encoded)
-
-                # Convert to numpy and normalize
-                embedding = latent.squeeze(0).cpu().numpy().astype(np.float32)
-                norm = np.linalg.norm(embedding)
-                if norm > 0:
-                    embedding /= norm
-
-                result: np.ndarray = embedding
-                return result
-
-        except Exception as e:
-            logger.debug(f"VAE encoding failed: {e}, using hash fallback")
-            return self._hash_encode(text)
-
-    @staticmethod
-    def _hash_encode(text: str) -> np.ndarray:
-        """Encode using deterministic hash (fallback).
-
-        Args:
-            text: Text to encode
-
-        Returns:
-            256D normalized embedding from SHA-256 hash
-        """
-        hash_obj = hashlib.sha256(text.encode())
-        hash_bytes = hash_obj.digest()
-
-        embedding = np.zeros(256, dtype=np.float32)
-        for i in range(256):
-            byte_idx = i % len(hash_bytes)
-            embedding[i] = hash_bytes[byte_idx] / 255.0
-
-        # Normalize
-        norm = np.linalg.norm(embedding)
-        if norm > 0:
-            embedding /= norm
-
-        return embedding
-
-    def is_available(self) -> bool:
-        """Check if VAE encoder is available."""
-        return self.enabled
+    EMBEDDING_DIM = LATENT_DIM
 
 
-# Global encoder instance
 _encoder_instance: FlumeVAEEncoder | None = None
 
 
 def get_encoder() -> FlumeVAEEncoder:
-    """Get or create singleton VAE encoder."""
+    """Get or create the singleton canonical encoder."""
     global _encoder_instance
     if _encoder_instance is None:
         _encoder_instance = FlumeVAEEncoder()

@@ -139,6 +139,12 @@ class SwarmConfig:
     # Autonomic Refinement
     max_refinement_rounds: int = 3
     min_phi_threshold: float = 0.75  # The Stability Well barrier
+    # NOT recalibrated for the MiniLM-256 latent and no value is safe: on tests/fixtures/
+    # flume_latent_pairs.py, paraphrase(40) >=0.80: 25%, >=0.95: 0%; hard-negative(20) >=0.80: 15%,
+    # >=0.95: 10%; unrelated(20): 0% at both. Direction-reversed pairs score 0.993 ("Move $100 from
+    # savings to checking" vs reverse). At 0.95 this is almost never a hit on paraphrases and still
+    # serves reversed requests; no cosine threshold separates the classes. Three thresholds are in
+    # force (this 0.95, swarm SemanticCache 0.88, canonical PARAPHRASE_THRESHOLD 0.80).
     semantic_cache_threshold: float = 0.95
 
     # Resource Priority (1=Critical, 4=Low)

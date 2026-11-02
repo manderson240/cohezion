@@ -225,6 +225,8 @@ class TestSemanticTextEncoder:
 class TestSemanticCacheDiscrimination:
     """Integration tests for semantic cache with real embeddings."""
 
+    @requires_real_st  # needs real paraphrase geometry; the suite mocks sentence_transformers.
+    # The un-mocked equivalent is test_live_python_paraphrase_clears_cache_threshold.
     def test_semantic_cache_hit_rate_improvement(self):
         """Test that semantic cache achieves better discrimination than hash-based."""
         from cohezion.cache.semantic_cache import SemanticCache

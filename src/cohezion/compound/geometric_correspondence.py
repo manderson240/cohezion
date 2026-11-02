@@ -107,22 +107,10 @@ def correspondence_is_discriminating(corpus: dict[str, list[str]], encoder: Enco
 
 
 def _flume_encoder() -> Encoder:
-    """Default encoder: the FLUME 256D text encoder (hash-embedding fallback if no VAE checkpoint).
+    """Default encoder: the canonical 256D text latent (raises TextLatentUnavailable if absent)."""
+    from cohezion.flume.vae_encoder import get_encoder
 
-    Lazy + fail-soft: if FLUME cannot be constructed, returns a deterministic hash-based fallback so
-    correspondence still works (degraded) rather than hard-failing.
-    """
-    try:
-        from cohezion.flume.vae_encoder import get_encoder
-
-        return get_encoder().encode
-    except Exception:
-        # Deterministic hash fallback (same idea as vae_encoder's own fallback).
-        def _hash_enc(text: str) -> np.ndarray:
-            rng = np.random.default_rng(abs(hash(text)) % (2**32))
-            return rng.standard_normal(256)
-
-        return _hash_enc
+    return get_encoder().encode
 
 
 def _backlog_solution_corpus(backlog_path: Path) -> list[dict]:

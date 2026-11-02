@@ -36,8 +36,7 @@ def diagnostic_vae_availability():
 
     encoder = get_encoder()
     logger.info(f"VAE Available: {encoder.is_available()}")
-    logger.info(f"VAE Model Path: {encoder.model_path}")
-    logger.info(f"Model Exists: {encoder.model_path.exists()}")
+    logger.info(f"Latent source: {encoder.source}")
     logger.info("")
 
     if encoder.is_available():
@@ -103,6 +102,9 @@ def diagnostic_semantic_discrimination():
     for text1, text2, relationship in test_pairs:
         emb1 = cache._text_to_embedding(text1)
         emb2 = cache._text_to_embedding(text2)
+        if emb1 is None or emb2 is None:
+            logger.error("text latent unavailable: similarity diagnostic cannot run")
+            return
         similarity = np.dot(emb1, emb2)
 
         # Quality assessment

@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.28.0] - 2026-11-01
+
+### Fixed
+- Semantic cache and agents use the canonical text latent; a failed encode raises or returns None instead of storing a fake vector. TTL holds on every cache tier, and a downgraded answer is stored under the model that answered it.
+
 ## [1.27.1] - 2026-09-27
 
 ### Performance — Lazy package facades (dynamic modularity audit R1/R2)

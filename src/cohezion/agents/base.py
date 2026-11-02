@@ -16,7 +16,7 @@ from typing import TYPE_CHECKING, Any
 
 
 if TYPE_CHECKING:
-    from cohezion.flume.autoencoder import FlumeEncoder
+    from cohezion.flume.vae_encoder import FlumeVAEEncoder
     from cohezion.swarm.swarm_types import SwarmConfig
 
 import httpx
@@ -58,6 +58,7 @@ class AgentResponse(str):
 
 
 class BaseAgent(ABC):
+    _novelty_warned: bool = False
     """
     Abstract base class for Swarm agents.
 
@@ -96,7 +97,7 @@ class BaseAgent(ABC):
         }
 
         # Native Intelligence & Persistence
-        self._encoder: FlumeEncoder | None = None
+        self._encoder: FlumeVAEEncoder | None = None
         self._db: SurrealClient = SurrealClient()
         self._query_history: dict[str, int] = {}  # query_hash -> count
         self._credit_manager = get_credit_manager()
@@ -125,6 +126,7 @@ class BaseAgent(ABC):
         self._semantic_cache = SemanticCache(
             cache_dir=str(self.cache_dir / "semantic"),
             threshold=self.config.semantic_cache_threshold,
+            ttl_seconds=self.config.cache_ttl_seconds,
         )
 
         # Gateway 12: Memory Recovery Protocol (MRP)
@@ -157,11 +159,60 @@ class BaseAgent(ABC):
             content += ":" + ":".join(images[:3])  # Use first 3 images for keying
         return hashlib.sha256(content.encode()).hexdigest()
 
+    def _file_cache_key(
+        self, prompt: str, images: list[str] | None = None, scope: str | None = None
+    ) -> str:
+        """File-tier key: the prompt key partitioned by the same scope as the semantic tiers.
+
+        Without the scope, two system prompts, two agent classes or two models asking the same
+        text shared one file (the default dir is shared by every agent).
+        """
+        scope = self._cache_scope() if scope is None else scope
+        return hashlib.sha256(f"{scope}\0{self._cache_key(prompt, images)}".encode()).hexdigest()
+
+    def _cache_scope(self, system_prompt: str | None = None, model: str | None = None) -> str:
+        """Scope of the semantic tiers: agent class, requested model and the raw system prompt.
+
+        A semantic/Redis entry is only served inside the scope that stored it.
+        """
+        system_digest = hashlib.sha256((system_prompt or "").encode()).hexdigest()
+        return f"{type(self).__name__}\0{model or self.model_name}\0{system_digest}"
+
+    def _text_encoder(self) -> Any:
+        if self._encoder is None:
+            from cohezion.flume.vae_encoder import get_encoder
+
+            self._encoder = get_encoder()
+        return self._encoder
+
+    def _semantic_vector(self, text: str) -> Any:
+        """Canonical 256-d latent used as a cache IDENTITY (query AND store), or None.
+
+        Strict: a text longer than the encoder window is None, since two long prompts sharing
+        their head would otherwise collide at cosine 1.0.
+        """
+        return self._text_encoder().encode_or_none(text, strict_window=True)
+
+    def _response_vector(self, text: str) -> Any:
+        """Canonical 256-d latent of an agent OUTPUT (embedding field, novelty, learning loop).
+
+        Not an identity use, so a long output is embedded from its head (non-strict), as other
+        non-identity callers do; None only when the latent is unavailable.
+        """
+        return self._text_encoder().encode_or_none(text)
+
     async def _get_cached(
-        self, prompt: str, images: list[str] | None = None
+        self,
+        prompt: str,
+        images: list[str] | None = None,
+        *,
+        scope: str | None = None,
     ) -> dict[str, Any] | None:
-        """Retrieve a cached response if available and not expired."""
-        key = self._cache_key(prompt, images)
+        """Retrieve a cached response if available and not expired.
+
+        ``scope`` (see ``_cache_scope``) bounds every tier, the file tier included.
+        """
+        key = self._file_cache_key(prompt, images, scope)
         cache_file = self.cache_dir / f"{key}.json"
 
         if not cache_file.exists():
@@ -169,23 +220,27 @@ class BaseAgent(ABC):
 
         try:
             data = json.loads(cache_file.read_text())
-            age = time.time() - data.get("timestamp", 0)
-            if age < self.config.cache_ttl_seconds:
+            if not self._semantic_cache._expired(data):
                 return data
         except Exception as e:
             logger.debug("Cache read failed for %s: %s", cache_file, e)
 
         # Phase 4: Semantic Fallback
-        if not images and self._encoder:
-            # Only semantic search for text-only prompts
-            query_vec = self._encoder.encode(prompt)
-            if hasattr(query_vec, "cpu"):
-                query_vec = query_vec.cpu().numpy()
-            semantic_hit = await self._semantic_cache.search(query_vec, query_text=prompt)
-            if semantic_hit:
-                logger.info(f"✨ Semantic Cache Hit (score: {semantic_hit['semantic_score']:.2f})")
-                self._metrics["cache_hits"] += 1
-                return semantic_hit
+        if not images:
+            # Only semantic search for text-only prompts; no real encoder -> no-op
+            query_vec = await asyncio.to_thread(self._semantic_vector, prompt)
+            if query_vec is not None:
+                semantic_hit = await self._semantic_cache.search(
+                    query_vec,
+                    query_text=prompt,
+                    scope=self._cache_scope() if scope is None else scope,
+                )
+                if semantic_hit:
+                    logger.info(
+                        f"✨ Semantic Cache Hit (score: {semantic_hit['semantic_score']:.2f})"
+                    )
+                    self._metrics["cache_hits"] += 1
+                    return semantic_hit
 
         return None
 
@@ -200,9 +255,10 @@ class BaseAgent(ABC):
         alignment_score: float = 1.0,
         images: list[str] | None = None,
         narration: str | None = None,
+        scope: str | None = None,
     ) -> None:
         """Cache a response with its intelligence metadata."""
-        key = self._cache_key(prompt, images)
+        key = self._file_cache_key(prompt, images, scope)
         cache_file = self.cache_dir / f"{key}.json"
 
         data = {
@@ -223,10 +279,8 @@ class BaseAgent(ABC):
         cache_file.write_text(json.dumps(data, ensure_ascii=False))
 
         # Phase 4: Semantic Projection (only for text-only)
-        if not images and self._encoder:
-            query_vec = self._encoder.encode(prompt)
-            if hasattr(query_vec, "cpu"):
-                query_vec = query_vec.cpu().numpy()
+        query_vec = None if images else await asyncio.to_thread(self._semantic_vector, prompt)
+        if query_vec is not None:
             await self._semantic_cache.add(
                 vector=query_vec,
                 response=response,
@@ -235,8 +289,12 @@ class BaseAgent(ABC):
                     "phi_score": phi_score,
                     "confidence": confidence,
                     "agent": self.__class__.__name__,
+                    "persistence_id": persistence_id,
+                    "alignment_score": alignment_score,
+                    "narration": narration,
                 },
                 query_text=prompt,
+                scope=self._cache_scope() if scope is None else scope,
             )
 
     async def enqueue_batch_task(self, query: str, context: str | None = None) -> str:
@@ -339,7 +397,10 @@ class BaseAgent(ABC):
             )
 
         # Check cache first
-        cached_data = await self._get_cached(prompt, images) if not ignore_cache else None
+        cache_scope = self._cache_scope(system_prompt, model)
+        cached_data = (
+            await self._get_cached(prompt, images, scope=cache_scope) if not ignore_cache else None
+        )
         if cached_data:
             # Log cache hit event
             await tk.log_event(
@@ -351,8 +412,9 @@ class BaseAgent(ABC):
             # Return enriched response from cache
             return AgentResponse(
                 cached_data["response"],
-                embedding=cached_data["embedding"],
-                persistence_id=cached_data["persistence_id"],
+                # Semantic/Redis/vault hits carry metadata only; the file tier carries both.
+                embedding=cached_data.get("embedding"),
+                persistence_id=cached_data.get("persistence_id"),
                 frequency=freq,
                 phi_score=cached_data.get("phi_score", 0.0),
                 confidence=cached_data.get("confidence", 1.0),
@@ -511,15 +573,9 @@ class BaseAgent(ABC):
         final_result = self._output_filter.filter(final_result).content
 
         # 2. FLUME Encoding
-        try:
-            if self._encoder is None:
-                from cohezion.flume.autoencoder import FlumeConfig, FlumeEncoder
-
-                self._encoder = FlumeEncoder(config=FlumeConfig())
-            z = self._encoder.get_semantic_vector(final_result)
-            embedding = z.tolist() if hasattr(z, "tolist") else list(z)
-        except (ImportError, RuntimeError, OSError) as e:
-            logger.debug(f"FLUME encoding unavailable, skipping: {e}")
+        z = await asyncio.to_thread(self._response_vector, final_result)
+        if z is not None:
+            embedding = z.tolist()
 
         # 2.5 Journey Narration
         narration = self._narrator.generate_narration(
@@ -572,6 +628,9 @@ class BaseAgent(ABC):
             alignment_score=alignment_score,
             images=images,
             narration=narration,
+            # Stored under the model that answered (the credit manager may have downgraded it);
+            # the lookup above can only use the requested model.
+            scope=self._cache_scope(system_prompt, active_model),
         )
 
         # Autonomic Experience Persistence
@@ -587,9 +646,20 @@ class BaseAgent(ABC):
                         similarity = similar_nodes[0].get("score", 0.0)
                         novelty = max(0.01, 1.0 - similarity)
                 except Exception as e:
+                    # Visible once per process: the latent is 256-d (canonical_latent.LATENT_DIM)
+                    # while the universe_nodes HNSW index is declared 768-d, so this fails on every
+                    # call and novelty is pinned at 1.0. Needs a schema decision, not a swallow.
+                    if not BaseAgent._novelty_warned:
+                        BaseAgent._novelty_warned = True
+                        logger.warning(
+                            "novelty detection failing, novelty pinned to 1.0 "
+                            "(latent width %d): %s",
+                            len(embedding),
+                            e,
+                        )
                     logger.debug(f"Novelty detection failed, defaulting to 1.0: {e}")
 
-            experience_data = {
+            experience_data: dict[str, Any] = {
                 "mission_id": persistence_id,
                 "agent": self.__class__.__name__,
                 "model": active_model,

@@ -45,6 +45,10 @@ class InVESTBridge:
         Converts an InVEST state snapshot into a FLUME latent vector.
 
         L_latent = Encoder(Textual Representation of Quantified Metrics)
+
+        Raises:
+            TextLatentUnavailable: no real encoder. Deliberately propagated; a hash/zero latent
+                would make every biophysical state look equally (un)related.
         """
         # Create a descriptive string of the biophysical state
         # This 'grounds' the quantitative data in a way the LLM and VAE understand

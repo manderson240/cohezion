@@ -24,9 +24,7 @@ from typing import Any
 
 import numpy as np
 
-from cohezion.cache.lemonade_encoder import OPTIMAL_THRESHOLD as _LEMONADE_THRESHOLD
-from cohezion.cache.lemonade_encoder import get_lemonade_encoder
-from cohezion.cache.text_encoder import get_text_encoder
+from cohezion.flume.canonical_latent import LATENT_DIM, PARAPHRASE_THRESHOLD
 from cohezion.flume.vae_encoder import get_encoder
 
 
@@ -87,12 +85,15 @@ class CacheEntry:
     key: str
     prompt: str
     response: str
-    embedding: np.ndarray
+    embedding: np.ndarray | None
     timestamp: float = field(default_factory=time.time)
     hit_count: int = 0
     scope: str = ""  # AOEP scope axis: "" = global, else agent/task scope tag
     # PR 2: (model_id, family, thinking_mode) the entry was stored under.
     card_signature: tuple[str, str, str] | None = None
+    # sha256 of (system, model): L2 only matches inside one partition, because the embedding is of
+    # the prompt alone and cannot tell a different system prompt or model apart.
+    partition: str = ""
 
 
 _singleton: "SemanticCache | None" = None
@@ -118,12 +119,11 @@ class SemanticCache:
         Optional MCPClient for L3 vault lookups (default: None = disabled)
     """
 
-    # Default thresholds per encoder dimension (exp_RRRR + exp_OOOO2, 2026-05-29)
-    # nomic-embed 768D: 0.58 (exp_OOOO2 — 0% FP, 100% near-dup hits; primary on XDNA2)
-    # sentence-transformers 384D: 0.80 (exp_BBBB — 0% FP, 87% near-dup hits)
-    # FLUME VAE 256D: 0.45 (exp_RRRR — 0% FP, 88% paraphrase hits; XDNA2 fallback)
-    _THRESHOLD_BY_DIM: dict = {768: _LEMONADE_THRESHOLD, 384: 0.80, 256: 0.45}
-    _DEFAULT_THRESHOLD = 0.80
+    # One fixed-width canonical latent (256D, flume.canonical_latent); the threshold is the one
+    # calibrated on that encoder (bench: 0% unrelated false hits at 0.80). The old per-width
+    # table existed because the width flipped with router state; it no longer can.
+    _THRESHOLD_BY_DIM: dict = {LATENT_DIM: PARAPHRASE_THRESHOLD}
+    _DEFAULT_THRESHOLD = PARAPHRASE_THRESHOLD
 
     def _load_profile_threshold(self) -> float | None:
         """Load calibrated threshold from config/calibration_profiles.json if present.
@@ -235,22 +235,8 @@ class SemanticCache:
 
     @staticmethod
     def _auto_tune_threshold_for_encoder() -> float:
-        """Probe the embedding encoder and return the appropriate threshold.
-
-        Calibrated thresholds per encoder (exp_RRRR + exp_OOOO2, 2026-05-29):
-          768D → 0.58 (nomic-embed via lemonade, 0% FP, 100% near-dup hits — exp_OOOO2)
-          384D → 0.80 (sentence-transformers, 0% FP, 87% near-dup hits — exp_BBBB)
-          256D → 0.45 (FLUME VAE, 0% FP, 88% paraphrase hits — exp_RRRR)
-        """
-        try:
-            probe = SemanticCache._text_to_embedding("routing task probe")
-            dim = probe.shape[0]
-            threshold = SemanticCache._THRESHOLD_BY_DIM.get(dim, SemanticCache._DEFAULT_THRESHOLD)
-            if threshold != SemanticCache._DEFAULT_THRESHOLD:
-                logger.debug("Encoder detected: %dD → threshold %.2f", dim, threshold)
-            return threshold
-        except Exception:
-            return SemanticCache._DEFAULT_THRESHOLD
+        """The threshold calibrated on the canonical (fixed-width) text latent."""
+        return SemanticCache._THRESHOLD_BY_DIM[LATENT_DIM]
 
     @classmethod
     def get_instance(cls) -> "SemanticCache":
@@ -266,49 +252,15 @@ class SemanticCache:
         return _singleton
 
     @staticmethod
-    def _text_to_embedding(text: str) -> np.ndarray:
-        """Convert text to production semantic embedding.
+    def _text_to_embedding(text: str) -> np.ndarray | None:
+        """Canonical 256-d text latent, or None when no real encoder is available.
 
-        Priority chain on XDNA2 (exp_OOOO2, 2026-05-29):
-          1. nomic-embed-text-v2-moe-GGUF (768D, lemonade 13305) — primary
-          2. sentence-transformers all-MiniLM-L6-v2 (384D) — non-XDNA2
-          3. FLUME VAE (256D) — fallback when checkpoint available
-          4. SHA-256 hash (384D) — absolute last resort, no semantic discrimination
-
-        Returns:
-            numpy array (dim varies by encoder), L2-normalized
+        None makes the L2 tier a no-op for this call (no lookup, no insert); L1 exact-match
+        still works. There is no hash substitute and the width never changes.
         """
-        # 1. Lemonade nomic-embed (primary on XDNA2 — sentence-transformers crashes there)
-        try:
-            enc = get_lemonade_encoder()
-            if enc.is_available():
-                return enc.encode(text)
-        except Exception as e:
-            logger.debug("Lemonade encoder failed: %s", e)
-
-        # 2. sentence-transformers (primary on non-XDNA2 systems)
-        try:
-            encoder = get_text_encoder()
-            return encoder.encode(text)
-        except Exception as e:
-            logger.debug("Semantic encoding failed: %s", e)
-
-        # 3. FLUME VAE fallback
-        try:
-            vae_encoder = get_encoder()
-            return vae_encoder.encode(text)
-        except Exception as vae_e:
-            logger.debug("VAE encoding also failed: %s — using hash fallback", vae_e)
-
-        # 4. SHA-256 hash — no semantic discrimination, last resort
-        hash_bytes = hashlib.sha256(text.encode()).digest()
-        embedding = np.zeros(384, dtype=np.float32)
-        for i in range(384):
-            embedding[i] = hash_bytes[i % len(hash_bytes)] / 255.0
-        norm = np.linalg.norm(embedding)
-        if norm > 0:
-            embedding /= norm
-        return embedding
+        # The backend silently ignores everything past its token window; a vector of the head of a
+        # long text would collide for distinct prompts, so identity use fails closed.
+        return get_encoder().encode_or_none(text, strict_window=True)
 
     @staticmethod
     def _cosine_similarity(a: np.ndarray, b: np.ndarray) -> float:
@@ -324,7 +276,31 @@ class SemanticCache:
         dot_product = np.dot(a, b)
         return float(dot_product)
 
-    def _is_novel(self, embedding: np.ndarray) -> bool:
+    @staticmethod
+    def _partition(system: str | None, model: str | None) -> str:
+        if not system and not model:
+            return ""
+        return hashlib.sha256(f"{system or ''}\x00{model or ''}".encode()).hexdigest()[:16]
+
+    def _best_l2(self, embedding: np.ndarray, partition: str) -> tuple[str | None, float]:
+        """Best (key, cosine) among L2 entries in ``partition``; (None, 0.0) if there are none."""
+        if self._l2_matrix is None or not self._l2_keys:
+            return None, 0.0
+        sims = np.dot(self._l2_matrix, embedding)
+        entries = [self.l2_cache.get(k) for k in self._l2_keys]  # tolerate keys already evicted
+        if partition or any(e is not None and e.partition for e in entries):
+            mask = np.fromiter(
+                (e is not None and e.partition == partition for e in entries),
+                dtype=bool,
+                count=len(entries),
+            )
+            if not mask.any():
+                return None, 0.0
+            sims = np.where(mask, sims, -np.inf)
+        idx = int(np.argmax(sims))
+        return self._l2_keys[idx], float(sims[idx])
+
+    def _is_novel(self, embedding: np.ndarray, partition: str = "") -> bool:
         """Check if embedding is novel relative to existing L2 entries.
 
         Returns True if the embedding's max cosine similarity to any existing
@@ -337,10 +313,8 @@ class SemanticCache:
         Returns:
             True if novel (should insert), False if near-duplicate (skip).
         """
-        if self._l2_matrix is None or len(self._l2_keys) == 0:
-            return True
-        sims = np.dot(self._l2_matrix, embedding)
-        return float(np.max(sims)) < self.novelty_threshold
+        key, sim = self._best_l2(embedding, partition)
+        return key is None or sim < self.novelty_threshold
 
     def _get_adaptive_threshold(self) -> float:
         """Adjust similarity threshold based on observed hit rates.
@@ -451,17 +425,16 @@ class SemanticCache:
         # (prompt, card_signature) so it carries the card; without a
         # card we embed the prompt alone (legacy behavior preserved).
         embed_text = full_prompt if card_signature is not None else prompt
-        query_embedding = self._text_to_embedding(embed_text)
+        query_embedding = await asyncio.to_thread(self._text_to_embedding, embed_text)
         best_match = None
         best_similarity = 0.0
         current_threshold = self._get_adaptive_threshold()
 
-        if self._l2_matrix is not None and len(self._l2_keys) > 0:
-            sims = np.dot(self._l2_matrix, query_embedding)
-            best_idx = int(np.argmax(sims))
-            best_similarity = float(sims[best_idx])
-            best_key = self._l2_keys[best_idx]
-            best_match = self.l2_cache.get(best_key)
+        if query_embedding is not None:
+            best_key, best_similarity = self._best_l2(
+                query_embedding, self._partition(system, model)
+            )
+            best_match = self.l2_cache.get(best_key) if best_key is not None else None
 
         if best_match and best_similarity > current_threshold and _scope_ok(best_match):
             self.hits_l2 += 1
@@ -474,7 +447,7 @@ class SemanticCache:
         if vault_result:
             self.hits_l3 += 1
             # Create entry and promote to L1
-            embedding = self._text_to_embedding(prompt)
+            embedding = await asyncio.to_thread(self._text_to_embedding, prompt)
             entry = CacheEntry(
                 key=hash_key,
                 prompt=prompt,
@@ -512,14 +485,13 @@ class SemanticCache:
 
         # L2: semantic
         embed_text = full_prompt if card_signature is not None else prompt
-        query_embedding = self._text_to_embedding(embed_text)
+        query_embedding = await asyncio.to_thread(self._text_to_embedding, embed_text)
         current_threshold = self._get_adaptive_threshold()
-        if self._l2_matrix is not None and len(self._l2_keys) > 0:
-            sims = np.dot(self._l2_matrix, query_embedding)
-            best_idx = int(np.argmax(sims))
-            best_similarity = float(sims[best_idx])
-            best_key = self._l2_keys[best_idx]
-            best_match = self.l2_cache.get(best_key)
+        if query_embedding is not None:
+            best_key, best_similarity = self._best_l2(
+                query_embedding, self._partition(system, model)
+            )
+            best_match = self.l2_cache.get(best_key) if best_key is not None else None
         else:
             best_match = None
             best_similarity = 0.0
@@ -565,7 +537,7 @@ class SemanticCache:
         # (prompt, card_signature); without a card we embed the prompt
         # alone (legacy behavior preserved).
         embed_text = full_prompt if card_signature is not None else prompt
-        embedding = self._text_to_embedding(embed_text)
+        embedding = await asyncio.to_thread(self._text_to_embedding, embed_text)
 
         entry = CacheEntry(
             key=hash_key,
@@ -574,13 +546,16 @@ class SemanticCache:
             scope=scope,
             embedding=embedding,
             card_signature=card_signature,
+            partition=self._partition(system, model),
         )
 
         # Store in L1 (exact match)
         self._put_l1(hash_key, entry)
 
-        # Store in L2 (semantic) — skip if near-duplicate (novelty gate)
-        if self._is_novel(embedding):
+        # Store in L2 (semantic) — skip if near-duplicate (novelty gate) or if no real encoder
+        if embedding is None:
+            logger.debug("L2 insertion skipped: canonical text latent unavailable")
+        elif self._is_novel(embedding, entry.partition):
             self._put_l2(hash_key, entry)
         else:
             self.novelty_skipped += 1
@@ -627,7 +602,7 @@ class SemanticCache:
 
     def _put_l2(self, hash_key: str, entry: CacheEntry) -> None:
         """Add entry to L2 cache, maintaining the vectorized embedding matrix."""
-        if self.max_l2_size <= 0:
+        if self.max_l2_size <= 0 or entry.embedding is None:
             return
 
         if len(self.l2_cache) >= self.max_l2_size and self.l2_lfu_counts:
@@ -638,7 +613,10 @@ class SemanticCache:
             # Rebuild matrix after eviction (infrequent — only when L2 is full)
             self._l2_keys = list(self.l2_cache.keys())
             if self._l2_keys:
-                self._l2_matrix = np.stack([self.l2_cache[k].embedding for k in self._l2_keys])
+                # _put_l2 never admits an entry without an embedding, so no key is skipped here.
+                self._l2_matrix = np.stack(
+                    [e for k in self._l2_keys if (e := self.l2_cache[k].embedding) is not None]
+                )
             else:
                 self._l2_matrix = None
 

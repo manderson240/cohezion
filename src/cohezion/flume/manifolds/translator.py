@@ -6,6 +6,7 @@ Sensing -> FLUME (256D) -> Manifold Projection (12D) -> HIHO Stability Check.
 
 from __future__ import annotations
 
+import asyncio
 from typing import TYPE_CHECKING
 
 import numpy as np
@@ -86,11 +87,16 @@ class ManifoldTranslator:
 
         Args:
             text: The input text string.
+
+        Raises:
+            RuntimeError: no encoder was provided.
+            TextLatentUnavailable: the encoder has no real weights. Deliberately propagated:
+                a manifold projection of a substitute vector would be meaningless.
         """
         if self.encoder is None:
             raise RuntimeError("VAEEncoder not initialized in ManifoldTranslator")
 
-        latent = self.encoder.encode(text)
+        latent = await asyncio.to_thread(self.encoder.encode, text)
         projection = self.project(self.project(latent))  # Double projection for stability check
 
         return latent, projection

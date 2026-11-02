@@ -888,6 +888,9 @@ class JourneyTracker:
         # spreads the 256D content across all 2048 samples so each 128-chunk spans distinct
         # content → 16 distinct chunk-means → task-discriminating 12D coordinates.
         if self._flume_encoder is not None and self._flume_encoder.is_available():
+            # An inference-time failure here (is_available() was True) RAISES TextLatentUnavailable:
+            # a hash latent has no relation to the real one (same-text cosine ~ -0.02) and would
+            # enter trajectories untagged. The hash path below is only for "no encoder at all".
             emb = self._flume_encoder.encode(text).astype(np.float64)
             latent = np.interp(np.linspace(0, len(emb) - 1, 2048), np.arange(len(emb)), emb)
             norm = np.linalg.norm(latent)

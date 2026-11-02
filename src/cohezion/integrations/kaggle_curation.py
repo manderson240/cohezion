@@ -1,9 +1,10 @@
+import asyncio
 import csv
 import json
 import logging
 from pathlib import Path
 
-from cohezion.flume.vae_encoder import get_encoder
+from cohezion.flume.vae_encoder import TextLatentUnavailable, get_encoder
 
 
 logger = logging.getLogger(__name__)
@@ -26,6 +27,15 @@ class KaggleCurator:
         """
         if not input_path.exists():
             raise FileNotFoundError(f"Input file not found: {input_path}")
+
+        # Deliberate: a dataset whose rows silently lack embeddings is worse than no dataset, so
+        # refuse up front (before reading or writing anything) when no real encoder is available.
+        # Loading the weights is seconds of CPU; keep it off the event loop.
+        if not await asyncio.to_thread(self.encoder.is_available):
+            raise TextLatentUnavailable(
+                "KaggleCurator.process_dataset needs the canonical text latent; weights are not "
+                "available (see cohezion.flume.canonical_latent for how to provide them)"
+            )
 
         processed_data = []
 
