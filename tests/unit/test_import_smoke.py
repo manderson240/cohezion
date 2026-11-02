@@ -67,49 +67,55 @@ _KNOWN_BROKEN: dict[str, str] = {
 }
 
 
+def _git_stdout(*args: str) -> subprocess.CompletedProcess[str]:
+    return subprocess.run(
+        ["git", *args], capture_output=True, text=True, timeout=30, cwd=_SRC.parent
+    )
+
+
+def _source_files(listing: str) -> list[str]:
+    return [
+        f
+        for f in listing.splitlines()
+        if f.endswith(".py")
+        and Path(f).name != "__init__.py"
+        and not Path(f).name.startswith("test_")
+        and "CLAUDE" not in f
+    ]
+
+
 def _get_changed_modules() -> list[str]:
     """Get module names for all changed Python source files."""
     # Try env var first (CI passes base SHA), then merge-base, then last tag
     base_sha = os.environ.get("COHEZION_IMPORT_SMOKE_BASE")
     if not base_sha:
-        for cmd in [
-            ["git", "merge-base", "HEAD", "origin/main"],
-            ["git", "merge-base", "HEAD", "main"],
-            ["git", "describe", "--tags", "--abbrev=0"],
+        for args in [
+            ("merge-base", "HEAD", "origin/main"),
+            ("merge-base", "HEAD", "main"),
+            ("describe", "--tags", "--abbrev=0"),
         ]:
-            result = subprocess.run(cmd, capture_output=True, text=True, timeout=10)
+            result = _git_stdout(*args)
             if result.returncode == 0:
                 base_sha = result.stdout.strip()
                 break
 
+    files: list[str] = []
     if base_sha:
-        cmd = ["git", "diff", "--name-only", f"{base_sha}..HEAD", "--", "src/cohezion/"]
-        result = subprocess.run(cmd, capture_output=True, text=True, timeout=30)
-        files = [
-            f
-            for f in result.stdout.splitlines()
-            if f.endswith(".py") and "__init__" not in f and "CLAUDE" not in f and "test_" not in f
-        ]
-        if not files:
-            # No changes detected — fall through to all source files
-            base_sha = None
+        # A deleted file has nothing left to import, so a removal must not fail this gate.
+        result = _git_stdout(
+            "diff", "--name-only", "--diff-filter=d", f"{base_sha}..HEAD", "--", "src/cohezion/"
+        )
+        files = _source_files(result.stdout)
 
-    if not base_sha:
-        # No base or no changes — test all source files
-        cmd = ["git", "ls-files", "src/cohezion/"]
-        result = subprocess.run(cmd, capture_output=True, text=True, timeout=30)
-        files = [
-            f
-            for f in result.stdout.splitlines()
-            if f.endswith(".py") and "__init__" not in f and "CLAUDE" not in f and "test_" not in f
-        ]
+    if not files:
+        # No base or no changes: test all source files. An empty set here would pass with
+        # nothing checked, so it has to stop the run.
+        result = _git_stdout("ls-files", "src/cohezion/")
+        files = _source_files(result.stdout)
+        if result.returncode != 0 or not files:
+            raise RuntimeError(f"import smoke selected no modules: {result.stderr.strip()}")
 
-    modules = set()
-    for f in files:
-        mod = f.replace("src/", "").replace("/", ".").replace(".py", "")
-        modules.add(mod)
-
-    return sorted(modules)
+    return sorted({f.removeprefix("src/").removesuffix(".py").replace("/", ".") for f in files})
 
 
 def _importing_file(exc: Exception) -> Path | None:
@@ -201,7 +207,7 @@ def _check_import(module_name: str) -> tuple[str, str]:
         importlib.import_module(module_name)
         return "ok", ""
     except SystemExit as e:
-        return "skip", f"{module_name} calls sys.exit at import: {e}"
+        failure = f"sys.exit at import: {e}"
     except Exception as e:
         missing = _missing_third_party(e)
         if missing:
@@ -262,6 +268,7 @@ def _write_module(tmp_path: Path, monkeypatch: pytest.MonkeyPatch, name: str, bo
         "import json.no_such_submodule_smoke",
         "raise ValueError('broken at import')",
         "def broken(:\n    pass",
+        "import sys\nsys.exit(1)",
     ],
     ids=[
         "internal-module",
@@ -269,6 +276,7 @@ def _write_module(tmp_path: Path, monkeypatch: pytest.MonkeyPatch, name: str, bo
         "submodule-of-installed",
         "runtime-error",
         "syntax-error",
+        "sys-exit",
     ],
 )
 def test_check_import_fails_real_defects(
@@ -356,3 +364,73 @@ def test_fresh_process_does_not_inherit_a_script_directory(
     monkeypatch.syspath_prepend(str(scripts))
     success, _ = _import_in_fresh_process("smoke_user3")
     assert not success
+
+
+def _git(repo: Path, *args: str) -> str:
+    return subprocess.run(
+        [
+            "git",
+            "-c",
+            "user.name=t",
+            "-c",
+            "user.email=t@t",
+            "-c",
+            "core.hooksPath=/dev/null",
+            *args,
+        ],
+        cwd=repo,
+        check=True,
+        capture_output=True,
+        text=True,
+    ).stdout.strip()
+
+
+def _point_at_repo(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
+    """Make selection read a throwaway repo, and stop git finding one further up the tree."""
+    repo = tmp_path / "repo"
+    (repo / "src" / "cohezion").mkdir(parents=True)
+    monkeypatch.setattr(sys.modules[__name__], "_SRC", repo / "src")
+    monkeypatch.setenv("GIT_CEILING_DIRECTORIES", str(tmp_path))
+    monkeypatch.delenv("COHEZION_IMPORT_SMOKE_BASE", raising=False)
+    return repo
+
+
+def test_selection_ignores_deleted_modules(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    repo = _point_at_repo(tmp_path, monkeypatch)
+    pkg = repo / "src" / "cohezion"
+    (pkg / "removed.py").write_text("")
+    (pkg / "kept.py").write_text("")
+    _git(repo, "init", "-q")
+    _git(repo, "add", ".")
+    _git(repo, "commit", "-qm", "base")
+    base = _git(repo, "rev-parse", "HEAD")
+    (pkg / "removed.py").unlink()
+    (pkg / "kept.py").write_text("x = 1\n")
+    _git(repo, "add", "-A")
+    _git(repo, "commit", "-qm", "change")
+    monkeypatch.setenv("COHEZION_IMPORT_SMOKE_BASE", base)
+    assert _get_changed_modules() == ["cohezion.kept"]
+
+
+@pytest.mark.parametrize("init", [False, True], ids=["git-fails", "no-source-files"])
+def test_selection_refuses_to_check_nothing(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, init: bool
+) -> None:
+    repo = _point_at_repo(tmp_path, monkeypatch)
+    if init:
+        _git(repo, "init", "-q")
+    with pytest.raises(RuntimeError, match="selected no modules"):
+        _get_changed_modules()
+
+
+def test_selection_keeps_a_module_with_test_inside_its_name(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    repo = _point_at_repo(tmp_path, monkeypatch)
+    pkg = repo / "src" / "cohezion"
+    (pkg / "latest_x.py").write_text("")
+    (pkg / "test_y.py").write_text("")
+    (pkg / "__init__.py").write_text("")
+    _git(repo, "init", "-q")
+    _git(repo, "add", ".")
+    assert _get_changed_modules() == ["cohezion.latest_x"]
