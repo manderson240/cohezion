@@ -220,8 +220,7 @@ class BaseAgent(ABC):
 
         try:
             data = json.loads(cache_file.read_text())
-            age = time.time() - data.get("timestamp", 0)
-            if age < self.config.cache_ttl_seconds:
+            if not self._semantic_cache._expired(data):
                 return data
         except Exception as e:
             logger.debug("Cache read failed for %s: %s", cache_file, e)

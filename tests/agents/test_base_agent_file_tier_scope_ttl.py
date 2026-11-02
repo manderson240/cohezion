@@ -104,6 +104,25 @@ def test_expired_entry_is_not_served_after_restart(world, monkeypatch):
     assert str(out) != "fresh-1" and len(world.calls) == n + 1
 
 
+@pytest.mark.parametrize(
+    "stamp",
+    [float("inf"), float("nan"), time.time() + 1e9, True, "soon"],
+    ids=["inf", "nan", "far-future", "bool", "non-numeric"],
+)
+def test_file_tier_expires_unusable_timestamps(world, stamp):
+    """A forged or corrupt stamp must not outlive the TTL; same rule as the other tiers."""
+    agent = _agent(world)
+    _ask(agent)
+    files = list(agent.cache_dir.glob("*.json"))
+    assert files
+    for path in files:
+        path.write_text(json.dumps({**json.loads(path.read_text()), "timestamp": stamp}))
+    n = len(world.calls)
+    # fresh semantic dir + Redis: only the file tier could serve this
+    out = _ask(_agent(world, sem_dir=world.tmp / "sem2"))
+    assert str(out) != "fresh-1" and len(world.calls) == n + 1
+
+
 def test_expired_local_vector_tier_alone_is_not_served(world, monkeypatch):
     """File tier removed, so only the persisted vector tier could answer."""
     _ask(_agent(world))
