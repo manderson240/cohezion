@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.27.2] - 2026-11-01
+
+### Fixed
+- `tests/unit/test_import_smoke.py` now fails on real import errors instead of passing everything except `SyntaxError`; seven modules that really failed to import are fixed.
+
 ## [1.27.1] - 2026-09-27
 
 ### Performance — Lazy package facades (dynamic modularity audit R1/R2)
