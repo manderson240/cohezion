@@ -16,8 +16,8 @@ import asyncio
 import hashlib
 import json
 import logging
-import subprocess
 import tempfile
+import uuid
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Literal, Protocol
@@ -132,9 +132,13 @@ class DockerSandbox:
             ctx_file.chmod(0o644)
 
             # Prepare Docker args
+            # A unique name, so a timeout kills exactly this container and no other.
+            container_name = f"cz-sandbox-{uuid.uuid4().hex[:12]}"
             cmd = [
                 "docker",
                 "run",
+                "--name",
+                container_name,
                 "--rm",  # Remove after exit
                 "--read-only",  # Read-only root
                 f"--memory={limits.memory_limit}",
@@ -168,36 +172,21 @@ class DockerSandbox:
                 ]
             )
 
-            # Execute with timeout
+            # Execute with timeout. The deadline covers the RUN, not just the spawn: wrapping only
+            # create_subprocess_exec in wait_for (the old code) returned as soon as docker started,
+            # and communicate() then waited with no limit.
             start_time = asyncio.get_event_loop().time()
+            proc = await asyncio.create_subprocess_exec(
+                *cmd,
+                stdout=asyncio.subprocess.PIPE,
+                stderr=asyncio.subprocess.PIPE,
+            )
             try:
-                proc = await asyncio.wait_for(
-                    asyncio.create_subprocess_exec(
-                        *cmd,
-                        stdout=asyncio.subprocess.PIPE,
-                        stderr=asyncio.subprocess.PIPE,
-                    ),
-                    timeout=limits.timeout_seconds,
+                stdout, stderr = await asyncio.wait_for(
+                    proc.communicate(), timeout=limits.timeout_seconds
                 )
-
-                stdout, stderr = await proc.communicate()
-                duration_ms = (asyncio.get_event_loop().time() - start_time) * 1000
-
-                return SandboxResult(
-                    success=proc.returncode == 0,
-                    stdout=stdout.decode("utf-8", errors="replace"),
-                    stderr=stderr.decode("utf-8", errors="replace"),
-                    exit_code=proc.returncode,
-                    duration_ms=duration_ms,
-                    resource_usage={},  # Would parse from docker stats
-                )
-
             except TimeoutError:
-                # Kill container on timeout
-                subprocess.run(
-                    ["docker", "kill", f"$(docker ps -q --filter ancestor={self.image})"],
-                    check=False,
-                )
+                await self._kill(container_name, proc)
                 return SandboxResult(
                     success=False,
                     stdout="",
@@ -205,6 +194,37 @@ class DockerSandbox:
                     exit_code=-1,
                     duration_ms=limits.timeout_seconds * 1000,
                 )
+
+            duration_ms = (asyncio.get_event_loop().time() - start_time) * 1000
+            return SandboxResult(
+                success=proc.returncode == 0,
+                stdout=stdout.decode("utf-8", errors="replace"),
+                stderr=stderr.decode("utf-8", errors="replace"),
+                exit_code=proc.returncode,
+                duration_ms=duration_ms,
+                resource_usage={},  # Would parse from docker stats
+            )
+
+    @staticmethod
+    async def _kill(container_name: str, proc: asyncio.subprocess.Process) -> None:
+        """Kill the timed-out container by name, then reap the docker client.
+
+        The previous version passed ``"$(docker ps -q --filter ancestor=...)"`` as a literal
+        argv element. With no shell there is no command substitution, so docker was asked to
+        kill a container literally named ``$(docker ps ...)``, failed, and the sandboxed code
+        kept running. Had it expanded, it would have killed every container from the image.
+        """
+        killer = await asyncio.create_subprocess_exec(
+            "docker",
+            "kill",
+            container_name,
+            stdout=asyncio.subprocess.DEVNULL,
+            stderr=asyncio.subprocess.DEVNULL,
+        )
+        await killer.wait()
+        if proc.returncode is None:
+            proc.kill()
+        await proc.wait()
 
     async def health_check(self) -> bool:
         """Check Docker daemon availability."""
