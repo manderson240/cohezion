@@ -11,7 +11,7 @@
 **A self-hosted platform where a fleet of coding agents builds, reviews and improves a large
 Python codebase, and the CI gates I built to keep those agents honest.**
 
-[How this was built](docs/HOW_THIS_WAS_BUILT.md) · [Agent guardrails](#guardrails-for-agent-written-code) · [Local inference](#local-inference-fleet-and-cost-aware-routing) · [Quick start](#quick-start)
+[How this was built](docs/HOW_THIS_WAS_BUILT.md) · [Agent guardrails](#guardrails-for-agent-written-code) · [Local inference](#local-inference-fleet-and-cost-aware-routing) · [Architecture](docs/architecture.md) · [Quick start](#quick-start)
 
 </div>
 
@@ -71,6 +71,8 @@ graph LR
 - **Independent review.** The agent that writes a change is never the one that signs off on it.
   Claude Code Review runs as a GitHub Action on every PR, and Gemini review and triage can be
   dispatched from a PR comment.
+- **CI on every PR into `main`.** [`ci.yml`](.github/workflows/ci.yml) runs the tests, ratchets
+  and agent-failure scanners on every pull request that targets `main`.
 - **A landing guard.** [`scripts/ci/automerge_guard.sh`](scripts/ci/automerge_guard.sh) validates
   each PR merged on top of the current tip of `main` in a temporary worktree, serializes landings,
   and blocks only on failures the PR itself caused.
@@ -131,16 +133,40 @@ Lemonade router :13305
   reservation and memory headroom, so the fleet does not run itself out of memory.
 
 ```python
-from cohezion.inference.triune_orchestrator import build_triune_orchestrator
-from cohezion.compound import make_executor
+from cohezion.compound.executor_factory import make_executor
+from cohezion.compound.local_inference import make_local_execute_fn
 
-executor = make_executor(mcp_client, provider=build_triune_orchestrator())
-result = await executor.execute_task("Your task here")
+executor = make_executor(mcp_client)
+result = executor.execute_task(
+    "Summarize the open review comments",
+    skill_name="code-review",
+    operation_type="summarize",
+    execute_fn=make_local_execute_fn(),  # NPU -> iGPU -> CPU cascade on :13305
+)
 ```
 
 A reproducible cost and latency benchmark across Claude-only, local-only and hybrid
 configurations is in progress (`uv run python scripts/benchmark_fleet.py`). Until it has run on the full prompt
 corpus, this README makes no cost-savings claim.
+
+---
+
+## Sandboxed execution
+
+Any code a model writes runs out of process through one entry point,
+[`compound/sandboxed_exec.py`](src/cohezion/compound/sandboxed_exec.py) (`run_untrusted`).
+It uses bubblewrap with every namespace unshared when bwrap is available, and otherwise falls
+back to an rlimit floor (no new files, no child processes, CPU and memory caps). The rlimit
+floor is a speed bump, not a filesystem boundary, and the docs say so. Five production call
+sites use it, and a CI scan (`scripts/ci/unrestricted_exec_scan.py`) fails any new
+unsandboxed `exec`. A Docker-based executor also exists but is not yet called from production
+code.
+
+## MCP servers
+
+About 30 MCP servers expose the platform's tools (vault, SurrealDB, inference, CI, skills and
+more) to the agents. Thirteen of them share one API-key auth middleware; bringing the rest onto
+the same layer, plus shared sessions and logging, is open work.
 
 ---
 
@@ -164,8 +190,11 @@ Run one cycle: `uv run python scripts/drivers/compound_cycle.py`
 git clone https://github.com/manderson240/cohezion.git && cd cohezion
 uv sync
 
-# Offline tour: step an agent through the RL environment (no network, no GPU)
+# Offline tour, about 5 seconds, no network or GPU: routes three prompts,
+# runs two guardrail scanners' self-tests, and runs code in the sandbox
 uv run python examples/quickstart.py
+
+# The RL research environment tour lives in examples/research_manifold_env.py
 
 # Validate the compound loop invariants
 make validate
@@ -188,6 +217,7 @@ GPU extras pin AMD ROCm wheels; see [`docs/tutorials/`](docs/tutorials/) for a g
 | The landing process | [`scripts/ci/automerge_guard.sh`](scripts/ci/automerge_guard.sh) |
 | Inference routing | [`src/cohezion/inference/`](src/cohezion/inference/), [`src/cohezion/compound/difficulty_estimator.py`](src/cohezion/compound/difficulty_estimator.py) |
 | The compound loop | [`src/cohezion/compound/`](src/cohezion/compound/) |
+| The architecture in one page | [`docs/architecture.md`](docs/architecture.md) |
 | The full story | [`docs/HOW_THIS_WAS_BUILT.md`](docs/HOW_THIS_WAS_BUILT.md) |
 
 ---
