@@ -115,6 +115,60 @@ with contextlib.suppress(ImportError):
 
     app.include_router(architecture_router, prefix="/api/architecture")
 
+# Domain routers (130 endpoints). The eleven service routers below were mounted here until
+# the 2026-07-30 refactor (8f712a8b, #267) moved route bodies into submodules and dropped
+# their include_router calls. Every endpoint below returned 404 for three months; the tests
+# that would have said so were in the integration step, which a collection error kept from
+# running (docs/audits/ROOT_CLEANUP_2026-11-04.md).
+# tests/unit/test_api_router_mounts.py now fails if any of them is unmounted again.
+#
+# The same refactor extracted the inline @app routes into cohezion.api.routes.* modules but
+# only mounted the subset re-declared in routes/main.py. The rest (compound, flume, journeys,
+# metrics, rl, skills, swarm/execute, templates, knowledge/query) are mounted here at the
+# paths they had before. main_router is mounted first, so where both declare a path its
+# handler still wins and behaviour there is unchanged.
+_DOMAIN_ROUTERS: tuple[tuple[str, str, str], ...] = (
+    ("cohezion.api.routes.compound", "compound_router", ""),
+    ("cohezion.api.routes.flume_inline", "flume_inline_router", ""),
+    ("cohezion.api.routes.journeys_legacy", "journeys_legacy_router", ""),
+    ("cohezion.api.routes.knowledge", "knowledge_router", ""),
+    ("cohezion.api.routes.metrics", "metrics_router", ""),
+    ("cohezion.api.routes.rl", "rl_router", ""),
+    ("cohezion.api.routes.skills", "skills_router", ""),
+    ("cohezion.api.routes.swarm", "swarm_router", ""),
+    ("cohezion.api.routes.templates", "templates_router", ""),
+    ("cohezion.api.research_endpoints", "router", ""),
+    ("cohezion.api.services.universe", "universe_router", "/api/universe"),
+    ("cohezion.api.routes.journey_nexus", "router", "/api"),
+    ("cohezion.api.services.genesis", "genesis_router", "/api"),
+    ("cohezion.api.services.world_model", "world_model_router", "/api"),
+    ("cohezion.api.services.physics_extended", "physics_ext_router", "/api"),
+    ("cohezion.api.services.worldviews", "worldviews_router", "/api"),
+    ("cohezion.api.journeys", "router", "/api/journeys"),
+    ("cohezion.api.services.ouroboros_api", "ouroboros_router", "/api"),
+    ("cohezion.api.services.mycelium_api", "mycelium_router", "/api"),
+    ("cohezion.api.services.modules_api", "modules_router", "/api"),
+)
+
+
+def _mount_domain_routers() -> list[str]:
+    """Mount each domain router; log (never silently skip) one that fails to import."""
+    import importlib
+
+    unmounted: list[str] = []
+    for module_name, attr, prefix in _DOMAIN_ROUTERS:
+        try:
+            router = getattr(importlib.import_module(module_name), attr)
+        except (ImportError, AttributeError) as exc:
+            logger.warning("API router %s.%s not mounted: %s", module_name, attr, exc)
+            unmounted.append(module_name)
+            continue
+        app.include_router(router, prefix=prefix)
+    return unmounted
+
+
+UNMOUNTED_ROUTERS = _mount_domain_routers()
+
 # Register telemetry websocket
 app.include_router(telemetry_router)
 

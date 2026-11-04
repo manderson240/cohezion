@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import contextlib
 import logging
+import pickle
 from pathlib import Path
 
 
@@ -88,9 +89,16 @@ def get_rl_policy():
         policy = PolicyNetwork(state_dim=256, action_dim=256, hidden=128)
         ckpt_path = Path("data/rl/checkpoints/policy_final.pt")
         if ckpt_path.exists():
-            policy.load_state_dict(torch.load(ckpt_path, map_location="cpu", weights_only=True))
-            policy.eval()
-            logger.info("Loaded RL policy from %s", ckpt_path)
+            try:
+                policy.load_state_dict(torch.load(ckpt_path, map_location="cpu", weights_only=True))
+                policy.eval()
+                logger.info("Loaded RL policy from %s", ckpt_path)
+            except (pickle.UnpicklingError, RuntimeError, KeyError) as e:
+                # A clone without `git lfs pull` (CI included) has a ~130-byte LFS pointer
+                # here, not weights; serve the random policy instead of a 500.
+                logger.warning(
+                    "Could not load RL checkpoint %s; using random policy: %s", ckpt_path, e
+                )
         else:
             logger.warning("No RL checkpoint at %s — using random policy", ckpt_path)
         api_module._rl_policy = policy
