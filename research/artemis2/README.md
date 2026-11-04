@@ -19,6 +19,7 @@ uv run --no-project --with numpy --with scipy --with pillow python research/arte
 uv run --no-project --with polars python research/artemis2/transcripts.py DIR    # DIR = downloaded data_transcripts_* folders
 uv run --no-project --with numpy --with scipy --with pillow python research/artemis2/flash_search_stills.py PNG...  # crew browse PNGs
 uv run --no-project --with numpy --with scipy python research/artemis2/flash_search_video.py CH1.mp4 CH2.mp4      # SAW3 videos, 2.9 GB each; ~50 min
+uv run --no-project --with polars python research/artemis2/verifiable_tasks.py DIR   # section 4; DIR as for transcripts.py
 ```
 
 Outputs: `hobo_results.json` and `figures/`. Every number quoted in this section is written
@@ -40,6 +41,7 @@ from the PDS4 XML labels.
 | Flash map | The grid fit recovers known meridians from synthetic grids (and a different grid is not mis-read as 90°E/180°E). Orthographic and perspective projections round-trip. With the view fixed from Horizons, the drawn meridians fit at 90.6°E/179.8°E, an independent check that the render matches Orion's real geometry. An adversarial reviewer independently confirmed the far-side result and found that the first version used an orthographic projection, which shifted some latitudes by 5–10°. The perspective fix is in. Mutation-tested | `tests/unit/research/test_artemis2_flash_map.py` |
 | Quotes | Every curated transcript quote must match a CSV row verbatim at its UTC stamp, or `transcripts.py` exits non-zero (39 of 39 match) | `transcripts.py` |
 | Flash searches | Synthetic tests: a 3-frame point flash is found at its frame and place; steady stars, long brightenings and whole-frame changes are not; triage separates a rise from dark from flicker of an existing source. An independent code review found four bugs (reference read at the wrong pixel, multi-frame events counted per frame, a midnight wrap in the transcript gap finder, NaN for an unmarked flash); each is fixed with a regression test and the video scan was rerun | `tests/unit/research/test_artemis2_flash_search.py` |
+| Verifiable questions | Every answer is computed twice, with polars and with the standard library alone, and a question is dropped unless both agree on the entity and the value; a question whose winner does not clear its margin is dropped too (one was). The selection scores match independently computed values in `hobo_results.json` and `transcript_events.json` (12.32 % RH jump, 1.34 °C flight difference, 509.7/565.7-min cuts). Mutation-tested: removing any of the three rejection checks turns a test red | `tests/unit/research/test_artemis2_verifiable_tasks.py` |
 | Primary-source spot checks | Transcript quotes, duplicate images, the missing video segment and the HTTP 403 audio entry were checked against the source files by hand | — |
 
 What this does **not** cover: the crew-camera, Orion-camera and audio numbers in section 3 come from the PDS
@@ -498,6 +500,34 @@ stretch are missing from the audio, or only from the transcript, is open.
    named exactly `e009303-e009388`, `e009389-e009474` and `e009475-e009560`. Those IDs were
    probably assigned to annotation pages.
 
+## 4. A verifiable question set built from the release (`verifiable_tasks.py` → `verifiable_tasks.json`)
+
+Axion 1.0 (arXiv:2611.03233, November 2026) trains an open agent model partly on questions
+built from real data so that each has one checkable answer. The recipe: filter records, pick
+the single entity with the most extreme value (it must beat the runner-up by a margin), compute
+a derived number with a fixed formula, then word the question around that fixed answer. The
+same recipe applied to this release gives questions that need tools to answer. A model has to
+fetch the PDS files and compute. The data first became public on 2026-10-07, so a model trained
+before then cannot have memorized the answers.
+
+| Question (abridged) | Answer | Runner-up |
+|---|---|---|
+| Logger with the biggest one-minute humidity jump in flight: its temperature at that minute | 24.77 °C (SN1104, the Locker E event) | SN1105 jump 4.71 % vs 12.32 % |
+| Warmer logger in flight: its mean absolute humidity | 5.114 g/m³ (SN1104) | SN1105, 1.34 °C cooler |
+| Crew member with the most voice-loop rows on 2026-04-07 | 71 (Hansen) | Wiseman, 39 |
+| Crew member with the most transcribed words, all transcripts | 21,489 (Wiseman) | Glover, 18,675 |
+| Voice-loop file with the longest cut-out audio | 565.7 min (04-07 oe1, the sleep period) | 04-06 oe1, 509.7 min |
+
+One candidate was dropped: SN1105's widest daily temperature range was 3.07 °C on 04-09
+against 3.04 °C on 04-10. That is too close to call a single winner, and the margin check
+caught it.
+
+The paper also drops questions a model can answer without tools (a "closed-book probe"). That
+step needs a model to run and has **not** been run here. Each question records this in
+`checks.closed_book_probe`. The obvious next step is to put these questions to the local
+model tier. The 35B Axion model is a fine-tune of Qwen3.6-35B-A3B, which is also the local
+reasoning model that `quarter-on-a-string-protocol.md` routes to.
+
 ## Summary — what's interesting
 
 - **Most notable report:** five naked-eye lunar impact flashes, mapped by the crew
@@ -538,14 +568,18 @@ corrections in commit `6c9d523`._
 
 _Interactive version: `research/artemis2/site/index.html` (self-contained; locker series are 20-minute means of the HOBO data, flyby photo counts are 10-minute bins of crew-camera label times)._
 
-## Open items (as of 2026-10-14)
-- **SPICE bundle** (camera pointing): still unreleased. The NAIF path and DOI in the Data
+## Open items (as of 2026-11-04)
+- **SPICE bundle** (camera pointing): still unreleased. On 2026-11-04 NAIF's top-level
+  listing had no Artemis II directory. It has an `ARTEMIS/` directory, last modified
+  2026-07-21; whether that belongs to Artemis II was not checked. The NAIF path and DOI in the Data
   User Guide return 404. When it appears, check whether the mapped flash sites were in the
   SAW3 field, and redo the flash map with archived pointing.
 - **Voice-loop audio**: returned HTTP 403. Once it can be fetched, check the President-call
   answers and the 6-minute cut at 04-07 22:31 against the sound itself.
 - **Moving-object search**: covers the ~40 h of other SAW3 video and the crew photo
   bursts. Star-field plate solving would recover camera pointing without SPICE.
+- **Closed-book probe** for the section 4 questions: needs local inference, which this cloud
+  session doesn't have.
 - **History rewrite** to remove the pre-LFS `status_update/` blobs (~10 MB): deferred;
   it needs a force-push of main.
 - Inputs are not committed: the scripts download them (MD5-checked where the archive
