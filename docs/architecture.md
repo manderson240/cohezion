@@ -53,6 +53,14 @@ AMD Strix Halo machine). Cloud models are used only when a local quality gate fa
 many scripts, plus older routers under `swarm/`. The compound executor path above is the one
 the CI invariants cover. Converging on one stack is open work.
 
+**Caches.** `cache/semantic_cache.py` is the canonical semantic cache (18 production
+importers). Two older ones remain: `reliability/semantic_cache.py` (file-backed, used by
+`agents/base.py` and the reliability tools) and `swarm/semantic_cache.py` (used by
+`swarm/token_client.py`). New code uses `cache/`; the other two shrink as callers move.
+
+Routers with no production consumer were deleted on 2026-11-04 (see
+[the cleanup ledger](audits/ROOT_CLEANUP_2026-11-04.md)).
+
 ## 3. Running model-written code
 
 | Piece | Where | Notes |

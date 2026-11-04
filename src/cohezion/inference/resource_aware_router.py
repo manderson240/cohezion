@@ -14,10 +14,10 @@ and where should this run, given what's free RIGHT NOW?".
   - item-114 placement (interactive→iGPU, batch→NPU, deep-reasoning→CPU).
 
 Report-only at the decision layer: it returns a `RouteDecision` (action + engine + reason); it
-NEVER loads a model. **As of 2026-06-07 it has a real production consumer**: `fleet.route()`
-captures a memory snapshot and uses the OOM-guard branch to DEFER local lanes under memory
-pressure (so a saturated fleet falls through to cloud instead of returning empty — the
-2026-06-06 bot saturation). See `tests/inference/test_fleet_resource_gate.py`. Pure given an
+NEVER loads a model. **It has no production consumer today.** It was wired into
+`fleet.route()` on 2026-06-07, and that wiring was lost in a later merge: `route()` still
+accepts `resource_snapshot` but ignores it. `tests/inference/test_fleet_resource_gate.py`
+tracks the re-wiring as an xfail. Pure given an
 injected snapshot — `route_now` is the thin live-capture convenience (not unit-tested against
 live hardware).
 

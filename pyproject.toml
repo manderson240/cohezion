@@ -189,7 +189,6 @@ line-length = 100  # Extended from 88 to accommodate f-strings and comprehension
 exclude = [
     ".archives",
     "archives",
-    "src/cohezion-archive",  # archived/legacy code — not actively maintained
     "*.ipynb",
     ".claude/worktrees",  # agent worktree copies — not source of truth
     ".gemini/worktrees",
