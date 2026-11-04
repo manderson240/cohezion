@@ -255,7 +255,10 @@ class TestSemanticCacheDiscrimination:
         # stored response — exactly the "better discrimination than hash-based" the name claims.
         # A wrong impl that disables the L2 semantic path returns None → fails (old test passed).
         assert result is not None, "semantic cache returned no match for a paraphrased query"
-        assert result == "Python is a programming language"
+        # Both stored prompts are paraphrases of the query, so either is a correct match; which
+        # one ranks first depends on the encoder (sentence-transformers locally, the FLUME/n-gram
+        # fallback on CI). A non-Python answer or None would still fail.
+        assert result in {response for _, response in prompts}
         assert cache.hits_l2 >= 1, "the match must come from the L2 semantic path, not exact hash"
         assert cache.hits_l1 == 0, "a paraphrase must NOT produce an L1 exact-hash hit"
 
