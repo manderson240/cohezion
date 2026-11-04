@@ -120,9 +120,15 @@ describe code that actually exists.
 ### A detector nobody called
 
 A regression of a known bad pattern, a bare `except` that hides errors, came back even though
-a working detector for it already existed. The detector had no CI caller. The fix was to wire it
-into CI ([`check_stealth_excepts.py`](../scripts/ci/check_stealth_excepts.py)), and the general
-lesson went into the dormancy rule: a guardrail that nothing runs is not a guardrail.
+a working detector for it already existed
+([`check_stealth_excepts.py`](../scripts/ci/check_stealth_excepts.py)). The detector had no CI
+caller. The lesson went into the dormancy rule: a guardrail that nothing runs is not a
+guardrail.
+
+It happened twice. An earlier draft of this document said the detector had been wired into CI.
+A review in November 2026 found that it never had been, and that one stealth `except` had crept
+back in. Both were fixed in the same change, and the scan now runs as a gating CI step. Claims
+in docs need the same consumption check as code.
 
 ### A router that was fooled by luck
 

@@ -40,7 +40,7 @@ Measured from the repository on 2026-10-23.
 | Test functions | about 13,500, in 1,213 test files |
 | GitHub Actions workflows | 27, including CI, CodeQL, dependency review and multi-model PR review |
 | Custom CI scanners for agent failure modes | 17 wired into the CI pipeline ([`scripts/ci/`](scripts/ci/)) |
-| Pre-commit hooks | 19, including secret detection, bandit and a hardcoded-path guard |
+| Pre-commit hooks | 21, including secret detection, bandit and a hardcoded-path guard |
 | Specialist agent definitions | 21 ([`.claude/agents/`](.claude/agents/)) |
 | Versioned skills agents load on demand | 229 PRIME skills ([`src/cohezion/skills/`](src/cohezion/skills/)) |
 
@@ -115,10 +115,10 @@ cloud models are the last resort.
 
 ```
 Lemonade router :13305
-├── NPU   small model      classification, routing, short answers
-├── iGPU  mid-size model   code generation, structured output
-├── CPU   8B reasoning     multi-step analysis
-└── Cloud                  only when local quality gates fail
+├── NPU   llama3.2-1B       classification, routing, short answers
+├── iGPU  Gemma-4-E4B       code generation, structured output
+├── CPU   Gemma-4-E2B       fallback when the iGPU tier fails its quality gate
+└── Cloud                   only when local quality gates fail
 ```
 
 - **Tier prediction with honest statistics.** The router picks the cheapest tier whose Wilson
@@ -127,8 +127,9 @@ Lemonade router :13305
   replaced a frequency cutoff that was fooled by lucky cheap successes.
 - **Health may only escalate.** Hardware health signals can push a hard task to a stronger tier,
   never to a cheaper one.
-- **One chokepoint.** CI fails any code that calls a model server directly instead of going
-  through the router.
+- **A chokepoint, still being enforced.** The landing guard fails new code that calls a model
+  server directly instead of going through the router. 281 older files that already bypass it
+  are listed in a baseline that may only shrink.
 - **Memory-aware admission.** An admission gate prices each model load against KV-cache
   reservation and memory headroom, so the fleet does not run itself out of memory.
 
