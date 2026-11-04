@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.27.2] - 2026-11-04
+
+### Fixed — Repo root hygiene, gated
+- Root cleanup with a per-item ledger (`docs/audits/ROOT_CLEANUP_2026-11-04.md`): pruned empty, typo and runtime-output files, moved experiments and one-off notes, and resolved the `docs/ARCHITECTURE.md` / `docs/architecture.md` and `docs/INDEX.md` / `docs/index.md` case collisions.
+- `.gitignore` root-only patterns are anchored; unanchored, they hid 88 tracked files under `scripts/` and `src/`.
+- `root_health_guard.py` checks a root allowlist, zero-byte root files and case collisions from the git index, with `--self-test`, and now gates CI, `automerge_guard.sh` and pre-commit. Rule: `.claude/rules/repo-hygiene.md`.
+- `tests/scripts/test_producer_consumer_audit.py` loads its target by path; a same-named script shadowed it and kept `Test Results` red.
+
 ## [1.27.1] - 2026-09-27
 
 ### Performance — Lazy package facades (dynamic modularity audit R1/R2)
