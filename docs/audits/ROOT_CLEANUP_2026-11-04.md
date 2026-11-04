@@ -103,6 +103,26 @@ renamed, because both have callers.
 **Lesson:** a test for a script should load it by file path (`importlib.util.spec_from_file_location`),
 as `tests/scripts/test_phantom_attr_scan.py` does, never by putting a directory on `sys.path`.
 
+## What the unmasked integration suite showed (follow-up, 1.27.3)
+
+The 217 failures were not 217 problems. Grouped by cause, most were a few lost changes, each
+of which left a test behind that kept describing code that was no longer there:
+
+| Cause | Tests | What happened | Lesson |
+|---|---|---|---|
+| Router mounts dropped | 106 | `8f712a8b` removed 20 `include_router` calls (130 endpoints) from `api/__init__.py`. Every endpoint test got 404. | A route module nobody mounts is dormant. `tests/unit/test_api_router_mounts.py` now probes every route module and requires an explicit reason for each one left unmounted. |
+| Squash lost the code, kept the tests | 15 | #242 (`853084c05`) landed `tests/wiring/*` but not the `__init__` re-exports they test. | When a squash or reconcile drops half a change, the test is the only record of the other half. A test that has failed since the day it landed is a pointer to lost code, not a test to delete. |
+| Reconcile kept the helpers, dropped the caller | 6 | `768f6d811` merged the health oracle's `_quality_stats`/`_is_degrading` but took main's FD-only `_synthesize`. Healthy lanes alarmed as critical. | Same as above, one level down: a method-merge can keep every symbol and still drop the consumer. Grep for a caller, not for a definition. |
+| Consumer lost, parameters kept | 3 | `CompoundExecutor` still accepted `memory_service`/`enable_memory` from #198 but never used them, and `ExecutorFactory.create` no longer took them, so `scripts/codebase_refinement.py` raised TypeError. | An accepted-and-ignored kwarg is the quietest dormancy there is. |
+| Tests wrote tracked files | 8 | API tests trained and saved into `data/rl/` and `data/flume/` checkpoints, overwriting LFS files in the working tree. | Tests that write must run in `tmp_path`. Check `git status` after a run. |
+| Never built | 13 | MD2 executor wiring, `RealSkillStateDataset`, six physics endpoints: specified with tests (mostly in the `9dce6ddd` mega-commit), never implemented. | `xfail(strict=True)` with the evidence, so the marker fails the day the feature lands. |
+| Machine-specific | 4 | Two hardcoded home-directory paths, and checks of a file in a private checkout. | A path under one person's home is a test that passes on one machine. |
+
+About 20 failures are left for an owner decision (listed in the 1.27.3 PR): the Telegram bot
+tests describe a design (no git worktree or tmux) the code does not have; the OOM guard's tests
+want a RAM-floor check its author deliberately left out; two TLS tests expect verification to be
+disableable; and a few tests depend on the host's free RAM.
+
 ## Not moved: open items that need an owner decision
 
 These are listed in the guard's "Open items" group so CI stays green. Nothing new should be

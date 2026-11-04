@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import pytest
 from fastapi.testclient import TestClient
 
 from cohezion.api import app
@@ -10,6 +11,17 @@ from cohezion.api import app
 client = TestClient(app)
 
 
+@pytest.fixture
+def _isolated_cwd(tmp_path, monkeypatch):
+    """Run in a temp dir: the training endpoints write data/*/checkpoints relative to cwd.
+
+    Without this, a test run overwrote the tracked (LFS) files
+    data/rl/checkpoints/policy_final.pt and data/flume/checkpoints/flume_vae_ep2.pt.
+    """
+    monkeypatch.chdir(tmp_path)
+
+
+@pytest.mark.usefixtures("_isolated_cwd")
 class TestFlumeEndpoints:
     """Tests for /flume/* endpoints."""
 
@@ -86,6 +98,7 @@ class TestTemplateEndpoints:
         assert resp.json()["name"] == "COMPOUND_ENGINEERING_PRIME"
 
 
+@pytest.mark.usefixtures("_isolated_cwd")
 class TestRLEndpoints:
     """Tests for /rl/* endpoints."""
 

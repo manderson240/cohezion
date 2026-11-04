@@ -196,19 +196,18 @@ class TestL2Eviction:
     @pytest.mark.asyncio
     async def test_l2_lfu_eviction_at_capacity(self, fixed_embedding):
         """When L2 is full, the lowest-count entry is evicted."""
-        cache = SemanticCache(max_l1_size=512, max_l2_size=2)
+        # fixed_embedding gives every prompt the same vector, so the novelty gate (added after
+        # this test) would skip p2 and p3 as duplicates. Disable it: this test is about LFU.
+        cache = SemanticCache(max_l1_size=512, max_l2_size=2, novelty_threshold=1.1)
 
         await cache.put("p1", "r1", model="m")
         await cache.put("p2", "r2", model="m")
         # Bump p1's LFU so p2 is the LFU victim.
         h1 = hashlib.sha256(b"\np1\nm").hexdigest()[:16]
-        h1 = hashlib.sha256(b"\np1\nm").hexdigest()[:16]
         cache.l2_lfu_counts[h1] = 5
 
         await cache.put("p3", "r3", model="m")
 
-        h2 = hashlib.sha256(b"\np2\nm").hexdigest()[:16]
-        h3 = hashlib.sha256(b"\np3\nm").hexdigest()[:16]
         h2 = hashlib.sha256(b"\np2\nm").hexdigest()[:16]
         h3 = hashlib.sha256(b"\np3\nm").hexdigest()[:16]
         assert h2 not in cache.l2_cache
@@ -388,6 +387,15 @@ class TestStatsAndClearEdges:
         await cache.get("missing", model="m")  # +1 miss
         cache.clear()
         stats = cache.get_stats()
+        # get_stats() has since gained combined_hit_rate, novelty_skipped and access_entropy;
+        # check every counter this test is about, plus the two new counters.
+        assert stats["combined_hit_rate"] == 0.0
+        assert stats["novelty_skipped"] == 0
+        stats = {
+            k: v
+            for k, v in stats.items()
+            if k not in {"combined_hit_rate", "novelty_skipped", "access_entropy"}
+        }
         assert stats == {
             "l1_hits": 0,
             "l2_hits": 0,

@@ -131,7 +131,7 @@ async def run_benchmark(req: BenchmarkRequest) -> BenchmarkResponse:
 
 @forge_router.get("/leaderboard")
 async def get_local_leaderboard(
-    kernel: str = Query("gemm", enum=["gemm", "moe", "mla"]),
+    kernel: Literal["gemm", "moe", "mla"] = Query("gemm"),
 ) -> list[dict[str, Any]]:
     """Get local benchmark history (mocked for now)."""
     # In a real implementation, this would query SurrealDB for past BenchmarkResponse objects

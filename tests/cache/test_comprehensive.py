@@ -27,7 +27,9 @@ class TestSemanticCache:
     def test_cache_with_defaults(self):
         """[P1] Should use default values."""
         cache = SemanticCache()
-        assert cache.similarity_threshold == 0.75
+        # The default (0.80) is auto-tuned to the active encoder (exp_RRRR): 0.45 for the FLUME
+        # VAE fallback. Pinning 0.75 made this test depend on which encoder the machine had.
+        assert cache.similarity_threshold == SemanticCache._auto_tune_threshold_for_encoder()
         assert cache.max_l1_size == 512
         assert cache.max_l2_size == 1024
 

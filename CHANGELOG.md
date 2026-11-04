@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.27.3] - 2026-11-04
+
+### Fixed — The integration suite, unmasked
+Fixing the collection error in 1.27.2 let the integration step run all ~14k tests for the first time in months, and 217 failed. Most traced to a handful of lost changes:
+- 20 API routers (130 endpoints) were mounted by nothing after `8f712a8b`; `api/__init__.py` mounts them again and `tests/unit/test_api_router_mounts.py` gates it, including every route module that is deliberately not mounted.
+- Package re-exports for 15 wiring tests were lost in the #242 squash, the opt-in memory write path from #198 was lost (so `scripts/codebase_refinement.py` raised TypeError), and the 2026-08-27 reconcile kept the health oracle's quality helpers but dropped the `_synthesize` that called them (healthy lanes alarmed as critical, collapses as warn). All restored from history.
+- API tests no longer overwrite tracked LFS checkpoints, and an LFS pointer loaded as a checkpoint falls back instead of crashing.
+- Two hardcoded home-directory paths, seven undefined names, and stale tests (cost units, cache thresholds, calibration patching).
+- Features that were specified with tests but never built (MD2 executor wiring, `RealSkillStateDataset`, six physics endpoints) are `xfail(strict=True)` with evidence.
+- SurrealDB pipeline Stage 3: the master orchestrator unit test stubs its live boundaries and checks a failed publish is reported as failed.
+
 ## [1.27.2] - 2026-11-04
 
 ### Fixed — Repo root hygiene, gated

@@ -54,7 +54,7 @@ class Gemma4Provider(OllamaProvider):
         # Load Lemonade Hardware Mapping
         self.hw_config = self._load_hw_config()
 
-    def _load_hw_config(self) -> Dict[str, Any]:
+    def _load_hw_config(self) -> dict[str, Any]:
         """Load the Lemonade silicon mapping config."""
         config_path = Path("src/cohezion/swarm/lemonade_config.yaml")
         if config_path.exists():

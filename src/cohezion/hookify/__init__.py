@@ -23,5 +23,12 @@ with contextlib.suppress(Exception):
         ReviewPerspective as ReviewPerspective,
     )
 
+    __all__ += [
+        "AdversarialReviewHarness",
+        "AdversarialReviewResult",
+        "ConsensusVoter",
+        "ReviewPerspective",
+    ]
+
 with contextlib.suppress(Exception):
     from cohezion.hookify.vault_writer import HookifyVaultWriter as HookifyVaultWriter

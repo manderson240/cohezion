@@ -29,7 +29,11 @@ class TestG15Structural:
     """T1: run_batch() must use LoopCoordinator, not raw subprocess."""
 
     def _daemon_src(self) -> str:
+        # The daemon lives in the private ~/cohezion-labs checkout, not in this repo, so it
+        # only exists on the workstation that runs it. Same convention as the Lemonade skips below.
         p = pathlib.Path.home() / "cohezion-labs" / "compound_daemon.py"
+        if not p.is_file():
+            pytest.skip(f"{p} not present (private cohezion-labs checkout)")
         return p.read_text()
 
     def test_loop_coordinator_present(self):

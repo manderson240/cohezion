@@ -7,12 +7,18 @@ from pathlib import Path
 
 import pytest
 
+import cohezion.data_mesh.durable_precipitation_bridge as dpb
 from cohezion.flume.twistor_bundle_bridge import SOUL_DIM, TwistorBundleBridge
 
 
 @pytest.fixture
-def bridge() -> TwistorBundleBridge:
-    return TwistorBundleBridge()
+def bridge(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> TwistorBundleBridge:
+    # Keep the MOC note and spool out of the real vault and repo, and SurrealDB offline.
+    monkeypatch.setattr(dpb, "SPOOL_FILE", tmp_path / "witness_spool.jsonl")
+    persistence = dpb.DurablePrecipitationBridge(
+        vault_dir=tmp_path / "moc", surreal_url="http://127.0.0.1:9/sql"
+    )
+    return TwistorBundleBridge(persistence=persistence)
 
 
 def test_embed_text_to_poincare_2048d(bridge: TwistorBundleBridge) -> None:
@@ -60,6 +66,7 @@ def test_batch_dissolve_and_precipitate(bridge: TwistorBundleBridge) -> None:
 
     # Verify MOC file exists on disk
     moc_path = Path(res["vault_moc"])
+    assert moc_path.parent == bridge.persistence.vault_dir
     assert moc_path.exists()
     content = moc_path.read_text(encoding="utf-8")
     assert "Phase 1 Dissolution: Poincaré-Twistor Semantic Fabric" in content
