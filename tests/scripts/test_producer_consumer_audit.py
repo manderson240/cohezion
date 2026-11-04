@@ -10,21 +10,27 @@ Validates:
 
 from __future__ import annotations
 
+import importlib.util
 import sys
 from pathlib import Path
 
 
-_SCRIPTS_CI_DIR = Path(__file__).resolve().parents[2] / "scripts" / "ci"
-if str(_SCRIPTS_CI_DIR) not in sys.path:
-    sys.path.insert(0, str(_SCRIPTS_CI_DIR))
+# Load by file path, not by module name. scripts/producer_consumer_audit.py (a different
+# tool) has the same module name, so `import producer_consumer_audit` returned whichever one
+# was first on sys.path or already in sys.modules. In the full CI run that was the wrong one,
+# and this file failed to collect (ImportError: AUDIT_PAIRS). See ROOT_CLEANUP_2026-11-04.md.
+_AUDIT_PATH = Path(__file__).resolve().parents[2] / "scripts" / "ci" / "producer_consumer_audit.py"
+_spec = importlib.util.spec_from_file_location("ci_producer_consumer_audit", _AUDIT_PATH)
+assert _spec and _spec.loader
+_pca = importlib.util.module_from_spec(_spec)
+sys.modules[_spec.name] = _pca  # dataclasses resolve their module through sys.modules
+_spec.loader.exec_module(_pca)
 
-from producer_consumer_audit import (
-    AUDIT_PAIRS,
-    AuditPair,
-    execute_audit,
-    format_markdown_report,
-    run_self_test,
-)
+AUDIT_PAIRS = _pca.AUDIT_PAIRS
+AuditPair = _pca.AuditPair
+execute_audit = _pca.execute_audit
+format_markdown_report = _pca.format_markdown_report
+run_self_test = _pca.run_self_test
 
 
 def test_producer_consumer_audit_self_test() -> None:

@@ -84,6 +84,18 @@ Tracked files are unaffected, but any new file in those packages will not be pic
 `git add`. If the intent was the root only, the fix is a leading `/`. After this change,
 `git ls-files -ci --exclude-standard` lists 88 tracked-but-ignored files, down from 172.
 
+## Duplicate module names
+
+`scripts/producer_consumer_audit.py` (an LLM classifier) and
+`scripts/ci/producer_consumer_audit.py` (the seam audit) share a module name. Its test put
+`scripts/ci` on `sys.path` and imported by name, so in the full CI run it got the other file
+and failed to collect (`ImportError: AUDIT_PAIRS`). That made the `Test Results` check red on
+every PR, including the base branch. The test now loads the file by path. Neither script was
+renamed, because both have callers.
+
+**Lesson:** a test for a script should load it by file path (`importlib.util.spec_from_file_location`),
+as `tests/scripts/test_phantom_attr_scan.py` does, never by putting a directory on `sys.path`.
+
 ## Not moved: open items that need an owner decision
 
 These are listed in the guard's "Open items" group so CI stays green. Nothing new should be
