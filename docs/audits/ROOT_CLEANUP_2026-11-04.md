@@ -55,6 +55,7 @@ within weeks. Three causes run through every item below:
 | `status_update/` (video, audio, HTML) | `docs/archive/status_update_2026-07/` | `9dce6ddd` 2026-07-04 | Same as above. |
 | `docs/ARCHITECTURE.md` | `docs/archive/KYUTAI_MCP_ARCHITECTURE.md` | `fa4d4bb9` 2026-02-14 | It coexisted with `docs/architecture.md` (from `ff58f28d`, 2026-03-04) for nine months. On macOS and Windows only one of the two survives a checkout, and which one you get depends on order. Its content was a Kyutai MCP design, not the system architecture. Guard: case-insensitive collision check at every path depth. |
 | `docs/INDEX.md` | `docs/archive/INDEX_2026-08-17.md` | `fa4d4bb9` 2026-02-14 | Collided with `docs/index.md` the same way. |
+| `docs/architecture.md` (old content) | `docs/archive/architecture_2026-03.md` | `ff58f28d` 2026-03-04 | Described 15 epics and agent personas from March, not the code. Replaced by a short map written from the code, which names its own duplication (two routing stacks) instead of hiding it. |
 
 Links that pointed at the uppercase names (`docs/README.md`, `docs/architecture-backend.md`)
 now point at `docs/architecture.md`.
