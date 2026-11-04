@@ -80,6 +80,7 @@ env:
 jobs:
   lint-and-format:
     name: Lint & Format (Stage 1)
+    if: (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)
     runs-on: self-hosted
     timeout-minutes: 5
 
@@ -148,6 +149,7 @@ jobs:
 # =============================================================================
   type-check:
     name: Type Check (Stage 2)
+    if: (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)
     runs-on: self-hosted
     needs: lint-and-format
     timeout-minutes: 10
@@ -221,6 +223,7 @@ jobs:
 # =============================================================================
   unit-tests:
     name: Unit Tests (Stage 3)
+    if: (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)
     runs-on: self-hosted
     needs: type-check
     timeout-minutes: 15
@@ -290,11 +293,9 @@ jobs:
     runs-on: self-hosted
     needs: [type-check, unit-tests]
     timeout-minutes: 30
-    if: |
-      github.event_name == 'schedule' ||
-      github.event_name == 'workflow_dispatch' ||
-      needs.unit-tests.result == 'success'
-
+    if: >-
+      (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) &&
+      (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || needs.unit-tests.result == 'success')
     steps:
       - name: Checkout repository
         uses: actions/checkout@v6
@@ -411,11 +412,9 @@ jobs:
     runs-on: self-hosted
     needs: [unit-tests, integration-tests]
     timeout-minutes: 20
-    if: |
-      github.event_name == 'pull_request' ||
-      github.event_name == 'schedule' ||
-      contains(github.event.head_commit.message, '[benchmark]')
-
+    if: >-
+      (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) &&
+      (github.event_name == 'pull_request' || github.event_name == 'schedule' || contains(github.event.head_commit.message, '[benchmark]'))
     steps:
       - name: Checkout repository
         uses: actions/checkout@v6
@@ -476,11 +475,9 @@ jobs:
     needs: [unit-tests, integration-tests]
     timeout-minutes: 30
     environment: live-testing
-    if: |
-      github.event.schedule == '0 2 * * *' ||
-      (github.event_name == 'workflow_dispatch' && github.event.inputs.test_stage == 'live') ||
-      (github.event_name == 'workflow_dispatch' && github.event.inputs.test_stage == 'all')
-
+    if: >-
+      (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) &&
+      (github.event.schedule == '0 2 * * *' || (github.event_name == 'workflow_dispatch' && github.event.inputs.test_stage == 'live') || (github.event_name == 'workflow_dispatch' && github.event.inputs.test_stage == 'all'))
     steps:
       - name: Checkout repository
         uses: actions/checkout@v6
@@ -595,10 +592,9 @@ jobs:
     runs-on: self-hosted
     needs: unit-tests
     timeout-minutes: 30
-    if: |
-      github.event.schedule == '0 4 * * 0' ||
-      contains(github.event.head_commit.message, '[compat]')
-
+    if: >-
+      (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) &&
+      (github.event.schedule == '0 4 * * 0' || contains(github.event.head_commit.message, '[compat]'))
     steps:
       # NOTE: GH Actions `services:` cannot pass a container command, and the
       # surrealdb image has no default Cmd — a services-backed container runs
@@ -674,7 +670,7 @@ jobs:
     name: Test Summary & PR Comments
     runs-on: self-hosted
     needs: [lint-and-format, type-check, unit-tests, integration-tests, benchmark-tests, live-tests, compatibility-tests]
-    if: always()
+    if: (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) && (always())
     permissions:
       pull-requests: write
       contents: read

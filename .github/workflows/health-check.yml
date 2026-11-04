@@ -23,6 +23,7 @@ env:
 jobs:
   # ── Health Check ─────────────────────────────────────────────────────
   health:
+    if: (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)
     runs-on: self-hosted
     permissions:
       contents: read
@@ -164,6 +165,7 @@ jobs:
 
   # ── Security Scan ──────────────────────────────────────────────────────
   security:
+    if: (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)
     runs-on: self-hosted
     steps:
       - name: Checkout code
@@ -192,7 +194,7 @@ jobs:
   # ── Daily Report ───────────────────────────────────────────────────────
   daily-report:
     runs-on: self-hosted
-    if: github.event_name == 'schedule'
+    if: (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) && (github.event_name == 'schedule')
     needs: [health, security]
     
     steps:
