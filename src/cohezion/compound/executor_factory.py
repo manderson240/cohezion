@@ -58,6 +58,10 @@ class ExecutorFactory:
         # the same defect the inference_provider comment above records. Defaults to False so
         # direct ExecutorFactory.create() callers (notably tests) keep their current behavior.
         enable_cycle_persistence: bool = False,
+        # #198: opt-in conversational memory. Declared because create() has no **kwargs;
+        # scripts/codebase_refinement.py passes enable_memory=True and raised TypeError.
+        memory_service: Any | None = None,
+        enable_memory: bool = False,
     ) -> CompoundExecutor:
         """Create a new compound executor.
 
@@ -228,6 +232,8 @@ class ExecutorFactory:
             token_ledger=token_ledger,
             inference_provider=inference_provider,
             enable_cycle_persistence=enable_cycle_persistence,
+            memory_service=memory_service,
+            enable_memory=enable_memory,
         )
 
     @staticmethod
