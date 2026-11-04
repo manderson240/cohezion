@@ -43,6 +43,9 @@ within weeks. Three causes run through every item below:
 | `.hermes-sessions/` (2 `tmp_*.py`) | `9dce6ddd` 2026-07-04 | Agent scratch scripts. | Agent scratch belongs in a session scratchpad, never the repo. Gitignored. |
 | `.claire/worktrees/virtual-painting-wren/scripts/experiments/exp_id12_feedback_loop.py`, `exp_id16_routing_accuracy.py` | `9dce6ddd` 2026-07-04 | `.claire` is a typo of `.claude`. A worktree's files were committed into the parent repo. Both files were 12 bytes, containing only the word `placeholder`. | A file named like real work can be a stub. The first pass of this cleanup moved them to `scripts/experiments/`; `ruff check` (F821 on `placeholder`) is what showed they were empty. Read a file before deciding it is worth keeping. |
 | `execution_traces/unified/` (11 JSON) | `9dce6ddd` 2026-07-04 | Runtime output. It was already gitignored, so new traces were blocked but these 11 stayed tracked. | `git ls-files -ci --exclude-standard` lists tracked-but-ignored files. Run it in any sweep. |
+| `src/cohezion-archive/` (182 files: old copies of `swarm/`, `mcp/`, `core/`, `security/`) | `8f712a8bd` and earlier | A snapshot kept "just in case" inside `src/`. The hyphen makes it unimportable, so nothing could use it, but it doubled every search hit and was counted as a fourth semantic cache. | A copy of code in the tree is not a backup, git is. Recover with `git show 95965082d:src/cohezion-archive/<path>`. |
+| `agi/sparse_moe_markov_router.py`, `inference/activation_router.py` | `98756fad1` and earlier | Routers built ahead of a consumer. The first had no reference anywhere; the second only its own test class. | A router nobody calls is a claim, not a capability. The dormancy rule (consumption, not declaration) applies to whole modules too. Recover from `95965082d`. |
+| False docstring in `inference/resource_aware_router.py` (not deleted) | 2026-06-07 | It said `fleet.route()` consumes it. That wiring was lost in a later merge; `route()` accepts `resource_snapshot` and ignores it. An xfail already tracked the gap, but the docstring still claimed the opposite. | When wiring is lost, fix the docs in the same change that adds the xfail, or the docs keep claiming it. |
 
 ## Moved
 
@@ -55,6 +58,7 @@ within weeks. Three causes run through every item below:
 | `status_update/` (video, audio, HTML) | `docs/archive/status_update_2026-07/` | `9dce6ddd` 2026-07-04 | Same as above. |
 | `docs/ARCHITECTURE.md` | `docs/archive/KYUTAI_MCP_ARCHITECTURE.md` | `fa4d4bb9` 2026-02-14 | It coexisted with `docs/architecture.md` (from `ff58f28d`, 2026-03-04) for nine months. On macOS and Windows only one of the two survives a checkout, and which one you get depends on order. Its content was a Kyutai MCP design, not the system architecture. Guard: case-insensitive collision check at every path depth. |
 | `docs/INDEX.md` | `docs/archive/INDEX_2026-08-17.md` | `fa4d4bb9` 2026-02-14 | Collided with `docs/index.md` the same way. |
+| `docs/architecture.md` (old content) | `docs/archive/architecture_2026-03.md` | `ff58f28d` 2026-03-04 | Described 15 epics and agent personas from March, not the code. Replaced by a short map written from the code, which names its own duplication (two routing stacks) instead of hiding it. |
 
 Links that pointed at the uppercase names (`docs/README.md`, `docs/architecture-backend.md`)
 now point at `docs/architecture.md`.

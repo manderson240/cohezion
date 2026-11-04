@@ -1,328 +1,120 @@
-# Cohezion Architecture Overview
+# Cohezion architecture
 
-**Last Updated:** 2026-03-04  
-**Version:** 15 Epics Active
+A short map of what runs, where it lives, and how the pieces connect. Written 2026-11-04
+from the code, not from plans; where the code has two ways of doing one thing, this page
+says so. The previous overview (March 2026) is archived at
+[`archive/architecture_2026-03.md`](archive/architecture_2026-03.md).
 
----
-
-## 🏗️ System Architecture
-
-```
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                            COHEZION ARCHITECTURE                             │
-├─────────────────────────────────────────────────────────────────────────────┤
-│                                                                             │
-│  ┌─────────────────────────────────────────────────────────────────────┐   │
-│  │                        INTERACTION LAYER                              │   │
-│  │  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐  ┌────────────┐ │   │
-│  │  │ FastAPI     │  │ Dashboard   │  │ CLI Tools   │  │ MCP Server │ │   │
-│  │  │ (72+ routes)│  │ (Web UI)    │  │              │  │            │ │   │
-│  │  └─────────────┘  └─────────────┘  └─────────────┘  └────────────┘ │   │
-│  └─────────────────────────────────────────────────────────────────────┘   │
-│                                    │                                        │
-│  ┌─────────────────────────────────────────────────────────────────────┐   │
-│  │                        AGENT LAYER                                    │   │
-│  │  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐  ┌────────────┐ │   │
-│  │  │ Scout Agent │  │ Critic Agent│  │ Lab Agent   │  │ Diplomat   │ │   │
-│  │  │ (Research)  │  │ (Review)    │  │ (Testing)   │  │ (Comm)     │ │   │
-│  │  └─────────────┘  └─────────────┘  └─────────────┘  └────────────┘ │   │
-│  │                                                                      │   │
-│  │  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐  ┌────────────┐ │   │
-│  │  │ Analyst     │  │ Architect   │  │ Designer    │  │ Narrator   │ │   │
-│  │  │ (Analysis)  │  │ (Design)    │  │ (Creative)  │  │ (Story)    │ │   │
-│  │  └─────────────┘  └─────────────┘  └─────────────┘  └────────────┘ │   │
-│  └─────────────────────────────────────────────────────────────────────┘   │
-│                                    │                                        │
-│  ┌─────────────────────────────────────────────────────────────────────┐   │
-│  │                      INTELLIGENCE LAYER                               │   │
-│  │                                                                       │   │
-│  │  ┌───────────────────┐    ┌───────────────────┐                       │   │
-│  │  │   FLUME VAE       │    │  COMPOUND         │                       │   │
-│  │  │   (256D Latent)   │◄──►│  ENGINEERING       │                       │   │
-│  │  │   - Manifold       │    │  - Pattern Acc.    │                       │   │
-│  │  │   - Physics       │    │  - Skill Refine   │                       │   │
-│  │  │   - Temporal      │    │  - Guidance       │                       │   │
-│  │  └───────────────────┘    └───────────────────┘                       │   │
-│  │           │                          │                                │   │
-│  │           │    ┌─────────────────────┘                                │   │
-│  │           │    │                                                      │   │
-│  │           ▼    ▼                                                      │   │
-│  │  ┌───────────────────┐    ┌───────────────────┐                       │   │
-│  │  │   12D UNIVERSE     │    │  OUROBOROS        │                       │   │
-│  │  │   SIMULATION        │◄──►│  (HEALING)         │                       │   │
-│  │  │   - Spatial (x,y,z)│    │  - Immune System  │                       │   │
-│  │  │   - Time (t)        │    │  - Drift Det.     │                       │   │
-│  │  │   - Physics        │    │  - Auto Patch     │                       │   │
-│  │  │   - Biology        │    │  - Safety Gate    │                       │   │
-│  │  │   - Logic          │    │  - Validation     │                       │   │
-│  │  │   - Quantum        │    │                   │                       │   │
-│  │  │   - Field          │    │                   │                       │   │
-│  │  │   - Control        │    │                   │                       │   │
-│  │  │   - Novelty        │    │                   │                       │   │
-│  │  │   - Precipitation  │    │                   │                       │   │
-│  │  │   - Spacetime      │    │                   │                       │   │
-│  │  │   - Brane          │    │                   │                       │   │
-│  │  └───────────────────┘    └───────────────────┘                       │   │
-│  └─────────────────────────────────────────────────────────────────────┘   │
-│                                    │                                        │
-│  ┌─────────────────────────────────────────────────────────────────────┐   │
-│  │                      INFRASTRUCTURE LAYER                             │   │
-│  │                                                                       │   │
-│  │  ┌────────────┐  ┌────────────┐  ┌────────────┐  ┌────────────────┐  │   │
-│  │  │ SurrealDB  │  │   Redis    │  │  Ollama    │  │  Sovereign     │  │   │
-│  │  │ (Persist)  │  │  (Cache)   │  │  (LLM)     │  │  Vault (MCP)   │  │   │
-│  │  └────────────┘  └────────────┘  └────────────┘  └────────────────┘  │   │
-│  │                                                                      │   │
-│  │  ┌────────────┐  ┌────────────┐  ┌────────────┐  ┌────────────────┐  │   │
-│  │  │ Cost Router │  │ Swarm     │  │ Semantic   │  │ Security       │  │   │
-│  │  │ (Routing)   │  │ Orchestr. │  │ Cache      │  │ Shield         │  │   │
-│  │  └────────────┘  └────────────┘  └────────────┘  └────────────────┘  │   │
-│  └─────────────────────────────────────────────────────────────────────┘   │
-│                                                                             │
-└─────────────────────────────────────────────────────────────────────────────┘
-```
-
----
-
-## 📊 Component Overview
-
-| Component | Purpose | Key Files |
-|-----------|---------|-----------|
-| **FLUME VAE** | 256D latent space embedding | `src/cohezion/flume/` |
-| **12D Universe** | Spatial-temporal simulation | `src/cohezion/universe/` |
-| **Compound Engineering** | Pattern accumulation & skill refinement | `src/cohezion/compound/` |
-| **Ouroboros Healing** | Autonomous system repair | `src/cohezion/healing/` |
-| **Sovereign Vault** | Persistent knowledge store | `cloud-vault-mcp/` |
-| **Swarm Orchestration** | Multi-agent coordination | `src/cohezion/swarm/` |
-| **Cost Router** | Model routing optimization | `src/cohezion/swarm/cost_aware_router.py` |
-| **Semantic Cache** | LLM response caching | `src/cohezion/cache/` |
-| **Security Shield** | Constitutional protection | `src/cohezion/security/` |
-
----
-
-## 🔄 Data Flow
+## The shape of the system
 
 ```
-User Request
-     │
-     ▼
-┌─────────────┐     ┌─────────────┐
-│  FastAPI    │────►│ Cost Router │────► Select Best Model
-│  Endpoint   │     └─────────────┘
-└─────────────┘
-     │
-     ▼
-┌─────────────┐     ┌─────────────┐
-│ Agent Layer │────►│ Semantic    │────► Cache Hit?
-│             │     │ Cache       │        │
-└─────────────┘     └─────────────┘        ▼
-     │                                    Yes ──► Return Cached
-     ▼                                    No ────► Continue
-┌─────────────┐
-│ LLM Call    │────► Ollama (Local) / API (Remote)
-│             │
-└─────────────┘
-     │
-     ▼
-┌─────────────┐
-│ Compound    │────► Pattern Matching + Skill Selection
-│ Engine      │
-└─────────────┘
-     │
-     ▼
-┌─────────────┐
-│ 12D Journey │────► Record trajectory in universe simulation
-│ Recording   │
-└─────────────┘
-     │
-     ▼
-┌─────────────┐
-│ Sovereign   │────► Persist learning to vault/SurrealDB
-│ Vault       │
-└─────────────┘
+ You / a coding agent
+        │  task
+        ▼
+ CompoundExecutor ──► guardrails ──► execute_fn ──► routing ──► local model fleet (:13305)
+  (compound/executor.py)  (security/)               │            NPU → iGPU → CPU, cloud last
+        │                                            └─► sandbox for any model-written code
+        ▼
+ Retrospection ──► SkillRefiner ──► versioned skill files ──► next run
+        │
+        ▼
+ SurrealDB + Obsidian vault (journeys, metrics, learnings)
+
+ MCP servers expose the same capabilities to agents as tools.
+ CI gates and a landing guard decide what reaches main.
 ```
 
----
+## 1. How code gets in: agents, review and gates
 
-## 🗂️ Directory Structure
+| Piece | Where | What it does |
+|---|---|---|
+| Agent contract | `CLAUDE.md`, `AGENTS.md`, `.claude/rules/` | Standing rules every agent inherits. Incidents become rules here. |
+| Specialist agents | `.claude/agents/` (21) | Reviewer, test runner, MCP specialist and so on, each with a narrow tool list. |
+| CI | `.github/workflows/` (27 workflows) | `ci.yml` runs lint, unit tests, validation and the custom scanners on every PR into `main`. |
+| Agent review | `claude-code-review.yml`, `gemini-review.yml` | An independent model reviews each PR; the author agent never signs off on its own work. |
+| Custom scanners | `scripts/ci/` | Dormant code, phantom attributes, unfalsifiable tests, unsandboxed exec, doc drift. Most have `--self-test`. |
+| Landing guard | `scripts/ci/automerge_guard.sh` | Re-runs the gates on the PR merged onto the current tip of `main`, then lands it. |
+| Repo hygiene | `src/cohezion/governance/scripts/root_health_guard.py` | Root allowlist, no stray empty files, no case-only path collisions. |
 
+## 2. Routing and the local inference fleet
+
+All local models are served by one Lemonade router on port `:13305` (NPU, iGPU and CPU on one
+AMD Strix Halo machine). Cloud models are used only when a local quality gate fails.
+
+| Step | Where | Notes |
+|---|---|---|
+| Classify the task | `inference/task_classifier.py` `classify()` | Zero model calls. Returns a tier and an output type, e.g. `NPU(short_categorical)`, `GPU(code)`. |
+| Run the cascade | `inference/orchestrator.py` `TieredOrchestrator`, built by `inference/triune_orchestrator.py` | Cheapest tier first; escalates one tier when the output fails its quality gate. |
+| Learn the entry tier | `compound/difficulty_estimator.py` | Per-skill history; picks the cheapest tier whose Wilson lower bound on clean successes clears 0.35. |
+| Admit model loads | `inference/hotswap.py`, `inference/residency_service.py` | Prices weights plus KV cache against free RAM before loading, so the fleet cannot OOM the box. |
+
+**Known duplication.** There is a second routing stack, `inference/unified_hybrid_router.py`
+(`UnifiedHybridRouter`, 15 task classes with EVI gating), used by the core orchestrator and
+many scripts, plus older routers under `swarm/`. The compound executor path above is the one
+the CI invariants cover. Converging on one stack is open work.
+
+**Caches.** `cache/semantic_cache.py` is the canonical semantic cache (18 production
+importers). Two older ones remain: `reliability/semantic_cache.py` (file-backed, used by
+`agents/base.py` and the reliability tools) and `swarm/semantic_cache.py` (used by
+`swarm/token_client.py`). New code uses `cache/`; the other two shrink as callers move.
+
+Routers with no production consumer were deleted on 2026-11-04 (see
+[the cleanup ledger](audits/ROOT_CLEANUP_2026-11-04.md)).
+
+## 3. Running model-written code
+
+| Piece | Where | Notes |
+|---|---|---|
+| Out-of-process sandbox | `compound/sandboxed_exec.py` `run_untrusted()` | Used by the five places that execute generated code. `bwrap --unshare-all` when installed, otherwise kernel rlimits (CPU, memory, files, processes). Results are treated as untrusted. |
+| In-process gate | `compound/safe_exec.py` | Import allowlist; defense in depth behind the sandbox. |
+| Docker sandbox | `sandboxing/executor.py` `DockerSandbox` | Read-only root, no network, dropped capabilities, killed by name on timeout. Not yet called from production code. |
+| CI enforcement | `scripts/ci/unrestricted_exec_scan.py` | Fails the build if generated code is executed outside these paths. |
+
+## 4. The compound loop
+
+`CompoundExecutor.execute_task` (`compound/executor.py`) wraps every task: input guardrails
+(`security/guardrail_pipeline.py`), a pre-execution JEPA coherence check, tier selection,
+execution, output quality checks, then metrics to `DegradationDetector` and the journey
+tracker. Afterwards `core/compound/retrospection.py` extracts learnings and
+`compound/skill_refiner.py` proposes a new version of the skill, blocked by a regression gate
+when golden fixtures exist. Skills are markdown files in `src/cohezion/skills/` (about 230).
+
+## 5. MCP servers
+
+About 30 MCP server modules under `src/cohezion/mcp/` plus `cloud-vault-mcp/`. They share
+`mcp/shared/` (auth middleware, sessions, logging, a common `run_server`); 13 servers use the
+shared API-key middleware today.
+
+## 6. Storage
+
+SurrealDB holds journeys, metrics, cache rows and automerge logs; writes go through checked
+statements (`checked_statements`, being rolled out to the remaining raw writers) so a SurrealDB
+error returned as HTTP 200 is not mistaken for success. The Obsidian
+vault (`~/vaults/cohezion-vault/`) holds human-readable decisions and learnings. Large binaries
+are Git LFS.
+
+## 7. Research, kept separate
+
+Physics-inspired and exploratory work lives in `physics/`, `environments/`, `worldviews/`
+and `research/`. Read it as research, not as platform.
+
+It is not fully separated yet. About 20 import edges still run from core packages
+(`compound/`, `core/`, `inference/`, `mcp/`, `cache/`) into `physics/`, most of them in
+non-blocking steps of the compound executor (for example `bioelectric_model`,
+`natural_capital` and `ouroboros_bridge`). They are not all inert: the `natural_capital` step
+blends 10% of a derived "habitat quality" score into the `coherence` metric that the
+degradation detector reads (`compound/executor.py`, Step 5.9, and `compound/post_execution.py`).
+Removing that blend is the next cut. Some `physics/` modules are
+plain math the platform genuinely uses, such as `hiho_kernel` (4x(1-x), the scaled Bernoulli
+variance).
+
+[`tests/architecture/test_research_boundary.py`](../tests/architecture/test_research_boundary.py)
+freezes that list: a new core-to-research import fails the gating CI step, and removing one requires
+deleting it from the list, so the coupling can only shrink.
+
+## Try it
+
+```bash
+uv sync
+uv run python examples/quickstart.py   # routing, scanner self-tests, sandbox; offline, ~5 s
 ```
-src/cohezion/
-├── agents/          # LLM agent implementations
-│   ├── base.py      # Base agent class
-│   ├── scout.py     # Research agent
-│   ├── critic.py    # Review agent
-│   └── ...
-├── api/             # FastAPI endpoints (72+ routes)
-│   ├── app.py       # App factory
-│   ├── routes*.py   # Route modules
-│   └── ...
-├── compound/        # Compound engineering engine
-│   ├── executor.py  # Main executor
-│   ├── skill_refiner.py
-│   └── ...
-├── core/            # Core infrastructure
-│   ├── persistence/ # SurrealDB repositories
-│   ├── time_keeper.py
-│   └── ...
-├── healing/         # Ouroboros immune system
-│   ├── immune_system.py
-│   ├── drift_analyzer.py
-│   └── ...
-├── flume/           # FLUME VAE
-│   ├── autoencoder.py
-│   └── ...
-├── swarm/           # Multi-agent orchestration
-│   ├── agent_factory.py
-│   ├── cost_aware_router.py
-│   └── ...
-├── universe/        # 12D simulation
-│   ├── engine.py
-│   └── ...
-└── security/        # Security infrastructure
-    ├── output_filter.py
-    ├── prompt_guard.py
-    └── ...
-```
-
----
-
-## 🔗 Key Integrations
-
-| Integration | Purpose | Protocol |
-|------------|---------|----------|
-| **Ollama** | Local LLM inference | HTTP API |
-| **SurrealDB** | Graph + document database | WebSocket |
-| **Redis** | Semantic caching | TCP |
-| **Obsidian Vault** | Knowledge persistence | MCP |
-| **HuggingFace** | Model weights | HTTP |
-
----
-
-## 📈 Metrics & Observability
-
-| Metric | Where to Find |
-|--------|---------------|
-| **Cost tracking** | `src/cohezion/core/credit_manager.py` |
-| **Latency metrics** | Semantic cache + journey tracker |
-| **Agent performance** | `src/cohezion/swarm/metrics.py` |
-| **Health checks** | `scripts/ci/daily_health_check.py` |
-| **Security scans** | `bandit -r src/cohezion` |
-
----
-
-## 🛡️ Security Model
-
-```
-┌─────────────────────────────────────────┐
-│          CONSTITUTIONAL SHIELD          │
-├─────────────────────────────────────────┤
-│                                         │
-│  FORBIDDEN:                             │
-│  • .agent/                              │
-│  • .gemini/                             │
-│  • security/                            │
-│  • .env, .secrets                       │
-│  • credentials, passwords               │
-│  • CONSTITUTION.md                      │
-│                                         │
-│  OUTPUT FILTER:                         │
-│  • PII detection & redaction           │
-│  • Toxicity filtering                   │
-│  • Insight packet synthesis             │
-│                                         │
-│  PATH TRAVERSAL:                        │
-│  • Canonical path validation            │
-│  • Subdirectory confinement             │
-│                                         │
-└─────────────────────────────────────────┘
-```
-
----
-
-## 📁 Data Directory Lifecycle Policy
-
-**Status:** P3 Consensus (Party Mode)  
-**Updated:** 2026-03-04
-
-### Policy Statement
-
-The `data/` directory is **ephemeral cache**, not source control. All contents must be regenerable from source code and configuration.
-
-```
-┌─────────────────────────────────────────────────────────────┐
-│                 DATA DIRECTORY LIFECYCLE                     │
-├─────────────────────────────────────────────────────────────┤
-│                                                              │
-│   data/                 = EPHEMERAL (not in git)             │
-│   data/.gitkeep         = PLACEHOLDER (only tracked file)   │
-│   data/README.md        = POLICY DOC (tracked)              │
-│                                                              │
-│   GENERATION:                                                │
-│   ├── make onboard       → regenerates seed data            │
-│   ├── make clean-data    → removes all generated data       │
-│   └── make reset-data    → clean + regenerate               │
-│                                                              │
-│   RECOVERY:                                                  │
-│   1. Run `make clean-data`                                  │
-│   2. Run `make onboard`                                     │
-│   3. All data regenerated from source                       │
-│                                                              │
-└─────────────────────────────────────────────────────────────┘
-```
-
-### Directory Categories
-
-| Directory | Category | Regenerable | Git Policy |
-|-----------|----------|-------------|------------|
-| `data/journeys_25m/` | Cache | ✓ Simulation | **IGNORE** |
-| `data/surrealdb/` | Database | ✓ SurrealDB | **IGNORE** |
-| `data/overnight/` | Session | ✓ Re-run | **IGNORE** |
-| `data/ouroboros/` | Healing | ✓ Re-run | **IGNORE** |
-| `data/flume/checkpoints/` | Model | ✓ Training | **IGNORE** |
-| `data/compound/` | Metrics | ✓ Execution | **IGNORE** |
-| `data/cache/` | Cache | ✓ Anytime | **IGNORE** |
-| `data/checkpoints/` | Session | ✓ Re-run | **IGNORE** |
-| `data/experiments/` | Results | ✓ Re-run | **IGNORE** |
-
-### Why This Matters
-
-1. **Repository Size**: Prevents 15GB+ data bloat
-2. **Onboarding**: Fresh clone = clean start
-3. **CI/CD**: Predictable build environments
-4. **Collaboration**: No merge conflicts on generated files
-
-### Current State (2026-03-04)
-
-| Metric | Value |
-|--------|-------|
-| Total data size | ~15GB |
-| Tracked files | 211 |
-| Untracked files | 29 |
-| Largest dir | `journeys_25m/` (7.5GB) |
-
-### Migration Path
-
-1. **Phase 1**: Add `.gitignore` rules for `data/`
-2. **Phase 2**: Remove tracked data files from git
-3. **Phase 3**: Add `make onboard` regeneration
-4. **Phase 4**: Update documentation
-
-### .gitignore Entries
-
-```gitignore
-# Data directory - all contents are generated
-data/
-!data/.gitkeep
-!data/README.md
-
-# Specific cache patterns
-*.parquet
-*.jsonl
-*.pt
-*.pkl
-```
-
----
-
-_Generated by BMAD Design Thinking Workflow • Updated 2026-03-04_

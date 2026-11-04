@@ -25,6 +25,7 @@ permissions:
 jobs:
   security-audit:
     name: Security Audit
+    if: (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)
     runs-on: self-hosted
     steps:
       - name: Checkout Repository
@@ -145,6 +146,7 @@ jobs:
   # AC-3: Deprecation warnings for outdated packages
   deprecation-check:
     name: Deprecation Check
+    if: (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)
     runs-on: self-hosted
     steps:
       - name: Checkout Repository

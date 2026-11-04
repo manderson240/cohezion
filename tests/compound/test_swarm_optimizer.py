@@ -1,6 +1,6 @@
 """Unit tests for Swarm Optimization & Verification Engine components.
 
-Verifies prefill-based routing, step-entropy pruning, and decoupled dual-loop cycles.
+Verifies step-entropy pruning, and decoupled dual-loop cycles.
 """
 
 from __future__ import annotations
@@ -11,68 +11,7 @@ import pytest
 
 from cohezion.compound.dual_loop_optimizer import DualLoopOptimizer
 from cohezion.compound.harness_benefit import HarnessBenefitTracker
-from cohezion.inference.activation_router import PrefillActivationRouter
 from cohezion.inference.entropy_compressor import StepEntropyCompressor
-from cohezion.inference.task_classifier import RouteDecision
-
-
-# ---------------------------------------------------------------------------
-# Tests for PrefillActivationRouter
-# ---------------------------------------------------------------------------
-
-
-@pytest.mark.unit
-class TestPrefillActivationRouter:
-    """Tests for prefill-based activation routing logic."""
-
-    def test_estimate_tokens(self) -> None:
-        router = PrefillActivationRouter(char_to_token_ratio=4.0)
-        assert router.estimate_tokens("a" * 40) == 10
-        assert router.estimate_tokens("") == 0
-
-    def test_npu_limit_override(self) -> None:
-        # Prompt length triggers estimated tokens = 1200 (> npu_token_limit=1000)
-        router = PrefillActivationRouter(
-            npu_token_limit=1000,
-            gpu_token_limit=4000,
-            char_to_token_ratio=4.0,
-        )
-        prompt = "a" * 4800
-        decision = router.route_decision(prompt)
-        assert decision.node == "gpu"
-        assert "exceeds NPU limit" in decision.reason
-
-    def test_gpu_limit_override(self) -> None:
-        # Prompt length triggers estimated tokens = 5000 (> gpu_token_limit=4000)
-        router = PrefillActivationRouter(
-            npu_token_limit=1000,
-            gpu_token_limit=4000,
-            char_to_token_ratio=4.0,
-        )
-        prompt = "a" * 20000
-        decision = router.route_decision(prompt)
-        assert decision.node == "gpu"
-        assert "exceeds GPU limit" in decision.reason
-
-    def test_respect_base_classifier(self) -> None:
-        def base_classifier(p: str) -> RouteDecision:
-            return RouteDecision(
-                node="npu",
-                output_type="short_categorical",
-                quality_gate_chars=0,
-                confidence=0.95,
-                reason="base_class",
-            )
-
-        router = PrefillActivationRouter(
-            base_classifier=base_classifier,
-            npu_token_limit=1000,
-            gpu_token_limit=4000,
-        )
-        # Estimated tokens: 400 / 4 = 100 (< npu_token_limit)
-        decision = router.route_decision("a" * 400)
-        assert decision.node == "npu"
-        assert "Respected base classifier" in decision.reason
 
 
 # ---------------------------------------------------------------------------

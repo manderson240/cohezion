@@ -136,6 +136,14 @@ jobs:
           uv run python scripts/ci/phantom_attr_scan.py --self-test
           uv run python scripts/ci/phantom_attr_scan.py
 
+      # Stealth bare-except: `except (SomeError, Exception)` is `except Exception:` in
+      # disguise (Learning 359). docs/HOW_THIS_WAS_BUILT.md says this detector runs in CI;
+      # a 2026-11-04 review found it never had, and one violation had crept back in.
+      - name: Stealth-except scan (gating)
+        run: |
+          uv run python scripts/ci/check_stealth_excepts.py --self-test
+          uv run python scripts/ci/check_stealth_excepts.py
+
       # Root health: every tracked top-level name must be on an allowlist, no zero-byte root
       # files, no case-insensitive path collisions. Added 2026-11-04 after the root cleanup
       # (docs/audits/ROOT_CLEANUP_2026-11-04.md). The previous count-based version of this guard
@@ -264,9 +272,15 @@ jobs:
       - name: Run inference tests (gating)
         run: uv run pytest tests/inference/ -q --tb=short
 
+      # Gating: the architecture boundary, the quickstart and the sandbox tests back
+      # claims made in README.md and docs/architecture.md, so they must block merge.
+      - name: Run architecture, quickstart and sandbox tests (gating)
+        run: uv run pytest tests/architecture/ tests/examples/ tests/sandboxing/ -q --tb=short
+
       - name: Run integration tests
         run: >
-          uv run pytest tests/ --ignore=tests/unit/ --ignore=tests/inference/ -v
+          uv run pytest tests/ --ignore=tests/unit/ --ignore=tests/inference/
+          --ignore=tests/architecture/ --ignore=tests/examples/ --ignore=tests/sandboxing/ -v
           --tb=short
           --junitxml=integration-report.xml
         continue-on-error: true
