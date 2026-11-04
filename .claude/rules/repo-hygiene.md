@@ -45,3 +45,8 @@ any of those stops calling it. Adding a root entry is fine; it just has to be a 
    `tests/scripts/test_producer_consumer_audit.py` stopped the whole integration step, which
    hid 217 failures across 14k tests. When a non-gating step reports "1 error", check how
    many tests it actually ran.
+9. **A test that has failed since the day it landed points at lost code.** Squash and
+   reconcile merges dropped router mounts, `__init__` re-exports and a method's only caller
+   while keeping the tests (`docs/audits/ROOT_CLEANUP_2026-11-04.md`, follow-up section).
+   Before changing or marking such a test, `git log -S` the symbol it expects: restore the code
+   if it existed, `xfail(strict=True)` with the evidence if it never did.
