@@ -185,8 +185,46 @@ class CompoundHealthOracle:
     # ── Internal helpers ───────────────────────────────────────────────────
 
     def _synthesize(self, regime: FractalRegime, confidence: float) -> HealthAssessment:
-        """Produce a HealthAssessment from a confirmed regime + deviation-confidence."""
+        """Produce a HealthAssessment from a confirmed regime + deviation-confidence.
+
+        The FD regime sets the SHAPE story; quality statistics decide the ALERT. Without that
+        split the oracle raised critical on stable lanes and warn on collapses — see
+        :meth:`_quality_stats` for the measured evidence.
+        """
         detector_tier: str | None = self._read_detector_tier()
+        # Restored 2026-11-04: the 2026-08-27 reconcile (768f6d811) kept _quality_stats and
+        # _is_degrading but took main's FD-only _synthesize, so the helpers had no caller and
+        # tests/compound/test_health_oracle_quality_stats.py failed from that day.
+        stats = self._quality_stats()
+
+        if stats is not None:
+            mean, slope, stdev = stats
+            # A falling window is a real degradation whatever its shape. Checked FIRST so a
+            # smooth decline (which FD calls STUCK or even HIHO) cannot be reported as ok.
+            if self._is_degrading(list(getattr(self._tracker, "_scores", []) or []), slope):
+                base = detector_tier or "npu"
+                escalated = _escalate_tier(base)
+                return HealthAssessment(
+                    regime=regime,
+                    tier_recommendation=escalated,
+                    confidence=confidence,
+                    alert_level="critical",
+                    alerts=[
+                        f"quality DEGRADING: slope {slope:+.4f}/sample over the window, "
+                        f"mean {mean:.3f}. Escalating {base!r} -> {escalated!r}. "
+                        f"(FD regime {regime.value!r} is shape-only and does not see this.)"
+                    ],
+                )
+            # A high, steady window is healthy no matter what the FD shape says. This is the
+            # veto that stops i.i.d. jitter of sd=0.005 from reading as CHAOTIC/critical.
+            if mean >= _HEALTHY_MEAN and stdev <= _STEADY_STDEV:
+                return HealthAssessment(
+                    regime=regime,
+                    tier_recommendation=detector_tier or "npu",
+                    confidence=confidence,
+                    alert_level="ok",
+                    alerts=[],
+                )
 
         if regime is FractalRegime.HIHO:
             tier = detector_tier if detector_tier is not None else "npu"

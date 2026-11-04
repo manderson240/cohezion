@@ -93,9 +93,15 @@ class TestCH2HihoOk:
             last = oracle.assess(s)
 
         # May not be HIHO on every run (depends on FD) — only assert if regime is HIHO
+        # The FD regime is shape-only; quality statistics decide the alert
+        # (test_health_oracle_quality_stats.py). This walk falls from ~0.55 to ~0.29, which is a
+        # real degradation, so a HIHO shape may only escalate for that reason, never for its shape.
         if last and last.regime is FractalRegime.HIHO:
-            assert last.alert_level == "ok"
-            assert last.alerts == []
+            if last.alert_level != "ok":
+                assert last.alert_level == "critical"
+                assert any("DEGRADING" in a for a in last.alerts), last.alerts
+            else:
+                assert last.alerts == []
         # else: regime depends on the random walk — not every 40-score sequence hits HIHO
 
     def test_ok_assessment_direct_synthesis(self) -> None:
