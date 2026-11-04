@@ -119,7 +119,7 @@ Health Check: OK
 
 **Bearer Token** (for MCP):
 ```
-a712027605bbd33068da5462bbcc18d90f844df23f948f124908fa726d678263
+$MCP_API_KEY
 ```
 
 **SSH Key Fingerprint** (for verification):

@@ -54,7 +54,7 @@ pkill -f "python.*mcp" 2>/dev/null || true
 cd /home/mike-anderson/dev/cohezion/cloud-vault-mcp
 VAULT_PATH=/home/mike-anderson/vaults/cohezion-vault \
 MCP_PORT=8360 \
-MCP_API_KEY=a712027605bbd33068da5462bbcc18d90f844df23f948f124908fa726d678263 \
+MCP_API_KEY=$MCP_API_KEY \
 uv run python -m src.mcp_server.main > /tmp/mcp_server.log 2>&1 &
 
 # 3. Check if port is in use
@@ -102,7 +102,7 @@ sed -i 's|VAULT_PATH=/vault|VAULT_PATH=/home/mike-anderson/vaults/cohezion-vault
 # 5. Verify and restart
 VAULT_PATH=/home/mike-anderson/vaults/cohezion-vault \
 MCP_PORT=8360 \
-MCP_API_KEY=a712027605bbd33068da5462bbcc18d90f844df23f948f124908fa726d678263 \
+MCP_API_KEY=$MCP_API_KEY \
 uv run python -m src.mcp_server.main
 ```
 
@@ -162,7 +162,7 @@ python3 -c "from starlette.middleware.trustedhost import TrustedHostMiddleware; 
 ```bash
 # 1. Check API key in mcp.json
 cat ~/.claude/mcp.json | grep -A2 "cloud-vault-mcp"
-# Look for: "Authorization": "Bearer a712027605bbd33068da5462bbcc18d90f844df23f948f124908fa726d678263"
+# Look for: "Authorization": "Bearer $MCP_API_KEY"
 
 # 2. Check API key in server .env
 grep MCP_API_KEY /home/mike-anderson/dev/cohezion/cloud-vault-mcp/.env
@@ -461,7 +461,7 @@ rm -rf .venv src/**/__pycache__
 # 4. Start fresh
 export VAULT_PATH=/home/mike-anderson/vaults/cohezion-vault
 export MCP_PORT=8360
-export MCP_API_KEY=a712027605bbd33068da5462bbcc18d90f844df23f948f124908fa726d678263
+export MCP_API_KEY=$MCP_API_KEY
 
 uv sync
 uv run python -m src.mcp_server.main

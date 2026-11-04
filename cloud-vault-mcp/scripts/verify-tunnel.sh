@@ -121,7 +121,7 @@ fi
 # Check 7: MCP tools availability
 echo ""
 echo "Testing MCP tool discovery..."
-RESPONSE=$(curl -s -m 5 -H "Authorization: Bearer a712027605bbd33068da5462bbcc18d90f844df23f948f124908fa726d678263" \
+RESPONSE=$(curl -s -m 5 -H "Authorization: Bearer ${MCP_API_KEY:?set MCP_API_KEY}" \
     "http://127.0.0.1:8360/mcp" 2>/dev/null)
 
 if [ -n "$RESPONSE" ] && [ "$RESPONSE" != "Unauthorized" ]; then
