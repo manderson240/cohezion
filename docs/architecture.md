@@ -87,8 +87,19 @@ are Git LFS.
 
 ## 7. Research, kept separate
 
-Physics-inspired and exploratory work (`physics/`, `environments/`, `worldviews/`,
-`research/`) is not on the request path above. Read it as research, not as platform.
+Physics-inspired and exploratory work lives in `physics/`, `environments/`, `worldviews/`
+and `research/`. Read it as research, not as platform.
+
+It is not fully separated yet. About 20 import edges still run from core packages
+(`compound/`, `core/`, `inference/`, `mcp/`, `cache/`) into `physics/`, most of them in
+non-blocking telemetry and healing steps of the compound executor (for example
+`bioelectric_model`, `natural_capital` and `ouroboros_bridge`). Some `physics/` modules are
+plain math the platform genuinely uses, such as `hiho_kernel` (4x(1-x), the scaled Bernoulli
+variance).
+
+[`tests/architecture/test_research_boundary.py`](../tests/architecture/test_research_boundary.py)
+freezes that list: a new core-to-research import fails CI, and removing one requires
+deleting it from the list, so the coupling can only shrink.
 
 ## Try it
 
