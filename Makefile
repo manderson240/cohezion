@@ -125,7 +125,7 @@ bmad-guard: ## Enforce BMAD multi-session coordination and artifact integrity
 telemetry-dashboard: ## Show compound loop telemetry dashboard
 	@uv run python src/cohezion/scripts/telemetry_dashboard.py
 
-root-guard: ## Check repository root health (items < 50)
+root-guard: ## Check repo root: allowlist, no empty root files, no case collisions
 	@python src/cohezion/governance/scripts/root_health_guard.py
 
 archaeology: ## Run root archaeology filing (review before committing)

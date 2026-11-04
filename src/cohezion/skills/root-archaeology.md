@@ -122,8 +122,11 @@ __pycache__/, .mypy_cache/, node_modules/ at root.
 ## Verification
 
 ```bash
-# Check root count
-ls -1 | wc -l
+# Root allowlist, empty root files, case collisions (reads the git index)
+make root-guard
+
+# Tracked files that the ignore rules already cover (candidates to untrack)
+git ls-files -ci --exclude-standard
 
 # Check essential structure
 for item in README.md LICENSE src tests docs Makefile; do
@@ -140,7 +143,11 @@ done
 ## Post-Archaeology
 
 - Update onboarding docs to mention new structure
-- Add to CI: check root item count < 50
+- Update `ROOT_ALLOWLIST` in `src/cohezion/governance/scripts/root_health_guard.py` (already
+  gating in CI, the landing guard and pre-commit). A count threshold does not work: the
+  2026-04-19 count guard never fired, see `docs/audits/ROOT_CLEANUP_2026-11-04.md`
+- Write a per-item ledger (origin commit, how it got in, lesson) and follow
+  `.claude/rules/repo-hygiene.md`
 - Document recovery: everything in `archives/` can be restored
 
 ## Learnings from Experience

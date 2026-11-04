@@ -194,7 +194,7 @@ See [`deployment-guide.md`](./deployment-guide.md). Cloud Run Free Tier only (no
 
 - [`CLAUDE.md`](../CLAUDE.md) — canonical working reference
 - [`README.md`](../README.md) — "What Makes This Different" / safety-as-physics framing
-- [`docs/ARCHITECTURE.md`](./ARCHITECTURE.md) — legacy architecture doc (pre-BMAD)
+- [`docs/architecture.md`](./architecture.md) — system architecture overview (pre-BMAD)
 - [`docs/COHEZION_API.md`](./COHEZION_API.md) — API narrative
 - [`docs/FIBER_BUNDLE_STRUCTURE.md`](./FIBER_BUNDLE_STRUCTURE.md) — gauge-theory structure
 - [`docs/DATAMESH_IMPLEMENTATION_SUMMARY.md`](./architecture/DATAMESH_IMPLEMENTATION_SUMMARY.md)

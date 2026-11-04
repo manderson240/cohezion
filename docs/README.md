@@ -7,7 +7,7 @@ Start here to navigate the documentation.
 | Document | What it covers |
 |---|---|
 | [`index.md`](index.md) | Full navigation index — stacks, entry points, subsystem map |
-| [`ARCHITECTURE.md`](ARCHITECTURE.md) | System architecture deep-dive |
+| [`architecture.md`](architecture.md) | System architecture overview |
 | [`tutorials/`](tutorials/) | Guided onboarding: day-1 setup through the compound loop |
 | [`../examples/`](../examples/) | Runnable examples, starting with `quickstart.py` |
 | [`../CONTRIBUTING.md`](../CONTRIBUTING.md) | How to contribute |
