@@ -53,10 +53,10 @@ class ModuleDissolutionState:
 class TwistorBundleBridge:
     """Engine mapping 2048D Poincaré latent embeddings to Penrose Twistors and Orch-OR collapse."""
 
-    def __init__(self) -> None:
+    def __init__(self, persistence: DurablePrecipitationBridge | None = None) -> None:
         self.twistor_engine = PenroseTwistorEngine()
         self.orch_engine = OrchOREngine()
-        self.persistence = DurablePrecipitationBridge()
+        self.persistence = persistence or DurablePrecipitationBridge()
 
     def embed_text_to_poincare_2048d(self, text: str) -> PoincarePoint:
         """Deterministic, continuous projection of text semantics into B^2048."""
@@ -184,7 +184,7 @@ class TwistorBundleBridge:
                 "pairwise_distances": distances,
             },
         )
-        self.persistence.persist(witness_mark)
+        persisted = self.persistence.persist(witness_mark)
 
         return {
             "status": "PHASE_1_DISSOLUTION_COMPLETE",
@@ -192,5 +192,6 @@ class TwistorBundleBridge:
             "modules_count": len(dissolved_states),
             "lightcone_conformity_pct": conformity_pct,
             "mean_hyperbolic_distance": round(float(np.mean(distances)), 4) if distances else 0.0,
-            "vault_moc": f"/home/mike-anderson/vaults/cohezion-vault/00-MOCs/compound_{witness_mark.mark_id}.md",
+            # The path persist() actually wrote, not a hardcoded home directory.
+            "vault_moc": persisted["vault_path"],
         }
