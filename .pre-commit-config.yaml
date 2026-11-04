@@ -93,6 +93,17 @@ repos:
         entry: python -c "import sys,os;[sys.exit(print(f'ERROR {f} ({os.path.getsize(f)//1048576}MB) >50MB')) for f in sys.argv[1:] if os.path.getsize(f)>52428800] or None"
         stages: [pre-commit]
 
+      # Root health (2026-11-04): fails on a new unlisted root entry, an empty root file
+      # (a stray `EOF` from a mistyped heredoc) or a case-insensitive path collision.
+      # Checks the index, so it catches `git add -A` before the commit exists.
+      - id: root-health-guard
+        name: root-health-guard (root allowlist, empty files, case collisions)
+        language: python
+        entry: python src/cohezion/governance/scripts/root_health_guard.py
+        pass_filenames: false
+        always_run: true
+        stages: [pre-commit]
+
       # LFS enforcement: files matching .gitattributes LFS patterns must be LFS pointers
       # L330: 9.3GB tarball bypassed size gates because LFS wasn't initialized
       # 2026-04-22: extracted inline Python to scripts/hooks/lfs_pointer_check.py

@@ -285,26 +285,31 @@ cohezion-vault/dreaming/
 cohezion-vault/research/
 cohezion-vault/brainstem/
 cohezion-vault/executions/
-overnight*.sh
-overnight*.py
-overnight*.pid
-morning_report_*.md
-team_*.py
-run_*.py
+# Root-level scratch scripts. Anchored with a leading "/" (2026-11-04): unanchored, these
+# patterns matched at every depth and silently hid 88 real tracked files (78 under scripts/,
+# 9 in src/, e.g. src/cohezion/swarm/team_orchestrator.py), so a NEW scripts/ops/run_*.py
+# was skipped by `git add` without a word.
+# See docs/audits/ROOT_CLEANUP_2026-11-04.md.
+/overnight*.sh
+/overnight*.py
+/overnight*.pid
+/morning_report_*.md
+/team_*.py
+/run_*.py
 !scripts/run_agentic_loop.py
-run_*.sh
-e70_*.py
-e70_*.json
-speculative_decoding*.sh
-convert_*.py
-convert_*.sh
-gemma4_*.py
-gemma4_*.json
-gemma4_*.sh
-deep_analysis*.py
-research_synthesis*.py
-optimization_orchestrator*.py
-analyze_overnight*.py
+/run_*.sh
+/e70_*.py
+/e70_*.json
+/speculative_decoding*.sh
+/convert_*.py
+/convert_*.sh
+/gemma4_*.py
+/gemma4_*.json
+/gemma4_*.sh
+/deep_analysis*.py
+/research_synthesis*.py
+/optimization_orchestrator*.py
+/analyze_overnight*.py
 sandbox/*.py
 simulations/
 conductor/
@@ -367,3 +372,9 @@ run_stats.csv
 scorer_pkg/
 secondary_seed_weights/
 
+# Agent/tool runtime output pruned from the root on 2026-11-04 (ROOT_CLEANUP_2026-11-04.md)
+.playwright-cli/
+.hermes-sessions/
+/.claire/
+# Zero-byte file left by a mistyped heredoc (cat > EOF)
+/EOF

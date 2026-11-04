@@ -69,7 +69,7 @@ Guard targets (run by `make all`):
 | `async-guard` | Scan for sync I/O in async code |
 | `routing-guard` | Sync model routing + provider configs |
 | `skill-guard` | Validate skill metadata + FLUME compatibility |
-| `root-guard` | Repo root health (items < 50) |
+| `root-guard` | Repo root health: allowlist, no empty root files, no case collisions |
 
 ### Running the API
 

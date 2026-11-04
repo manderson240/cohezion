@@ -136,6 +136,16 @@ jobs:
           uv run python scripts/ci/phantom_attr_scan.py --self-test
           uv run python scripts/ci/phantom_attr_scan.py
 
+      # Root health: every tracked top-level name must be on an allowlist, no zero-byte root
+      # files, no case-insensitive path collisions. Added 2026-11-04 after the root cleanup
+      # (docs/audits/ROOT_CLEANUP_2026-11-04.md). The previous count-based version of this guard
+      # was never run by any gate, so three earlier root sweeps each regressed within weeks.
+      # --self-test FIRST: it plants an unlisted dir, an empty EOF file and a case collision.
+      - name: Root health guard (gating)
+        run: |
+          uv run python src/cohezion/governance/scripts/root_health_guard.py --self-test
+          uv run python src/cohezion/governance/scripts/root_health_guard.py
+
       # Lineage scan (fourth sibling): can each REFLEX module (ResourceGuard, sandbox, hotswap)
       # load in a fresh interpreter within 1 s / 60 MB with no deliberative (LLM-stack) module
       # resident? Measured 2026-09-19: via the package, the memory-pressure guard imported torch

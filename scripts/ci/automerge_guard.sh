@@ -219,6 +219,12 @@ step "doc-code consistency" uv run python scripts/ci/doc_code_consistency.py
 step "phantom-attr self-test" uv run python scripts/ci/phantom_attr_scan.py --self-test
 step "phantom-attr scan" uv run python scripts/ci/phantom_attr_scan.py
 
+# Step 6c-ter-b: Root health. Every tracked top-level name must be on ROOT_ALLOWLIST, no zero-byte
+# root files, no case-insensitive collisions. Reads the git index, so a staged `git add -A` mistake
+# fails here before it lands. See docs/audits/ROOT_CLEANUP_2026-11-04.md for why it is not a count.
+step "root-health self-test" uv run python src/cohezion/governance/scripts/root_health_guard.py --self-test
+step "root-health scan" uv run python src/cohezion/governance/scripts/root_health_guard.py
+
 # Step 6c-quater: Lineage — fourth sibling. dormancy asks "has a consumer?", doc-consistency "do the
 # docs tell the truth?", phantom-attr "does the attribute exist?"; lineage asks "can the reflex run
 # when the LLM layer is dead?" Measured 2026-09-19: the memory-pressure guard cost 500 MB to import
