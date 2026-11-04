@@ -13,10 +13,10 @@ Binds:
 
 from __future__ import annotations
 
+import json
 import logging
-import math
 import time
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Any
 
 import numpy as np
@@ -33,6 +33,7 @@ from cohezion.worldviews.tradition_data import (
     Tradition,
     get_traditions,
 )
+
 
 logger = logging.getLogger("twistor_worldview_functor")
 
@@ -53,10 +54,10 @@ class AlignedToEStep:
 class TwistorWorldviewFunctor:
     """Functorial alignment engine linking indigenous cosmologies to Twistor geometry."""
 
-    def __init__(self) -> None:
+    def __init__(self, persistence: DurablePrecipitationBridge | None = None) -> None:
         self.bridge = TwistorBundleBridge()
         self.traditions: list[Tradition] = get_traditions()
-        self.persistence = DurablePrecipitationBridge()
+        self.persistence = persistence or DurablePrecipitationBridge()
 
     def map_step_functor(self, step_idx: int) -> AlignedToEStep:
         """Compute the trans-dimensional functorial alignment for a single ToE step."""
@@ -100,7 +101,7 @@ class TwistorWorldviewFunctor:
         )
 
     def execute_complete_alignment(self) -> dict[str, Any]:
-        """Align all 10 ToE steps across all 17 traditions and precipitate Phase 2 MOC."""
+        """Align all 10 ToE steps across every tradition and precipitate Phase 2 MOC."""
         logger.info("🌌 PHASE 2 ALIGNMENT: Aligning 17 Traditions across 10 ToE Steps in CP^3...")
         t0 = time.perf_counter()
 
@@ -155,7 +156,7 @@ class TwistorWorldviewFunctor:
 
         witness_mark = DurableWitnessMark(
             mark_id="phase_2_twistor_worldview_alignment",
-            title="Phase 2 Alignment: Functorial Integration of 17 Traditions in CP³ Twistor Space",
+            title=f"Phase 2 Alignment: Functorial Integration of {len(self.traditions)} Traditions in CP³ Twistor Space",
             category="transcendence_phase_2",
             content=witness_body,
             hiho_coherence=0.50,
@@ -167,7 +168,7 @@ class TwistorWorldviewFunctor:
                 "hiho_step_helicity": hiho_step.twistor_helicity,
             },
         )
-        self.persistence.persist(witness_mark)
+        persisted = self.persistence.persist(witness_mark)
         logger.info("✨ Phase 2 Alignment witness mark precipitated to Vault & SurrealDB spool!")
 
         return {
@@ -177,7 +178,8 @@ class TwistorWorldviewFunctor:
             "duration_ms": round(duration_ms, 2),
             "step_geodesics": step_geodesics,
             "hiho_step_conformal": hiho_null,
-            "vault_moc": f"/home/mike-anderson/vaults/cohezion-vault/00-MOCs/compound_{witness_mark.mark_id}.md",
+            # The path persist() actually wrote, not a hardcoded home directory.
+            "vault_moc": persisted["vault_path"],
         }
 
 
