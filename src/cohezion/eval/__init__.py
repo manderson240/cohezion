@@ -16,6 +16,7 @@ with contextlib.suppress(Exception):
 
 with contextlib.suppress(Exception):
     from cohezion.eval.pipeline import EpisodeResult as EpisodeResult
+    from cohezion.eval.pipeline import EvalPipeline as EvalPipeline
     from cohezion.eval.pipeline import PipelineProgress as PipelineProgress
     from cohezion.eval.pipeline import RalphLoopConfig as RalphLoopConfig
 
@@ -23,3 +24,17 @@ with contextlib.suppress(Exception):
     from cohezion.eval.universe_evaluator import EpisodeMetrics as EpisodeMetrics
     from cohezion.eval.universe_evaluator import PolicyEvaluation as PolicyEvaluation
     from cohezion.eval.universe_evaluator import UniverseEvaluator as UniverseEvaluator
+
+# Restored 2026-11-04: #242 (853084c05) squash-merged the wiring test for this edge but not
+# the __init__ change, so the test failed on main from the day it landed.
+# Only names whose guarded import succeeded, so `from ... import *` never breaks.
+__all__ = [
+    _name
+    for _name in (
+        "CapabilityScorecard",
+        "EvalPipeline",
+        "HuggingFaceExporter",
+        "UniverseEvaluator",
+    )
+    if _name in globals()
+]
