@@ -100,13 +100,16 @@ and `research/`. Read it as research, not as platform.
 
 It is not fully separated yet. About 20 import edges still run from core packages
 (`compound/`, `core/`, `inference/`, `mcp/`, `cache/`) into `physics/`, most of them in
-non-blocking telemetry and healing steps of the compound executor (for example
-`bioelectric_model`, `natural_capital` and `ouroboros_bridge`). Some `physics/` modules are
+non-blocking steps of the compound executor (for example `bioelectric_model`,
+`natural_capital` and `ouroboros_bridge`). They are not all inert: the `natural_capital` step
+blends 10% of a derived "habitat quality" score into the `coherence` metric that the
+degradation detector reads (`compound/executor.py`, Step 5.9, and `compound/post_execution.py`).
+Removing that blend is the next cut. Some `physics/` modules are
 plain math the platform genuinely uses, such as `hiho_kernel` (4x(1-x), the scaled Bernoulli
 variance).
 
 [`tests/architecture/test_research_boundary.py`](../tests/architecture/test_research_boundary.py)
-freezes that list: a new core-to-research import fails CI, and removing one requires
+freezes that list: a new core-to-research import fails the gating CI step, and removing one requires
 deleting it from the list, so the coupling can only shrink.
 
 ## Try it

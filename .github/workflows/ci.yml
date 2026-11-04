@@ -264,9 +264,15 @@ jobs:
       - name: Run inference tests (gating)
         run: uv run pytest tests/inference/ -q --tb=short
 
+      # Gating: the architecture boundary, the quickstart and the sandbox tests back
+      # claims made in README.md and docs/architecture.md, so they must block merge.
+      - name: Run architecture, quickstart and sandbox tests (gating)
+        run: uv run pytest tests/architecture/ tests/examples/ tests/sandboxing/ -q --tb=short
+
       - name: Run integration tests
         run: >
-          uv run pytest tests/ --ignore=tests/unit/ --ignore=tests/inference/ -v
+          uv run pytest tests/ --ignore=tests/unit/ --ignore=tests/inference/
+          --ignore=tests/architecture/ --ignore=tests/examples/ --ignore=tests/sandboxing/ -v
           --tb=short
           --junitxml=integration-report.xml
         continue-on-error: true
