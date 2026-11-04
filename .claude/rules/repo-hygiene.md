@@ -41,3 +41,7 @@ any of those stops calling it. Adding a root entry is fine; it just has to be a 
 7. **A guard nothing runs is dormant.** The 2026-04-19 guard said it "fails CI" and was never
    wired. Any new hygiene check gets a `--self-test`, a gate that runs it, and a test that the
    gate runs it (`verification-depth.md`, consumption over declaration).
+8. **A collection error is not one failing test.** One import clash in
+   `tests/scripts/test_producer_consumer_audit.py` stopped the whole integration step, which
+   hid 217 failures across 14k tests. When a non-gating step reports "1 error", check how
+   many tests it actually ran.

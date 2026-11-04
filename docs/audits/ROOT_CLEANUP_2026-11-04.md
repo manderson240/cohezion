@@ -90,7 +90,14 @@ Tracked files are unaffected, but any new file in those packages will not be pic
 `scripts/ci/producer_consumer_audit.py` (the seam audit) share a module name. Its test put
 `scripts/ci` on `sys.path` and imported by name, so in the full CI run it got the other file
 and failed to collect (`ImportError: AUDIT_PAIRS`). That made the `Test Results` check red on
-every PR, including the base branch. The test now loads the file by path. Neither script was
+every PR, including the base branch. The test now loads the file by path.
+
+That one error hid far more than one test. Pytest stops at a collection error, so the whole
+`Run integration tests` step had been running nothing: about 2.7k tests per CI run instead of
+14k. Once the import was fixed, the step ran 14,074 tests and 217 of them failed. Those
+failures already existed, mostly in endpoint tests that need a live server, and are left for
+their own PR. The step is `continue-on-error`, which is why nobody noticed. A non-gating
+step that errors out early looks the same as one that passes. Neither script was
 renamed, because both have callers.
 
 **Lesson:** a test for a script should load it by file path (`importlib.util.spec_from_file_location`),
