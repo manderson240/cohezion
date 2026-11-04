@@ -85,6 +85,9 @@ def _get(data_dir: Path, name: str) -> Path:
         if len(body) > MAX_BYTES:
             raise ValueError(f"{name}: larger than {MAX_BYTES} bytes")
         part.write_bytes(body)
+        if _md5(part) != MD5[name]:  # check before the rename, so a bad download is never kept
+            part.unlink()
+            raise ValueError(f"{name}: MD5 mismatch with PDS manifest on download")
         part.replace(p)
     if _md5(p) != MD5[name]:
         raise ValueError(f"{name}: MD5 mismatch with PDS manifest; delete it and re-run")

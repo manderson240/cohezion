@@ -1,0 +1,147 @@
+{
+ "inputs_sha256": "2c152e240e1ed2b4bc380fd1e00e5e9b649cbfb6142a8c1f724824dcca22b0f9",
+ "goals_satisfied": "7/7",
+ "goals": [
+  {
+   "id": "inputs",
+   "title": "Inputs are pinned",
+   "objective": "Record what data every other goal was checked against",
+   "status": "satisfied",
+   "cycles": 1,
+   "criteria": [
+    {
+     "id": "I1",
+     "description": "HOBO and transcript inputs are present and hashed",
+     "verified": true,
+     "evidence": "58 input files, combined SHA-256 2c152e240e1ed2b4"
+    }
+   ]
+  },
+  {
+   "id": "lockers",
+   "title": "Locker findings hold",
+   "objective": "Section 1 claims follow from the MD5-verified HOBO files",
+   "status": "satisfied",
+   "cycles": 1,
+   "criteria": [
+    {
+     "id": "L1",
+     "description": "Re-running the analysis reproduces hobo_results.json exactly",
+     "verified": true,
+     "evidence": "all keys identical"
+    },
+    {
+     "id": "L2",
+     "description": "Lockers were as dry in flight as on the pad (~5.1 g/m3)",
+     "verified": true,
+     "evidence": "SN1104 mean AH pad 5.07 vs flight 5.11 g/m3"
+    },
+    {
+     "id": "L3",
+     "description": "Locker E 12.32 % RH one-minute jump on flight day 9",
+     "verified": true,
+     "evidence": "Locker E jump 12.32 % RH at 2026-04-09 19:49:46+00:00"
+    }
+   ]
+  },
+  {
+   "id": "transcripts",
+   "title": "Transcript findings hold",
+   "objective": "Section 3 quotes and gaps match the archive CSVs",
+   "status": "satisfied",
+   "cycles": 1,
+   "criteria": [
+    {
+     "id": "T1",
+     "description": "Every curated quote matches a row verbatim at its UTC stamp",
+     "verified": true,
+     "evidence": "39 of 39 quotes match"
+    },
+    {
+     "id": "T2",
+     "description": "Stitched-recording cuts reproduce the committed list",
+     "verified": true,
+     "evidence": "5 cuts, minutes removed [509.7, 565.7, 5.9, 2.0, 47.2]"
+    }
+   ]
+  },
+  {
+   "id": "flashes",
+   "title": "Impact-flash findings hold",
+   "objective": "Section 3 flash map and camera searches",
+   "status": "satisfied",
+   "cycles": 1,
+   "criteria": [
+    {
+     "id": "F1",
+     "description": "Re-fitting the crew's annotation map reproduces every flash coordinate",
+     "verified": true,
+     "evidence": "model coordinates identical per flash: {'1': True, '2': True, '3': True, '4': True, '5': True}"
+    },
+    {
+     "id": "F2",
+     "description": "In the render's orientation, all mapped flashes lie >=10 deg beyond Earth's limb",
+     "verified": true,
+     "evidence": "westernmost flash 102.6E is 13.4 deg beyond Earth's limb (89.2E)"
+    },
+    {
+     "id": "F4",
+     "description": "Flashes #1 and #2 are far-side under any rotation of the crew's picture",
+     "verified": true,
+     "evidence": "view centre 34.2 deg beyond Earth's limb; flash distances from it {'1': 24.0, '2': 23.3, '3': 41.5, '4': 42.7, '5': 57.7}"
+    },
+    {
+     "id": "F3",
+     "description": "SAW3 video: all 40 corroborated events are triaged; none left unexplained",
+     "verified": true,
+     "evidence": "40 corroborated events, triage {'from_dark': 3, 'existing_source_brightening': 37}"
+    }
+   ]
+  },
+  {
+   "id": "questions",
+   "title": "Verifiable questions hold",
+   "objective": "Section 4 question set is reproducible and checked",
+   "status": "satisfied",
+   "cycles": 1,
+   "criteria": [
+    {
+     "id": "Q1",
+     "description": "Rebuilding reproduces verifiable_tasks.json and both implementations agree",
+     "verified": true,
+     "evidence": "5 kept, 1 dropped; identical to committed: True; both implementations agree on every kept task: True"
+    }
+   ]
+  },
+  {
+   "id": "writeup",
+   "title": "The write-up matches the data",
+   "objective": "README figures named by reviewers still trace to the JSON",
+   "status": "satisfied",
+   "cycles": 1,
+   "criteria": [
+    {
+     "id": "W1",
+     "description": "Every registered README figure is present and supported",
+     "verified": true,
+     "evidence": "11/11 registered README figures match"
+    }
+   ]
+  },
+  {
+   "id": "regressions",
+   "title": "Past fixes stay fixed",
+   "objective": "Every bug found by review keeps its regression test green",
+   "status": "satisfied",
+   "cycles": 1,
+   "criteria": [
+    {
+     "id": "R1",
+     "description": "tests/unit/research passes",
+     "verified": true,
+     "evidence": "============================== 76 passed in 2.58s =============================="
+    }
+   ]
+  }
+ ]
+}

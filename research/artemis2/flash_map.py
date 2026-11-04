@@ -88,10 +88,16 @@ def fetch(data_dir: Path) -> Path:
     if not dest.exists():
         part = dest.with_suffix(".part")
         with urllib.request.urlopen(BASE + PDF, timeout=60) as resp:  # noqa: S310 - fixed https URL
-            part.write_bytes(resp.read(5_000_000))
+            body = resp.read(5_000_001)
+        if len(body) > 5_000_000:
+            raise ValueError(f"{PDF}: larger than 5 MB")
+        part.write_bytes(body)
+        if _md5(part) != PDF_MD5:  # check before the rename, so a bad download is never kept
+            part.unlink()
+            raise ValueError(f"{PDF}: MD5 mismatch on download")
         part.rename(dest)
     if _md5(dest) != PDF_MD5:
-        raise ValueError(f"{PDF}: MD5 mismatch")
+        raise ValueError(f"{PDF}: MD5 mismatch; delete {dest} and re-run")
     return dest
 
 
@@ -290,12 +296,23 @@ def locate(found: list[dict], models: dict) -> dict:
                 invert(*m["px"], *mdl["params"], mdl["lc"], mdl["pc"], mdl["dist"]) for m in marks
             ]
             pts = [p for p in pts if p is not None]
+            if not pts:  # every dot fell off this model's disk: no coordinates, not NaN
+                per_model = None
+                break
             lons = np.unwrap(np.radians([p[0] for p in pts]))
             per_model[name] = {
                 "lon_E": round(float(np.degrees(lons.mean()) % 360), 1),
                 "lat": round(float(np.mean([p[1] for p in pts])), 1),
                 "disk_radius_frac": round(float(np.mean([p[2] for p in pts])), 3),
             }
+        if per_model is None:
+            out[flash] = {
+                "observers": sorted({m["observer"] for m in marks}),
+                "markers": marks,
+                "note": NOTES[flash] + " (marked, but off the fitted disk)",
+                "models": None,
+            }
+            continue
         lons_all = [per_model[k]["lon_E"] for k in per_model]
         lats_all = [per_model[k]["lat"] for k in per_model]
         a = models["A"]

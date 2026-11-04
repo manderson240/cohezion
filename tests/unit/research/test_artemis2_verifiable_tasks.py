@@ -82,3 +82,59 @@ def test_stdlib_hobo_reader_matches_polars_reader(tmp_path):
 def test_word_count_drops_editorial_annotations():
     assert vt.words("Copy that [[inaudible]] Houston") == 3
     assert vt.words("  ") == 0
+
+
+def test_relative_margin_boundary_is_inclusive():
+    assert vt.pick({"a": 2.0, "b": 1.0}, 1.0, relative=True)[2] is True
+    assert vt.pick({"a": 1.99, "b": 1.0}, 1.0, relative=True)[2] is False
+
+
+def test_disagreeing_runner_up_scores_are_rejected():
+    """Same winner and answer, but the independent runner-up would fail the margin."""
+    rec = vt.make_task(SPEC, ({"a": 10.0, "b": 1.0}, 5.0), ({"a": 10.0, "b": 9.95}, 5.0))
+    assert rec["checks"]["two_implementations_agree"] is False
+    assert any("selection scores" in r for r in rec["rejected_because"])
+
+
+def test_question_text_matches_the_constants_the_code_uses():
+    """A changed launch time or cut threshold must not leave the question text behind."""
+    texts = {
+        "rh": vt.task_rh_jump.__code__.co_consts,
+        "cut": vt.task_largest_cut.__code__.co_consts,
+    }
+    joined = " ".join(str(c) for consts in texts.values() for c in consts)
+    assert vt.LAUNCH.strftime("%Y-%m-%d %H:%M:%S") in joined
+    assert vt.SPLASHDOWN.strftime("%Y-%m-%d %H:%M:%S") in joined
+    assert f"more than {vt.trn.CUT_S} seconds" in joined
+
+
+def _hobo_pair(jumps_at: dict[str, list[tuple[datetime, float]]]):
+    """Synthetic loggers: flat 20 % RH, 22 degC, with RH steps at given times."""
+    from datetime import timedelta
+
+    dfs, raw = {}, {}
+    start = vt.LAUNCH - timedelta(minutes=30)
+    for sn, steps in jumps_at.items():
+        t = [start + timedelta(minutes=i) for i in range(120)]
+        rh = [20.0] * 120
+        temp = [22.0 + i / 1000 for i in range(120)]
+        for when, size in steps:
+            i = t.index(when)
+            rh[i] += size
+        df = pl.DataFrame({"utc": t, "T": temp, "RH": rh}).with_columns(
+            pl.col("utc").dt.cast_time_unit("us")
+        )
+        dfs[sn] = vt.hobo.with_derived(df)
+        raw[sn] = list(zip(t, temp, rh, strict=True))
+    return dfs, raw
+
+
+def test_rh_jump_ignores_a_bigger_jump_before_launch():
+    from datetime import timedelta
+
+    before = vt.LAUNCH - timedelta(minutes=10)  # on the synthetic minute grid
+    during = vt.LAUNCH + timedelta(minutes=20)
+    dfs, raw = _hobo_pair({"A": [(before, 50.0), (during, 3.0)], "B": [(during, 10.0)]})
+    rec = vt.task_rh_jump(dfs, raw)
+    assert rec["selected_entity"] == "B"  # A's 50 % jump was on the pad, not in flight
+    assert "rejected_because" not in rec

@@ -30,13 +30,14 @@ from PIL import Image
 from scipy import ndimage
 
 
-Image.MAX_IMAGE_PIXELS = None
 WORK = 2000  # px; frames are analysed at this width (keeps a 1-px flash at >=1/4 of its peak)
 MATCH = 0.02  # disk radii; peaks closer than this across frames are the same feature
 
 
 def grey(path: Path) -> tuple[np.ndarray, float]:
-    im = Image.open(path).convert("L")
+    im = Image.open(path).convert(
+        "L"
+    )  # PIL's default pixel limit guards against bombs; frames are ~45 MP
     scale = WORK / im.width
     im = im.resize((WORK, round(im.height * scale)), Image.Resampling.BOX)
     return np.asarray(im, dtype=float), scale

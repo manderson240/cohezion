@@ -38,7 +38,7 @@ import polars as pl
 
 
 HERE = Path(__file__).resolve().parent
-sys.path.insert(0, str(HERE))
+sys.path.append(str(HERE))
 import analyze_hobo as hobo  # noqa: E402 -- sibling script, not a package
 import transcripts as trn  # noqa: E402
 
@@ -51,7 +51,10 @@ AUDIO_BASE = (
     "https://d1ejlg980osaur.cloudfront.net/archive/artemis/artemis2/artemis2_mission_audio/"
 )
 REL_TOL = 1e-6  # the two implementations must agree to this relative tolerance
-PROBE = "not run: needs a model; data first public 2026-10-07"
+PROBE = (
+    "not run: needs a model. Data first public 2026-10-07, so only models trained before then "
+    "are unexposed, and these answers are now published in this repository"
+)
 
 
 # ---------------------------------------------------------------------------------------------
@@ -132,6 +135,9 @@ def make_task(spec: dict, primary: tuple[dict, float], independent: tuple[dict, 
         reasons.append(f"implementations pick different entities: {winner_a} vs {winner_b}")
     if not agree(answer_a, answer_b):
         reasons.append(f"implementations disagree on the answer: {answer_a} vs {answer_b}")
+    if set(scores_a) != set(scores_b) or not all(agree(scores_a[k], scores_b[k]) for k in scores_a):
+        # the margin is judged on these scores, so a runner-up both sides do not share is a defect
+        reasons.append("implementations disagree on the selection scores")
     agreed = not reasons
     if not (clear_a and clear_b):
         reasons.append("winner does not clear the margin over the runner-up")
@@ -143,7 +149,7 @@ def make_task(spec: dict, primary: tuple[dict, float], independent: tuple[dict, 
         "tolerance": spec["tolerance"],
         "selected_entity": winner_a,
         "runner_up": runner_a,
-        "selection_scores": {k: round(v, 4) for k, v in scores_a.items()},
+        "selection_scores": {k: round(scores_a[k], 4) for k in sorted(scores_a)},
         "margin_rule": ("relative " if spec["relative_margin"] else "absolute ")
         + str(spec["margin"]),
         "sources": spec["sources"],
@@ -320,9 +326,11 @@ def task_crew_rows_on_day(df: pl.DataFrame, raw: list[dict]) -> dict:
                 "The Artemis II PDS mission-audio bundle (artemis2_mission_audio) has voice-loop "
                 "transcripts in collection data_transcripts_loops: CSV files with columns "
                 "audio_time,utc,speaker,text. Counting only rows whose utc stamp falls on "
-                "2026-04-07 and whose speaker (ignoring surrounding spaces) is one of the four "
-                "crew members Wiseman, Glover, Koch or Hansen, which crew member has the most "
-                "rows, and how many?"
+                "2026-04-07 and whose speaker is one of the four crew members Wiseman, Glover, "
+                "Koch or Hansen, which crew member has the most rows, and how many? "
+                "Count a row only if its speaker field, after trimming surrounding spaces, is exactly "
+                "the name: tagged labels such as 'Hansen [CAPCOM]' and misspellings such as "
+                "'Hasnen' do not count. "
             ),
             "unit": "rows", "tolerance": 0, "decimals": 0,
             "margin": 0.1, "relative_margin": True,
@@ -363,9 +371,12 @@ def task_crew_words(df: pl.DataFrame, raw: list[dict]) -> dict:
                 "Across every transcript CSV in the Artemis II PDS mission-audio bundle (both the "
                 "data_transcripts_loops and data_transcripts_pcd collections; columns "
                 "audio_time,utc,speaker,text), which of the four crew members (Wiseman, Glover, "
-                "Koch, Hansen; ignore spaces around the speaker name) has the most words of "
-                "transcribed speech, and how many? Remove editorial annotations written in double "
-                "square brackets [[...]] before counting, and count whitespace-separated words."
+                "Koch, Hansen) has the most words of transcribed speech, and how many? Remove "
+                "editorial annotations written in double square brackets [[...]] before counting, "
+                "and count whitespace-separated words. Count every file, including PCD files "
+                "whose text duplicates another file. " "Count a row only if its speaker field, after trimming surrounding spaces, is exactly "
+                "the name: tagged labels such as 'Hansen [CAPCOM]' and misspellings such as "
+                "'Hasnen' do not count. "
             ),
             "unit": "words", "tolerance": 0, "decimals": 0,
             "margin": 0.05, "relative_margin": True,

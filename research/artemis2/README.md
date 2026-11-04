@@ -20,6 +20,7 @@ uv run --no-project --with polars python research/artemis2/transcripts.py DIR   
 uv run --no-project --with numpy --with scipy --with pillow python research/artemis2/flash_search_stills.py PNG...  # crew browse PNGs
 uv run --no-project --with numpy --with scipy python research/artemis2/flash_search_video.py CH1.mp4 CH2.mp4      # SAW3 videos, 2.9 GB each; ~50 min
 uv run --no-project --with polars python research/artemis2/verifiable_tasks.py DIR   # section 4; DIR as for transcripts.py
+uv run python research/artemis2/study_goals.py DIR    # section 5: re-checks every finding; exits non-zero if a goal is blocked
 ```
 
 Outputs: `hobo_results.json` and `figures/`. Every number quoted in this section is written
@@ -41,8 +42,22 @@ from the PDS4 XML labels.
 | Flash map | The grid fit recovers known meridians from synthetic grids (and a different grid is not mis-read as 90°E/180°E). Orthographic and perspective projections round-trip. With the view fixed from Horizons, the drawn meridians fit at 90.6°E/179.8°E, an independent check that the render matches Orion's real geometry. An adversarial reviewer independently confirmed the far-side result and found that the first version used an orthographic projection, which shifted some latitudes by 5–10°. The perspective fix is in. Mutation-tested | `tests/unit/research/test_artemis2_flash_map.py` |
 | Quotes | Every curated transcript quote must match a CSV row verbatim at its UTC stamp, or `transcripts.py` exits non-zero (39 of 39 match) | `transcripts.py` |
 | Flash searches | Synthetic tests: a 3-frame point flash is found at its frame and place; steady stars, long brightenings and whole-frame changes are not; triage separates a rise from dark from flicker of an existing source. An independent code review found four bugs (reference read at the wrong pixel, multi-frame events counted per frame, a midnight wrap in the transcript gap finder, NaN for an unmarked flash); each is fixed with a regression test and the video scan was rerun | `tests/unit/research/test_artemis2_flash_search.py` |
-| Verifiable questions | Every answer is computed twice, with polars and with the standard library alone, and a question is dropped unless both agree on the entity and the value; a question whose winner does not clear its margin is dropped too (one was). The selection scores match independently computed values in `hobo_results.json` and `transcript_events.json` (12.32 % RH jump, 1.34 °C flight difference, 509.7/565.7-min cuts). Mutation-tested: removing any of the three rejection checks turns a test red | `tests/unit/research/test_artemis2_verifiable_tasks.py` |
+| Verifiable questions | Every answer is computed twice, with polars and with the standard library alone, and a question is dropped unless both agree on the entity and the value; a question whose winner does not clear its margin is dropped too (one was). Both implementations must also agree on every entity's score, not just the winner's. Where the earlier analyses computed the same quantity, the scores match them (12.32 % RH jump and 1.34 °C flight difference in `hobo_results.json`; 509.7/565.7-min cuts in `transcript_events.json`). The double computation checks the code, not the wording of the question: both implementations read the speaker field the same way, so the questions now state that rule explicitly. Mutation-tested: removing a rejection check or the flight-window filter turns a test red | `tests/unit/research/test_artemis2_verifiable_tasks.py` |
+| Adversarial review, round 2 (2026-11-04) | Four independent reviewers, each told to assume the work was wrong: scientific rigour with primary-source re-checks, edge cases with mutation testing (34 mutants), security, and a claim-by-claim fact-check of about 140 figures. Nothing blocking. Accepted fixes are listed below this table; each is now a goal criterion or a test | `study_goals.py`, tests |
 | Primary-source spot checks | Transcript quotes, duplicate images, the missing video segment and the HTTP 403 audio entry were checked against the source files by hand | — |
+
+Round-2 fixes:
+- The far-side result is qualified: #1–#2 hold under any rotation of the crew's picture,
+  #3–#5 assume the render's orientation.
+- The "cannot be memorized" claim is limited to models trained before 2026-10-07.
+- The two speaker questions now say that tagged labels and misspellings do not count.
+  Without that rule, 71 becomes 91 and 21,489 becomes 22,859.
+- The two implementations must now agree on every score, not only the winner.
+- Downloads are checked before they are kept.
+- Flash markers that fall off the disk are reported instead of written as NaN.
+- PIL's image-size guard is back on.
+- Eleven wording errors are fixed: magnitudes, minutes, the 40-event split, bundle sizes and
+  the locker captions on the page.
 
 What this does **not** cover: the crew-camera, Orion-camera and audio numbers in section 3 come from the PDS
 inventories and the Atlas search index, checked by a reviewer, but there is no committed script that regenerates them.
@@ -97,7 +112,7 @@ locker, the bag and the position inside it. These data cannot separate those eff
 4. **After splashdown, humidity rose in both lockers, at very different times and rates**
    [`splashdown_humidity`]:
    - **Locker E:** absolute humidity crossed 5σ above its pre-splashdown level at 00:24 UTC,
-     17 minutes after splashdown. It reached 9.5 g/m³ two hours after splashdown and 10 g/m³
+     about 18 minutes after splashdown. It reached 9.5 g/m³ two hours after splashdown and 10 g/m³
      at 02:48, and stayed high.
    - **Locker F:** it did not cross 5σ until 01:42. It was still 7.0 g/m³ eight hours later
      and first reached 7 g/m³ at 14:08, just before a sharp excursion near 15:00.
@@ -191,9 +206,9 @@ the collection inventories and that index; the key numbers are in `imaging_summa
 
 | Bundle | Contents |
 |---|---|
-| Crew camera (~2.5 TB) | 10,329 exposures × 4 forms (NEF source, raw TIFF, processed TIFF, browse PNG). Nikon D5 s/n …015: 7,007; D5 …017: 552; Z9 …019: 2,770. 80–400 mm lens on 75 % |
+| Crew camera | 10,329 exposures × 4 forms (NEF source, raw TIFF, processed TIFF, browse PNG). Nikon D5 s/n …015: 7,007; D5 …017: 552; Z9 …019: 2,770. 80–400 mm lens on 75 % |
 | Orion camera | 1,012 images (OpNav 404, DCAM 249, SAW3 189, CAB2 148, SAW4 12, SAW2 10) + 22 SAW3 videos |
-| Mission audio | 53 crew tablet (PCD) recordings (8.7 h), two 24-h Orion-to-Earth voice-loop days + one clip (~57 h total), 56 transcripts (6,355 lines), 5 annotation PDFs |
+| Mission audio | 53 crew tablet (PCD) recordings (8.7 h), two 24-h Orion-to-Earth voice-loop days + one clip (48.1 h of loop audio; ~57 h with the PCD recordings), 56 transcripts (6,355 lines), 5 annotation PDFs. All collections together: ~2.5 TB |
 
 **The flyby dominates the crew camera bundle.** Of the 10,329 crew images, 6,484 were taken
 on 04-06 UTC and 2,299 on 04-07. The busiest hours were 04-06 21:00 (1,838 images) and 04-07
@@ -249,9 +264,22 @@ said he "did not record at all where we saw" them. So the map was drawn from mem
 logged live.
 
 **Finding: the flashes were on the lunar far side, not the near side.** Every marked flash is
-at 102–164°E. From Earth that night the Moon's disk was centred on 359.2°E (Horizons,
-geocentre), so Earth could see only up to about 89°E. The nearest, #2, is about 14° beyond Earth's limb. Moving it into view would need a
-hand-placement error of about a fifth of the disk radius. None of the five could have been
+at 102–164°E. From Earth that night the Moon's disk was centred on 359.2°E (a JPL Horizons
+geocentric query; the value is not stored in a committed file), so Earth could see only up to
+about 89°E. The nearest, #2, is about 13° beyond Earth's limb. Moving it into view would need
+a hand-placement error of about a fifth of the disk radius.
+
+This assumes the crew drew their dots in the render's own orientation. Orion's view was centred
+on 123.3°E, 34° beyond Earth's limb, and flashes #1 and #2 lie 23–24° from that centre, so
+they stay on the far side however the picture was rotated. Flashes #3, #4 and #5 lie 41–58° from
+the centre and could fall in Earth's view if the crew's mental frame was rotated against the
+render. Their own descriptions differ on orientation (Glover's "South Pole" against Wiseman's
+"upper right quadrant"). Flashes #1–#3 were also seen about 20 minutes before the render time,
+when Orion's view was centred 6° further east. Mapped with that view they would move east,
+further from Earth's limb. The coordinate ranges in the table span only the two grid fits, so
+they understate the real uncertainty.
+
+If the render's orientation holds, none of the five could have been
 recorded by ground-based impact monitoring, which contradicts the 01:00 relay ("hearing you
 saw them on the near side means that people saw them too"). Wiseman's "on the Earth side of
 the moon" is best read as the side of the disk *as seen from Orion* that faced Earth (the
@@ -335,8 +363,8 @@ render. It is unresolved.
 
 **Why the geometry helped:** the eclipse removed the Sun's glare and let the crew dark-adapt
 while looking at the night hemisphere. Orion was also ~11,800 km from the Moon (Horizons, at
-01:04), not 384,000. So a given flash was about 7 magnitudes brighter than it would be from
-Earth, (384,000/11,800)² ≈ 1,000×. Together these favour seeing faint, brief flashes.
+01:04), not 384,000. So a given flash was about 7.5 magnitudes brighter than it would be from
+Earth, (384,000/11,800)² ≈ 1,060×. Together these favour seeing faint, brief flashes.
 
 Other notable observations:
 - **Glow around the eclipsed Moon.** At 01:02:05 Hansen describes "the glow around the moon… once
@@ -358,7 +386,7 @@ Other notable observations:
 All 56 transcript files, 6,355 rows. Rows per speaker (bracketed relay tags
 stripped): Wiseman 1,865, Hansen 1,377, Koch 1,251, Glover
 1,064, CAPCOM 479, science team 122, unattributed "Crew"
-93, blank 80, and a call with the International Space Station
+93, blank 80 (78 empty, plus 2 whose label was only a leading tag such as `[CAPCOM] Koch`), and a call with the International Space Station
 (17). A background read of every row (cross-checked by
 script) found no lunar observation or spacecraft event beyond those listed here and in
 `transcript_events.json`. That list is curated, not exhaustive: the 1,800-odd rows
@@ -406,7 +434,8 @@ normally kept: quiet stretches of 25 to 148 minutes leave the difference unchang
   spikes return". Nothing in the archive explains the cut. It may be editing or a recording
   dropout.
 - The short `art002_2026-04-07_oe2` file is a compilation of clips (2 and 47 minutes
-  removed), not a continuous recording.
+  removed), not a continuous recording. The 47-minute jump skips three undated "in the blind"
+  rows recorded during that interval, so part of that span is untimed rather than removed.
 
 **Conversation gaps with the audio kept** (≥25 min, from `silences_kept`):
 
@@ -487,7 +516,8 @@ stretch are missing from the audio, or only from the transcript, is open.
      looks like a stale duplicate left in the search index.
    - PCD recordings `a000001`/`a000003` and `a000002`/`a000004` are byte-identical
      duplicates: they have matching index MD5s, start/stop times and sizes.
-   - Loop file `art002_2026-04-07_oe2` actually covers 2026-04-06 22:32–23:28.
+   - Loop file `art002_2026-04-07_oe2` actually holds 2026-04-06 material: its dated rows end
+     at 23:28, and its first row has a date but no time.
 6. **Label value errors.**
    - Every crew label has the placeholder stop time `3000-01-01`.
    - A sampled Z9 label has its focus distance unit as mm where metres were meant, and bits
@@ -507,8 +537,11 @@ built from real data so that each has one checkable answer. The recipe: filter r
 the single entity with the most extreme value (it must beat the runner-up by a margin), compute
 a derived number with a fixed formula, then word the question around that fixed answer. The
 same recipe applied to this release gives questions that need tools to answer. A model has to
-fetch the PDS files and compute. The data first became public on 2026-10-07, so a model trained
-before then cannot have memorized the answers.
+fetch the PDS files and compute. The data first became public on 2026-10-07, so a model whose
+training data ends before then cannot have memorized the answers. That says nothing about later
+models, and the answers are now published in this repository. Picking the entity is also a
+one-in-two or one-in-four guess. Whether the questions really resist leakage is unverified
+until the closed-book probe below is run.
 
 | Question (abridged) | Answer | Runner-up |
 |---|---|---|
@@ -528,6 +561,30 @@ step needs a model to run and has **not** been run here. Each question records t
 model tier. The 35B Axion model is a fine-tune of Qwen3.6-35B-A3B, which is also the local
 reasoning model that `quarter-on-a-string-protocol.md` routes to.
 
+## 5. The study as goals and loops (`study_goals.py` → `study_goals.json`)
+
+Each finding above was produced once by running a script and then written down: a linear
+trace. Nothing re-checked that a written claim still matched the data. `study_goals.py` recasts
+the study with the repository's own `cohezion.compound.goals_and_loops_orchestrator`:
+
+- **Goals.** Seven goals (inputs, lockers, transcripts, flashes, questions, write-up,
+  regressions) with 13 acceptance criteria. Each criterion recomputes something from the
+  inputs or the committed outputs and records its evidence.
+- **Loops.** Each goal runs an execute → verify loop. Execute recomputes from scratch; verify runs
+  every criterion. A failed check gets another cycle, which covers a flaky download. Cycles never
+  change a reference value to make a check pass.
+- **Review findings as standing checks.** The second adversarial review (below) is folded in, so
+  its findings cannot drift back:
+  - F4: flashes #1 and #2 must stay far-side under any rotation.
+  - W1: a register of README figures must still match the JSON.
+  - Q1: the question set must rebuild identically, with both implementations agreeing on every
+    score.
+
+On 2026-11-04 all seven goals were satisfied: 13 of 13 criteria passed on the first cycle. That
+run included a live JPL Horizons query for the flash map, which reproduced every coordinate.
+On its first run the loop caught two mistakes in its own checks: a field read with the wrong
+structure, and a list treated as a count. Both were fixed before this result.
+
 ## Summary — what's interesting
 
 - **Most notable report:** five naked-eye lunar impact flashes, mapped by the crew
@@ -539,9 +596,12 @@ reasoning model that `quarter-on-a-string-protocol.md` routes to.
     fourth around 00:59–01:03, and a fifth at ~01:18.
   - These are crew reports with acknowledged caveats ("maybe it was a priming bias"). Two of
     the five were seen by more than one crew member.
+  - The far-side result for #3–#5 assumes the crew drew in the render's orientation;
+    #1 and #2 are far-side under any rotation.
   - No camera caught one. No long crew exposure was open at the call-out moments, and the
-    SAW3 eclipse video shows no flash: all 40 cross-channel events are flicker of Venus or of
-    the corona-lit limb.
+    SAW3 eclipse video shows no flash: of the 40 cross-channel events, 37 are flicker of
+    existing sources (the drifting point is very likely Venus) and 3 rise from dark at the
+    corona-lit limb edge.
 - **Most useful for future sample return:** in flight, the lockers stayed as dry as on the pad
   (~5.1 g/m³). After splashdown, humidity in Locker E rose within about half an hour, days
   before handover. Locker F lagged by hours, for reasons these data cannot separate.
@@ -578,6 +638,13 @@ _Interactive version: `research/artemis2/site/index.html` (self-contained; locke
   answers and the 6-minute cut at 04-07 22:31 against the sound itself.
 - **Moving-object search**: covers the ~40 h of other SAW3 video and the crew photo
   bursts. Star-field plate solving would recover camera pointing without SPICE.
+- **Unsupported figures** (fact-check, round 2): no committed file backs several figures:
+  - the 359.2°E geocentric centre;
+  - section 2's target-request numbers;
+  - the stills and video exposure details, and the planet separations;
+  - the quotes beyond the 39 verified events.
+  They came from sources read in-session, such as Horizons, the Atlas index and the transcripts.
+  Committing small extracts of those sources would let `study_goals.py` check them too.
 - **Closed-book probe** for the section 4 questions: needs local inference, which this cloud
   session doesn't have.
 - **History rewrite** to remove the pre-LFS `status_update/` blobs (~10 MB): deferred;
