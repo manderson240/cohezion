@@ -1,0 +1,155 @@
+{
+ "method": "Axion 1.0 (arXiv:2611.03233) Stage II construction: filter, unique extreme with margin, deterministic derived quantity; verified by two independent implementations (polars and standard library)",
+ "tasks": [
+  {
+   "id": "hobo-rh-jump-temperature",
+   "question": "Two HOBO MX1101 loggers (serials 1104 and 1105) rode in Orion's storage lockers on Artemis II and logged temperature and relative humidity once a minute; their raw files are in the PDS artemis2_mission bundle, collection data_orion_environment. Between launch (2026-04-01 22:35:12 UTC) and splashdown (2026-04-11 00:07:00 UTC), find the logger whose relative humidity rose the most from one sample to the next. What temperature, in degrees C, did that logger record at the sample where that largest rise ended? The file clock is Central Daylight Time (UTC-5).",
+   "answer": 24.77,
+   "unit": "degC",
+   "tolerance": 0.01,
+   "selected_entity": "SN1104",
+   "runner_up": "SN1105",
+   "selection_scores": {
+    "SN1104": 12.323,
+    "SN1105": 4.706
+   },
+   "margin_rule": "relative 1.0",
+   "sources": [
+    "https://pds-geosciences.wustl.edu/artemis2/urn-nasa-pds-artemis2_mission/data_orion_environment/art002_086-162546_111-205046_hobo1104_raw_v01.csv",
+    "https://pds-geosciences.wustl.edu/artemis2/urn-nasa-pds-artemis2_mission/data_orion_environment/art002_086-162926_111-203826_hobo1105_raw_v01.csv"
+   ],
+   "checks": {
+    "two_implementations_agree": true,
+    "closed_book_probe": "not run: needs a model. Data first public 2026-10-07, so only models trained before then are unexposed, and these answers are now published in this repository"
+   }
+  },
+  {
+   "id": "hobo-warmer-logger-absolute-humidity",
+   "question": "Using the two Artemis II HOBO locker-logger files in the PDS artemis2_mission bundle (data_orion_environment; serials 1104 and 1105, one sample a minute, clock in CDT = UTC-5), take only samples from launch (2026-04-01 22:35:12 UTC) to splashdown (2026-04-11 00:07:00 UTC). Pick the logger with the higher mean temperature over that span. What was its mean absolute humidity over the same samples, in g/m^3? Compute absolute humidity per sample as 216.7 * (RH/100 * 6.112 * exp(17.67*T/(T+243.5))) / (273.15+T), then average.",
+   "answer": 5.114,
+   "unit": "g/m^3",
+   "tolerance": 0.01,
+   "selected_entity": "SN1104",
+   "runner_up": "SN1105",
+   "selection_scores": {
+    "SN1104": 23.9542,
+    "SN1105": 22.6136
+   },
+   "margin_rule": "absolute 0.5",
+   "sources": [
+    "https://pds-geosciences.wustl.edu/artemis2/urn-nasa-pds-artemis2_mission/data_orion_environment/art002_086-162546_111-205046_hobo1104_raw_v01.csv",
+    "https://pds-geosciences.wustl.edu/artemis2/urn-nasa-pds-artemis2_mission/data_orion_environment/art002_086-162926_111-203826_hobo1105_raw_v01.csv"
+   ],
+   "checks": {
+    "two_implementations_agree": true,
+    "closed_book_probe": "not run: needs a model. Data first public 2026-10-07, so only models trained before then are unexposed, and these answers are now published in this repository"
+   }
+  },
+  {
+   "id": "loops-crew-rows-2026-04-07",
+   "question": "The Artemis II PDS mission-audio bundle (artemis2_mission_audio) has voice-loop transcripts in collection data_transcripts_loops: CSV files with columns audio_time,utc,speaker,text. Counting only rows whose utc stamp falls on 2026-04-07 and whose speaker is one of the four crew members Wiseman, Glover, Koch or Hansen, which crew member has the most rows, and how many? Count a row only if its speaker field, after trimming surrounding spaces, is exactly the name: tagged labels such as 'Hansen [CAPCOM]' and misspellings such as 'Hasnen' do not count. ",
+   "answer": 71.0,
+   "unit": "rows",
+   "tolerance": 0,
+   "selected_entity": "Hansen",
+   "runner_up": "Wiseman",
+   "selection_scores": {
+    "Glover": 32.0,
+    "Hansen": 71.0,
+    "Koch": 37.0,
+    "Wiseman": 39.0
+   },
+   "margin_rule": "relative 0.1",
+   "sources": [
+    "https://d1ejlg980osaur.cloudfront.net/archive/artemis/artemis2/artemis2_mission_audio/data_transcripts_loops/art002_2026-04-06_oe1_trn-csv_v01.csv",
+    "https://d1ejlg980osaur.cloudfront.net/archive/artemis/artemis2/artemis2_mission_audio/data_transcripts_loops/art002_2026-04-07_oe1_trn-csv_v01.csv",
+    "https://d1ejlg980osaur.cloudfront.net/archive/artemis/artemis2/artemis2_mission_audio/data_transcripts_loops/art002_2026-04-07_oe2_trn-csv_v01.csv"
+   ],
+   "checks": {
+    "two_implementations_agree": true,
+    "closed_book_probe": "not run: needs a model. Data first public 2026-10-07, so only models trained before then are unexposed, and these answers are now published in this repository"
+   }
+  },
+  {
+   "id": "transcripts-crew-word-count",
+   "question": "Across every transcript CSV in the Artemis II PDS mission-audio bundle (both the data_transcripts_loops and data_transcripts_pcd collections; columns audio_time,utc,speaker,text), which of the four crew members (Wiseman, Glover, Koch, Hansen) has the most words of transcribed speech, and how many? Remove editorial annotations written in double square brackets [[...]] before counting, and count whitespace-separated words. Count every file, including PCD files whose text duplicates another file. Count a row only if its speaker field, after trimming surrounding spaces, is exactly the name: tagged labels such as 'Hansen [CAPCOM]' and misspellings such as 'Hasnen' do not count. ",
+   "answer": 21489.0,
+   "unit": "words",
+   "tolerance": 0,
+   "selected_entity": "Wiseman",
+   "runner_up": "Glover",
+   "selection_scores": {
+    "Glover": 18675.0,
+    "Hansen": 16491.0,
+    "Koch": 16848.0,
+    "Wiseman": 21489.0
+   },
+   "margin_rule": "relative 0.05",
+   "sources": [
+    "https://d1ejlg980osaur.cloudfront.net/archive/artemis/artemis2/artemis2_mission_audio/data_transcripts_loops/",
+    "https://d1ejlg980osaur.cloudfront.net/archive/artemis/artemis2/artemis2_mission_audio/data_transcripts_pcd/"
+   ],
+   "checks": {
+    "two_implementations_agree": true,
+    "closed_book_probe": "not run: needs a model. Data first public 2026-10-07, so only models trained before then are unexposed, and these answers are now published in this repository"
+   }
+  },
+  {
+   "id": "loops-longest-removed-audio",
+   "question": "Each Artemis II voice-loop transcript in the PDS artemis2_mission_audio bundle (collection data_transcripts_loops) gives two clocks per row: audio_time, a position in a stitched recording, and utc, wall-clock time. While the recording runs continuously, utc minus audio_time stays constant; a jump between consecutive rows of more than 60 seconds means audio was cut out. Which transcript file has the largest such jump, and how many minutes of audio does it remove? Ignore rows whose utc stamp is not a full date and time.",
+   "answer": 565.7,
+   "unit": "minutes",
+   "tolerance": 0.05,
+   "selected_entity": "art002_2026-04-07_oe1_trn-csv_v01.csv",
+   "runner_up": "art002_2026-04-06_oe1_trn-csv_v01.csv",
+   "selection_scores": {
+    "art002_2026-04-06_oe1_trn-csv_v01.csv": 509.7,
+    "art002_2026-04-07_oe1_trn-csv_v01.csv": 565.7,
+    "art002_2026-04-07_oe2_trn-csv_v01.csv": 47.2
+   },
+   "margin_rule": "relative 0.05",
+   "sources": [
+    "https://d1ejlg980osaur.cloudfront.net/archive/artemis/artemis2/artemis2_mission_audio/data_transcripts_loops/art002_2026-04-06_oe1_trn-csv_v01.csv",
+    "https://d1ejlg980osaur.cloudfront.net/archive/artemis/artemis2/artemis2_mission_audio/data_transcripts_loops/art002_2026-04-07_oe1_trn-csv_v01.csv",
+    "https://d1ejlg980osaur.cloudfront.net/archive/artemis/artemis2/artemis2_mission_audio/data_transcripts_loops/art002_2026-04-07_oe2_trn-csv_v01.csv"
+   ],
+   "checks": {
+    "two_implementations_agree": true,
+    "closed_book_probe": "not run: needs a model. Data first public 2026-10-07, so only models trained before then are unexposed, and these answers are now published in this repository"
+   }
+  }
+ ],
+ "rejected": [
+  {
+   "id": "hobo-1105-widest-daily-temperature-range",
+   "question": "In the Artemis II PDS release, HOBO logger serial 1105 (artemis2_mission bundle, data_orion_environment; clock in CDT = UTC-5) recorded locker temperature every minute. Considering only whole UTC calendar days 2026-04-02 through 2026-04-10, which day had the largest difference between its highest and lowest temperature sample, and what was that difference in degrees C?",
+   "answer": 3.07,
+   "unit": "degC",
+   "tolerance": 0.01,
+   "selected_entity": "2026-04-09",
+   "runner_up": "2026-04-10",
+   "selection_scores": {
+    "2026-04-02": 0.69,
+    "2026-04-03": 0.69,
+    "2026-04-04": 1.12,
+    "2026-04-05": 1.03,
+    "2026-04-06": 0.98,
+    "2026-04-07": 1.32,
+    "2026-04-08": 1.01,
+    "2026-04-09": 3.07,
+    "2026-04-10": 3.04
+   },
+   "margin_rule": "absolute 0.1",
+   "sources": [
+    "https://pds-geosciences.wustl.edu/artemis2/urn-nasa-pds-artemis2_mission/data_orion_environment/art002_086-162926_111-203826_hobo1105_raw_v01.csv"
+   ],
+   "checks": {
+    "two_implementations_agree": true,
+    "closed_book_probe": "not run: needs a model. Data first public 2026-10-07, so only models trained before then are unexposed, and these answers are now published in this repository"
+   },
+   "rejected_because": [
+    "winner does not clear the margin over the runner-up"
+   ]
+  }
+ ]
+}
