@@ -15,7 +15,7 @@ uv run --no-project --with polars --with matplotlib python research/artemis2/ana
 The flash and transcript analyses (section 3):
 
 ```bash
-uv run --no-project --with numpy --with scipy --with pillow python research/artemis2/flash_map.py   # downloads the annotation PDF
+uv run --no-project --with numpy --with scipy --with pillow --with spiceypy python research/artemis2/flash_map.py   # downloads the annotation PDF and ~50 MB of SPICE kernels
 uv run --no-project --with polars python research/artemis2/transcripts.py DIR    # DIR = downloaded data_transcripts_* folders
 uv run --no-project --with numpy --with scipy --with pillow python research/artemis2/flash_search_stills.py PNG...  # crew browse PNGs
 uv run --no-project --with numpy --with scipy python research/artemis2/flash_search_video.py CH1.mp4 CH2.mp4      # SAW3 videos, 2.9 GB each; ~50 min
@@ -39,7 +39,7 @@ from the PDS4 XML labels.
 | Differential oracle | The polars port reproduces the previous pandas implementation on every field and all three figures; the only differences are two values in `phases` that pandas rounded with half-to-even scaling (23.895 -> 23.9) and Python rounds exactly (-> 23.89) | compare against the JSON at commit `2a59d6b` |
 | Unit tests (CI-gating) | 12 offline tests of the transient detector, phase boundaries, derived humidity, CDT->UTC conversion, label parser and checksum gate. Mutation-tested: breaking each mechanism turns at least one test red | `uv run --no-project --with polars --with pytest python -m pytest tests/unit/research/test_artemis2_hobo.py --noconftest` |
 | Adversarial review | Three independent reviewers (scientific rigor, primary-source re-check against the live PDS archive, code/reproducibility/security), each told to assume the work was wrong | corrections in commits `6c9d523`, `4a84aa5`, `d9a12c7` |
-| Flash map | The grid fit recovers known meridians from synthetic grids (and a different grid is not mis-read as 90°E/180°E). Orthographic and perspective projections round-trip. With the view fixed from Horizons, the drawn meridians fit at 90.6°E/179.8°E, an independent check that the render matches Orion's real geometry. An adversarial reviewer independently confirmed the far-side result and found that the first version used an orthographic projection, which shifted some latitudes by 5–10°. The perspective fix is in. Mutation-tested | `tests/unit/research/test_artemis2_flash_map.py` |
+| Flash map | The grid fit recovers known meridians from synthetic grids (and a different grid is not mis-read as 90°E/180°E). Orthographic and perspective projections round-trip. With the view fixed from Orion's reconstructed trajectory, the drawn meridians fit at 90.6°E/179.8°E, an independent check that the render matches Orion's real geometry. The trajectory geometry also matches the JPL Horizons values it replaced (0.004° in longitude, 2.4 km in range). An adversarial reviewer independently confirmed the far-side result and found that the first version used an orthographic projection, which shifted some latitudes by 5–10°. The perspective fix is in. Mutation-tested | `tests/unit/research/test_artemis2_flash_map.py` |
 | Quotes | Every curated transcript quote must match a CSV row verbatim at its UTC stamp, or `transcripts.py` exits non-zero (39 of 39 match) | `transcripts.py` |
 | Flash searches | Synthetic tests: a 3-frame point flash is found at its frame and place; steady stars, long brightenings and whole-frame changes are not; triage separates a rise from dark from flicker of an existing source. An independent code review found four bugs (reference read at the wrong pixel, multi-frame events counted per frame, a midnight wrap in the transcript gap finder, NaN for an unmarked flash); each is fixed with a regression test and the video scan was rerun | `tests/unit/research/test_artemis2_flash_search.py` |
 | Verifiable questions | Every answer is computed twice, with polars and with the standard library alone, and a question is dropped unless both agree on the entity and the value; a question whose winner does not clear its margin is dropped too (one was). Both implementations must also agree on every entity's score, not just the winner's. Where the earlier analyses computed the same quantity, the scores match them (12.32 % RH jump and 1.34 °C flight difference in `hobo_results.json`; 509.7/565.7-min cuts in `transcript_events.json`). The double computation checks the code, not the wording of the question: both implementations read the speaker field the same way, so the questions now state that rule explicitly. Mutation-tested: removing a rejection check or the flight-window filter turns a test red | `tests/unit/research/test_artemis2_verifiable_tasks.py` |
@@ -237,8 +237,14 @@ sun has gone behind the moon" at 00:38, against a computed sunset of 00:35.
 eclipse" (#1–#3), "#4 (later)", "#5 towards end", and circled #2 and #4 as "likely same
 impacts". `flash_map.py` turns the dots into lunar coordinates. It fits a sphere projection
 to the render's lit limb, drawn equator and two drawn meridians, with the viewing geometry
-fixed from JPL Horizons (Moon seen from Artemis II, `500@-1024`). Output is in
-`flash_annotations.json`.
+fixed from Orion's reconstructed trajectory: NAIF's SPICE kernel
+`art002_rec_260402_260410_jsc_bet_revf.bsp` (Orion, NAIF ID -24) with the DE440 ephemeris and
+lunar orientation, computed by `spice_geometry.py`. Output is in `flash_annotations.json`.
+
+These values used to come from JPL Horizons. The two sources agree: Orion's sub-observer point
+differs by 0.004° in longitude and 0.002° in latitude, its range by 2.4 km, and Earth's
+sub-observer point by 0.003°. Switching moved one flash coordinate, by 0.1° (#2 in the
+first fit, 103.1°E to 103.2°E). The goals check that this agreement holds (criterion F5).
 
 | # | marked by | when (crew note) | longitude | latitude |
 |---|---|---|---|---|
@@ -250,9 +256,9 @@ fixed from JPL Horizons (Moon seen from Artemis II, `500@-1024`). Output is in
 
 The projection is a true perspective view from Orion's range, 11,760 km or 6.8 lunar radii.
 From that close, the visible cap ends 81.5° from the disk centre, not 90°. Ranges span two
-fits: one with the view fixed from Horizons (123.3°E), and one with the drawn grid forced to
+fits: one with the view fixed from the trajectory (123.3°E), and one with the drawn grid forced to
 exactly 90°E/180°E, where the view longitude comes out at 122.6°E. The grid check is
-independent: with the Horizons view fixed, the drawn meridians fit at 90.6°E and 179.8°E,
+independent: with the trajectory view fixed, the drawn meridians fit at 90.6°E and 179.8°E,
 with a median residual of 0.4 px. The render's Earthshine-lit crescent ends at the 90°E line,
 as it should. The real uncertainty is larger than these ranges, because the dots were placed
 by hand from memory on a dark image. The three observers' dots for #4 are 8° apart.
@@ -264,8 +270,8 @@ said he "did not record at all where we saw" them. So the map was drawn from mem
 logged live.
 
 **Finding: the flashes were on the lunar far side, not the near side.** Every marked flash is
-at 102–164°E. From Earth that night the Moon's disk was centred on 359.2°E (a JPL Horizons
-geocentric query, stored as `earth_view` in `flash_annotations.json`; Earth's view was centred
+at 102–164°E. From Earth that night the Moon's disk was centred on 359.2°E (from the DE440 ephemeris,
+stored as `earth_view` in `flash_annotations.json`; Earth's view was centred
 at 6.7°N), so Earth could see only up to about 89°E. The nearest, #2, is about 15° beyond
 Earth's limb (14.6° on the great circle; comparing longitudes alone gives 13°). Moving it into view would need
 a hand-placement error of about a fifth of the disk radius.
@@ -569,7 +575,7 @@ trace. Nothing re-checked that a written claim still matched the data. `study_go
 the study with the repository's own `cohezion.compound.goals_and_loops_orchestrator`:
 
 - **Goals.** Seven goals (inputs, lockers, transcripts, flashes, questions, write-up,
-  regressions) with 13 acceptance criteria. Each criterion recomputes something from the
+  regressions) with 14 acceptance criteria. Each criterion recomputes something from the
   inputs or the committed outputs and records its evidence.
 - **Loops.** Each goal runs an execute → verify loop. Execute recomputes from scratch; verify runs
   every criterion. A failed check gets another cycle, which covers a flaky download. Cycles never
@@ -581,8 +587,10 @@ the study with the repository's own `cohezion.compound.goals_and_loops_orchestra
   - Q1: the question set must rebuild identically, with both implementations agreeing on every
     score.
 
-On 2026-11-04 all seven goals were satisfied: 13 of 13 criteria passed on the first cycle. That
-run included a live JPL Horizons query for the flash map, which reproduced every coordinate.
+On 2026-11-04 all seven goals were satisfied: 13 of 13 criteria passed (14 of 14 since F5 was added on 2026-11-05) on the first cycle. That
+run included a full re-fit of the flash map, which reproduced every coordinate. (Since
+2026-11-05 the map's geometry comes from the SPICE trajectory, and the goals add criterion F5
+for its agreement with Horizons.)
 On its first run the loop caught two mistakes in its own checks: a field read with the wrong
 structure, and a list treated as a count. Both were fixed before this result.
 
@@ -617,7 +625,7 @@ structure, and a list treated as a count. Both were fixed before this result.
   they are not an anomaly.
 - **Not yet possible:** SPICE (camera pointing) is delayed, so image footprints and the
   pointing of the frames tagged "Impact Flashes" cannot be checked yet. The flash
-  coordinates above use Orion's trajectory from JPL Horizons, not SPICE pointing.
+  coordinates above use Orion's reconstructed SPICE trajectory, but no camera pointing.
 
 _Method note: three independent adversarial reviews (scientific rigor, primary-source
 re-verification against the live PDS archive and Atlas index, and
@@ -635,8 +643,8 @@ _Interactive version: `research/artemis2/site/index.html` (self-contained; locke
   has `art002_rec_260402_260410_jsc_bet_revf.bsp`, a gap-filled version and the
   `EM2_FODNAVBET_revF_PUBLIC.oem` ephemeris, all dated 2026-07-21. It has no camera-pointing
   (CK) or frame kernels, and the PDS SPICE bundle path and DOI in the Data User Guide still
-  return 404. The trajectory could replace Horizons for the flash map's geometry, but only
-  pointing can test whether the flash sites were in a camera's field. When it appears, check whether the mapped flash sites were in the
+  return 404. The flash map now uses that trajectory (section 3), but only pointing can test
+  whether the flash sites were in a camera's field. When it appears, check whether the mapped flash sites were in the
   SAW3 field, and redo the flash map with archived pointing.
 - **Voice-loop audio**: returned HTTP 403. Once it can be fetched, check the President-call
   answers and the 6-minute cut at 04-07 22:31 against the sound itself.

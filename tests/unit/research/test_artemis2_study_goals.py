@@ -135,3 +135,15 @@ def test_writeup_check_fails_when_the_phrase_left_the_readme(monkeypatch):
 def test_writeup_register_holds_on_the_committed_files():
     ok, evidence = sg.readme_numbers_trace(None)
     assert ok, evidence
+
+
+def test_trajectory_check_fails_if_spice_and_horizons_disagree(monkeypatch):
+    d = {"orion_sub_lon_deg": 0.3, "orion_sub_lat_deg": 0.0, "orion_range_km": 1.0,
+         "earth_sub_lon_deg": 0.0, "note": ""}  # fmt: skip
+    monkeypatch.setattr(sg, "committed", lambda name: {"horizons_cross_check": d})
+    assert sg.trajectory_matches_horizons(None)[0] is False
+
+
+def test_trajectory_check_passes_on_the_committed_map():
+    ok, evidence = sg.trajectory_matches_horizons(None)
+    assert ok, evidence

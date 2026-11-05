@@ -251,7 +251,7 @@ footer { padding-block: 56px 0; color: var(--faint); font-size: 0.85rem; }
   <div class="flash-grid">
     <div class="stack">
       <div class="moon-box"><canvas id="moon" role="img" aria-label="Map of the five impact flashes the crew marked, on the Moon as seen from Orion at 01:04 UTC. A dashed line at 90 degrees east marks the edge of what Earth could see; all five flashes lie beyond it, on the far side."></canvas></div>
-      <p class="met">Dots: the crew's own marks, one colour per person (Hansen red, Wiseman blue, Glover green). Converted to lunar coordinates by fitting the annotation render's drawn grid with Orion's position from JPL Horizons. Accurate to a few degrees at best: the dots were placed by hand, from memory.</p>
+      <p class="met">Dots: the crew's own marks, one colour per person (Hansen red, Wiseman blue, Glover green). Converted to lunar coordinates by fitting the annotation render's drawn grid with Orion's reconstructed trajectory (NASA/JPL SPICE). Accurate to a few degrees at best: the dots were placed by hand, from memory.</p>
     </div>
     <div class="stack">
       <p class="pull">“We have seen three impact flashes so far… <em>Jeremy just saw another one.</em>”</p>
@@ -562,7 +562,7 @@ const JUMPS = [["Godspeed", at(6, 22, 36)], ["Blackout", at(6, 22, 50)], ["Sunse
 /* ---------------- Flash map (crew annotation -> lunar coordinates) ---------------- */
 (function moon() {
   const c = document.getElementById("moon"), ctx = c.getContext("2d");
-  // View from Orion at 01:04 UTC (JPL Horizons): sub-observer 123.3E, 3.6S; north up.
+  // View from Orion at 01:04 UTC (SPICE trajectory): sub-observer 123.3E, 3.6S; north up.
   const LC = 123.26 * Math.PI / 180, PC = -3.58 * Math.PI / 180;
   const D = 11762 / 1737.4, K = Math.sqrt(1 - 1 / (D * D)); // perspective from Orion's range
   const OBS = { Hansen: "#ff6b6b", Wiseman: "#7fb2ff", Glover: "#3ddc84" };

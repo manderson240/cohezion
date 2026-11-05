@@ -10,12 +10,13 @@ How it works:
   1. Download the PDF and check its MD5, then pull out the embedded JPEG (one DCT stream).
   2. Find the coloured markers by thresholding colour.
   3. Trace the lit limb, the drawn equator and the two drawn meridians, and fit a sphere
-     projection to them. The sub-observer point is fixed from JPL Horizons (target 301,
-     observer 500@-1024 Artemis II). The fit leaves free the disk centre, the disk radius,
-     the roll angle and the two meridian longitudes.
+     projection to them. The sub-observer point and Orion's range come from the Artemis II
+     reconstructed trajectory (NAIF SPICE kernel, see spice_geometry.py). The fit leaves free
+     the disk centre, the disk radius, the roll angle and the two meridian longitudes. The
+     JPL Horizons values used before are kept only as a recorded cross-check.
   4. Invert the projection at each marker.
 
-The fit is checked independently: with the view fixed from Horizons, the drawn meridians
+The fit is checked independently: with the view fixed from the trajectory, the drawn meridians
 come out near 90E and 180E, which is a 90-degree grid. A second model forces them to
 exactly 90/180 and fits the view longitude instead. The spread between the two models is
 reported as systematic uncertainty.
@@ -113,6 +114,47 @@ def embedded_jpeg(pdf: Path) -> np.ndarray:
     start = raw.index(b"\xff\xd8\xff")
     end = raw.index(b"endstream", start)
     return np.asarray(Image.open(io.BytesIO(raw[start:end])).convert("RGB")).astype(int)
+
+
+RENDER_UTC = "2026-04-07T01:04:00"
+FLASHES_1_3_UTC = "2026-04-07T00:45:00"
+EARTH_VIEW_UTC = ("2026-04-07T00:45:00", "2026-04-07T01:05:00")
+
+
+def orion_view(utc: str = RENDER_UTC) -> dict:
+    """Orion's sub-observer point on the Moon and range, from the Artemis II trajectory kernel."""
+    import spice_geometry as sg  # lazy: only the full run needs SPICE (and its 50 MB of kernels)
+
+    return {
+        **sg.orion_view(utc),
+        "source": "NAIF SPICE: art002_rec_260402_260410_jsc_bet_revf.bsp (Orion, ID -24) + DE440",
+    }
+
+
+def earth_view() -> dict:
+    import spice_geometry as sg
+
+    rows = [sg.earth_view(t) for t in EARTH_VIEW_UTC]
+    return {
+        "utc_range": list(EARTH_VIEW_UTC),
+        "sub_lon": round(sum(r["sub_lon"] for r in rows) / len(rows), 3),
+        "sub_lat": round(sum(r["sub_lat"] for r in rows) / len(rows), 3),
+        "source": "NAIF SPICE: DE440 + DE440 lunar orientation (MOON_ME)",
+        "note": "Earth's sub-observer point on the Moon; it moved <0.02 deg over the eclipse",
+    }
+
+
+def horizons_cross_check(orion: dict, earth: dict) -> dict:
+    """Differences between the SPICE geometry and the JPL Horizons values it replaced."""
+    h = horizons_view()
+    he = sum(r[1] for r in HORIZONS_EARTH) / len(HORIZONS_EARTH)
+    return {
+        "orion_sub_lon_deg": round(orion["sub_lon"] - h["sub_lon"], 4),
+        "orion_sub_lat_deg": round(orion["sub_lat"] - h["sub_lat"], 4),
+        "orion_range_km": round(orion["range_km"] - h["range_km"], 1),
+        "earth_sub_lon_deg": round(earth["sub_lon"] - he, 4),
+        "note": "SPICE minus Horizons (Horizons observer 500@-1024, interpolated to 01:04)",
+    }
 
 
 def horizons_view() -> dict:
@@ -358,7 +400,8 @@ def main() -> None:
     args = ap.parse_args()
 
     im = embedded_jpeg(fetch(args.data_dir))
-    view = horizons_view()
+    view = orion_view()
+    earth = earth_view()
     found = markers(im)
     pts = grid_points(im)
     models = fit_models(pts, view)
@@ -367,16 +410,14 @@ def main() -> None:
         "source_md5": PDF_MD5,
         "image_px": [int(im.shape[1]), int(im.shape[0])],
         "render_time_utc": view["utc"],
-        "horizons_view": {k: round(v, 4) if isinstance(v, float) else v for k, v in view.items()},
-        "earth_view": {
-            "utc_range": [HORIZONS_EARTH[0][0], HORIZONS_EARTH[-1][0]],
-            "sub_lon": round(sum(r[1] for r in HORIZONS_EARTH) / len(HORIZONS_EARTH), 2),
-            "sub_lat": round(sum(r[2] for r in HORIZONS_EARTH) / len(HORIZONS_EARTH), 2),
-            "note": "Earth's sub-observer point on the Moon (Horizons, geocentre); it moved <0.02 deg over the eclipse",
+        "orion_view": {k: round(v, 4) if isinstance(v, float) else v for k, v in view.items()},
+        "earth_view": earth,
+        "orion_view_at_flashes_1_3": {
+            k: round(v, 4) if isinstance(v, float) else v
+            for k, v in orion_view(FLASHES_1_3_UTC).items()
+            if k != "source"
         },
-        "horizons_at_flashes_1_3": dict(
-            zip(("utc", "sub_lon", "sub_lat", "np_ang", "range_au"), HORIZONS[0], strict=True)
-        ),
+        "horizons_cross_check": horizons_cross_check(view, earth),
         "grid_points_n": {k: len(v) for k, v in pts.items()},
         "models": {
             k: {

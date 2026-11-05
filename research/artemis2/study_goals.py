@@ -94,7 +94,7 @@ class Study:
 
         def run():
             im = fm.embedded_jpeg(fm.fetch(HERE / "data"))
-            models = fm.fit_models(fm.grid_points(im), fm.horizons_view())
+            models = fm.fit_models(fm.grid_points(im), fm.orion_view())
             return as_json(fm.locate(fm.markers(im), models))
 
         return self.get("flashes", run)
@@ -154,7 +154,7 @@ def flashes_reproduce(s: Study) -> tuple[bool, str]:
 
 
 def earth_view() -> tuple[float, float]:
-    """Earth's sub-observer point on the Moon, as committed by flash_map.py (JPL Horizons)."""
+    """Earth's sub-observer point on the Moon, as committed by flash_map.py (SPICE)."""
     v = committed("flash_annotations.json")["earth_view"]
     return v["sub_lon"], v["sub_lat"]
 
@@ -181,7 +181,7 @@ def flashes_far_side_any_rotation(_s: Study) -> tuple[bool, str]:
     """A flash closer to Orion's view centre than that centre is to Earth's limb stays on the
     far side however the crew's picture was rotated. Required for #1 and #2 (README claim)."""
     fa = committed("flash_annotations.json")
-    v = fa["horizons_view"]
+    v = fa["orion_view"]
     centre = (v["sub_lon"], v["sub_lat"])
     safe = _gc_deg(centre, earth_view()) - 90  # how far beyond Earth's limb the view centre is
     dist = {
@@ -242,6 +242,19 @@ def readme_numbers_trace(_s: Study) -> tuple[bool, str]:
     )
 
 
+def trajectory_matches_horizons(_s: Study) -> tuple[bool, str]:
+    """Two independent geometry sources must agree: the Artemis II SPICE trajectory used by the
+    flash map, and the JPL Horizons values it replaced."""
+    d = committed("flash_annotations.json")["horizons_cross_check"]
+    ok = (
+        abs(d["orion_sub_lon_deg"]) < 0.05
+        and abs(d["orion_sub_lat_deg"]) < 0.05
+        and abs(d["orion_range_km"]) < 10
+        and abs(d["earth_sub_lon_deg"]) < 0.05
+    )
+    return ok, f"SPICE minus Horizons: { ({k: v for k, v in d.items() if k != 'note'}) }"
+
+
 def video_no_flash(_s: Study) -> tuple[bool, str]:
     v = committed("flash_search_video.json")
     n, tri = len(v["corroborated"]), v["triage"]
@@ -295,6 +308,7 @@ GOALS: list[tuple[str, str, str, list[Check], bool]] = [
         ("F1", "Re-fitting the crew's annotation map reproduces every flash coordinate", flashes_reproduce),
         ("F2", "In the render's orientation, all mapped flashes lie >=10 deg beyond Earth's limb", flashes_far_side),
         ("F4", "Flashes #1 and #2 are far-side under any rotation of the crew's picture", flashes_far_side_any_rotation),
+        ("F5", "The SPICE trajectory geometry agrees with JPL Horizons (<0.05 deg, <10 km)", trajectory_matches_horizons),
         ("F3", "SAW3 video: all 40 corroborated events are triaged; none left unexplained", video_no_flash),
     ], True),
     ("questions", "Verifiable questions hold", "Section 4 question set is reproducible and checked", [

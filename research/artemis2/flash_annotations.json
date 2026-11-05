@@ -5,29 +5,36 @@
     1966,
     1310
   ],
-  "render_time_utc": "2026-04-07T01:04",
-  "horizons_view": {
-    "utc": "2026-04-07T01:04",
-    "sub_lon": 123.2639,
-    "sub_lat": -3.5824,
-    "np_ang": 338.5152,
-    "range_km": 11762.0999
+  "render_time_utc": "2026-04-07T01:04:00",
+  "orion_view": {
+    "utc": "2026-04-07T01:04:00",
+    "sub_lon": 123.2679,
+    "sub_lat": -3.5841,
+    "range_km": 11759.7452,
+    "source": "NAIF SPICE: art002_rec_260402_260410_jsc_bet_revf.bsp (Orion, ID -24) + DE440"
   },
   "earth_view": {
     "utc_range": [
-      "2026-04-07T00:45",
-      "2026-04-07T01:05"
+      "2026-04-07T00:45:00",
+      "2026-04-07T01:05:00"
     ],
-    "sub_lon": 359.18,
+    "sub_lon": 359.184,
     "sub_lat": 6.72,
-    "note": "Earth's sub-observer point on the Moon (Horizons, geocentre); it moved <0.02 deg over the eclipse"
+    "source": "NAIF SPICE: DE440 + DE440 lunar orientation (MOON_ME)",
+    "note": "Earth's sub-observer point on the Moon; it moved <0.02 deg over the eclipse"
   },
-  "horizons_at_flashes_1_3": {
-    "utc": "2026-04-07T00:45",
-    "sub_lon": 129.274236,
-    "sub_lat": -3.632802,
-    "np_ang": 339.0952,
-    "range_au": 7.288001021e-05
+  "orion_view_at_flashes_1_3": {
+    "utc": "2026-04-07T00:45:00",
+    "sub_lon": 129.2844,
+    "sub_lat": -3.6361,
+    "range_km": 10900.9955
+  },
+  "horizons_cross_check": {
+    "orion_sub_lon_deg": 0.004,
+    "orion_sub_lat_deg": -0.0017,
+    "orion_range_km": -2.4,
+    "earth_sub_lon_deg": 0.0028,
+    "note": "SPICE minus Horizons (Horizons observer 500@-1024, interpolated to 01:04)"
   },
   "grid_points_n": {
     "limb": 42,
@@ -43,7 +50,7 @@
         364.6
       ],
       "roll_deg": 0.05,
-      "view_lon_E": 123.26,
+      "view_lon_E": 123.27,
       "meridians_deg": [
         90.6,
         179.8
@@ -52,7 +59,7 @@
     },
     "B": {
       "cx_cy_R_px": [
-        983.6,
+        983.7,
         660.5,
         363.6
       ],
@@ -135,7 +142,7 @@
       "note": "one of the first three (~00:45 UTC); circled: 'likely same impacts' (two observers)",
       "models": {
         "A": {
-          "lon_E": 103.1,
+          "lon_E": 103.2,
           "lat": -14.8,
           "disk_radius_frac": 0.444
         },
@@ -147,7 +154,7 @@
       },
       "lon_E_range": [
         102.6,
-        103.1
+        103.2
       ],
       "lat_range": [
         -14.9,
@@ -176,7 +183,7 @@
         "A": {
           "lon_E": 164.0,
           "lat": -13.7,
-          "disk_radius_frac": 0.736
+          "disk_radius_frac": 0.737
         },
         "B": {
           "lon_E": 163.8,

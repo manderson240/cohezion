@@ -88,7 +88,13 @@
      "id": "F4",
      "description": "Flashes #1 and #2 are far-side under any rotation of the crew's picture",
      "verified": true,
-     "evidence": "view centre 34.2 deg beyond Earth's limb; flash distances from it {'1': 24.0, '2': 23.3, '3': 41.5, '4': 42.7, '5': 57.7}"
+     "evidence": "view centre 34.2 deg beyond Earth's limb; flash distances from it {'1': 24.0, '2': 23.3, '3': 41.4, '4': 42.7, '5': 57.7}"
+    },
+    {
+     "id": "F5",
+     "description": "The SPICE trajectory geometry agrees with JPL Horizons (<0.05 deg, <10 km)",
+     "verified": true,
+     "evidence": "SPICE minus Horizons: {'orion_sub_lon_deg': 0.004, 'orion_sub_lat_deg': -0.0017, 'orion_range_km': -2.4, 'earth_sub_lon_deg': 0.0028}"
     },
     {
      "id": "F3",
@@ -139,7 +145,7 @@
      "id": "R1",
      "description": "tests/unit/research passes",
      "verified": true,
-     "evidence": "============================== 81 passed in 2.88s =============================="
+     "evidence": "============================== 83 passed in 2.67s =============================="
     }
    ]
   }
