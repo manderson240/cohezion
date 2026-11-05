@@ -58,6 +58,30 @@ counts, near-zero system assurance. This rule is the standing corrective so we n
    has tried to break it. (Verifier-agent must have execution tools; a read-only reviewer reasons but
    cannot run the PoC.)
 
+## Adversarial pass: which lenses earn their cost (measured 2026-11-04)
+
+A four-lens parallel review of the Artemis II study (`research/artemis2/`) found nothing blocking.
+What each lens contributed differed sharply:
+
+- **Claim-by-claim fact-checker** (cheap model, ~140 claims checked against the committed JSON): found
+  11 wording/number errors. The science lens also caught a few of them (minutes, magnitudes, a speaker
+  count); the rest no other lens raised: bundle sizes, page captions, an audio-hours total, a file's
+  date range. Prose drifts from data in ways code review cannot see. Include this lens whenever a
+  write-up quotes numbers.
+- **Edge-case reviewer WITH execution** (ran 34 mutants): its useful output was the list of SURVIVING
+  mutants, plus a real defect: two implementations compared only on the winner, not every score.
+  Reading code alone would not have found that. Give it tools and ask for surviving mutants, not opinions.
+- **Scientific rigour + primary source:** found the one substantive scope issue (a geometric conclusion
+  that held only under an unstated orientation assumption) and two ambiguous question wordings.
+- **Security:** low yield for a research script run by its author (hygiene fixes only). Still worth one
+  pass when a change downloads or parses external files.
+
+Then make each accepted finding a standing check (a goal criterion or a test). Do not just fix it once:
+see skill `findings-as-goals`.
+
+**Mutation-testing hygiene:** confirm the suite is green BEFORE mutating (a red baseline makes every
+mutant read "1 failed"), and detect mutants whose pattern did not apply (`cmp` against the original).
+
 ## Meta-invariant for harness.md entries
 
 Every new invariant must be a **CONSUMPTION invariant** (asserts a consumer reads/acts), not a
