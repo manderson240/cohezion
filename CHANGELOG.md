@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.27.2] - 2026-11-05
+
+### Fixed — Session bus no longer hands every new session the whole broadcast backlog
+- `SessionBus._pending` delivers broadcasts only while `created_at` is within `COHEZION_BUS_BROADCAST_MAX_AGE_H` hours (default 72; `inf` removes the bound). Acks are per session, so each new session id used to drain all ~90 historical broadcasts (110 KB) through the UserPromptSubmit inbox hook, about 8 KB per prompt. Measured on the live bus: old code returned a 50-row / 67.5 KB first page for a fresh sid; new code returns 0.
+- The bound sits inside the SQL `WHERE`, before `ORDER BY ... LIMIT 50`, so a fresh broadcast is never starved by a stale page. Direct messages stay unbounded. The cap also applies to REPLY broadcasts (shared query).
+- Uppercase `'ALL'` is now matched as a broadcast address; two live rows used it and no inbox could see them.
+- Tests: `tests/sessions/test_broadcast_age_cap.py` (hermetic query-shape tests plus live tests against a throwaway SurrealDB database, which skip when :8001 is down).
+
 ## [1.27.1] - 2026-09-27
 
 ### Performance — Lazy package facades (dynamic modularity audit R1/R2)

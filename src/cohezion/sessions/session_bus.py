@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import json
 import logging
+import math
 import os
 import re
 import urllib.request
@@ -34,6 +35,33 @@ _BOOT_ID_PATH = "/proc/sys/kernel/random/boot_id"
 # never heartbeats at all. 12h therefore tolerates an overnight idle gap while still
 # excluding the 33h ghost row that motivated this. Widen before narrowing (see _liveness).
 _STALE_AFTER_S = 12 * 3600
+
+# Broadcast delivery horizon. Acks are per session (acked_by), so without a bound every NEW
+# session id inherits the entire broadcast history: measured 2026-11-05, 90+ rows / 110 KB,
+# drained ~8 KB per prompt by session-inbox.sh. Broadcasts older than this are not
+# delivered; direct messages (to_session = <sid>) stay unbounded. `inf` disables the bound.
+_BROADCAST_MAX_AGE_ENV = "COHEZION_BUS_BROADCAST_MAX_AGE_H"
+_DEFAULT_BROADCAST_MAX_AGE_H = 72.0
+# Broadcast addressees. Uppercase 'ALL' exists in live rows and was previously unreachable.
+_BROADCAST_TARGETS = ("all", "ALL")
+# Above this a bound is meaningless, and a large enough one makes SurrealDB ERR on
+# `time::now() - Ns` (measured on 3.3.0 at 1e15h). _sql reads ERR as no-rows, which would
+# silently drop DIRECT messages too, so anything beyond a century is treated as unbounded.
+_MAX_FINITE_BROADCAST_AGE_H = 24 * 365 * 100
+
+
+def _broadcast_max_age_s() -> float:
+    """Broadcast age bound in seconds, read at call time; malformed/non-positive -> default."""
+    raw = os.environ.get(_BROADCAST_MAX_AGE_ENV, "").strip()
+    try:
+        hours = float(raw) if raw else _DEFAULT_BROADCAST_MAX_AGE_H
+    except ValueError:
+        hours = _DEFAULT_BROADCAST_MAX_AGE_H
+    if math.isnan(hours) or hours <= 0:
+        hours = _DEFAULT_BROADCAST_MAX_AGE_H
+    if hours > _MAX_FINITE_BROADCAST_AGE_H:
+        return math.inf
+    return hours * 3600
 
 
 class MessageKind(Enum):
@@ -231,6 +259,8 @@ class SessionBus:
         kind: MessageKind = MessageKind.MSG,
         from_session: str = "",
     ) -> None:
+        if to_session.strip().lower() == "all":
+            to_session = "all"  # one canonical broadcast address; 'All' etc. were unreachable
         _sql(
             f"CREATE session_bus SET to_session = {json.dumps(to_session)}, "
             f"from_session = {json.dumps(from_session)}, kind = {json.dumps(kind.value)}, "
@@ -242,9 +272,23 @@ class SessionBus:
         sid = _assert_sid(session_id)
         # SPAWN_REQUEST is deliberately unreachable here: callers pass MSG or REPLY only,
         # and the WHERE clause pins the kind — the Tier-3 seam stays inert (SCP3).
+        #
+        # The broadcast age bound MUST live in the WHERE, ahead of ORDER BY ... LIMIT: a
+        # Python-side filter would still fetch the 50 OLDEST stale rows and never reach a
+        # fresh one. A broadcast row with no created_at fails the comparison and is dropped.
+        # Applies to REPLY broadcasts too (shared query); direct messages are never aged out.
+        targets = json.dumps(list(_BROADCAST_TARGETS))
+        max_age_s = _broadcast_max_age_s()
+        if math.isinf(max_age_s):
+            broadcast = f"to_session IN {targets}"
+        else:
+            broadcast = (
+                f"(to_session IN {targets} "
+                f"AND created_at > time::now() - {max(1, math.ceil(max_age_s))}s)"
+            )
         return _sql(
             f"SELECT * FROM session_bus WHERE kind = {json.dumps(kind.value)} "
-            f"AND (to_session = {json.dumps(sid)} OR to_session = 'all') "
+            f"AND (to_session = {json.dumps(sid)} OR {broadcast}) "
             f"AND {json.dumps(sid)} NOT IN acked_by ORDER BY created_at ASC LIMIT 50;"
         )
 
