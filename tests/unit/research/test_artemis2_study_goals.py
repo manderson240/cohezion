@@ -51,13 +51,18 @@ def test_dry_locker_claim_fails_when_flight_was_humid():
 
 
 def test_far_side_claim_fails_if_a_flash_moves_onto_the_near_side(monkeypatch):
-    flashes = {"1": {"models": {"A": {"lon_E": 140.0}, "B": {"lon_E": 141.0}}},
-               "2": {"models": {"A": {"lon_E": 95.0}, "B": {"lon_E": 96.0}}},
+    flashes = {"1": {"models": {"A": {"lon_E": 140.0, "lat": -20.0}, "B": {"lon_E": 141.0, "lat": -20.0}}},
+               "2": {"models": {"A": {"lon_E": 95.0, "lat": -15.0}, "B": {"lon_E": 96.0, "lat": -15.0}}},
                "3": {"models": None}}  # fmt: skip
-    monkeypatch.setattr(sg, "committed", lambda name: {"flashes": flashes})
+    data = {"flashes": flashes, "earth_view": {"sub_lon": 359.18, "sub_lat": 6.72}}
+    monkeypatch.setattr(sg, "committed", lambda name: data)
     ok, evidence = sg.flashes_far_side(None)
     assert ok is False
-    assert "95.0E" in evidence
+    assert "'2': 7.3" in evidence  # 7.3 deg beyond the limb, short of the required 10
+
+
+def test_far_side_claim_holds_on_the_committed_map():
+    assert sg.flashes_far_side(None)[0] is True
 
 
 def test_goal_is_satisfied_only_when_every_criterion_passes():

@@ -82,7 +82,7 @@
      "id": "F2",
      "description": "In the render's orientation, all mapped flashes lie >=10 deg beyond Earth's limb",
      "verified": true,
-     "evidence": "westernmost flash 102.6E is 13.4 deg beyond Earth's limb (89.2E)"
+     "evidence": "degrees beyond Earth's limb per flash: {'1': 50.0, '2': 14.6, '3': 73.3, '4': 26.8, '5': 23.0}"
     },
     {
      "id": "F4",
@@ -124,7 +124,7 @@
      "id": "W1",
      "description": "Every registered README figure is present and supported",
      "verified": true,
-     "evidence": "11/11 registered README figures match"
+     "evidence": "12/12 registered README figures match"
     }
    ]
   },
@@ -139,7 +139,7 @@
      "id": "R1",
      "description": "tests/unit/research passes",
      "verified": true,
-     "evidence": "============================== 76 passed in 2.58s =============================="
+     "evidence": "============================== 81 passed in 2.88s =============================="
     }
    ]
   }

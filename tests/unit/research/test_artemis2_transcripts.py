@@ -87,3 +87,16 @@ def test_loop_gaps_has_no_false_cut_at_midnight():
 def test_speakers_in_window_includes_the_whole_stop_second():
     df = _loop([("02:39:00", "2026-04-07 02:39:00.500", "CAPCOM", "late in the stop second")])
     assert tr.speakers_in_window(df, "2026-04-07 02:25:30", "2026-04-07 02:39:00") == {"CAPCOM": 1}
+
+
+def test_malformed_audio_clock_is_skipped_not_fatal():
+    df = pl.DataFrame({
+        "audio_time": ["00:00:00", "", "12:30", "00:00:10", "01:00:20"],
+        "utc": ["2026-04-07 10:00:00.000", "2026-04-07 10:00:05.000", "2026-04-07 10:00:07.000",
+                "2026-04-07 10:00:10.000", "2026-04-07 10:00:20.000"],
+        "speaker": ["A"] * 5, "text": ["x"] * 5,
+        "file": ["art002_2026-04-07_oe1_trn-csv_v01.csv"] * 5, "row": list(range(5)),
+    })  # fmt: skip
+    cuts = tr.loop_gaps(df)["cuts"]
+    assert len(cuts) == 1  # the 1-hour rewind of the audio clock, between the two good rows
+    assert cuts[0]["removed_min"] == -60.0

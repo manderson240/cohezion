@@ -13,6 +13,15 @@
     "np_ang": 338.5152,
     "range_km": 11762.0999
   },
+  "earth_view": {
+    "utc_range": [
+      "2026-04-07T00:45",
+      "2026-04-07T01:05"
+    ],
+    "sub_lon": 359.18,
+    "sub_lat": 6.72,
+    "note": "Earth's sub-observer point on the Moon (Horizons, geocentre); it moved <0.02 deg over the eclipse"
+  },
   "horizons_at_flashes_1_3": {
     "utc": "2026-04-07T00:45",
     "sub_lon": 129.274236,

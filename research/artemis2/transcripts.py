@@ -287,11 +287,9 @@ QUIET_MIN = 25  # report conversation gaps at least this long
 
 def _clock_s(col: str) -> pl.Expr:
     parts = pl.col(col).str.split(":")
-    return (
-        parts.list.get(0).cast(pl.Float64) * 3600
-        + parts.list.get(1).cast(pl.Float64) * 60
-        + parts.list.get(2).cast(pl.Float64)
-    )
+    get = lambda i: parts.list.get(i, null_on_oob=True).cast(pl.Float64, strict=False)  # noqa: E731
+    # a malformed audio clock gives null (the row is then skipped), not an aborted run
+    return pl.when(parts.list.len() == 3).then(get(0) * 3600 + get(1) * 60 + get(2))
 
 
 def loop_gaps(df: pl.DataFrame) -> dict:
@@ -311,7 +309,8 @@ def loop_gaps(df: pl.DataFrame) -> dict:
         )
     )
     cuts, quiet = [], []
-    for name, g in loops.filter(pl.col("t").is_not_null()).group_by("file", maintain_order=True):
+    dated = loops.filter(pl.col("t").is_not_null() & pl.col("offset").is_not_null())
+    for name, g in dated.group_by("file", maintain_order=True):
         rows = g.sort("row").to_dicts()
         for a, b in pairwise(rows):
             jump = b["offset"] - a["offset"]

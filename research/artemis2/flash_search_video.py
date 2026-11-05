@@ -74,7 +74,7 @@ def decode(path: Path, first: int, count: int) -> np.ndarray:
         "-frames:v", str(count), "-map", "0:v:0", "-an",
         "-vf", f"format=gray,dilation,scale={W // POOL}:{H // POOL}:flags=neighbor", "-f", "rawvideo", "-",
     ]  # fmt: skip
-    raw = subprocess.run(cmd, capture_output=True, check=True).stdout
+    raw = subprocess.run(cmd, capture_output=True, check=True, timeout=3600).stdout  # one chunk
     w, h = W // POOL, H // POOL
     n = len(raw) // (w * h)
     return np.frombuffer(raw[: n * w * h], np.uint8).reshape(n, h, w)

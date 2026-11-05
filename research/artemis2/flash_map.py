@@ -55,6 +55,12 @@ HORIZONS = [
     ("2026-04-07T01:00", 124.452893, -3.595490, 338.6122, 0.00007737717301),
     ("2026-04-07T01:05", 122.966602, -3.579186, 338.4909, 0.00007893668369),
 ]
+# JPL Horizons, COMMAND='301' CENTER='500@399' (geocentre) QUANTITIES='14', fetched 2026-11-05.
+# Earth's sub-observer point on the Moon; Earth sees the hemisphere within 90 deg of it.
+HORIZONS_EARTH = [
+    ("2026-04-07T00:45", 359.189925, 6.721176),
+    ("2026-04-07T01:05", 359.172428, 6.719616),
+]
 RENDER_FRACTION = 4 / 5  # 01:04 lies 4/5 of the way from 01:00 to 01:05
 AU_KM = 149_597_870.7
 MOON_RADIUS_KM = 1737.4
@@ -362,6 +368,12 @@ def main() -> None:
         "image_px": [int(im.shape[1]), int(im.shape[0])],
         "render_time_utc": view["utc"],
         "horizons_view": {k: round(v, 4) if isinstance(v, float) else v for k, v in view.items()},
+        "earth_view": {
+            "utc_range": [HORIZONS_EARTH[0][0], HORIZONS_EARTH[-1][0]],
+            "sub_lon": round(sum(r[1] for r in HORIZONS_EARTH) / len(HORIZONS_EARTH), 2),
+            "sub_lat": round(sum(r[2] for r in HORIZONS_EARTH) / len(HORIZONS_EARTH), 2),
+            "note": "Earth's sub-observer point on the Moon (Horizons, geocentre); it moved <0.02 deg over the eclipse",
+        },
         "horizons_at_flashes_1_3": dict(
             zip(("utc", "sub_lon", "sub_lat", "np_ang", "range_au"), HORIZONS[0], strict=True)
         ),

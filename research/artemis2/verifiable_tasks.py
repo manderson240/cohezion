@@ -402,7 +402,7 @@ def task_largest_cut(df: pl.DataFrame, raw: list[dict]) -> dict:
         rows = rows.filter(pl.col("t").is_not_null()).with_columns(
             off=pl.col("t").dt.epoch("ms") / 1000 - trn._clock_s("audio_time")
         )
-        jump = rows.sort("row")["off"].diff().max() / 60
+        jump = rows.filter(pl.col("off").is_not_null()).sort("row")["off"].diff().max() / 60
         return scores, jump
 
     def independent():
@@ -410,7 +410,10 @@ def task_largest_cut(df: pl.DataFrame, raw: list[dict]) -> dict:
         for r in raw:
             t = std_utc(r["utc"])
             if LOOPS_FILE.search(r["file"]) and t is not None:
-                h, m, s = (float(x) for x in r["audio_time"].split(":"))
+                parts = r["audio_time"].split(":")
+                if len(parts) != 3:  # malformed audio clock: skipped, like an undated utc
+                    continue
+                h, m, s = (float(x) for x in parts)
                 off = (t - datetime(1970, 1, 1)).total_seconds() - (h * 3600 + m * 60 + s)
                 by_file[r["file"]].append((r["row"], off))
         scores, exact = {}, {}

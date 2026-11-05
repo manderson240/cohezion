@@ -6,6 +6,7 @@ where the two implementations disagree. Each test below fails if one of those ga
 
 from __future__ import annotations
 
+import csv
 import importlib.util
 import sys
 from datetime import UTC, datetime
@@ -137,4 +138,75 @@ def test_rh_jump_ignores_a_bigger_jump_before_launch():
     dfs, raw = _hobo_pair({"A": [(before, 50.0), (during, 3.0)], "B": [(during, 10.0)]})
     rec = vt.task_rh_jump(dfs, raw)
     assert rec["selected_entity"] == "B"  # A's 50 % jump was on the pad, not in flight
+    assert "rejected_because" not in rec
+
+
+def _write_transcripts(root: Path) -> None:
+    """Two voice-loop files and one PCD file with planted winners and traps."""
+    loops = root / "data_transcripts_loops"
+    pcd = root / "data_transcripts_pcd"
+    loops.mkdir()
+    pcd.mkdir()
+    head = "audio_time,utc,speaker,text\n"
+    rows_a = [  # 04-07: Koch 3 rows (one with a trailing space), Wiseman 2, tagged/typo labels ignored
+        ("00:00:00", "2026-04-07 10:00:00.000", "Koch ", "one two"),
+        ("00:00:10", "2026-04-07 10:00:10.000", "Koch", "three"),
+        ("00:00:20", "2026-04-07 10:00:20.000", "Koch", "four [[inaudible]] five"),
+        ("00:00:30", "2026-04-07 10:00:30.000", "Wiseman", "a b c d e f g h i j"),
+        ("00:00:40", "2026-04-07 10:00:40.000", "Hansen [CAPCOM]", "tagged " * 40),
+        ("00:00:50", "2026-04-07 10:00:50.000", "Hasnen", "typo " * 40),
+        # audio jumps 30 min forward in wall clock: a 30-minute cut
+        ("00:01:00", "2026-04-07 10:31:00.000", "Wiseman", "k l"),
+    ]
+    rows_b = [  # a smaller 5-minute cut in a second loop file, plus 04-06 rows that must not count
+        ("00:00:00", "2026-04-06 09:00:00.000", "Glover", "x"),
+        ("00:00:10", "2026-04-06 09:00:10.000", "Glover", "y"),
+        ("00:00:20", "2026-04-06 09:05:20.000", "Glover", "z"),
+    ]
+    rows_c = [  # a continuous loop file: no cut, so it must not appear among the cut scores
+        ("00:00:00", "2026-04-08 09:00:00.000", "CAPCOM", "p"),
+        ("00:00:40", "2026-04-08 09:00:40.000", "CAPCOM", "q"),
+    ]
+    for path, rows in ((loops / "art002_2026-04-08_oe1_trn-csv_v01.csv", rows_c),
+                       (loops / "art002_2026-04-07_oe1_trn-csv_v01.csv", rows_a),
+                       (loops / "art002_2026-04-06_oe1_trn-csv_v01.csv", rows_b),
+                       (pcd / "art002a000001_pcd1_trn-csv_v01.csv",
+                        [("00:00:00", "2026-04-07 11:00:00.000", "Wiseman", "w " * 5)])):  # fmt: skip
+        with path.open("w", newline="") as fh:
+            w = csv.writer(fh)
+            fh.write(head)
+            w.writerows(rows)
+
+
+@pytest.fixture
+def synthetic(tmp_path):
+    _write_transcripts(tmp_path)
+    return vt.trn.load(tmp_path), vt.std_transcripts(tmp_path)
+
+
+def test_crew_rows_counts_exact_names_on_the_day_only(synthetic):
+    rec = vt.task_crew_rows_on_day(*synthetic)
+    assert rec["selected_entity"] == "Koch"  # 3 rows incl. the trailing-space one
+    assert rec["answer"] == 3
+    assert "Hansen" not in rec["selection_scores"]  # tagged and misspelled labels do not count
+    assert "Glover" not in rec["selection_scores"]  # Glover spoke on 04-06 only
+    assert "rejected_because" not in rec  # both implementations trim the trailing space
+
+
+def test_crew_words_strips_annotations_and_counts_pcd(synthetic):
+    rec = vt.task_crew_words(*synthetic)
+    assert rec["selected_entity"] == "Wiseman"
+    assert rec["answer"] == 10 + 2 + 5  # loops rows plus the PCD row
+    assert rec["selection_scores"]["Koch"] == 2 + 1 + 2  # "[[inaudible]]" removed
+    assert "rejected_because" not in rec
+
+
+def test_largest_cut_finds_the_planted_30_minute_cut(synthetic):
+    rec = vt.task_largest_cut(*synthetic)
+    assert rec["selected_entity"] == "art002_2026-04-07_oe1_trn-csv_v01.csv"
+    assert rec["answer"] == pytest.approx(
+        30.0, abs=0.01
+    )  # 30 min 10 s of wall clock, 10 s of audio
+    assert rec["runner_up"] == "art002_2026-04-06_oe1_trn-csv_v01.csv"
+    assert "art002_2026-04-08_oe1_trn-csv_v01.csv" not in rec["selection_scores"]
     assert "rejected_because" not in rec

@@ -265,8 +265,9 @@ logged live.
 
 **Finding: the flashes were on the lunar far side, not the near side.** Every marked flash is
 at 102–164°E. From Earth that night the Moon's disk was centred on 359.2°E (a JPL Horizons
-geocentric query; the value is not stored in a committed file), so Earth could see only up to
-about 89°E. The nearest, #2, is about 13° beyond Earth's limb. Moving it into view would need
+geocentric query, stored as `earth_view` in `flash_annotations.json`; Earth's view was centred
+at 6.7°N), so Earth could see only up to about 89°E. The nearest, #2, is about 15° beyond
+Earth's limb (14.6° on the great circle; comparing longitudes alone gives 13°). Moving it into view would need
 a hand-placement error of about a fifth of the disk radius.
 
 This assumes the crew drew their dots in the render's own orientation. Orion's view was centred
@@ -629,17 +630,19 @@ corrections in commit `6c9d523`._
 _Interactive version: `research/artemis2/site/index.html` (self-contained; locker series are 20-minute means of the HOBO data, flyby photo counts are 10-minute bins of crew-camera label times)._
 
 ## Open items (as of 2026-11-04)
-- **SPICE bundle** (camera pointing): still unreleased. On 2026-11-04 NAIF's top-level
-  listing had no Artemis II directory. It has an `ARTEMIS/` directory, last modified
-  2026-07-21; whether that belongs to Artemis II was not checked. The NAIF path and DOI in the Data
-  User Guide return 404. When it appears, check whether the mapped flash sites were in the
+- **SPICE bundle** (camera pointing): still unreleased. NAIF's `ARTEMIS/` directory is
+  Artemis II, checked 2026-11-05. It holds only a reconstructed trajectory: `kernels/spk/`
+  has `art002_rec_260402_260410_jsc_bet_revf.bsp`, a gap-filled version and the
+  `EM2_FODNAVBET_revF_PUBLIC.oem` ephemeris, all dated 2026-07-21. It has no camera-pointing
+  (CK) or frame kernels, and the PDS SPICE bundle path and DOI in the Data User Guide still
+  return 404. The trajectory could replace Horizons for the flash map's geometry, but only
+  pointing can test whether the flash sites were in a camera's field. When it appears, check whether the mapped flash sites were in the
   SAW3 field, and redo the flash map with archived pointing.
 - **Voice-loop audio**: returned HTTP 403. Once it can be fetched, check the President-call
   answers and the 6-minute cut at 04-07 22:31 against the sound itself.
 - **Moving-object search**: covers the ~40 h of other SAW3 video and the crew photo
   bursts. Star-field plate solving would recover camera pointing without SPICE.
 - **Unsupported figures** (fact-check, round 2): no committed file backs several figures:
-  - the 359.2°E geocentric centre;
   - section 2's target-request numbers;
   - the stills and video exposure details, and the planet separations;
   - the quotes beyond the 39 verified events.

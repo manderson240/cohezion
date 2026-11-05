@@ -42,10 +42,6 @@ from cohezion.compound.goals_and_loops_orchestrator import (  # noqa: E402
 )
 
 
-EARTH_LIMB_E = 89.2  # deg E: sub-Earth longitude 359.2E (JPL Horizons, 2026-04-07 01:04 UTC) + 90
-SUB_EARTH = (359.2, 6.72)  # (lon E, lat) of the sub-Earth point, same Horizons query
-
-
 def committed(name: str) -> dict:
     return json.loads((HERE / name).read_text())
 
@@ -157,14 +153,22 @@ def flashes_reproduce(s: Study) -> tuple[bool, str]:
     return all(same.values()), f"model coordinates identical per flash: {same}"
 
 
-def flashes_far_side(s: Study) -> tuple[bool, str]:
-    lons = [m["lon_E"] for f in committed("flash_annotations.json")["flashes"].values() if f["models"]
-            for m in f["models"].values()]  # fmt: skip
-    margin = min(lons) - EARTH_LIMB_E
-    return (
-        margin >= 10,
-        f"westernmost flash {min(lons)}E is {margin:.1f} deg beyond Earth's limb ({EARTH_LIMB_E}E)",
-    )
+def earth_view() -> tuple[float, float]:
+    """Earth's sub-observer point on the Moon, as committed by flash_map.py (JPL Horizons)."""
+    v = committed("flash_annotations.json")["earth_view"]
+    return v["sub_lon"], v["sub_lat"]
+
+
+def flashes_far_side(_s: Study) -> tuple[bool, str]:
+    """Every mapped flash is more than 100 deg from Earth's sub-observer point, i.e. at least
+    10 deg beyond Earth's limb, in both grid fits (render orientation assumed)."""
+    earth = earth_view()
+    beyond = {
+        k: round(min(_gc_deg(earth, (m["lon_E"], m["lat"])) for m in f["models"].values()) - 90, 1)
+        for k, f in committed("flash_annotations.json")["flashes"].items()
+        if f["models"]
+    }
+    return min(beyond.values()) >= 10, f"degrees beyond Earth's limb per flash: {beyond}"
 
 
 def _gc_deg(a: tuple[float, float], b: tuple[float, float]) -> float:
@@ -179,7 +183,7 @@ def flashes_far_side_any_rotation(_s: Study) -> tuple[bool, str]:
     fa = committed("flash_annotations.json")
     v = fa["horizons_view"]
     centre = (v["sub_lon"], v["sub_lat"])
-    safe = _gc_deg(centre, SUB_EARTH) - 90  # how far beyond Earth's limb the view centre is
+    safe = _gc_deg(centre, earth_view()) - 90  # how far beyond Earth's limb the view centre is
     dist = {
         k: round(max(_gc_deg(centre, (m["lon_E"], m["lat"])) for m in f["models"].values()), 1)
         for k, f in fa["flashes"].items()
@@ -195,6 +199,7 @@ README_REGISTER: list[tuple[str, Callable[[], bool]]] = [
     ("about 18 minutes after splashdown", lambda: committed("hobo_results.json")["splashdown_humidity"]["SN1104"]["AH_onset_5sigma_at"].startswith("2026-04-11 00:24")),
     ("37 are flicker", lambda: committed("flash_search_video.json")["triage"] == {"from_dark": 3, "existing_source_brightening": 37}),
     ("102–164°E", lambda: _lon_span() == (102, 164)),
+    ("about 15° beyond", lambda: round(_nearest_beyond_limb()) == 15),
     ("6,355", lambda: committed("transcript_events.json")["quality"]["rows"] == 6355),
     ("61 `[[inaudible", lambda: committed("transcript_events.json")["quality"]["inaudible_markers"] == 61),
     ("24.77 °C", lambda: _answer("hobo-rh-jump-temperature") == 24.77),
@@ -209,6 +214,16 @@ def _lon_span() -> tuple[int, int]:
     lons = [m["lon_E"] for f in committed("flash_annotations.json")["flashes"].values() if f["models"]
             for m in f["models"].values()]  # fmt: skip
     return int(min(lons)), round(max(lons))
+
+
+def _nearest_beyond_limb() -> float:
+    earth = earth_view()
+    return min(
+        _gc_deg(earth, (m["lon_E"], m["lat"])) - 90
+        for f in committed("flash_annotations.json")["flashes"].values()
+        if f["models"]
+        for m in f["models"].values()
+    )
 
 
 def _answer(task_id: str) -> float:
