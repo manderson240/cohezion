@@ -30,9 +30,14 @@ import inspect
 import json
 import logging
 import re
+import shutil
+import subprocess
 import urllib.request
 from collections.abc import Callable
+from pathlib import Path
 from typing import Any
+
+from cohezion.data_mesh import mesh_sig
 
 
 logger = logging.getLogger(__name__)
@@ -43,6 +48,12 @@ _AUTH = "Basic cm9vdDpyb290"  # root:root — fleet default, matches compound_pe
 WORK_QUEUE_API = "http://localhost:8080/api/work-queue"
 TABLE = "data_product_event"
 DEFAULT_CONSUMER_ID = "datamesh-event-consumer"
+
+# Event-driven drift route for the CAPELLA warehouse (never a timer).
+SIGNING_SOURCE_PREFIX = "uap:capella"
+DRIFT_SCRIPT = Path.home() / "uap-corpus" / "pursue" / "capella_mesh.py"
+DRIFT_EVENT_TYPES = {"data_product_updated", "updated", "data_product_quality_report"}
+CAPELLA_PRODUCT_ID = "uap-capella-warehouse"
 
 # SCP1: record ids are raw-interpolated into SurrealQL — guard the charset.
 _SAFE_RECORD_ID = re.compile(r"^[A-Za-z0-9_]+:[A-Za-z0-9⟨⟩_-]+$")
@@ -152,6 +163,7 @@ class EventConsumer:
         file_work_item_fn: Callable[..., str] | None = None,
         land_review_fn: Callable[..., Any] | None = None,
         residency_fn: Callable[[dict[str, Any]], Any] | None = None,
+        key_fn: Callable[[Any], bytes | None] | None = None,
     ) -> None:
         if not re.match(r"^[A-Za-z0-9_.\-]+$", consumer_id):
             raise ValueError(f"unsafe consumer_id: {consumer_id!r}")
@@ -165,6 +177,8 @@ class EventConsumer:
         self._residency = (
             residency_fn  # lazy default (see _handle_residency) — avoids import at module load
         )
+        self._key_fn = key_fn or mesh_sig.load_key
+        self._unverifiable_filed = False  # dedupe: one work item per run_once
         self._ensure_claim_field()
 
     def _ensure_claim_field(self) -> None:
@@ -197,7 +211,79 @@ class EventConsumer:
         if errs:
             raise RuntimeError(f"claim failed for {record_id}: {errs[0].get('result')}")
 
+    def _sig_verdict(self, event: dict[str, Any]) -> str:
+        """ok | BAD | none | unverifiable (signed but no usable key)."""
+        try:
+            data = json.loads(str(event.get("payload", "")))
+        except ValueError:
+            return "none"
+        sig = data.get("_sig") if isinstance(data, dict) else None
+        if sig is None:
+            return "none"
+        key = self._key_fn(sig.get("kid") if isinstance(sig, dict) else None)
+        return "unverifiable" if key is None else mesh_sig.verify_sig(event, key)
+
+    def _file_mesh_item(
+        self, title: str, event: dict[str, Any], verdict: str, priority: int
+    ) -> str:
+        return self._call_file_work_item(
+            title,
+            f"sig={verdict} event={event.get('id', '?')} type={event.get('event_type')}",
+            str(event.get("source", "datamesh")),
+            priority,
+        )
+
     def handle(self, event: dict[str, Any]) -> dict[str, Any]:
+        """Verify the HMAC on signed rows, then route; every result carries ``sig``."""
+        verdict = self._sig_verdict(event)
+        etype, source = str(event.get("event_type", "")), str(event.get("source", ""))
+        if verdict == "BAD":  # forged/tampered: never run the normal handler
+            item = self._file_mesh_item(
+                f"mesh: BAD signature on {etype} from {source}", event, verdict, 2
+            )
+            return {"action": "rejected_sig", "sig": "BAD", "work_item": item}
+        if verdict == "none" and source.startswith(SIGNING_SOURCE_PREFIX):
+            self._file_mesh_item("mesh: unsigned event from a signing source", event, verdict, 2)
+        elif verdict == "unverifiable" and not self._unverifiable_filed:
+            self._unverifiable_filed = True
+            self._file_mesh_item("mesh: signed event but no usable mesh key", event, verdict, 2)
+        out = self._dispatch(event)
+        out["sig"] = verdict
+        if self._is_capella_drift_trigger(event):
+            out["drift"] = self._run_drift()
+        return out
+
+    @staticmethod
+    def _is_capella_drift_trigger(event: dict[str, Any]) -> bool:
+        if str(event.get("source", "")) != SIGNING_SOURCE_PREFIX:
+            return False
+        if str(event.get("event_type", "")).lower() not in DRIFT_EVENT_TYPES:
+            return False
+        try:
+            data = json.loads(str(event.get("payload", "")))
+        except ValueError:
+            return False
+        return isinstance(data, dict) and data.get("product_id") == CAPELLA_PRODUCT_ID
+
+    @staticmethod
+    def _run_drift() -> int | str:
+        """capella_mesh.py drift: exit 0 ok / 2 drift / 3 no-baseline (it publishes its own alert)."""
+        python = shutil.which("python3")
+        if not DRIFT_SCRIPT.exists() or python is None:
+            return "script-missing"
+        try:
+            done = subprocess.run(
+                [python, str(DRIFT_SCRIPT), "drift"],
+                cwd=str(DRIFT_SCRIPT.parent),
+                timeout=120,
+                capture_output=True,
+                check=False,
+            )
+        except subprocess.TimeoutExpired:
+            return "timeout"
+        return done.returncode
+
+    def _dispatch(self, event: dict[str, Any]) -> dict[str, Any]:
         """Deterministic routing; local inference writes the summary only."""
         etype = str(event.get("event_type", "")).lower()
         payload = str(event.get("payload", ""))
@@ -305,6 +391,7 @@ class EventConsumer:
             "tallied": 0,
             "failed": {},
         }
+        self._unverifiable_filed = False
         for event in self.fetch_unclaimed(batch):
             rid = str(event.get("id", ""))
             summary["fetched"] += 1

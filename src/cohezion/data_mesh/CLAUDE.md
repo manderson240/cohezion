@@ -4,7 +4,7 @@ This file loads in addition to the root `CLAUDE.md`. Root applies here too.
 
 **Purpose:** Data Mesh architecture for Cohezion's multi-agent system. Maps Zhamak Dehghani's 4 Data Mesh principles to Cohezion: 1. Domain ownership → Each specialist agent owns its data domain 2. Data as product
 
-## Entry points (21 modules)
+## Entry points (22 modules)
 
 | Module | Key class(es) | LOC |
 |---|---|---|
@@ -26,6 +26,7 @@ This file loads in addition to the root `CLAUDE.md`. Root applies here too.
 | `universe_telemetry.py` | `UniverseStateEvent` | 52 |
 | `fleet_autotuning_datamesh_consumer.py` | `DataMeshFleetAutotuningConsumer` | 127 |
 | `graph_relational_mesh.py` | `CycleVerificationState`, `SurrealDBGraphRelationalEventLogCrossSessionMesh` | 44 |
+| `mesh_sig.py` | _(functions)_ `canon`, `verify_sig`, `load_key` | 76 |
 | `multi_session_sanitization_gateway.py` | `MultiSessionSanitizationGateway` | 168 |
 | `durable_precipitation_bridge.py` | `DurableWitnessMark`, `DurablePrecipitationBridge` | 216 |
 | `recursive_event_mesh.py` | `MeshState`, `CodebaseSweepReport`, `BleedingEdgeReport`, `MeshCycleOutput` | 266 |
@@ -33,5 +34,6 @@ This file loads in addition to the root `CLAUDE.md`. Root applies here too.
 ## Invariants / notes referencing this package (from harness.md / root CLAUDE.md)
 
 - | `src/cohezion/data_mesh/data_product.py` | **DATA MESH** | Typed data products with SLA for 17+ MCP servers. Dehghani (2022) |
+- `event_consumer.py` verifies the HMAC `_sig` on signed rows (`mesh_sig.py`): BAD -> work item + `rejected_sig` (handler skipped); unsigned from `uap:capella*` or no key -> work item, still handled; `uap:capella` UPDATED/QUALITY_REPORT for `uap-capella-warehouse` runs `capella_mesh.py drift` (event-driven only).
 
 _Seeded 2026-07-22, HAND-MAINTAINED since — there is no generator. The original note credited a `gen_nested_claude.py` that exists in no commit and nowhere on disk; corrected 2026-07-31 so nobody hunts for it or assumes a regeneration will clear drift. Update this file in the same commit as the code. Guarded by `scripts/ci/doc_code_consistency.py`: E1/E2 that every path and module reference resolves, E5 that the declared module count matches the package._
