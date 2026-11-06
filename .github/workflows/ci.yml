@@ -240,6 +240,10 @@ jobs:
       - name: Sync dependencies
         run: uv sync --frozen --extra dev
 
+      # Gating: MCP servers stay on loopback without auth, and every HTTP server checks the key.
+      - name: MCP bind and auth tests (gating)
+        run: uv run pytest tests/mcp/test_bind_host.py tests/mcp/test_mcp_auth.py -q --tb=short
+
       - name: Run unit tests
         run: >
           uv run pytest tests/unit/ -v
@@ -253,10 +257,6 @@ jobs:
       # integration step below, a failure here fails the job and blocks merge.
       - name: Run inference tests (gating)
         run: uv run pytest tests/inference/ -q --tb=short
-
-      # Gating: MCP servers stay on loopback without auth, and every HTTP server checks the key.
-      - name: MCP bind and auth tests (gating)
-        run: uv run pytest tests/mcp/test_bind_host.py tests/mcp/test_mcp_auth.py -q --tb=short
 
       - name: Run integration tests
         run: >
