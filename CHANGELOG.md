@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.27.2] - 2026-11-06
+
 ### Fixed
 - `UnifiedHybridRouter.aquery_lemonade_local` and `LemonadeTransport.query` now return `None`
   for a collapsed reply (one symbol is 90%+ of 64+ non-whitespace chars, e.g. `/` x 2048 from
