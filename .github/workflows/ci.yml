@@ -261,6 +261,10 @@ jobs:
           --junitxml=integration-report.xml
         continue-on-error: true
 
+      # Gating: a root sandbox child must drop to nobody before running untrusted code.
+      - name: Sandbox contract tests (gating)
+        run: uv run pytest tests/compound/test_sandbox_root_drop.py -q --tb=short
+
       - name: Upload coverage
         if: matrix.python-version == '3.13'
         uses: codecov/codecov-action@v6

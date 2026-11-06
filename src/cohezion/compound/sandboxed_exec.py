@@ -30,6 +30,9 @@ CONTRACT — what the rlimit floor does and does NOT contain (measured, not assu
     write/delete files that UID can. ``bwrap --ro-bind / /`` (``isolation == "bwrap+rlimit"``) is
     the filesystem boundary; check ``SandboxResult.isolation``.
   * Other documented gaps: same-UID signals and already-open fds 0-2.
+  * A child started as root drops to ``nobody`` before the limits, because rlimits do not bind
+    root (NPROC=0 does not stop a root fork; CAP_SYS_RESOURCE can raise every hard limit). If
+    the drop cannot be proven, the child refuses before running anything.
   * RESULTS PRODUCED AFTER UNTRUSTED CODE HAS EXECUTED ARE UNTRUSTED DATA. The code shares the
     child process with the result writer and can ``os.write(1, forged_json); os._exit(0)``, so
     ``ok``/``value``/``error``/``stdout``/``traceback`` may be attacker-chosen (including the text
