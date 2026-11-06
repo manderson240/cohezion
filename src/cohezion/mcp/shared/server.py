@@ -1,4 +1,3 @@
-# binds 0.0.0.0 in dev/internal services
 """Shared MCP server utilities."""
 
 from __future__ import annotations
@@ -9,6 +8,8 @@ import os
 from typing import TYPE_CHECKING
 
 from aiohttp import web
+
+from cohezion.mcp.shared.bind import bind_host
 
 
 if TYPE_CHECKING:
@@ -22,6 +23,7 @@ async def run_server(
     app_factory: Callable[[], web.Application] | web.Application,
     default_port: int,
     server_name: str,
+    authenticated: bool = False,
 ):
     """Run an MCP server with UDS and TCP support."""
     port = int(os.getenv("MCP_PORT", str(default_port)))
@@ -37,7 +39,9 @@ async def run_server(
         site = web.UnixSite(runner, uds_path)
     else:
         logger.info(f"Starting {server_name} on port {port}")
-        site = web.TCPSite(runner, "0.0.0.0", port)
+        site = web.TCPSite(
+            runner, bind_host(authenticated=authenticated, server_name=server_name), port
+        )
 
     await site.start()
 

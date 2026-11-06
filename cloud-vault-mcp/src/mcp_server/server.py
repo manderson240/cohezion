@@ -4,6 +4,7 @@ import json
 import logging
 
 from mcp.server.fastmcp import FastMCP
+from mcp.server.transport_security import TransportSecuritySettings
 
 from .agent_context import AgentContextOps
 from .compound_ops import CompoundOps
@@ -60,7 +61,13 @@ def create_server(config: ServerConfig) -> FastMCP:
     mcp = FastMCP(
         "Cloud Vault",
         stateless_http=True,
-        host=config.host,  # 0.0.0.0 disables auto-DNS-rebinding-protection, allowing ngrok hostnames
+        host=config.host,
+        # Host checks live in main.py (TrustedHostMiddleware from ALLOWED_HOSTS).
+        # Without this, a loopback host turns on FastMCP's localhost-only Host
+        # check and rejects requests that arrive through the tunnel hostname.
+        transport_security=TransportSecuritySettings(
+            enable_dns_rebinding_protection=False
+        ),
         instructions=(
             "A knowledge vault MCP server for compound engineering. "
             "Read, write, search, and link Obsidian notes. "

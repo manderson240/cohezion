@@ -31,6 +31,8 @@ from typing import Any
 import httpx
 from fastmcp import FastMCP
 
+from cohezion.mcp.shared.auth import serve_fastmcp_http
+
 
 logger = logging.getLogger("loop-mcp")
 
@@ -452,7 +454,7 @@ def main() -> None:
         app.run(transport="stdio")
     else:
         port = int(os.getenv("MCP_PORT", "8363"))
-        app.run(host="0.0.0.0", port=port, transport="http")
+        serve_fastmcp_http(app, port)
 
 
 if __name__ == "__main__":

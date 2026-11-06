@@ -168,7 +168,7 @@ app = create_app()
 
 async def main():
     """Run the Simulate MCP Server."""
-    await run_server(create_app, MCP_PORT, "Simulate MCP Server")
+    await run_server(create_app, MCP_PORT, "Simulate MCP Server", authenticated=True)
 
 
 if __name__ == "__main__":

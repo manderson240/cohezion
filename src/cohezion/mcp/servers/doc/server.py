@@ -1,4 +1,3 @@
-# binds 0.0.0.0 in dev/internal services
 """BMAD Doc Retriever MCP Server - Standalone document retrieval.
 
 Port: 8364
@@ -27,6 +26,7 @@ from cohezion.mcp.servers.doc.indexer import (
     SimpleSurrealStore,
     SmartChunker,
 )
+from cohezion.mcp.shared.bind import bind_host
 
 
 logging.basicConfig(
@@ -233,7 +233,7 @@ async def main():
     logger.info(f"Starting BMAD Doc Retriever on port {MCP_PORT}")
     runner = web.AppRunner(app)
     await runner.setup()
-    site = web.TCPSite(runner, "0.0.0.0", MCP_PORT)
+    site = web.TCPSite(runner, bind_host(authenticated=True), MCP_PORT)
     await site.start()
 
     logger.info(f"✅ Doc Retriever running on http://localhost:{MCP_PORT}")

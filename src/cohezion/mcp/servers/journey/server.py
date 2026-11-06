@@ -147,7 +147,7 @@ app = create_app()
 
 async def main():
     """Run the Journey MCP Server."""
-    await run_server(create_app, MCP_PORT, "Journey MCP Server")
+    await run_server(create_app, MCP_PORT, "Journey MCP Server", authenticated=True)
 
 
 if __name__ == "__main__":

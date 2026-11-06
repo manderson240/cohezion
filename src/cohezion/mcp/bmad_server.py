@@ -1,4 +1,3 @@
-# binds 0.0.0.0 in dev/internal services
 """BMAD MCP Server - 108 BMAD commands via MCP protocol.
 
 Usage:
@@ -26,6 +25,7 @@ from cohezion.mcp.bmad_app import (
     get_engine,
     logger,
 )
+from cohezion.mcp.shared.auth import serve_fastmcp_http
 
 
 # ============================================================================
@@ -125,7 +125,7 @@ def main():
         # (CodeQL clear-text-logging).
         logger.info("Redis: configured")
         logger.info(f"Transport: {transport}")
-        app.run(host="0.0.0.0", port=port, transport="http")
+        serve_fastmcp_http(app, port)
 
 
 if __name__ == "__main__":

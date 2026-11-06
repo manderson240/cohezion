@@ -1,4 +1,3 @@
-# binds 0.0.0.0 in dev/internal services
 """BMAD MCP Server - Entrypoint.
 
 Port: 8361
@@ -11,6 +10,8 @@ from __future__ import annotations
 import asyncio
 
 from aiohttp import web
+
+from cohezion.mcp.shared.bind import bind_host
 
 # Import route modules to register their @routes decorators
 from ._shared import MCP_PORT, get_engine, logger, routes
@@ -87,7 +88,7 @@ async def main():
     logger.info(f"Starting BMAD MCP Server on port {MCP_PORT}")
     runner = web.AppRunner(app)
     await runner.setup()
-    site = web.TCPSite(runner, "0.0.0.0", MCP_PORT)
+    site = web.TCPSite(runner, bind_host(authenticated=True), MCP_PORT)
     await site.start()
     logger.info(f"BMAD MCP Server running on http://localhost:{MCP_PORT}")
     while True:

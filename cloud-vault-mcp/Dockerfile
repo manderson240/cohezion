@@ -21,6 +21,8 @@ RUN useradd --create-home --shell /bin/bash mcp && \
 
 USER mcp
 
+# Listen on all interfaces inside the container; MCP_API_KEY is required at start.
+ENV MCP_HOST=0.0.0.0
 EXPOSE 8360
 
 HEALTHCHECK --interval=30s --timeout=5s --retries=3 \

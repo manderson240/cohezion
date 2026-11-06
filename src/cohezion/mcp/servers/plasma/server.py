@@ -22,6 +22,7 @@ import uuid
 import numpy as np
 from aiohttp import web
 
+from cohezion.mcp.shared.bind import bind_host
 from cohezion.physics.manifold_utils import SemanticLagrangeFinder
 
 from .models import MCP_PORT
@@ -339,7 +340,7 @@ async def main() -> None:
     logger.info("Starting Plasma Physics MCP Server on port %d", MCP_PORT)
     runner = web.AppRunner(app)
     await runner.setup()
-    site = web.TCPSite(runner, "0.0.0.0", MCP_PORT)
+    site = web.TCPSite(runner, bind_host(authenticated=True), MCP_PORT)
     await site.start()
 
     logger.info("Plasma Physics Server running on http://localhost:%d", MCP_PORT)

@@ -21,6 +21,7 @@ from typing import Any
 from fastmcp import FastMCP
 
 from cohezion.mcp.compound_utils import McpClientResolver, err, mcp_tool, ok
+from cohezion.mcp.shared.auth import serve_fastmcp_http
 
 
 logger = logging.getLogger(__name__)
@@ -490,7 +491,7 @@ def main() -> None:
     transport = os.environ.get("MCP_TRANSPORT", "stdio")
     port = int(os.environ.get("MCP_PORT", "8379"))
     if transport == "http":
-        mcp.run(transport="http", host="0.0.0.0", port=port)
+        serve_fastmcp_http(mcp, port)
     else:
         mcp.run(transport="stdio")
 

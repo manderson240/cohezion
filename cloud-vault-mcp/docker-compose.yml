@@ -6,6 +6,8 @@ services:
     env_file: .env
     environment:
       - VAULT_PATH=/vault
+      # Listen on all interfaces inside the container. MCP_API_KEY (from .env) is required.
+      - MCP_HOST=0.0.0.0
     volumes:
       - vault-data:/vault
     ports:

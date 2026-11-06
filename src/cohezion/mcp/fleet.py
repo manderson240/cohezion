@@ -1,4 +1,3 @@
-# binds 0.0.0.0 in dev/internal services
 """MCP Fleet Manager - Single entry point for all Cohezion MCP servers.
 
 Optimized for: AMD RYZEN AI MAX+ 395 w/ Radeon 8060S
@@ -11,6 +10,8 @@ import argparse
 import logging
 import os
 import sys
+
+from cohezion.mcp.shared.auth import serve_fastmcp_http
 
 
 # Hardware-specific optimizations
@@ -72,7 +73,7 @@ def run_server_sync(name: str, transport: str = "stdio", port: int | None = None
         elif hasattr(module, "app"):
             # FastMCP app.run() will start its own loop
             if transport == "http" and port:
-                module.app.run(transport=transport, host="0.0.0.0", port=port)
+                serve_fastmcp_http(module.app, port)
             else:
                 module.app.run(transport=transport)
     except Exception:
