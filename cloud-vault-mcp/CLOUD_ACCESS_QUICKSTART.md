@@ -79,7 +79,7 @@ Update `~/.claude/mcp.json`:
       "type": "http",
       "url": "http://127.0.0.1:8360/mcp",
       "headers": {
-        "Authorization": "Bearer a712027605bbd33068da5462bbcc18d90f844df23f948f124908fa726d678263"
+        "Authorization": "Bearer $MCP_API_KEY"
       }
     }
   }

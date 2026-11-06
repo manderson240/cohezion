@@ -7,7 +7,7 @@
 cd /home/mike-anderson/dev/cohezion/cloud-vault-mcp
 export VAULT_PATH=/home/mike-anderson/vaults/cohezion-vault
 export MCP_PORT=8360
-export MCP_API_KEY=a712027605bbd33068da5462bbcc18d90f844df23f948f124908fa726d678263
+export MCP_API_KEY=$MCP_API_KEY
 uv run python -m src.mcp_server.main
 ```
 
@@ -78,7 +78,7 @@ pkill -f "python.*mcp_server"
 | Claude Code config | `~/.claude/mcp.json` |
 | Vault directory | `/home/mike-anderson/vaults/cohezion-vault/` |
 | Server logs | `/tmp/mcp_server.log` |
-| API key (for reference) | `a712027605bbd33068da5462bbcc18d90f844df23f948f124908fa726d678263` |
+| API key (for reference) | `$MCP_API_KEY` |
 
 ## 🔐 Configuration Files
 
@@ -89,7 +89,7 @@ pkill -f "python.*mcp_server"
     "type": "http",
     "url": "http://127.0.0.1:8360",
     "headers": {
-      "Authorization": "Bearer a712027605bbd33068da5462bbcc18d90f844df23f948f124908fa726d678263"
+      "Authorization": "Bearer $MCP_API_KEY"
     }
   }
 }
@@ -99,7 +99,7 @@ pkill -f "python.*mcp_server"
 ```bash
 VAULT_PATH=/home/mike-anderson/vaults/cohezion-vault
 MCP_PORT=8360
-MCP_API_KEY=a712027605bbd33068da5462bbcc18d90f844df23f948f124908fa726d678263
+MCP_API_KEY=$MCP_API_KEY
 MCP_HOST=0.0.0.0
 CORS_ORIGINS=*
 ```

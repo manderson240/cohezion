@@ -158,7 +158,7 @@ Host vault-tunnel
       "type": "http",
       "url": "http://127.0.0.1:8360/mcp",
       "headers": {
-        "Authorization": "Bearer a712027605bbd33068da5462bbcc18d90f844df23f948f124908fa726d678263"
+        "Authorization": "Bearer $MCP_API_KEY"
       }
     }
   }
@@ -324,7 +324,7 @@ grep "Accepted\|Failed" /var/log/auth.log | tail -20
 ### 6.3 Token Rotation Strategy
 
 ```bash
-# Current token: a712027605bbd33068da5462bbcc18d90f844df23f948f124908fa726d678263
+# Current token: $MCP_API_KEY
 
 # Generate new token (every 90 days, per security best practices)
 python3 -c "import hashlib,os; print(hashlib.sha256(os.urandom(32)).hexdigest())"
@@ -353,7 +353,7 @@ docker-compose restart mcp-server
 curl http://localhost:8360/health
 
 # Check Bearer token works
-curl -H "Authorization: Bearer a712027605bbd33068da5462bbcc18d90f844df23f948f124908fa726d678263" \
+curl -H "Authorization: Bearer $MCP_API_KEY" \
   http://localhost:8360/mcp
 
 # Should return MCP server info (no "Unauthorized" error)
@@ -369,7 +369,7 @@ ssh -N -f vault-tunnel
 nc -zv 127.0.0.1 8360
 
 # Step 3: Test vault tool
-curl -H "Authorization: Bearer a712027605bbd33068da5462bbcc18d90f844df23f948f124908fa726d678263" \
+curl -H "Authorization: Bearer $MCP_API_KEY" \
   http://127.0.0.1:8360/mcp
 
 # Step 4: Test from Claude Code

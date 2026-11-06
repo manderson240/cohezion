@@ -29,7 +29,7 @@ Vault Directory (/home/mike-anderson/vaults/cohezion-vault)
     "type": "http",
     "url": "http://127.0.0.1:8360",
     "headers": {
-      "Authorization": "Bearer a712027605bbd33068da5462bbcc18d90f844df23f948f124908fa726d678263"
+      "Authorization": "Bearer $MCP_API_KEY"
     }
   }
 }
@@ -59,7 +59,7 @@ The server reads configuration from environment variables:
 ```bash
 export VAULT_PATH=/home/mike-anderson/vaults/cohezion-vault
 export MCP_PORT=8360
-export MCP_API_KEY=a712027605bbd33068da5462bbcc18d90f844df23f948f124908fa726d678263
+export MCP_API_KEY=$MCP_API_KEY
 
 cd /home/mike-anderson/dev/cohezion/cloud-vault-mcp
 uv run python -m src.mcp_server.main
@@ -198,7 +198,7 @@ Returns:
 cd /home/mike-anderson/dev/cohezion/cloud-vault-mcp
 VAULT_PATH=/home/mike-anderson/vaults/cohezion-vault \
 MCP_PORT=8360 \
-MCP_API_KEY=a712027605bbd33068da5462bbcc18d90f844df23f948f124908fa726d678263 \
+MCP_API_KEY=$MCP_API_KEY \
 uv run python -m src.mcp_server.main
 ```
 
@@ -359,7 +359,7 @@ Use compound_record_pattern to document:
 
 ```json
 {
-  "Authorization": "Bearer a712027605bbd33068da5462bbcc18d90f844df23f948f124908fa726d678263"
+  "Authorization": "Bearer $MCP_API_KEY"
 }
 ```
 
@@ -445,5 +445,5 @@ mv /tmp/mcp_server.log /tmp/mcp_server.log.$(date +%Y%m%d_%H%M%S)
 - **FastMCP Documentation**: https://github.com/jlouns/fastmcp
 - **Starlette Docs**: https://www.starlette.io/
 - **Vault Location**: `/home/mike-anderson/vaults/cohezion-vault`
-- **API Key**: `a712027605bbd33068da5462bbcc18d90f844df23f948f124908fa726d678263`
+- **API Key**: `$MCP_API_KEY`
 
