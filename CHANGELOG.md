@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.27.2] - 2026-11-06
+
+### Security — vault API key no longer in the repository
+- The Cloud Vault `MCP_API_KEY` is read from the environment; the hardcoded key is removed from the docs, scripts and `cloud-vault-mcp/run_mcp.py`, and its allow-list entries are dropped from `.secrets.baseline`. The old key must be rotated.
+
 ## [1.27.1] - 2026-09-27
 
 ### Performance — Lazy package facades (dynamic modularity audit R1/R2)
