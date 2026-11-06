@@ -78,7 +78,7 @@ sudo tee /etc/cohezion/mcp.env > /dev/null << ENV
 VAULT_PATH=/home/mike-anderson/vaults/cohezion-vault
 MCP_API_KEY=$MCP_API_KEY
 LOG_LEVEL=info
-MCP_HOST=0.0.0.0
+MCP_HOST=127.0.0.1
 MCP_PORT=8360
 ENV
 

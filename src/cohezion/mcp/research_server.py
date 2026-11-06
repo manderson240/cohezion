@@ -19,6 +19,8 @@ from urllib.parse import quote_plus
 import requests
 from aiohttp import web
 
+from cohezion.mcp.shared.bind import bind_host
+
 
 logger = logging.getLogger(__name__)
 
@@ -479,7 +481,7 @@ async def main():
     get_server()
     runner = web.AppRunner(app)
     await runner.setup()
-    site = web.TCPSite(runner, "0.0.0.0", MCP_PORT)
+    site = web.TCPSite(runner, bind_host(authenticated=False), MCP_PORT)
     await site.start()
     logger.info(f"Research MCP Server running on port {MCP_PORT}")
     while True:

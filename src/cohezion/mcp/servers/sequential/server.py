@@ -1,4 +1,3 @@
-# binds 0.0.0.0 in dev/internal services
 """Sequential Thinking MCP Server - Multi-step reasoning with revision.
 
 Port: 8367
@@ -23,6 +22,8 @@ from dataclasses import dataclass, field
 from datetime import datetime
 
 from aiohttp import web
+
+from cohezion.mcp.shared.bind import bind_host
 
 
 logging.basicConfig(
@@ -352,7 +353,7 @@ async def main():
     logger.info(f"Starting Sequential Thinking MCP Server on port {MCP_PORT}")
     runner = web.AppRunner(app)
     await runner.setup()
-    site = web.TCPSite(runner, "0.0.0.0", MCP_PORT)
+    site = web.TCPSite(runner, bind_host(authenticated=True), MCP_PORT)
     await site.start()
 
     logger.info(f"✅ Sequential Thinking Server running on http://localhost:{MCP_PORT}")

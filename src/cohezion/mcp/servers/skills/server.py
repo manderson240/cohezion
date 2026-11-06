@@ -14,6 +14,8 @@ import sys
 
 from aiohttp import web
 
+from cohezion.mcp.shared.bind import bind_host
+
 from .cache import SkillsCache
 from .client import SkillsShClient
 
@@ -445,7 +447,7 @@ async def main():
     logger.info(f"Starting Skills.sh MCP Server on port {MCP_PORT}")
     runner = web.AppRunner(app)
     await runner.setup()
-    site = web.TCPSite(runner, "0.0.0.0", MCP_PORT)
+    site = web.TCPSite(runner, bind_host(authenticated=True), MCP_PORT)
     await site.start()
 
     logger.info(f"Skills.sh MCP Server running on http://localhost:{MCP_PORT}")

@@ -1,4 +1,3 @@
-# binds 0.0.0.0 in dev/internal services
 """MCP Server Manager - HTTP routes and application entrypoint."""
 
 from __future__ import annotations
@@ -8,6 +7,8 @@ import logging
 import sys
 
 from aiohttp import web
+
+from cohezion.mcp.shared.bind import bind_host
 
 from .defaults import init_default_servers
 from .models import MANAGER_PORT
@@ -111,7 +112,7 @@ async def main() -> None:
     logger.info("Starting MCP Server Manager on port %d", MANAGER_PORT)
     runner = web.AppRunner(app)
     await runner.setup()
-    site = web.TCPSite(runner, "0.0.0.0", MANAGER_PORT)
+    site = web.TCPSite(runner, bind_host(authenticated=True), MANAGER_PORT)
     await site.start()
 
     while True:

@@ -29,6 +29,8 @@ from typing import Any
 
 from aiohttp import web
 
+from cohezion.mcp.shared.bind import bind_host
+
 
 logging.basicConfig(
     level=logging.INFO,
@@ -302,7 +304,7 @@ if __name__ == "__main__":
             "run",
             str(nb_path),
             "--host",
-            "0.0.0.0",
+            bind_host(authenticated=False, server_name="marimo"),
             "--port",
             str(MARIMO_PORT),
         ]
@@ -510,7 +512,7 @@ async def main():
     logger.info(f"Starting Report Generation MCP Server on port {MCP_PORT}")
     runner = web.AppRunner(app)
     await runner.setup()
-    site = web.TCPSite(runner, "0.0.0.0", MCP_PORT)
+    site = web.TCPSite(runner, bind_host(authenticated=True), MCP_PORT)
     await site.start()
 
     logger.info(f"✅ Report Generation Server running on http://localhost:{MCP_PORT}")

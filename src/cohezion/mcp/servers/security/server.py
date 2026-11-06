@@ -26,6 +26,8 @@ from typing import Any
 
 from aiohttp import web
 
+from cohezion.mcp.shared.bind import bind_host
+
 from .scanner import SecurityChecklist, Vulnerability, build_severity_report
 
 
@@ -493,7 +495,7 @@ async def main():
     logger.info(f"Starting Security MCP Server on port {MCP_PORT}")
     runner = web.AppRunner(app)
     await runner.setup()
-    site = web.TCPSite(runner, "0.0.0.0", MCP_PORT)
+    site = web.TCPSite(runner, bind_host(authenticated=True), MCP_PORT)
     await site.start()
 
     logger.info(f"✅ Security Server running on http://localhost:{MCP_PORT}")

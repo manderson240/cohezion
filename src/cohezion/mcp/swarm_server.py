@@ -1,4 +1,3 @@
-# binds 0.0.0.0 in dev/internal services
 """
 Swarm MCP Server - Access to debate workflow.
 
@@ -15,6 +14,7 @@ from typing import Any
 
 from aiohttp import web
 
+from cohezion.mcp.shared.bind import bind_host
 from cohezion.swarm.swarm_types import Perspective, SwarmConfig
 from cohezion.swarm.workflows import DebateWorkflow
 
@@ -136,7 +136,7 @@ async def main():
     get_server()
     runner = web.AppRunner(app)
     await runner.setup()
-    site = web.TCPSite(runner, "0.0.0.0", MCP_PORT)
+    site = web.TCPSite(runner, bind_host(authenticated=False), MCP_PORT)
     await site.start()
     logger.info(f"Swarm MCP Server running on port {MCP_PORT}")
     while True:

@@ -1,4 +1,3 @@
-# binds 0.0.0.0 in dev/internal services
 """
 Knowledge MCP Server - RAG over library and skills.
 
@@ -16,6 +15,8 @@ from pathlib import Path
 from typing import Any
 
 from aiohttp import web
+
+from cohezion.mcp.shared.bind import bind_host
 
 
 logger = logging.getLogger(__name__)
@@ -329,7 +330,7 @@ async def main():
     get_server()
     runner = web.AppRunner(app)
     await runner.setup()
-    site = web.TCPSite(runner, "0.0.0.0", MCP_PORT)
+    site = web.TCPSite(runner, bind_host(authenticated=False), MCP_PORT)
     await site.start()
     logger.info(f"Knowledge MCP Server running on port {MCP_PORT}")
     while True:

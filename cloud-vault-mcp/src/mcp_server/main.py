@@ -11,6 +11,7 @@ from starlette.requests import Request
 from starlette.responses import JSONResponse
 from starlette.routing import Route
 
+from .auth import AuthConfigError, check_auth_config, require_bearer
 from .config import ServerConfig
 from .health import HealthChecker
 from .server import create_server
@@ -39,11 +40,12 @@ def main():
 
     config = ServerConfig.from_env()
 
+    try:
+        check_auth_config(config.api_key, config.host, config.allow_no_auth)
+    except AuthConfigError as err:
+        raise SystemExit(str(err)) from err
     if not config.api_key:
-        logger.warning(
-            "MCP_API_KEY is not set. The server will run without authentication. "
-            "Set MCP_API_KEY environment variable for production use."
-        )
+        logger.warning("MCP_ALLOW_NO_AUTH is set: running without authentication.")
 
     logger.info("Vault path: %s", config.vault_path)
     logger.info("Starting Cloud Vault MCP Server on %s:%d", config.host, config.port)
@@ -161,6 +163,9 @@ def main():
             else:
                 # WebSocket or other protocol
                 await mcp_app(scope, receive, send)
+
+    # Every route except /health needs the API key.
+    app = require_bearer(app, config.api_key)
 
     # Apply HTTPS middleware if TLS is enabled
     if config.tls_enabled and TLSConfig and create_https_app:

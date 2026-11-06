@@ -1,4 +1,3 @@
-# binds 0.0.0.0 in dev/internal services
 """WebMCP Bridge - Routes browser tool calls to real MCP server handlers.
 
 Connects the browser-based AG-UI to the MCP fleet by looking up servers
@@ -17,6 +16,7 @@ import httpx
 from aiohttp import web
 
 from cohezion.mcp.registry import get_registry
+from cohezion.mcp.shared.bind import bind_host
 
 
 logger = logging.getLogger(__name__)
@@ -245,7 +245,7 @@ class WebMCPBridge:
     async def start(self) -> None:
         runner = web.AppRunner(self.app)
         await runner.setup()
-        site = web.TCPSite(runner, "0.0.0.0", self.port)
+        site = web.TCPSite(runner, bind_host(authenticated=False), self.port)
         await site.start()
         logger.info("WebMCP Bridge started on port %d", self.port)
 

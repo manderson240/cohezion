@@ -12,7 +12,13 @@ class ServerConfig:
         default_factory=lambda: os.environ.get("VAULT_PATH", "/vault")
     )
     api_key: str = field(default_factory=lambda: os.environ.get("MCP_API_KEY", ""))
-    host: str = field(default_factory=lambda: os.environ.get("MCP_HOST", "0.0.0.0"))
+    # Loopback by default. Docker sets MCP_HOST=0.0.0.0 inside the container.
+    host: str = field(default_factory=lambda: os.environ.get("MCP_HOST", "127.0.0.1"))
+    allow_no_auth: bool = field(
+        default_factory=lambda: (
+            os.environ.get("MCP_ALLOW_NO_AUTH", "false").lower() == "true"
+        )
+    )
     port: int = field(default_factory=lambda: int(os.environ.get("MCP_PORT", "8360")))
     cors_origins: list[str] = field(
         default_factory=lambda: os.environ.get("CORS_ORIGINS", "*").split(",")

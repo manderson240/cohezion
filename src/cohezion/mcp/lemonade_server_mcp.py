@@ -27,6 +27,8 @@ from typing import Any
 import httpx
 from fastmcp import FastMCP
 
+from cohezion.mcp.shared.bind import bind_host
+
 
 logging.basicConfig(
     level=logging.INFO,
@@ -410,7 +412,7 @@ def main():
         app.run(transport="stdio")
     else:
         port = int(os.getenv("MCP_PORT", "8362"))
-        app.run(host="0.0.0.0", port=port, transport="http")
+        app.run(host=bind_host(authenticated=False), port=port, transport="http")
 
 
 if __name__ == "__main__":
