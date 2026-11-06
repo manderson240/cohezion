@@ -7,7 +7,7 @@ only: it loads ``safe_exec.py`` by FILE PATH so the child never executes cohezio
 Order is the whole design — everything that needs a file descriptor or a new process happens
 BEFORE the limits, and the untrusted code runs only AFTER every limit has been applied:
   1. read payload, import allow-listed modules + requested bindings (needs open()),
-  2. apply rlimits — NPROC=0 (no fork/os.system), NOFILE=3 (no open()/socket), FSIZE=0,
+  2. drop root to ``nobody`` (rlimits do not bind root), then apply rlimits — NPROC=0 (no fork/os.system), NOFILE=3 (no open()/socket), FSIZE=0,
      AS (memory), CPU. If ANY setrlimit fails we exit WITHOUT executing (fail closed),
   3. exec inside ``safe_exec_globals`` (the in-process allow-list stays as defense in depth),
   4. write one JSON result line to fd 1 with ``os.write`` (sys.stdout is a capture buffer).
@@ -70,6 +70,31 @@ def _jsonable(value):
         return json.loads(json.dumps(_normalize(value), default=_coerce))
     except (TypeError, ValueError, RecursionError):
         return str(value)
+
+
+_NOBODY = 65534
+
+
+def _drop_root() -> None:
+    """Become ``nobody`` if started as root; raise if that cannot be proven.
+
+    rlimits do not bind root: RLIMIT_NPROC=0 does not stop a root process from forking
+    (measured 2026-11-06), and with CAP_SYS_RESOURCE root can raise every hard limit back.
+    So a root child is not sandboxed by the limits at all. After this, the child is an
+    unprivileged UID that the limits bind and that cannot touch root-owned files.
+    """
+    if os.geteuid() != 0:
+        return
+    os.setgroups([])
+    os.setgid(_NOBODY)
+    os.setuid(_NOBODY)
+    if os.getuid() == 0 or os.geteuid() == 0:
+        raise OSError("still root after setuid")
+    try:
+        os.setuid(0)
+    except PermissionError:
+        return
+    raise OSError("could regain root after dropping it")
 
 
 def _apply_limits(cpu_s: int, mem_bytes: int) -> None:
@@ -183,6 +208,11 @@ def main() -> None:
     )
     sys.meta_path.insert(0, _PreloadedSourceFinder(roots))
 
+    try:
+        _drop_root()
+    except OSError as exc:
+        _emit({"ok": False, "error": f"sandbox refused: cannot drop root ({exc})"})
+        return
     try:
         _apply_limits(int(payload["cpu_s"]), int(payload["mem_bytes"]))
     except (OSError, ValueError) as exc:
