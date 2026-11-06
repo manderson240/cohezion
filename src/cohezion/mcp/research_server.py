@@ -19,6 +19,7 @@ from urllib.parse import quote_plus
 import requests
 from aiohttp import web
 
+from cohezion.mcp.shared.auth import api_key_middleware
 from cohezion.mcp.shared.bind import bind_host
 
 
@@ -469,7 +470,7 @@ async def tool_list_hf_tasks(request: web.Request) -> web.Response:
 
 
 def create_app() -> web.Application:
-    app = web.Application()
+    app = web.Application(middlewares=[api_key_middleware])
     app.add_routes(routes)
     return app
 
@@ -481,7 +482,7 @@ async def main():
     get_server()
     runner = web.AppRunner(app)
     await runner.setup()
-    site = web.TCPSite(runner, bind_host(authenticated=False), MCP_PORT)
+    site = web.TCPSite(runner, bind_host(authenticated=True), MCP_PORT)
     await site.start()
     logger.info(f"Research MCP Server running on port {MCP_PORT}")
     while True:

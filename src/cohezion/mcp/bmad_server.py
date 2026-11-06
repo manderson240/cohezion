@@ -25,7 +25,7 @@ from cohezion.mcp.bmad_app import (
     get_engine,
     logger,
 )
-from cohezion.mcp.shared.bind import bind_host
+from cohezion.mcp.shared.auth import serve_fastmcp_http
 
 
 # ============================================================================
@@ -125,7 +125,7 @@ def main():
         # (CodeQL clear-text-logging).
         logger.info("Redis: configured")
         logger.info(f"Transport: {transport}")
-        app.run(host=bind_host(authenticated=False), port=port, transport="http")
+        serve_fastmcp_http(app, port)
 
 
 if __name__ == "__main__":

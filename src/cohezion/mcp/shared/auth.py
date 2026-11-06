@@ -52,3 +52,69 @@ async def api_key_middleware(request: web.Request, handler):
         return web.json_response({"error": "Invalid API key"}, status=403)
 
     return await handler(request)
+
+
+def auth_headers() -> dict[str, str]:
+    """Headers a client needs to call another Cohezion MCP server."""
+    api_key = get_api_key()
+    return {"Authorization": f"Bearer {api_key}"} if api_key else {}
+
+
+class BearerAuthASGI:
+    """ASGI twin of ``api_key_middleware``, for FastMCP's HTTP transport.
+
+    Same rules: ``/health`` is open, everything else needs ``Bearer <MCP_API_KEY>``,
+    and a server with no key configured refuses every request (fails closed).
+    Pure ASGI, so streamed MCP responses pass through untouched.
+    """
+
+    EXCLUDED_PATHS: frozenset[str] = frozenset({"/health"})
+
+    def __init__(self, app) -> None:
+        self.app = app
+
+    async def __call__(self, scope, receive, send) -> None:
+        if scope["type"] not in ("http", "websocket") or scope.get("path") in self.EXCLUDED_PATHS:
+            await self.app(scope, receive, send)
+            return
+        import hmac
+
+        from starlette.responses import JSONResponse
+
+        api_key = get_api_key()
+        header = dict(scope.get("headers") or []).get(b"authorization", b"")
+        if (
+            api_key
+            and header.startswith(b"Bearer ")
+            and hmac.compare_digest(header[7:], api_key.encode())
+        ):
+            await self.app(scope, receive, send)
+            return
+        if scope["type"] == "websocket":
+            await send({"type": "websocket.close", "code": 1008})
+            return
+        if not api_key:
+            response = JSONResponse(
+                {"error": "Server authentication not configured"}, status_code=500
+            )
+        else:
+            response = JSONResponse({"error": "Missing or invalid API key"}, status_code=401)
+        await response(scope, receive, send)
+
+
+def serve_fastmcp_http(app, port: int, transport: str = "http") -> None:
+    """Run a FastMCP server over HTTP behind ``BearerAuthASGI``.
+
+    The one way Cohezion runs FastMCP over HTTP, so no server can be started on the
+    network without the key check. stdio transports need no auth and don't use it.
+    """
+    from starlette.middleware import Middleware
+
+    from cohezion.mcp.shared.bind import bind_host
+
+    app.run(
+        transport=transport,
+        host=bind_host(authenticated=True),
+        port=port,
+        middleware=[Middleware(BearerAuthASGI)],
+    )

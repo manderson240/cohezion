@@ -11,7 +11,7 @@ import logging
 import os
 import sys
 
-from cohezion.mcp.shared.bind import bind_host
+from cohezion.mcp.shared.auth import serve_fastmcp_http
 
 
 # Hardware-specific optimizations
@@ -73,7 +73,7 @@ def run_server_sync(name: str, transport: str = "stdio", port: int | None = None
         elif hasattr(module, "app"):
             # FastMCP app.run() will start its own loop
             if transport == "http" and port:
-                module.app.run(transport=transport, host=bind_host(authenticated=False), port=port)
+                serve_fastmcp_http(module.app, port)
             else:
                 module.app.run(transport=transport)
     except Exception:

@@ -16,6 +16,7 @@ import httpx
 from aiohttp import web
 
 from cohezion.mcp.registry import get_registry
+from cohezion.mcp.shared.auth import api_key_middleware, auth_headers
 from cohezion.mcp.shared.bind import bind_host
 
 
@@ -50,7 +51,7 @@ class WebMCPBridge:
     def __init__(self, port: int = 8380) -> None:
         self.port = port
         self.registry = get_registry()
-        self.app = web.Application()
+        self.app = web.Application(middlewares=[api_key_middleware])
         self._setup_routes()
 
     def _setup_routes(self) -> None:
@@ -207,6 +208,7 @@ class WebMCPBridge:
             resp = await client.post(
                 f"{base_url}/tools/{tool_name}",
                 json=arguments,
+                headers=auth_headers(),
             )
             resp.raise_for_status()
             return resp.json()
@@ -245,7 +247,7 @@ class WebMCPBridge:
     async def start(self) -> None:
         runner = web.AppRunner(self.app)
         await runner.setup()
-        site = web.TCPSite(runner, bind_host(authenticated=False), self.port)
+        site = web.TCPSite(runner, bind_host(authenticated=True), self.port)
         await site.start()
         logger.info("WebMCP Bridge started on port %d", self.port)
 

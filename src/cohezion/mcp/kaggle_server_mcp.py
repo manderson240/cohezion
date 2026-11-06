@@ -42,7 +42,7 @@ from typing import Any
 
 from fastmcp import FastMCP
 
-from cohezion.mcp.shared.bind import bind_host
+from cohezion.mcp.shared.auth import serve_fastmcp_http
 
 
 logging.basicConfig(
@@ -513,6 +513,6 @@ if __name__ == "__main__":
     transport = os.getenv("MCP_TRANSPORT", "stdio")
     if transport == "http":
         port = int(os.getenv("MCP_PORT", "8363"))
-        app.run(transport="streamable-http", host=bind_host(authenticated=False), port=port)
+        serve_fastmcp_http(app, port, transport="streamable-http")
     else:
         app.run(transport="stdio")
