@@ -178,7 +178,8 @@ class EventConsumer:
             residency_fn  # lazy default (see _handle_residency) — avoids import at module load
         )
         self._key_fn = key_fn or mesh_sig.load_key
-        self._unverifiable_filed = False  # dedupe: one work item per run_once
+        self._filed_titles: set[str] = set()  # dedupe: one work item per title per run_once
+        self._drift_ran = False
         self._ensure_claim_field()
 
     def _ensure_claim_field(self) -> None:
@@ -212,56 +213,90 @@ class EventConsumer:
             raise RuntimeError(f"claim failed for {record_id}: {errs[0].get('result')}")
 
     def _sig_verdict(self, event: dict[str, Any]) -> str:
-        """ok | BAD | none | unverifiable (signed but no usable key)."""
+        """ok | BAD | none | unverifiable (known kid, no usable key). Never raises."""
         try:
             data = json.loads(str(event.get("payload", "")))
-        except ValueError:
-            return "none"
-        sig = data.get("_sig") if isinstance(data, dict) else None
-        if sig is None:
-            return "none"
-        key = self._key_fn(sig.get("kid") if isinstance(sig, dict) else None)
-        return "unverifiable" if key is None else mesh_sig.verify_sig(event, key)
+            sig = data.get("_sig") if isinstance(data, dict) else None
+            if sig is None:
+                return "none"
+            if not isinstance(sig, dict) or not mesh_sig.known_kid(sig.get("kid")):
+                return "BAD"  # unknown/garbage signer must not downgrade to "unverifiable"
+            key = self._key_fn(sig.get("kid"))
+            return "unverifiable" if key is None else mesh_sig.verify_sig(event, key)
+        except (ValueError, RecursionError, OverflowError, TypeError):
+            return "BAD" if '"_sig"' in str(event.get("payload", "")) else "none"
+
+    @staticmethod
+    def _clean(text: Any, cap: int = 80) -> str:
+        """Attacker-controlled field -> printable, single-line, bounded."""
+        return "".join(c if c.isprintable() else " " for c in str(text))[:cap]
+
+    @staticmethod
+    def _is_signing_source(source: str) -> bool:
+        return source.strip().lower().startswith(SIGNING_SOURCE_PREFIX)
 
     def _file_mesh_item(
         self, title: str, event: dict[str, Any], verdict: str, priority: int
-    ) -> str:
-        return self._call_file_work_item(
-            title,
-            f"sig={verdict} event={event.get('id', '?')} type={event.get('event_type')}",
-            str(event.get("source", "datamesh")),
-            priority,
-        )
+    ) -> str | None:
+        """File once per (title) per run; a filing failure never loses the verdict."""
+        if title in self._filed_titles:
+            return None
+        self._filed_titles.add(title)
+        try:
+            return self._call_file_work_item(
+                title,
+                f"sig={verdict} event={self._clean(event.get('id', '?'))} "
+                f"type={self._clean(event.get('event_type'))}",
+                self._clean(event.get("source", "datamesh")),
+                priority,
+            )
+        except Exception as exc:  # work queue down: keep rejecting, log loudly
+            logger.error("mesh item filing failed (%s): %s", title, exc)
+            return None
 
     def handle(self, event: dict[str, Any]) -> dict[str, Any]:
-        """Verify the HMAC on signed rows, then route; every result carries ``sig``."""
+        """Verify the HMAC on signed rows, then route; every result carries ``sig``.
+
+        Fail closed for signing sources (``uap:capella*``): only ``ok`` is dispatched.
+        BAD anywhere is rejected; none/unverifiable from a signing source is quarantined.
+        """
         verdict = self._sig_verdict(event)
-        etype, source = str(event.get("event_type", "")), str(event.get("source", ""))
+        etype = self._clean(event.get("event_type", ""))
+        source = str(event.get("source", ""))
+        src = self._clean(source)
         if verdict == "BAD":  # forged/tampered: never run the normal handler
             item = self._file_mesh_item(
-                f"mesh: BAD signature on {etype} from {source}", event, verdict, 2
+                f"mesh: BAD signature on {etype} from {src}", event, verdict, 2
             )
             return {"action": "rejected_sig", "sig": "BAD", "work_item": item}
-        if verdict == "none" and source.startswith(SIGNING_SOURCE_PREFIX):
-            self._file_mesh_item("mesh: unsigned event from a signing source", event, verdict, 2)
-        elif verdict == "unverifiable" and not self._unverifiable_filed:
-            self._unverifiable_filed = True
+        if verdict != "ok" and self._is_signing_source(source):
+            title = (
+                "mesh: unsigned event from a signing source"
+                if verdict == "none"
+                else "mesh: signed event but no usable mesh key"
+            )
+            item = self._file_mesh_item(title, event, verdict, 2)
+            return {"action": "quarantined_sig", "sig": verdict, "work_item": item}
+        if verdict == "unverifiable":  # non-signing source carrying a signature we cannot check
             self._file_mesh_item("mesh: signed event but no usable mesh key", event, verdict, 2)
         out = self._dispatch(event)
         out["sig"] = verdict
-        if self._is_capella_drift_trigger(event):
+        if verdict == "ok" and self._is_capella_drift_trigger(event) and not self._drift_ran:
+            self._drift_ran = True  # once per run_once: bounded subprocess time
             out["drift"] = self._run_drift()
+            if out["drift"] not in (0, 2):
+                logger.warning("capella drift abnormal result: %s", out["drift"])
         return out
 
     @staticmethod
     def _is_capella_drift_trigger(event: dict[str, Any]) -> bool:
-        if str(event.get("source", "")) != SIGNING_SOURCE_PREFIX:
+        if str(event.get("source", "")).strip().lower() != SIGNING_SOURCE_PREFIX:
             return False
         if str(event.get("event_type", "")).lower() not in DRIFT_EVENT_TYPES:
             return False
         try:
             data = json.loads(str(event.get("payload", "")))
-        except ValueError:
+        except (ValueError, RecursionError):
             return False
         return isinstance(data, dict) and data.get("product_id") == CAPELLA_PRODUCT_ID
 
@@ -391,7 +426,8 @@ class EventConsumer:
             "tallied": 0,
             "failed": {},
         }
-        self._unverifiable_filed = False
+        self._filed_titles.clear()
+        self._drift_ran = False
         for event in self.fetch_unclaimed(batch):
             rid = str(event.get("id", ""))
             summary["fetched"] += 1

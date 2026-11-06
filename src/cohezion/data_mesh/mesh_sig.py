@@ -41,7 +41,7 @@ def verify_sig(row: dict[str, Any], key_bytes: bytes) -> str:
     """Return ``"ok"`` | ``"BAD"`` | ``"none"``; malformed input is BAD, never an exception."""
     try:
         payload = json.loads(row["payload"])
-    except (KeyError, TypeError, ValueError):
+    except (KeyError, TypeError, ValueError, RecursionError):
         return "none"
     sig = payload.pop("_sig", None) if isinstance(payload, dict) else None
     if sig is None:
@@ -60,8 +60,12 @@ def verify_sig(row: dict[str, Any], key_bytes: bytes) -> str:
             parts.insert(2, str(int(row.get("priority", 1))).encode())
         want = hmac.new(key_bytes, b"|".join(parts), hashlib.sha256).hexdigest()
         return "ok" if hmac.compare_digest(want.encode(), sig["mac"].encode()) else "BAD"
-    except (KeyError, TypeError, ValueError, UnicodeEncodeError):
+    except (KeyError, TypeError, ValueError, OverflowError, RecursionError, UnicodeEncodeError):
         return "BAD"
+
+
+def known_kid(kid: Any) -> bool:
+    return any(str(kid).startswith(p) for p in _KID_PREFIX_TO_FILE)
 
 
 def load_key(kid: Any, key_dir: Path | None = None) -> bytes | None:

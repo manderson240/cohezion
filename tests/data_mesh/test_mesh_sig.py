@@ -101,22 +101,92 @@ def test_discriminating_real_verifier_rejects_where_ok_stub_would_not(monkeypatc
     assert c.handle(tampered)["action"] != "rejected_sig"  # stub lets forgery through
 
 
-def test_unsigned_from_signing_source_filed_but_handled():
+def test_unsigned_from_signing_source_is_quarantined_no_dispatch_no_drift(monkeypatch):
     filed = []
-    out = _consumer(filed).handle(
-        {"event_type": "custom", "source": "uap:capella", "payload": "{}"}
-    )
-    assert out["sig"] == "none" and out["action"] == "tally"
+    c = _consumer(filed)
+    monkeypatch.setattr(c, "_dispatch", lambda e: pytest.fail("dispatched"))
+    monkeypatch.setattr(c, "_run_drift", lambda: pytest.fail("drift ran"))
+    row = _row()
+    p = json.loads(row["payload"])
+    p.pop("_sig")
+    row["payload"] = json.dumps(p)
+    out = c.handle(row)
+    assert out["action"] == "quarantined_sig" and out["sig"] == "none"
     assert filed[0][0] == "mesh: unsigned event from a signing source"
 
 
-def test_missing_key_unverifiable_once_per_run_not_rejected():
+@pytest.mark.parametrize("src", ["UAP:capella", " uap:capella", "uap:capella-x"])
+def test_source_variants_still_quarantined(src, monkeypatch):
+    c = _consumer([])
+    monkeypatch.setattr(c, "_dispatch", lambda e: pytest.fail("dispatched"))
+    out = c.handle({"event_type": "custom", "source": src, "payload": "{}"})
+    assert out["action"] == "quarantined_sig"
+
+
+def test_unsigned_from_other_source_is_handled():
+    out = _consumer([]).handle({"event_type": "custom", "source": "other", "payload": "{}"})
+    assert out["sig"] == "none" and out["action"] == "tally"
+
+
+@pytest.mark.parametrize(
+    "sig", ["junk", 0, {"kid": "zzz", "mac": "ab"}, {"mac": "x", "v": float("inf")}, {}]
+)
+def test_garbage_sig_is_rejected_not_unverifiable(sig, monkeypatch):
+    c = _consumer([])
+    monkeypatch.setattr(c, "_dispatch", lambda e: pytest.fail("dispatched"))
+    row = _row()
+    p = json.loads(row["payload"])
+    p["_sig"] = sig
+    row["payload"] = json.dumps(p)
+    assert c.handle(row)["action"] == "rejected_sig"
+
+
+def test_overflow_priority_and_deep_nesting_are_contained():
+    row = _row()
+    row["priority"] = float("inf")
+    assert mesh_sig.verify_sig(row, KEY) == "BAD"
+    deep = dict(_row(), payload="[" * 200000)
+    assert _consumer([]).handle(deep)["sig"] in ("none", "BAD")
+
+
+def test_missing_key_quarantines_signed_capella_event_once_per_run():
     filed = []
     c = _consumer(filed, key_fn=lambda kid: None)
     row = _row(event_type="CUSTOM")
+    assert c.handle(row)["action"] == "quarantined_sig"
     assert c.handle(row)["sig"] == "unverifiable"
-    assert c.handle(row)["action"] == "tally"
     assert len(filed) == 1
+
+
+def test_filing_failure_does_not_lose_bad_verdict():
+    def boom(*a, **k):
+        raise RuntimeError("queue down")
+
+    c = EventConsumer("t", sql_fn=lambda q: [], key_fn=lambda k: KEY, file_work_item_fn=boom)
+    out = c.handle(_tamper(_row()))
+    assert out["action"] == "rejected_sig" and out["work_item"] is None
+
+
+def test_title_fields_are_sanitised_and_bounded():
+    filed = []
+    c = _consumer(filed)
+    row = _tamper(_row(event_type="X\n" + "A" * 500))
+    c.handle(row)
+    assert "\n" not in filed[0][0] and len(filed[0][0]) < 200
+
+
+def test_run_once_production_path_rejects_tampered_and_drifts_once(monkeypatch):
+    good, bad = _row(), _tamper(_row())
+    good["id"], bad["id"] = "data_product_event:g", "data_product_event:b"
+    rows = [bad, good, dict(good, id="data_product_event:g2")]
+    filed, ran = [], []
+    c = _consumer(filed)
+    monkeypatch.setattr(c, "fetch_unclaimed", lambda n: rows)
+    monkeypatch.setattr(c, "claim", lambda rid: None)
+    monkeypatch.setattr(c, "_run_drift", lambda: ran.append(1) or 0)
+    summary = c.run_once()
+    assert summary["failed"] == {} and len(ran) == 1
+    assert {a["event"] for a in summary["actioned"]} == {"data_product_event:b"}
 
 
 def test_drift_route_records_exit_code(monkeypatch):
