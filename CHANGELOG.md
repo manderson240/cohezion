@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.27.2] - 2026-11-06
+
+### Security — sandbox child drops root before running untrusted code
+- rlimits do not bind root, so `src/cohezion/compound/_sandbox_child.py` now drops to `nobody` before applying them and refuses to run if the drop cannot be proven. Tests: `tests/compound/test_sandbox_root_drop.py`, in a gating CI step.
+
 ## [1.27.1] - 2026-09-27
 
 ### Performance — Lazy package facades (dynamic modularity audit R1/R2)
