@@ -7,7 +7,6 @@ server actually serves, so they fail if a server drops the middleware.
 from __future__ import annotations
 
 import ast
-import importlib
 from pathlib import Path
 
 import pytest
@@ -91,19 +90,13 @@ def test_auth_headers_carry_the_key(with_key):
     ],
 )
 def test_aiohttp_servers_use_the_middleware(module):
-    try:
-        mod = importlib.import_module(module)
-    except ImportError as err:
-        pytest.skip(f"{module} needs an optional dependency: {err}")
+    mod = pytest.importorskip(module)
     assert auth.api_key_middleware in mod.create_app().middlewares
 
 
 def test_webmcp_bridge_uses_the_middleware():
-    try:
-        from cohezion.mcp.webmcp_bridge import WebMCPBridge
-    except ImportError as err:
-        pytest.skip(f"webmcp_bridge needs an optional dependency: {err}")
-    assert auth.api_key_middleware in WebMCPBridge().app.middlewares
+    bridge = pytest.importorskip("cohezion.mcp.webmcp_bridge")
+    assert auth.api_key_middleware in bridge.WebMCPBridge().app.middlewares
 
 
 def test_no_server_runs_fastmcp_over_http_directly():

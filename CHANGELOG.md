@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.27.2] - 2026-11-06
+
+### Security — MCP servers bind loopback and require the API key
+- Cloud Vault now enforces `MCP_API_KEY`: `APIKeyAuth` had been defined since February and never applied. `main()` wraps the served app in a bearer check (only `/health` is open) and refuses to start without a key (`cloud-vault-mcp/src/mcp_server/auth.py`, tests in `cloud-vault-mcp/tests/test_auth_enforcement.py`).
+- Every Cohezion MCP server gets its address from `src/cohezion/mcp/shared/bind.py`: loopback by default, `MCP_HOST` to override, and an unauthenticated server refuses a non-loopback address.
+- The 10 servers that had no auth now require the key: aiohttp servers attach `api_key_middleware`, FastMCP servers run HTTP through `serve_fastmcp_http` (`src/cohezion/mcp/shared/auth.py`). Tests: `tests/mcp/test_bind_host.py`, `tests/mcp/test_mcp_auth.py`, in a gating CI step.
+
 ## [1.27.1] - 2026-09-27
 
 ### Performance — Lazy package facades (dynamic modularity audit R1/R2)
