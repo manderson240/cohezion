@@ -22,6 +22,23 @@ def calculate_shannon_entropy(text: str) -> float:
     return -sum((c / total) * math.log2(c / total) for c in counts.values())
 
 
+COLLAPSE_MIN_CHARS = 64
+COLLAPSE_DOMINANCE = 0.9
+
+
+def is_collapsed(text: str) -> bool:
+    """True when a reply is one symbol repeated: a broken backend, not an answer.
+
+    Measured failure (2026-11-05, qwen3.6-35B on FLM 1.0.12): "/" x 8192. Whitespace is
+    ignored, so "/ / /" and "/\\n/\\n" count too. The metric is single-symbol dominance, not
+    entropy: random binary (dominance ~0.5) and DNA (~0.25) are low-entropy but legitimate.
+    """
+    chars = [c for c in text if not c.isspace()]
+    if len(chars) < COLLAPSE_MIN_CHARS:
+        return False
+    return collections.Counter(chars).most_common(1)[0][1] / len(chars) >= COLLAPSE_DOMINANCE
+
+
 def detect_repetition_spiral(text: str, n: int = 4, max_repeats: int = 3) -> bool:
     """Detect repetitive n-gram loops in generated text."""
     words = text.split()

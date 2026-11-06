@@ -16,6 +16,7 @@ from enum import StrEnum
 from typing import Any
 
 from cohezion.core.event_bus import Event, EventBus, get_event_bus
+from cohezion.inference.anti_spiral_watchdog import is_collapsed
 from cohezion.inference.delegation_logger import DelegationEvent, DelegationLogger
 from cohezion.inference.lemonade_health import probe_lemonade
 from cohezion.inference.transports.base import BaseInferenceTransport
@@ -789,6 +790,15 @@ class UnifiedHybridRouter:
                     raw = (msg.get("content") or msg.get("reasoning_content") or "").strip()
                     if "</think>" in raw:
                         raw = raw.split("</think>")[-1].strip()
+                    # A collapsed reply ("/" x 2048 from a broken FLM build, 2026-11-05) is a
+                    # backend fault, not an answer: return None so callers treat it as a miss.
+                    if is_collapsed(raw):
+                        logger.warning(
+                            "Local reply from %s rejected: one symbol over %d chars",
+                            model,
+                            len(raw),
+                        )
+                        return None
                     return raw
         except Exception as exc:
             logger.debug("Local Lemonade query bypassed: %s", exc)

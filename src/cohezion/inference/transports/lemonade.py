@@ -5,6 +5,7 @@ from typing import Any
 
 import httpx
 
+from cohezion.inference.anti_spiral_watchdog import is_collapsed
 from cohezion.inference.transports.base import BaseInferenceTransport, TransportResponse
 
 
@@ -33,6 +34,8 @@ class LemonadeTransport(BaseInferenceTransport):
                     raw = (msg.get("content") or msg.get("reasoning_content") or "").strip()
                     if "</think>" in raw:
                         raw = raw.split("</think>")[-1].strip()
+                    if is_collapsed(raw):  # broken backend, not an answer
+                        return None
 
                     return TransportResponse(
                         content=raw,
