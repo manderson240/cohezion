@@ -10,21 +10,27 @@ Validates:
 
 from __future__ import annotations
 
+import importlib.util
 import sys
 from pathlib import Path
 
 
-_SCRIPTS_CI_DIR = Path(__file__).resolve().parents[2] / "scripts" / "ci"
-if str(_SCRIPTS_CI_DIR) not in sys.path:
-    sys.path.insert(0, str(_SCRIPTS_CI_DIR))
+# Load by file path, not by name: scripts/producer_consumer_audit.py is an unrelated script with
+# the same module name, and once another test puts scripts/ ahead of scripts/ci on sys.path a
+# plain import picks it up -- an ImportError that broke full-suite collection (CI's integration
+# step) only, depending on collection order.
+_PATH = Path(__file__).resolve().parents[2] / "scripts" / "ci" / "producer_consumer_audit.py"
+_SPEC = importlib.util.spec_from_file_location("ci_producer_consumer_audit", _PATH)
+assert _SPEC is not None and _SPEC.loader is not None
+_mod = importlib.util.module_from_spec(_SPEC)
+sys.modules[_SPEC.name] = _mod  # dataclasses resolve their module via sys.modules
+_SPEC.loader.exec_module(_mod)
 
-from producer_consumer_audit import (
-    AUDIT_PAIRS,
-    AuditPair,
-    execute_audit,
-    format_markdown_report,
-    run_self_test,
-)
+AUDIT_PAIRS = _mod.AUDIT_PAIRS
+AuditPair = _mod.AuditPair
+execute_audit = _mod.execute_audit
+format_markdown_report = _mod.format_markdown_report
+run_self_test = _mod.run_self_test
 
 
 def test_producer_consumer_audit_self_test() -> None:
