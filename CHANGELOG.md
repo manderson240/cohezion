@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added — HMAC verification of bus events and capella drift route (1.28.0)
+- `src/cohezion/data_mesh/mesh_sig.py`: consumer-side verification of the producer's `_sig`
+  (byte-compatible with the uap-corpus producer, capella_mesh). `event_consumer.py` `handle()` is now a
+  signature gate: BAD or garbage `_sig` -> work item + `rejected_sig`; non-ok events from `uap:capella*`
+  are quarantined (fail closed); only `ok` capella UPDATED / QUALITY_REPORT events run the capella drift
+  check, at most once per `run_once`.
+
 ## [1.27.1] - 2026-09-27
 
 ### Performance — Lazy package facades (dynamic modularity audit R1/R2)
