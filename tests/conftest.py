@@ -363,3 +363,26 @@ def reset_singletons():
         logger.handlers.clear()
         logger.filters.clear()
         logger.propagate = True
+
+
+def pytest_collection_modifyitems(config: pytest.Config, items: list[pytest.Item]) -> None:
+    """Deterministic CI sharding: ``COHEZION_TEST_SHARD=i/n`` keeps only shard ``i`` of ``n``.
+
+    CI's Stage 3 matrix ran 4 jobs that each executed the WHOLE suite with ``-x``, so all 4
+    stopped on the same first failure and every other result stayed hidden. Items are assigned
+    by a stable hash of their node id, so every xdist worker deselects identically.
+    """
+    spec = os.environ.get("COHEZION_TEST_SHARD", "")
+    if not spec:
+        return
+    import zlib
+
+    index, total = (int(part) for part in spec.split("/"))
+    if not 1 <= index <= total:
+        raise pytest.UsageError(f"COHEZION_TEST_SHARD={spec!r}: need 1 <= i <= n")
+    keep, drop = [], []
+    for item in items:
+        bucket = zlib.crc32(item.nodeid.encode()) % total + 1
+        (keep if bucket == index else drop).append(item)
+    items[:] = keep
+    config.hook.pytest_deselected(items=drop)

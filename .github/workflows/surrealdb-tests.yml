@@ -250,6 +250,9 @@ jobs:
         run: uv sync --frozen --extra dev
 
       - name: Run unit tests (shard ${{ matrix.shard }}/4)
+        # Real split (tests/conftest.py); no -x, so a failure no longer hides the rest of the shard.
+        env:
+          COHEZION_TEST_SHARD: ${{ matrix.shard }}/4
         run: |
           uv run pytest \
             --dist loadgroup \
@@ -260,8 +263,7 @@ jobs:
             --junitxml=junit-unit-${{ matrix.shard }}.xml \
             --cov=src/cohezion \
             --cov-report=xml:coverage-unit-${{ matrix.shard }}.xml \
-            --cov-report=html:htmlcov-unit-${{ matrix.shard }}/ \
-            -x
+            --cov-report=html:htmlcov-unit-${{ matrix.shard }}/
 
       - name: Upload test results
         if: always()
